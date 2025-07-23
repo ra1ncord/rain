@@ -1,5 +1,5 @@
 <div align="center">
-	<img height="150" alt="Rain logo" src="https://raw.githubusercontent.com/ra1ncord/ra1n/refs/heads/main/sketch1753296157792.png" />
+	<img height="150" alt="Rain logo" src="https://raw.githubusercontent.com/ra1ncord/ra1n/refs/heads/main/ra1n-temp.png" />
 </div>
 
 # Welcome to **ra1n**
