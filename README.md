@@ -15,7 +15,7 @@ ra1n's development was started after i had a disagreement with the developer of 
 ra1n currently is still nowhere near a state where it is ready for any sort of release. as for platforms it will be available for, android is the target however iOS is something that is being planned!
 
 ## How can I support the project?
-ra1n can be supported in many ways, you can [contribute](## Contributing), make a [bug report](## Bug reporting) or [donate](https://www.ko-fi.com/cocobo1)
+ra1n can be supported in many ways, you can [contribute](#Contributing), make a [bug report](#Bug reporting) or [donate](https://www.ko-fi.com/cocobo1)
 
 ## Bug reporting
 Bug reports are a crucial part of development, they make the project more stable and make developers aware of issues. before filing an issue please make sure it isnt a duplicate
