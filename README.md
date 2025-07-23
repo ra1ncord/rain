@@ -1,3 +1,7 @@
+<div align="center">
+	<img height="150" alt="Rain logo" src="https://raw.githubusercontent.com/ra1ncord/ra1n/refs/heads/main/sketch1753296157792.png" />
+</div>
+
 # Welcome to **ra1n**
 ra1n is a work-in-progress custom Discord client for android, designed to be lightweight and feature-packed!
 
