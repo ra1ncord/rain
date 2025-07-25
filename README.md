@@ -9,7 +9,7 @@ ra1n is a work-in-progress custom Discord client for android, designed to be lig
 ra1n is a work-in-progress custom client for discord aimed at being written from the ground up, depending on code from as little projects as possible (minus the kotlin side). 
 
 ## What started the creation of ra1n
-ra1n's development was started after i had a disagreement with the developer of a discord mod which i forked. details will not be shared due to wanting to keep it civil but I realised creating a client from scratch was a better call for the community, my mental health and development.
+ra1n's development was started after i had a disagreement with the developer of a discord mod which i forked (i believe this to be sorted now, however for other reasons i still believe making my own client mod will be the better call). details will not be shared due to wanting to keep it civil but I realised creating a client from scratch was a better call for the community, my mental health and development.
 
 ## When will ra1n be available and what devices will it be available for?
 ra1n currently is still nowhere near a state where it is ready for any sort of release. as for platforms it will be available for, android is the target however iOS is something that is being planned!
