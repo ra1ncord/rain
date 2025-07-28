@@ -2,7 +2,7 @@
 	<img height="150" alt="Rain logo" src="https://raw.githubusercontent.com/ra1ncord/ra1n/refs/heads/main/ra1n-temp.png" />
 </div>
  
-### [![Discord](https://img.shields.io/discord/1368145952266911755?logo=discord&logoColor=%23ffffffff&color=%231D88CF&link=https%3A%2F%2Fdiscord.gg%2F6cN7wKa8gp)](https://discord.gg/6cN7wKa8gp)
+### [![Discord](https://img.shields.io/discord/1368145952266911755?logo=discord&logoColor=%23ffffffff&color=%231D88CF&link=https%3A%2F%2Fdiscord.gg%2F6cN7wKa8gp)](https://discord.gg/6cN7wKa8gp) [![Static Badge](https://img.shields.io/badge/kofi-cocobo1-%23FF6433?style=flat&logo=ko-fi&labelColor=%23ffffff)](https://www.ko-fi.com/cocobo1) ![GitHub last commit](https://img.shields.io/github/last-commit/ra1ncord/ra1n?logo=github) 
 
 # Welcome to **ra1n**
 ra1n is a work-in-progress custom Discord client for android, designed to be lightweight and feature-packed!
