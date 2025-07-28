@@ -2,6 +2,7 @@
 	<img height="150" alt="Rain logo" src="https://raw.githubusercontent.com/ra1ncord/ra1n/refs/heads/main/ra1n-temp.png" />
 </div>
 
+
 [![Discord](https://img.shields.io/discord/1368145952266911755?logo=discord&logoColor=%23ffffffff&color=%231D88CF&link=https%3A%2F%2Fdiscord.gg%2F6cN7wKa8gp)](https://discord.gg/6cN7wKa8gp)
 
 # Welcome to **ra1n**
