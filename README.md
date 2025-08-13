@@ -10,11 +10,11 @@ rain is a work-in-progress custom Discord client for android, designed to be lig
 ## What is rain?
 rain is a work-in-progress custom client for discord aimed at being written from the ground up, depending on code from as little projects as possible (minus the kotlin side).
 
-## When will ra1n be available and what devices will it be available for?
+## When will rain be available and what devices will it be available for?
 rain currently is still nowhere near a state where it is ready for any sort of release. as for platforms it will be available for, android is the target however iOS is something that is being planned!
 
 ## How can I support the project?
-ra1n can be supported in many ways, you can [contribute](#Contributing), make a [bug report](#Bug-reporting) or [donate](https://www.ko-fi.com/cocobo1)
+rain can be supported in many ways, you can [contribute](#Contributing), make a [bug report](#Bug-reporting) or [donate](https://www.ko-fi.com/cocobo1)
 
 ## Bug-reporting
 Bug reports are a crucial part of development, they make the project more stable and make developers aware of issues. before filing an issue please make sure it isnt a duplicate
