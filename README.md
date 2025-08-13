@@ -4,17 +4,14 @@
  
 ### [![Discord](https://img.shields.io/discord/1368145952266911755?logo=discord&logoColor=%23ffffffff&color=%231D88CF&link=https%3A%2F%2Fdiscord.gg%2F6cN7wKa8gp)](https://discord.gg/6cN7wKa8gp) [![Static Badge](https://img.shields.io/badge/kofi-cocobo1-%23FF6433?style=flat&logo=ko-fi&labelColor=%23ffffff)](https://www.ko-fi.com/cocobo1) ![GitHub last commit](https://img.shields.io/github/last-commit/ra1ncord/ra1n?logo=github) 
 
-# Welcome to **ra1n**
-ra1n is a work-in-progress custom Discord client for android, designed to be lightweight and feature-packed!
+# Welcome to **rain**
+rain is a work-in-progress custom Discord client for android, designed to be lightweight and feature-packed!
 
-## What is ra1n?
-ra1n is a work-in-progress custom client for discord aimed at being written from the ground up, depending on code from as little projects as possible (minus the kotlin side). 
-
-## What started the creation of ra1n
-ra1n's development was started after i had a disagreement with the developer of a discord mod which i forked (i believe this to be sorted now, however for other reasons i still believe making my own client mod will be the better call). details will not be shared due to wanting to keep it civil but I realised creating a client from scratch was a better call for the community, my mental health and development.
+## What is rain?
+rain is a work-in-progress custom client for discord aimed at being written from the ground up, depending on code from as little projects as possible (minus the kotlin side).
 
 ## When will ra1n be available and what devices will it be available for?
-ra1n currently is still nowhere near a state where it is ready for any sort of release. as for platforms it will be available for, android is the target however iOS is something that is being planned!
+rain currently is still nowhere near a state where it is ready for any sort of release. as for platforms it will be available for, android is the target however iOS is something that is being planned!
 
 ## How can I support the project?
 ra1n can be supported in many ways, you can [contribute](#Contributing), make a [bug report](#Bug-reporting) or [donate](https://www.ko-fi.com/cocobo1)
