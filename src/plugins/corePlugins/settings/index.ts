@@ -12,16 +12,16 @@ export default definePlugin({
         }
     },
     start() {
-        //patchSettings()
-        //registerSection({
-        //    name: "rain",
-        //    items: [
-        //        {
-        //            key: "RAIN",
-        //            title: () => "rain",
-        //            render: () => import("./pages/General")
-        //        }
-        //    ]
-        //});
+        patchSettings()
+        registerSection({
+            name: "rain",
+            items: [
+                {
+                    key: "RAIN",
+                    title: () => "rain",
+                    render: () => import("./pages/General")
+                }
+            ]
+        });
     }
 });

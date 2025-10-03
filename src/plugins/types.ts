@@ -31,10 +31,9 @@ export interface plugin {
 }
 
 export interface PluginDef {
-    name: string;
-    description: string;
-    id: string;
-    authors: Developer;
-    start?(): void;
-    stop?(): void;
+    readonly name: string;
+    readonly description: string;
+    readonly id: string;
+    readonly version: string;
+    readonly authors: Developer;
 }
