@@ -3,14 +3,6 @@ export interface Developer {
     readonly id: bigint;
 }
 
-export interface PluginDef {
-    readonly name: string;
-    readonly description: string;
-    readonly id: string;
-    readonly version: string;
-    readonly authors: Developer;
-}
-
 export interface PluginInstance {
     start?(): void;
     stop?(): void;
@@ -36,4 +28,13 @@ export interface Manifest {
 export interface plugin {
     default: PluginInstanceInternal;
     preenabled: boolean;
+}
+
+export interface PluginDef {
+    name: string;
+    description: string;
+    id: string;
+    authors: Developer;
+    start?(): void;
+    stop?(): void;
 }
