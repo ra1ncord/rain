@@ -44,15 +44,16 @@
     "@types/chroma-js": "~2.4.4",
     "@types/lodash": "~4.17.7",
     "@types/react": "19.1.8",
-    "react-native": "0.78.0",
     "es-toolkit": "^1.13.1",
     "fuzzysort": "^3.0.2",
     "intl-messageformat": "^10.5.14",
     "moment": "2.22.2",
+    "react-native": "0.78.0",
     "react-native-reanimated": "^3.6.2",
     "spitroast": "^1.4.4",
+    "synchronous-promise": "^2.0.17",
     "type-fest": "^4.22.1"
-    },
+  },
   "trustedDependencies": [
     "@swc/core"
   ]

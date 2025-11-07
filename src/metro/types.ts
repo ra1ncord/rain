@@ -1,139 +1,159 @@
-export namespace RNModules {
-    /**
-     * A key-value storage based upon `SharedPreferences` on Android.
-     *
-     * These types are based on Android though everything should be the same between
-     * platforms.
-     */
-    export interface MMKVManager {
-        /**
-         * Get the value for the given `key`, or null
-         * @param key The key to fetch
-         */
-        getItem: (key: string) => Promise<string | null>;
-        /**
-         * Deletes the value for the given `key`
-         * @param key The key to delete
-        */
-        removeItem: (key: string) => void;
-        /**
-         * Sets the value of `key` to `value`
-         */
-        setItem: (key: string, value: string) => void;
-        /**
-         * Goes through every item in storage and returns it, excluding the
-         * keys specified in `exclude`.
-         * @param exclude A list of items to exclude from result
-         */
-        refresh: (exclude: string[]) => Promise<Record<string, string>>;
-        /**
-         * You will be murdered if you use this function.
-         * Clears ALL of Discord's settings.
-         */
-        clear: () => void;
+import { Nullish } from "@lib/utils/types";
+
+/** @see {@link https://github.com/facebook/metro/blob/c2d7539dfc10aacb2f99fcc2f268a3b53e867a90/packages/metro-runtime/src/polyfills/require.js} */
+export namespace Metro {
+    export type DependencyMap = Array<ModuleID> & {
+        readonly paths?: Readonly<Record<ModuleID, string>> | undefined;
+    };
+
+    /** Only available on Discord's development environment, will never be defined on release builds */
+    export type InverseDependencyMap = Record<ModuleID, ModuleID[]>;
+
+    export type FactoryFn = (
+        global: object,
+        require: RequireFn,
+        metroImportDefault: RequireFn,
+        metroImportAll: RequireFn,
+        moduleObject: {
+            exports: any;
+        },
+        exports: any,
+        dependencyMap: DependencyMap | Nullish,
+    ) => void;
+
+    /** Only available on Discord's development environment, will never be defined on release builds */
+    export interface HotModuleReloadingData {
+        _acceptCallback: (() => void) | Nullish;
+        _disposeCallback: (() => void) | Nullish;
+        _didAccept: boolean;
+        accept: (callback?: (() => void) | undefined) => void;
+        dispose: (callback?: (() => void) | undefined) => void;
     }
 
-    export interface FileManager {
+    export type ModuleID = number;
+
+    export interface Module {
+        id?: ModuleID | undefined;
+        exports: any;
+        hot?: HotModuleReloadingData | undefined;
+    }
+
+    export interface ModuleDefinition {
+        /** Set to undefined once module is initialized */
+        dependencyMap: DependencyMap | Nullish;
+        /** Error.value thrown by the factory */
+        error?: any;
+        /** Set to undefined once module is initialized */
+        factory: FactoryFn | undefined;
         /**
-         * @param path **Full** path to file
-         */
-        fileExists: (path: string) => Promise<boolean>;
+         * If factory thrown any error
+         * */
+        hasError: boolean;
         /**
-         * Allowed URI schemes on Android: `file://`, `content://` ([See here](https://developer.android.com/reference/android/content/ContentResolver#accepts-the-following-uri-schemes:_3))
-         */
-        getSize: (uri: string) => Promise<boolean>;
+         * Only available on Discord's development environment, will never be defined on release builds
+         * */
+        hot?: HotModuleReloadingData | undefined;
         /**
-         * @param path **Full** path to file
-         * @param encoding Set to `base64` in order to encode response
-         */
-        readFile(path: string, encoding: "base64" | "utf8"): Promise<string>;
-        saveFileToGallery?(uri: string, fileName: string, fileType: "PNG" | "JPEG"): Promise<string>;
+         * Cached `import *` imports in Metro, always an empty object as Bunny prevents outdated import cache
+         * */
+        importedAll: any;
         /**
-         * @param storageDir Either `cache` or `documents`.
-         * @param path Path in `storageDir`, parents are recursively created.
-         * @param data The data to write to the file
-         * @param encoding Set to `base64` if `data` is base64 encoded.
-         * @returns Promise that resolves to path of the file once it got written
-         */
-        writeFile(storageDir: "cache" | "documents", path: string, data: string, encoding: "base64" | "utf8"): Promise<string>;
+         * Cached `import module from "./module"` imports in Metro, always an empty object as Bunny prevents outdated import cache
+         * */
+        importedDefault: any;
         /**
-         * Removes a file from the path given.
-         * (!) On Android, this always returns false, regardless if it fails or not!
-         * @param storageDir Either `cache` or `documents`
-         * @param path Path to the file to be removed
-         */
-        removeFile(storageDir: "cache" | "documents", path: string): Promise<unknown>;
+         * Whether factory has been successfully called
+         * */
+        isInitialized: boolean;
         /**
-         * Clear the folder from the path given
-         * (!) On Android, this only clears all *files* and not subdirectories!
-         * @param storageDir Either `cache` or `documents`
-         * @param path Path to the folder to be cleared
-         * @returns Whether the clearance succeeded
+         * Only available on Discord's development environment, will never be defined on release builds
+         * */
+        path?: string | undefined;
+        /**
+         * Acts as CJS module in the bundler
+         * */
+        publicModule: Module;
+        /**
+         * Only available on Discord's development environment, will never be defined on release builds
+         * */
+        verboseName?: string | undefined;
+
+        /**
+         * This is set by us. Should be available for all Discord's tsx modules!
          */
-        clearFolder(storageDir: "cache" | "documents", path: string): Promise<boolean>;
-        getConstants: () => {
-            /**
-             * The path the `documents` storage dir (see {@link writeFile}) represents.
-             */
-            DocumentsDirPath: string;
-            CacheDirPath: string;
+        __filePath?: string;
+    }
+
+    export type ModuleList = Record<ModuleID, ModuleDefinition | Nullish>;
+
+    export type RequireFn = (id: ModuleID) => any;
+
+    export type DefineFn = (
+        factory: FactoryFn,
+        moduleId: ModuleID,
+        dependencyMap?: DependencyMap | undefined,
+        /** Only available on Discord's development environment, will never be defined on release builds */
+        verboseName?: string | undefined,
+        /** Only available on Discord's development environment, will never be defined on release builds */
+        inverseDependencies?: InverseDependencyMap | undefined
+    ) => void;
+
+    export type ModuleDefiner = (moduleId: ModuleID) => void;
+
+    export type ClearFn = () => ModuleList;
+
+    export type RegisterSegmentFn = (
+        segmentId: number,
+        moduleDefiner: ModuleDefiner,
+        moduleIds: Readonly<ModuleID[]> | Nullish
+    ) => void;
+
+    export interface Require extends RequireFn {
+        importDefault: RequireFn;
+        importAll: RequireFn;
+        /** @throws {Error} A macro, will always throws an error at runtime */
+        context: () => never;
+        /** @throws {Error} A macro, will always throws an error at runtime */
+        resolveWeak: () => never;
+        unpackModuleId: (moduleId: ModuleID) => {
+            localId: number;
+            segmentId: number;
         };
-        /**
-         * Will apparently cease to exist some time in the future so please use {@link getConstants} instead.
-         * @deprecated
-         */
-        DocumentsDirPath: string;
-    }
-
-    export interface ClientInfoModule {
-        getConstants(): {
-            /**
-             * Sentry ingestion DSN URL for alpha/beta builds
-             */
-            SentryAlphaBetaDsn: string
-            /**
-             * Sentry ingestion DSN URL for staff builds (?)
-             */
-            SentryStaffDsn: string
-            /**
-             * Sentry ingestion DSN URL for stable builds
-             */
-            SentryDsn: string
-            DeviceVendorID: string
-            Manifest: string
-            /**
-             * Version code
-             *
-             * Follows the format of `{MINOR}{CHANNEL}{PATCH}` for `{MINOR}.{PATCH} ({CHANNEL})`
-             * - `248200` for `248.0 (alpha)`
-             * - `247105` for `247.5 (beta)`
-             * - `246011` for `246.11 (stable)`
-             */
-            Build: string
-            /**
-             * Version string
-             *
-             * Eg. `248.0`
-             */
-            Version: string
-            /**
-             * Release channel
-             */
-            ReleaseChannel: string
-            /**
-             * Matches `Version`
-             */
-            OTABuild: string
-            /**
-             * Identifier for the installed client
-             *
-             * - **Android**: Package name
-             * - **iOS**: Bundle ID
-             */
-            Identifier: string
-        }
+        packModuleId: (value: {
+            localId: number;
+            segmentId: number;
+        }) => ModuleID;
     }
 }
 
 
-export type Nullish = null | undefined;
+export type ModuleExports = any;
+export type FilterCheckDef<A extends unknown[]> = (
+    args: A,
+    module: any,
+    modulesId: number,
+    defaultCheck: boolean
+) => boolean;
+
+export interface FilterFn<A extends unknown[]> {
+    (m: any, id: number, defaultCheck: boolean): boolean;
+    filter: FilterCheckDef<A>;
+    raw: boolean;
+    uniq: string;
+}
+
+export interface FilterDefinition<A extends unknown[]> {
+    (...args: A): FilterFn<A>;
+    byRaw(...args: A): FilterFn<A>;
+    uniqMaker(args: A): string;
+}
+
+export interface LazyModuleContext<A extends unknown[] = unknown[]> {
+    filter: FilterFn<A>;
+    indexed: boolean;
+    moduleId?: number;
+    getExports(cb: (exports: any) => void): () => void;
+    subscribe(cb: (exports: any) => void): () => void;
+    forceLoad(): any;
+    get cache(): any;
+}

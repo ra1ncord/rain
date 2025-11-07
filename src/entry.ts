@@ -1,4 +1,4 @@
-import type { Metro } from "@metro";
+import type { Metro } from "@metro/types";
 const { instead } = require("spitroast");
 
 // @ts-ignore - window is defined later in the bundle, so we assign it early
