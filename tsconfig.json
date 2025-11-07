@@ -1,40 +1,34 @@
 {
-  "compilerOptions": {
-    // Environment setup & latest features
-    "lib": ["ESNext", "DOM"],
-    "target": "ESNext",
-    "module": "Preserve",
-    "moduleDetection": "force",
-    "jsx": "react-jsx",
-    "allowJs": true,
+    "exclude": [
+        "dist"
+    ],
+    "compilerOptions": {
+        "strict": true,
+        "paths": {
+            // Just to discourage from consuming the module directly
+            "spitroast": ["./shims/emptyModule"],
 
-    // Bundler mode
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": false,
-    "noEmit": true,
+            "@core/*": ["./src/core/*"],
+            "@lib": ["./src/lib"],
+            "@lib/*": ["./src/lib/*"],
+            "@metro": ["./src/metro"],
+            "@metro/*": ["./src/metro/*"],
+            "@ui": ["./src/lib/ui"],
+            "@ui/*": ["./src/lib/ui/*"],
+            "@types": ["./src/lib/utils/types.ts"],
+            "@assets/*": ["./src/assets/*"]
+        },
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "resolveJsonModule": true,
+        "allowJs": true,
+        "checkJs": true,
+        "jsx": "react-jsx",
+        "target": "esnext",
 
-    // Best practices
-    "strict": true,
-    "skipLibCheck": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-
-    // Some stricter flags (disabled by default)
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false,
-    "paths": {
-    // Just to discourage from consuming the module directly
-    "spitroast": ["./shims/emptyModule"],
-    "@assets/*": ["./src/assets/*"],
-    "@lib": ["./src/lib"],
-    "@lib/*": ["./src/lib/*"],
-    "@metro": ["./src/metro"],
-    "@metro/*": ["./src/metro/*"],
-    "@plugins/*": ["./src/plugins/*"],
-    "@plugins*": ["./src/plugins/*"],
-},
-  }
+        "skipLibCheck": true,
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "stripInternal": true
+    }
 }
