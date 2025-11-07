@@ -82,11 +82,17 @@ export function indexExportsFlags(moduleId: number, moduleExports: any) {
 
 /** @internal */
 export function indexBlacklistFlag(id: number) {
+    if (_metroCache.flagsIndex[id] === undefined) {
+        _metroCache.flagsIndex[id] = 0;
+    }
     _metroCache.flagsIndex[id] |= ModuleFlags.BLACKLISTED;
 }
 
 /** @internal */
 export function indexAssetModuleFlag(id: number) {
+    if (_metroCache.flagsIndex[id] === undefined) {
+        _metroCache.flagsIndex[id] = 0;
+    }
     _metroCache.flagsIndex[id] |= ModuleFlags.ASSET;
 }
 

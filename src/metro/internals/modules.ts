@@ -23,7 +23,7 @@ for (const key in metroModules) {
     const id = Number(key);
     const metroModule = metroModules[id];
 
-    const cache = getMetroCache().flagsIndex[id];
+    const cache = getMetroCache().flagsIndex[id] ?? 0;
     if (cache & ModuleFlags.BLACKLISTED) {
         blacklistModule(id);
         continue;
@@ -108,11 +108,6 @@ function onModuleRequire(moduleExports: any, id: Metro.ModuleID) {
     if (moduleExports?.default?.constructor?.displayName === "DeveloperExperimentStore") {
         moduleExports.default = new Proxy(moduleExports.default, {
             get(target, property, receiver) {
-                if (property === "isDeveloper") {
-                    // Hopefully won't explode accessing it here :3
-                    const { settings } = require("@lib/api/settings");
-                    return settings.enableDiscordDeveloperSettings ?? false;
-                }
 
                 return Reflect.get(target, property, receiver);
             }

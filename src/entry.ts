@@ -4,7 +4,7 @@ const { instead } = require("spitroast");
 // @ts-ignore - window is defined later in the bundle, so we assign it early
 globalThis.window = globalThis;
 
-async function initializeKettu() {
+async function initializeRain() {
     try {
         // Make 'freeze' and 'seal' do nothing
         Object.freeze = Object.seal = Object;
@@ -96,7 +96,7 @@ if (typeof window.__r === "undefined") {
         }
 
         const startDiscord = async () => {
-            await initializeKettu();
+            await initializeRain();
             
             for (const unpatch of unpatches) unpatch();
             unpatches.length = 0;
@@ -137,5 +137,5 @@ if (typeof window.__r === "undefined") {
         }
     });
 } else {
-    initializeKettu();
+    initializeRain();
 }
