@@ -1,18 +1,31 @@
 import { findAssetId } from "@lib/api/assets";
 import { lazy } from "react";
 import type { ImageURISource } from "react-native";
-
 import { patchTabsUI } from "./patches/tabs";
+import { definePlugin } from "@plugins";
 
-export default function initSettings() {
+export default definePlugin({
+    name: "settings",
+    description: "injects the settings menu",
+    author: { name: "cocobo1", id: 123456789012345678n },
+    id: "rain.core.settings",
+    icon: "cog",
+    version: "v1.0.0",
+    start() {
+        patchSettings();
+        initSettings();
+    }
+});
+
+function initSettings() {
     
     registerSection({
-        name: "RAIN",
+        name: "rain",
         items: [
             {
                 key: "RAIN",
                 title: () => "rain",
-                icon: findAssetId("CompassIcon"),
+                icon: findAssetId("RobotIcon"),
                 render: () => import("./pages/rain")
             }
         ]

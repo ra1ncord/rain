@@ -23,7 +23,7 @@ for (const key in metroModules) {
     const id = Number(key);
     const metroModule = metroModules[id];
 
-    const cache = getMetroCache().flagsIndex[id] ?? 0;
+    const cache = getMetroCache().flagsIndex[id];
     if (cache & ModuleFlags.BLACKLISTED) {
         blacklistModule(id);
         continue;
@@ -279,7 +279,6 @@ export function waitFor<T = any>(
         return false;
     }
 
-    // Check if we have cached results from the filter key
     if (filter.key) {
         const cache = getMetroCache().findIndex[filter.key];
         if (cache) {
@@ -287,11 +286,9 @@ export function waitFor<T = any>(
                 if (id[0] === "_") continue;
                 const numId = Number(id);
                 
-                // If module is already initialized, check it
                 if (metroModules[numId]?.isInitialized) {
                     if (checkModule(numId)) return cleanup;
                 } else {
-                    // Otherwise, wait for it to initialize
                     const unsub = subscribeModule(numId, () => {
                         checkModule(numId);
                     });
@@ -301,7 +298,6 @@ export function waitFor<T = any>(
         }
     }
 
-    // Check already initialized modules
     for (const id in metroModules) {
         if (!isActive) break;
         const numId = Number(id);
@@ -311,10 +307,7 @@ export function waitFor<T = any>(
         }
     }
 
-    // If we haven't found enough matches yet, subscribe to future module loads
     if (isActive) {
-        // Since your system doesn't have a global "moduleLoaded" event,
-        // we need to subscribe to all uninitialized modules
         for (const id in metroModules) {
             const numId = Number(id);
             if (!metroModules[numId]?.isInitialized) {
@@ -329,7 +322,6 @@ export function waitFor<T = any>(
     return cleanup;
 }
 
-// Convenience wrapper that returns a Promise
 export function waitForModule<T = any>(
     filter: ModuleFilter<T>,
     options: WaitForOptions = {}

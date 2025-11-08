@@ -9,13 +9,16 @@ async function initializeRain() {
         // Make 'freeze' and 'seal' do nothing
         Object.freeze = Object.seal = Object;
 
+        await require("@metro/internals/caches").initMetroCache();
         await require(".").default();
     } catch (e) {
+        const { ClientInfoManager } = require("@lib/api/native/modules");
         const stack = e instanceof Error ? e.stack : undefined;
 
         console.log(stack ?? e?.toString?.() ?? e);
         alert([
             "Failed to load rain!\n",
+            `Build Number: ${ClientInfoManager.getConstants().Build}`,
             stack || e?.toString?.(),
         ].join("\n"));
     }

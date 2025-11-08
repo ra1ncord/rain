@@ -1,4 +1,5 @@
 import { Nullish } from "@lib/utils/types";
+import { TextStyles, ThemeColors } from "@ui/types";
 import { Falsey } from "lodash";
 import { FC, MutableRefObject, PropsWithoutRef, ReactNode, RefObject } from "react";
 import type * as RN from "react-native";
@@ -151,15 +152,15 @@ interface ActionSheetProps {
 
 export type ActionSheet = React.FC<React.PropsWithChildren<ActionSheetProps>>;
 
-//type TextProps = React.ComponentProps<typeof RN.Text> & {
-//    variant?: TextStyles;
-//    color?: ThemeColors;
-//    lineClamp?: number;
-//    maxFontSizeMultiplier?: number;
-//    style?: RN.TextStyle;
-//};
+type TextProps = React.ComponentProps<typeof RN.Text> & {
+    variant?: TextStyles;
+    color?: ThemeColors;
+    lineClamp?: number;
+    maxFontSizeMultiplier?: number;
+    style?: RN.TextStyle;
+};
 
-//export type Text = React.FC<TextProps>;
+export type Text = React.FC<TextProps>;
 
 interface IconButtonProps {
     label?: string;

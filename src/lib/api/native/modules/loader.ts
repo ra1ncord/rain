@@ -3,7 +3,7 @@ import type { LoaderPayload } from "./types";
 
 type InteropReturn = Promise<{ ret: string } | { err: string } | { cancelled: true; reason: string }>;
 
-export const loaderPayload = window.__WINTRY_LOADER__ as LoaderPayload;
+export const loaderPayload = window.__PYON_LOADER__ as LoaderPayload;
 
 export function isModuleRegistered(module: string) {
     return loaderPayload.loader.modules[module] !== undefined;
@@ -19,7 +19,7 @@ export async function callFunction(module: string, functionName: string, args: u
     }
 
     const promise: InteropReturn = ImageLoader.queryCache([
-        "__wintry_bridge",
+        "__pyon_bridge",
         JSON.stringify({ m: module, f: functionName, a: args }),
     ]);
 

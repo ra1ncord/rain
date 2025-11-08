@@ -2,7 +2,7 @@ import { after } from "@lib/api/patcher";
 import { i18n, NavigationNative } from "@metro/common";
 import { LegacyFormDivider,LegacyFormIcon, LegacyFormRow, LegacyFormSection } from "@metro/common/components";
 import { findByNameLazy } from "@metro/wrappers";
-import { registeredSections } from "../";
+import { registeredSections } from "..";
 
 import { CustomPageRenderer, wrapOnPress } from "./shared";
 import findInReactTree from "@lib/utils/findInReactTree";
@@ -31,25 +31,6 @@ function SettingsSection() {
 }
 
 export function patchPanelUI(unpatches: (() => void | boolean)[]) {
-    try {
-        unpatches.push(
-            after("default", findByNameLazy("getScreens", false), (_a, screens) => ({
-                ...screens,
-                VendettaCustomPage: {
-                    title: "Kettu",
-                    render: () => <CustomPageRenderer />
-                },
-                BUNNY_CUSTOM_PAGE: {
-                    title: "Kettu",
-                    render: () => <CustomPageRenderer />
-                },
-                PUPU_CUSTOM_PAGE: {
-                    title: "Kettu",
-                    render: () => <CustomPageRenderer />
-                }
-            }))
-        );
-
         const unpatch = after("default", findByNameLazy("UserSettingsOverviewWrapper", false), (_a, ret) => {
             const UserSettingsOverview = findInReactTree(ret.props.children, n => n.type?.name === "UserSettingsOverview");
 
@@ -74,8 +55,5 @@ export function patchPanelUI(unpatches: (() => void | boolean)[]) {
         }, true);
 
         unpatches.push(unpatch);
-    } catch {
-
-    }
 }
 
