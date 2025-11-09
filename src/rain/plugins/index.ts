@@ -1,23 +1,23 @@
 import * as t from "./types";
-import { rainPlugin } from "./types";
+import { lazy } from "react";
 
-export const corePluginInstances = new Map<string, t.rainPlugin>();
-
-export const registeredPlugins = new Map<string, t.rainPlugin>();
 export const pluginInstances = new Map<string, t.rainPlugin>();
 
 function assert<T>(condition: T, id: string, attempt: string): asserts condition {
     if (!condition) throw new Error(`[${id}] Attempted to ${attempt}`);
 }
 
-export async function startPlugin(id: string, { } = {}) {
+export async function startPlugin(id: string, {} = {}) {
     let pluginInstance: t.rainPlugin;
-    pluginInstance = corePluginInstances.get(id)!;
+    pluginInstance = pluginInstances.get(id)!;
     assert(pluginInstance, id, "start a non-existent core plugin");
+    
     pluginInstances.set(id, pluginInstance);
+    
     try {
         pluginInstance.start?.();
     } catch (error) {
+        console.error(`[${id}] Failed to start:`, error);
         alert(error);
     }
 }
@@ -25,33 +25,45 @@ export async function startPlugin(id: string, { } = {}) {
 export function stopPlugin(id: string) {
     const instance = pluginInstances.get(id);
     assert(instance, id, "stop a non-started plugin");
-
+    
     instance.stop?.();
     pluginInstances.delete(id);
 }
 
 export async function initPlugins() {
+    const rainPlugins = await import("#rain-plugins");
     
-    const corePlugins = getCorePlugins();
-    for (const [id, plugin] of Object.entries(corePlugins)) {
-        corePluginInstances.set(id, plugin);
+    for (const [id, plugin] of Object.entries(rainPlugins.default)) {
+        pluginInstances.set(id, plugin);
     }
     
-    await Promise.allSettled([...corePluginInstances.keys()].map(async id => {
+    await Promise.allSettled([...pluginInstances.keys()].map(async id => {
         startPlugin(id);
     }));
 }
 
-export const getCorePlugins = (): Record<string, rainPlugin> => ({
-    "rain.core.settings": require("./.core/settings").default,
-    "rain.core.badges": require("./.core/badges").default,
-    "rain.dummy": require("./dummy").default,
-});
-
 export function definePlugin(
-  instance: rainPlugin,
-): rainPlugin {
-  // @ts-expect-error
-  instance[Symbol.for("rain.plugin")] = true;
-  return instance;
+    instance: t.rainPlugin,
+): t.rainPlugin {
+    // @ts-expect-error
+    instance[Symbol.for("rain.plugin")] = true;
+    return instance;
+}
+
+export function registerPlugin(id: string, plugin: t.rainPlugin) {
+    Object.defineProperty(plugin, "$id", {
+        value: id,
+        writable: false,
+        enumerable: false,
+    });
+    
+    return (relativePath: string) => {
+        Object.defineProperty(plugin, "$path", {
+            value: relativePath || "<unknown>",
+            writable: false,
+            enumerable: false,
+        });
+        
+        return plugin;
+    };
 }

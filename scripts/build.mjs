@@ -1,3 +1,4 @@
+// build.mjs
 // @ts-nocheck
 /* eslint-disable no-restricted-syntax */
 import swc from "@swc/core";
@@ -10,6 +11,7 @@ import { fileURLToPath } from "url";
 import yargs from "yargs-parser";
 
 import { printBuildSuccess } from "./util.mjs";
+import { pluginsImporterPlugin } from "./build/plugins/plugins-importer.mjs";
 
 /** @type string[] */
 const metroDeps = await (async () => {
@@ -57,6 +59,7 @@ const config = {
         "react/jsx-runtime": "./shims/jsxRuntime"
     },
     plugins: [
+        pluginsImporterPlugin(),
         globalPlugin({
             ...metroDeps.reduce((obj, key) => {
                 obj[key] = `require("!kettu-deps-shim!")[${JSON.stringify(key)}]`;
@@ -74,10 +77,11 @@ const config = {
                                 constModules: {
                                     globals: {
                                         "rain-build-info": {
-                                            version: `"v0.0.1"`
+                                            version: `"v0.1.0"`
                                         },
+                                        // For backwards compatibility
                                         "bunny-build-info": {
-                                            version: `"v1.1.2"`
+                                            version: `"v1.3.7"`
                                         }
                                     }
                                 },

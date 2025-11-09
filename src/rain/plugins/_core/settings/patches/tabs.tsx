@@ -41,27 +41,11 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
         configurable: true,
         get: () => ({
             ...rendererConfigValue,
-            VendettaCustomPage: {
+            RAIN_CUSTOM_PAGE: {
                 type: "route",
-                title: () => "Kettu",
+                title: () => "rain",
                 screen: {
-                    route: "VendettaCustomPage",
-                    getComponent: () => CustomPageRenderer
-                }
-            },
-            PUPU_CUSTOM_PAGE: {
-                type: "route",
-                title: () => "Kettu",
-                screen: {
-                    route: "PUPU_CUSTOM_PAGE",
-                    getComponent: () => CustomPageRenderer
-                }
-            },
-            BUNNY_CUSTOM_PAGE: {
-                type: "route",
-                title: () => "Kettu",
-                screen: {
-                    route: "BUNNY_CUSTOM_PAGE",
+                    route: "RAIN_CUSTOM_PAGE",
                     getComponent: () => CustomPageRenderer
                 }
             },

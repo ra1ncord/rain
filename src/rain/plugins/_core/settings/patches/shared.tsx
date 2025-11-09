@@ -32,7 +32,7 @@ export function wrapOnPress(
         }
 
         navigation ??= tabsNavigationRef.getRootNavigationRef();
-        navigation.navigate("PUPU_CUSTOM_PAGE", {
+        navigation.navigate("RAIN_CUSTOM_PAGE", {
             ...screenOptions,
             render: () => <Component {...props} />
         });

@@ -18,16 +18,31 @@ export default definePlugin({
 });
 
 function initSettings() {
-    
+    // todo: i18n ALL of settings
     registerSection({
-        name: "rain",
+        name: "Rain",
         items: [
             {
                 key: "RAIN",
-                title: () => "rain",
+                title: () => "Rain",
                 icon: findAssetId("RobotIcon"),
-                render: () => import("./pages/rain")
-            }
+                render: () => import("./pages/rain"),
+                useTrailing: () => `10% complete`,
+            },
+            {
+                key: "RAIN_PLUGINS",
+                title: () => "Plugins",
+                icon: findAssetId("PuzzlePieceIcon"),
+                render: () => import("./pages/Plugins"),
+                useTrailing: () => `0% complete`,
+            },
+            {
+                key: "EXTERNAL_PLUGINS",
+                title: () => "External Plugins",
+                icon: findAssetId("ActivitiesIcon"),
+                render: () => import("./pages/Plugins"),
+                useTrailing: () => `0% complete`,
+            },
         ]
     });
 }

@@ -28,3 +28,5 @@ export function unload() {
 unload.push = (fn: typeof _disposer[number]) => {
     _disposer.push(fn);
 };
+
+// todo: rewrite this
