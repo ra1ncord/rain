@@ -1,7 +1,7 @@
 import { getLoaderName, getLoaderVersion, isThemeSupported } from "@lib/api/native/loader";
 import { NativeClientInfoModule, NativeDeviceModule } from "@lib/api/native/modules";
 import { after } from "@lib/api/patcher";
-import { version } from "bunny-build-info";
+import { version } from "rain-build-info";
 import { Platform, type PlatformConstants } from "react-native";
 
 export interface RNConstants extends PlatformConstants {
@@ -77,12 +77,12 @@ export function getDebugInfo() {
     const rnVer = PlatformConstants.reactNativeVersion;
 
     return {
-        /**
-         * @deprecated use `bunny` field
-         * */
-        vendetta: {
-            version: versionHash.split("-")[0],
-            loader: getLoaderName(),
+        rain: {
+            version: versionHash,
+            loader: {
+                name: getLoaderName(),
+                version: getLoaderVersion()
+            }
         },
         bunny: {
             version: versionHash,

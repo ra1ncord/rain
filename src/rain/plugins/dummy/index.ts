@@ -8,7 +8,7 @@ export default definePlugin({
     icon: "hi",
     version: "v1.0.0",
     start() {
-        alert("This is a plugin called " + this.name);
+        //alert("This is a plugin called " + this.name);
     },
     stop() {
     }

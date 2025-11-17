@@ -8,7 +8,7 @@ import { TableRowIcon } from "@metro/common/components";
 import findInReactTree from "@lib/utils/findInReactTree";
 
 const settingConstants = findByPropsLazy("SETTING_RENDERER_CONFIG");
-const SettingsOverviewScreen = findByNameLazy("SettingsOverviewScreen", false);
+const createListModule = findByPropsLazy("createList");
 
 function useIsFirstRender() {
     let firstRender = false;
@@ -43,7 +43,7 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
             ...rendererConfigValue,
             RAIN_CUSTOM_PAGE: {
                 type: "route",
-                title: () => "rain",
+                title: () => "Rain",
                 screen: {
                     route: "RAIN_CUSTOM_PAGE",
                     getComponent: () => CustomPageRenderer
@@ -63,19 +63,32 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
         });
     });
 
-    unpatches.push(after("default", SettingsOverviewScreen, (_, ret) => {
-        if (useIsFirstRender()) return; // :shrug:
+        unpatches.push(after("createList", createListModule, function(args, ret) {
+            const [config] = args;
+        
+            if (config?.sections && Array.isArray(config.sections)) {
+                const sections = config.sections;
+            
+                const accountSectionIndex = sections.findIndex((i: any) => i.settings?.includes("ACCOUNT"));
+            
+                if (accountSectionIndex !== -1) {
+                    // Credit to @palmdevs - https://discord.com/channels/1196075698301968455/1243605828783571024/1307940348378742816
 
-        const { sections } = findInReactTree(ret, i => i.props?.sections).props;
-        // Credit to @palmdevs - https://discord.com/channels/1196075698301968455/1243605828783571024/1307940348378742816
-        let index = -~sections.findIndex((i: any) => i.settings.includes("ACCOUNT")) || 1;
+                    let index = accountSectionIndex + 1;
+                
+                    Object.keys(registeredSections).forEach(sect => {
+                        const alreadyExists = sections.some((s: any) => s.label === sect);
+                        if (!alreadyExists) {
+                            sections.splice(index++, 0, {
+                                label: sect,
+                                title: sect,
+                                settings: registeredSections[sect].map(a => a.key)
+                            });
+                        }
+                    });
+                }
+            }
+            return ret;
+        },));
 
-        Object.keys(registeredSections).forEach(sect => {
-            sections.splice(index++, 0, {
-                label: sect,
-                title: sect,
-                settings: registeredSections[sect].map(a => a.key)
-            });
-        });
-    }));
 }

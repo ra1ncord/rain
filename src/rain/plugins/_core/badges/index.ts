@@ -1,15 +1,15 @@
 import { after } from "@lib/api/patcher";
 import { onJsxCreate } from "@lib/api/react/jsx";
-import { findByName } from "@metro";
+import { findByNameLazy } from "@metro";
 import { useEffect, useState } from "react";
 import { definePlugin } from "@plugins";
 
-interface BunnyBadge {
+interface Badge {
     label: string;
     url: string;
 }
 
-const useBadgesModule = findByName("useBadges", false);
+const useBadgesModule = findByNameLazy("useBadges", false);
 
 export default definePlugin({
     name: "Badges",
@@ -24,7 +24,7 @@ export default definePlugin({
         const badgeProps = {} as Record<string, any>;
         
         onJsxCreate("ProfileBadge", (component, ret) => {
-            if (ret.props.id?.startsWith("bunny-")) {
+            if (ret.props.id?.startsWith("rain-")) {
                 const cachedProps = badgeProps[ret.props.id];
                 if (cachedProps) {
                     ret.props.source = cachedProps.source;
@@ -35,7 +35,7 @@ export default definePlugin({
         });
         
         onJsxCreate("RenderedBadge", (component, ret) => {
-            if (ret.props.id?.startsWith("bunny-")) {
+            if (ret.props.id?.startsWith("rain-")) {
                 const cachedProps = badgeProps[ret.props.id];
                 if (cachedProps) {
                     Object.assign(ret.props, cachedProps);
@@ -44,7 +44,7 @@ export default definePlugin({
         });
         
         after("default", useBadgesModule, ([user], result) => {
-            const [badges, setBadges] = useState<BunnyBadge[]>([]);
+            const [badges, setBadges] = useState<Badge[]>([]);
             
             useEffect(() => {
                 if (!user) return;
@@ -58,14 +58,13 @@ export default definePlugin({
                             setBadges(allBadges[user.userId] || []);
                         })
                 } else {
-                    //user has no badges, but maybe they should get some by contributing 
                     setBadges(allBadges[user.userId] || []);
                 }
             }, [user?.userId]);
             
             if (user && badges.length > 0) {
                 badges.forEach((badge, i) => {
-                    const badgeId = `bunny-${user.userId}-${i}`;
+                    const badgeId = `rain-${user.userId}-${i}`;
                     
                     badgeProps[badgeId] = {
                         id: badgeId,

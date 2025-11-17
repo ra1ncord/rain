@@ -26,7 +26,7 @@ function initSettings() {
                 key: "RAIN",
                 title: () => "Rain",
                 icon: findAssetId("RobotIcon"),
-                render: () => import("./pages/rain"),
+                render: () => import("./pages/Rain"),
                 useTrailing: () => `10% complete`,
             },
             {
@@ -41,6 +41,27 @@ function initSettings() {
                 title: () => "External Plugins",
                 icon: findAssetId("ActivitiesIcon"),
                 render: () => import("./pages/Plugins"),
+                useTrailing: () => `0% complete`,
+            },
+            {
+                key: "RAIN_THEMES",
+                title: () => "Themes",
+                icon: findAssetId("PaintPaletteIcon"),
+                render: () => import("./pages/Plugins"),
+                useTrailing: () => `0% complete`,
+            },
+            {
+                key: "RAIN_FONTS",
+                title: () => "Fonts",
+                icon: findAssetId("ic_add_text"),
+                render: () => import("./pages/Plugins"),
+                useTrailing: () => `0% complete`,
+            },
+            {
+                key: "RAIN_DEVELOPER",
+                title: () => "Developer",
+                icon: findAssetId("WrenchIcon"),
+                render: () => import("./pages/Developer"),
                 useTrailing: () => `0% complete`,
             },
         ]

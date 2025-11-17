@@ -10,8 +10,7 @@ declare global {
 
         interface Window {
                 [key: string]: any;
-                vendetta: any;
-                bunny: typeof import("@lib");
+                rain: typeof import("@lib");
         }
 }
 

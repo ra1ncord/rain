@@ -1,5 +1,4 @@
 import * as t from "./types";
-import { lazy } from "react";
 
 export const pluginInstances = new Map<string, t.rainPlugin>();
 
@@ -48,22 +47,4 @@ export function definePlugin(
     // @ts-expect-error
     instance[Symbol.for("rain.plugin")] = true;
     return instance;
-}
-
-export function registerPlugin(id: string, plugin: t.rainPlugin) {
-    Object.defineProperty(plugin, "$id", {
-        value: id,
-        writable: false,
-        enumerable: false,
-    });
-    
-    return (relativePath: string) => {
-        Object.defineProperty(plugin, "$path", {
-            value: relativePath || "<unknown>",
-            writable: false,
-            enumerable: false,
-        });
-        
-        return plugin;
-    };
 }
