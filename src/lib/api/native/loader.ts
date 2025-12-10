@@ -31,16 +31,16 @@ export function isPyonLoader() {
     return pyonLoaderIdentity != null;
 }
 
-export function isRa1nLoader() {
+export function isRainLoader() {
     return rainLoaderIdentity != null;
 }
 
 function polyfillVendettaLoaderIdentity() {
-    if (!isPyonLoader() || isVendettaLoader() || !isRa1nLoader()) return null;
+    if (!isPyonLoader() || isVendettaLoader() || !isRainLoader()) return null;
 
     let loader: { name: string; features: Record<string, any> };
 
-    if (isRa1nLoader() == true) {
+    if (isRainLoader() == true) {
         loader = {
             name: rainLoaderIdentity.loaderName,
             features: {} as Record<string, any>,
@@ -77,7 +77,7 @@ export function getLoaderIdentity() {
         return pyonLoaderIdentity;
     } else if (isVendettaLoader()) {
         return getVendettaLoaderIdentity();
-    } else if (isRa1nLoader()) {
+    } else if (isRainLoader()) {
         return rainLoaderIdentity();
     }
 
@@ -95,7 +95,7 @@ getVendettaLoaderIdentity();
 
 export function getLoaderName() {
     if (isPyonLoader()) return pyonLoaderIdentity.loaderName;
-    else if (isRa1nLoader()) return rainLoaderIdentity.loadername;
+    else if (isRainLoader()) return rainLoaderIdentity.loadername;
     else if (isVendettaLoader()) return vendettaLoaderIdentity.name;
 
     return "Unknown";
@@ -103,7 +103,7 @@ export function getLoaderName() {
 
 export function getLoaderVersion(): string | null {
     if (isPyonLoader()) return pyonLoaderIdentity.loaderVersion;
-    else if (isRa1nLoader()) return rainLoaderIdentity.loaderVersion;
+    else if (isRainLoader()) return rainLoaderIdentity.loaderVersion;
     return null;
 }
 
@@ -112,7 +112,7 @@ export function isLoaderConfigSupported() {
         return true;
     } else if (isVendettaLoader()) {
         return vendettaLoaderIdentity!!.features.loaderConfig;
-    } else if (isRa1nLoader()) {
+    } else if (isRainLoader()) {
         return true;
     }
 
@@ -124,10 +124,7 @@ export function isThemeSupported() {
         return pyonLoaderIdentity.hasThemeSupport;
     } else if (isVendettaLoader()) {
         return vendettaLoaderIdentity!!.features.themes != null;
-    } else if (isRa1nLoader()) {
-        return false; // Ra1n has theme support disabled, this is here just to make sure it doesnt think it does
     }
-
     return false;
 }
 
@@ -145,7 +142,7 @@ export function isReactDevToolsPreloaded() {
     if (isPyonLoader()) {
         return Boolean(window.__reactDevTools);
     }
-    if (isRa1nLoader()) {
+    if (isRainLoader()) {
         return false;
     }
     if (isVendettaLoader()) {
@@ -203,7 +200,7 @@ export function getLoaderConfigPath() {
         return "pyoncord/loader.json";
     } else if (isVendettaLoader()) {
         return "vendetta_loader.json";
-    } else if (isRa1nLoader()) {
+    } else if (isRainLoader()) {
         return "rain/loader.json";
     }
 

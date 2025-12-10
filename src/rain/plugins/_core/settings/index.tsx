@@ -7,10 +7,11 @@ import { definePlugin } from "@plugins";
 export default definePlugin({
     name: "settings",
     description: "injects the settings menu",
-    author: { name: "cocobo1", id: 123456789012345678n },
+    author: [{ name: "cocobo1", id: 123456789012345678n }],
     id: "rain.core.settings",
     icon: "cog",
     version: "v1.0.0",
+    islazy: false,
     start() {
         patchSettings();
         initSettings();
@@ -19,6 +20,7 @@ export default definePlugin({
 
 function initSettings() {
     // todo: i18n ALL of settings
+    // todo: neaten up the imports
     registerSection({
         name: "Rain",
         items: [
@@ -26,42 +28,42 @@ function initSettings() {
                 key: "RAIN",
                 title: () => "Rain",
                 icon: findAssetId("RobotIcon"),
-                render: () => import("./pages/Rain"),
+                render: () => import("../../../ui/pages/Rain"),
                 useTrailing: () => `10% complete`,
             },
             {
                 key: "RAIN_PLUGINS",
                 title: () => "Plugins",
                 icon: findAssetId("PuzzlePieceIcon"),
-                render: () => import("./pages/Plugins"),
+                render: () => import("../../../ui/pages/Plugins"),
                 useTrailing: () => `0% complete`,
             },
             {
                 key: "EXTERNAL_PLUGINS",
                 title: () => "External Plugins",
                 icon: findAssetId("ActivitiesIcon"),
-                render: () => import("./pages/Plugins"),
+                render: () => import("../../../ui/pages/Plugins"),
                 useTrailing: () => `0% complete`,
             },
             {
                 key: "RAIN_THEMES",
                 title: () => "Themes",
                 icon: findAssetId("PaintPaletteIcon"),
-                render: () => import("./pages/Plugins"),
+                render: () => import("../../../ui/pages/Plugins"),
                 useTrailing: () => `0% complete`,
             },
             {
                 key: "RAIN_FONTS",
                 title: () => "Fonts",
                 icon: findAssetId("ic_add_text"),
-                render: () => import("./pages/Plugins"),
+                render: () => import("../../../ui/pages/Plugins"),
                 useTrailing: () => `0% complete`,
             },
             {
                 key: "RAIN_DEVELOPER",
                 title: () => "Developer",
                 icon: findAssetId("WrenchIcon"),
-                render: () => import("./pages/Developer"),
+                render: () => import("../../../ui/pages/Developer"),
                 useTrailing: () => `0% complete`,
             },
         ]

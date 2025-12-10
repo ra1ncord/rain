@@ -25,98 +25,66 @@ async function initializeRain() {
 }
 
 if (typeof window.__r === "undefined") {
-    // Used for storing the current require function for the global.__r getter defined below
     var _requireFunc: any;
 
-    // Calls from the native side are deferred until the index.ts(x) is loaded
-    interface DeferredQueue {
-        object: any;
-        method: string;
-        resume?: (queue: DeferredQueue) => void;
-        args: any[];
+    interface DeferredCall {
+        fn: () => void;
     }
 
-    const deferredCalls: Array<DeferredQueue> = [];
-    const unpatches: Array<() => void> = [];
+    const deferredCalls: DeferredCall[] = [];
+    let isInitialized = false;
 
-    const deferMethodExecution = (
-        object: any, 
-        method: string, 
-        condition?: (...args: any[]) => boolean, 
-        resume?: (queue: DeferredQueue) => void, 
-        returnWith?: (queue: DeferredQueue) => any
-    ) => {
-        const restore = instead(method, object, function (this: any, args: any[], original: any) {
-            if (!condition || condition(...args)) {
-                const queue: DeferredQueue = { object, method, args, resume };
-                deferredCalls.push(queue);
-                return returnWith ? returnWith(queue) : undefined;
+    const deferIfNeeded = (object: any, method: string, condition: (...args: any[]) => boolean) => {
+        const original = object[method];
+        object[method] = function (this: any, ...args: any[]) {
+            if (!isInitialized && condition(...args)) {
+                deferredCalls.push({ fn: () => original.apply(this, args) });
+                return method === "callFunctionReturnFlushedQueue" ? object.flushedQueue() : undefined;
             }
-
-            // If the condition is not met, we execute the original method immediately
             return original.apply(this, args);
-        });
-
-        unpatches.push(restore);
-    }
+        };
+    };
 
     const resumeDeferred = () => {
-        for (const queue of deferredCalls) {
-            const { object, method, args, resume } = queue;
-
-            if (resume) {
-                resume(queue);
-            } else {
-                object[method](...args);
-            }
+        isInitialized = true;
+        for (const call of deferredCalls) {
+            call.fn();
         }
-
         deferredCalls.length = 0;
-    }
+    };
 
-    const onceIndexRequired = (originalRequire: Metro.RequireFn) => {
-        // We hold calls from the native side
+    const onceIndexRequired = async (originalRequire: Metro.RequireFn) => {
         if (window.__fbBatchedBridge) {
             const batchedBridge = window.__fbBatchedBridge;
-            deferMethodExecution(
+            deferIfNeeded(
                 batchedBridge,
                 "callFunctionReturnFlushedQueue",
-                // If the call is to AppRegistry, we want to defer it because it is not yet registered (Revenge delays it)
-                // Same goes to the non-callable modules, which are not registered yet, so we ensure that only registered ones can get through
-                (...args) => args[0] === "AppRegistry" || !batchedBridge.getCallableModule(args[0]),
-                ({ args }) => {
-                    if (batchedBridge.getCallableModule(args[0])) {
-                        batchedBridge.__callFunction(...args);
-                    }
-                },
-                () => batchedBridge.flushedQueue()
+                (...args) => args[0] === "AppRegistry" || !batchedBridge.getCallableModule(args[0])
             );
         }
 
         // Introduced since RN New Architecture
         if (window.RN$AppRegistry) {
-            deferMethodExecution(window.RN$AppRegistry, "runApplication");
+            deferIfNeeded(
+                window.RN$AppRegistry,
+                "runApplication",
+                () => true
+            );
         }
 
-        const startDiscord = async () => {
-            await initializeRain();
-            
-            for (const unpatch of unpatches) unpatch();
-            unpatches.length = 0;
-
-            originalRequire(0);
-            resumeDeferred();
-        };
-
-        startDiscord();
-    }
+        const initPromise = initializeRain();
+        
+        originalRequire(0);
+        
+        await initPromise;
+        resumeDeferred();
+    };
 
     Object.defineProperties(globalThis, {
         __r: {
             configurable: true,
             get: () => _requireFunc,
             set(v) {
-                // _requireFunc is required here, because using 'this' here errors for some unknown reason
                 _requireFunc = function patchedRequire(a: number) {
                     // Initializing index.ts(x)
                     if (a === 0) {

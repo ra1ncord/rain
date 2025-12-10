@@ -47,6 +47,7 @@
     "@types/react": "19.1.8",
     "es-toolkit": "^1.13.1",
     "fuzzysort": "^3.0.2",
+    "hermes-engine": "^0.11.0",
     "intl-messageformat": "^10.5.14",
     "moment": "2.22.2",
     "react-native": "0.78.0",

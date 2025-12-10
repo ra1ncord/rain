@@ -14,11 +14,11 @@ const useBadgesModule = findByNameLazy("useBadges", false);
 export default definePlugin({
     name: "Badges",
     description: "Adds badges to a user's profile",
-    author: { name: "cocobo1", id: 123456789012345678n },
+    author: [{ name: "cocobo1", id: 123456789012345678n }],
     id: "rain.core.badges",
     icon: "hi",
     version: "v1.0.0",
-    
+    islazy: true,
     start() {
         let allBadges: { [x: string]: any; } | null = null;
         const badgeProps = {} as Record<string, any>;

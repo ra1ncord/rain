@@ -4,9 +4,16 @@ export interface rainPlugin {
     id: string;
     icon: string;
     version: string;
-    author: developer;
+    author: developer[];
+    islazy: boolean;
     start: () => void;
     stop?: () => void;
+}
+
+export interface PluginSettingsStorage {
+    [pluginId: string]: {
+        enabled: boolean;
+    };
 }
 
 export interface developer {
