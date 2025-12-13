@@ -32,7 +32,7 @@ const useStyles = createStyles({
     },
     headerLabel: {
         ...TextStyleSheet["heading-md/semibold"],
-        color: semanticColors.TEXT_NORMAL,
+        color: semanticColors.HEADER_PRIMARY,
     },
     headerSubtitle: {
         ...TextStyleSheet["text-md/semibold"],
@@ -40,7 +40,7 @@ const useStyles = createStyles({
     },
     descriptionLabel: {
         ...TextStyleSheet["text-md/semibold"],
-        color: semanticColors.TEXT_NORMAL,
+        color: semanticColors.HEADER_PRIMARY,
     },
     actions: {
         flexDirection: "row-reverse",
@@ -105,12 +105,12 @@ export default function AddonCard(props: CardProps) {
                         <View style={styles.actions}>
                             {props.overflowActions &&
                                 <IconButton
-                                    onPress={() => showSimpleActionSheet?.({
+                                    onPress={() => showSimpleActionSheet({
                                         key: "CardOverflow",
                                         header: {
                                             title: props.overflowTitle,
                                             icon: props.headerIcon && <LegacyFormRow.Icon style={{ marginRight: 8 }} source={findAssetId(props.headerIcon)} />,
-                                            onClose: () => hideActionSheet?.(),
+                                            onClose: () => hideActionSheet(),
                                         },
                                         options: props.overflowActions?.map(i => ({
                                             ...i,

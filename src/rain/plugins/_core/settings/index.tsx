@@ -5,17 +5,17 @@ import { patchTabsUI } from "./patches/tabs";
 import { definePlugin } from "@plugins";
 
 export default definePlugin({
-    name: "settings",
+    name: "Settings",
     description: "injects the settings menu",
-    author: [{ name: "cocobo1", id: 123456789012345678n }],
-    id: "rain.core.settings",
-    icon: "cog",
+    author: [{ name: "cocobo1", id: 767650984175992833n }],
+    id: "settings",
     version: "v1.0.0",
-    islazy: false,
     start() {
-        patchSettings();
         initSettings();
-    }
+    },
+    eagerStart() {
+        patchSettings();
+    },
 });
 
 function initSettings() {
@@ -36,27 +36,27 @@ function initSettings() {
                 title: () => "Plugins",
                 icon: findAssetId("PuzzlePieceIcon"),
                 render: () => import("../../../ui/pages/Plugins"),
-                useTrailing: () => `0% complete`,
+                useTrailing: () => `60% complete`,
             },
-            {
-                key: "EXTERNAL_PLUGINS",
-                title: () => "External Plugins",
-                icon: findAssetId("ActivitiesIcon"),
-                render: () => import("../../../ui/pages/Plugins"),
-                useTrailing: () => `0% complete`,
-            },
-            {
-                key: "RAIN_THEMES",
-                title: () => "Themes",
-                icon: findAssetId("PaintPaletteIcon"),
-                render: () => import("../../../ui/pages/Plugins"),
-                useTrailing: () => `0% complete`,
-            },
+            //{
+            //    key: "EXTERNAL_PLUGINS",
+            //    title: () => "External Plugins",
+            //    icon: findAssetId("ActivitiesIcon"),
+            //    render: () => import("../../../ui/pages/ExternalPlugins"),
+            //    useTrailing: () => `0% complete`,
+            //},
+            //{
+            //    key: "RAIN_THEMES",
+            //    title: () => "Themes",
+            //    icon: findAssetId("PaintPaletteIcon"),
+            //    render: () => import("../../../ui/pages/Themes"),
+            //    useTrailing: () => `0% complete`,
+            //},
             {
                 key: "RAIN_FONTS",
                 title: () => "Fonts",
-                icon: findAssetId("ic_add_text"),
-                render: () => import("../../../ui/pages/Plugins"),
+                icon: findAssetId("LettersIcon"),
+                render: () => import("../../../ui/pages/Fonts"),
                 useTrailing: () => `0% complete`,
             },
             {
@@ -64,7 +64,7 @@ function initSettings() {
                 title: () => "Developer",
                 icon: findAssetId("WrenchIcon"),
                 render: () => import("../../../ui/pages/Developer"),
-                useTrailing: () => `0% complete`,
+                useTrailing: () => `10% complete`,
             },
         ]
     });

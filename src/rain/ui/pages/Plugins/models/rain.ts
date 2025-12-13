@@ -17,7 +17,6 @@ export default function unifyRainPlugin(
     name: manifest.name,
     description: manifest.description,
     authors: manifest.author,
-
     isEnabled: () => isPluginEnabled(manifest.id),
     toggle(start: boolean) {
       try {

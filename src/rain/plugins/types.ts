@@ -2,11 +2,10 @@ export interface rainPlugin {
     name: string;
     description: string;
     id: string;
-    icon: string;
     version: string;
     author: developer[];
-    islazy: boolean;
-    start: () => void;
+    start?: () => void;
+    eagerStart?: () => void;
     stop?: () => void;
 }
 

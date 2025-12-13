@@ -1,7 +1,7 @@
 import { CheckState, useFileExists } from "@lib/api/storage/useFS";
 import { findAssetId } from "@lib/api/assets";
 import { connectToDebugger } from "@lib/api/debug";
-import { getReactDevToolsProp, getReactDevToolsVersion, isLoaderConfigSupported, isReactDevToolsPreloaded, isVendettaLoader } from "@lib/api/native/loader";
+import { getReactDevToolsProp, getReactDevToolsVersion, isLoaderConfigSupported, isReactDevToolsPreloaded } from "@lib/api/native/loader";
 import { loaderConfig, settings } from "@lib/api/settings";
 import { NavigationNative } from "@metro/common";
 import { Button, LegacyFormText, Stack, TableRow, TableRowGroup, TableSwitchRow, TextInput } from "@metro/common/components";
@@ -141,15 +141,6 @@ export default function Developer() {
                                 placeholder="http://localhost:4040/kettu.js"
                                 label={"Strings.PUPU_URL"}
                             />} />}
-                            {isReactDevToolsPreloaded() && isVendettaLoader() && <TableSwitchRow
-                                label={"Strings.LOAD_REACT_DEVTOOLS"}
-                                subLabel={`version: ${getReactDevToolsVersion()}`}
-                                icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
-                                value={loaderConfig.loadReactDevTools}
-                                onValueChange={(v: boolean) => {
-                                    loaderConfig.loadReactDevTools = v;
-                                }}
-                            />}
                         </TableRowGroup>
                     </>}
                     <TableRowGroup title="Other">

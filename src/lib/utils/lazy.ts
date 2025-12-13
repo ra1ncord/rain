@@ -19,15 +19,33 @@ const factories = new WeakMap<any, () => any>();
 const proxyContextHolder = new WeakMap<any, ContextHolder>();
 
 const lazyHandler: ProxyHandler<any> = {
-    ...Object.fromEntries(Object.getOwnPropertyNames(Reflect).map(fnName => {
-        return [fnName, (target: any, ...args: any[]) => {
-            const contextHolder = proxyContextHolder.get(target);
-            const resolved = contextHolder?.factory();
-            if (!resolved) throw new Error(`Trying to Reflect.${fnName} of ${typeof resolved}`);
-            // @ts-expect-error
-            return Reflect[fnName](resolved, ...args);
-        }];
-    })),
+    ...Object.fromEntries(Object.getOwnPropertyNames(Reflect)
+        .filter(fnName => fnName !== "apply")
+        .map(fnName => {
+            return [fnName, (target: any, ...args: any[]) => {
+                const contextHolder = proxyContextHolder.get(target);
+                const resolved = contextHolder?.factory();
+                if (!resolved) throw new Error(`Trying to Reflect.${fnName} of ${typeof resolved}`);
+                // @ts-expect-error
+                return Reflect[fnName](resolved, ...args);
+            }];
+        })),
+
+    apply(target, thisArg, args) {
+        const contextHolder = proxyContextHolder.get(target);
+        const resolved = contextHolder?.factory();
+
+        if (typeof resolved === "function") {
+            return Reflect.apply(resolved, thisArg, args);
+        }
+
+        if (window.React) {
+            return window.React.createElement(resolved, args[0]);
+        }
+
+        throw new Error(`Cannot call ${typeof resolved} as a function`);
+    },
+
     has(target, p) {
         const contextHolder = proxyContextHolder.get(target);
 

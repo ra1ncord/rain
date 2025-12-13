@@ -15,7 +15,7 @@ const useStyles = createStyles({
         fontSize: 12,
         textAlignVertical: "center",
         backgroundColor: semanticColors.BACKGROUND_SECONDARY,
-        color: semanticColors.TEXT_NORMAL,
+        color: semanticColors.HEADER_PRIMARY,
         borderWidth: 1,
         borderRadius: 12,
         borderColor: semanticColors.BACKGROUND_TERTIARY,

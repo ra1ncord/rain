@@ -11,7 +11,7 @@ const storagePromiseSymbol = Symbol.for("rain.storage.promise");
 
 const _loadedStorage = {} as Record<string, any>;
 
-export function createFileBackend<T extends object>(filePath: string) {
+function createFileBackend<T extends object>(filePath: string) {
     const write = debounce((data: T) => {
         writeFile(filePath, JSON.stringify(data));
     }, 500);
@@ -125,6 +125,13 @@ export function createStorageAndCallback<T extends object = {}>(
 
 type StorageOptions<T extends object> = Parameters<typeof createStorageAndCallback<T>>[2];
 
+export async function createStorageAsync<T extends object = {}>(
+    path: string,
+    opts: StorageOptions<T> = {}
+): Promise<T> {
+    return new Promise(r => createStorageAndCallback(path, r, opts));
+}
+
 export const createStorage = <T extends object = {}>(
     path: string,
     opts: StorageOptions<T> = {}
@@ -139,37 +146,23 @@ export const createStorage = <T extends object = {}>(
     }, opts);
 
     const check = () => {
-        if (resolved) return;
+        if (resolved) return true;
         throw new Error(`Attempted to access storage without initializing: ${path}`);
     };
 
     return new Proxy({} as any, {
+        ...Object.fromEntries(
+            Object.getOwnPropertyNames(Reflect)
+                .map(k => [k, (t: T, ...a: any[]) => {
+                    // @ts-expect-error
+                    return check() && Reflect[k](awaited, ...a);
+                }])
+        ),
         get(target, prop, recv) {
             if (prop === storageInitErrorSymbol) return error;
             if (prop === storagePromiseSymbol) return promise;
-            check();
-            return Reflect.get(awaited ?? target, prop, recv);
+            return check() && Reflect.get(awaited ?? target, prop, recv);
         },
-        set(target, prop, value, recv) {
-            check();
-            return Reflect.set(awaited, prop, value, recv);
-        },
-        deleteProperty(target, prop) {
-            check();
-            return Reflect.deleteProperty(awaited, prop);
-        },
-        has(target, prop) {
-            check();
-            return Reflect.has(awaited, prop);
-        },
-        ownKeys(target) {
-            check();
-            return Reflect.ownKeys(awaited);
-        },
-        getOwnPropertyDescriptor(target, prop) {
-            check();
-            return Reflect.getOwnPropertyDescriptor(awaited, prop);
-        }
     });
 };
 

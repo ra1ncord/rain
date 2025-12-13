@@ -2,8 +2,10 @@ import { settings } from "@lib/api/settings";
 import * as t from "./types";
 import { awaitStorage, createStorage, getPreloadedStorage, preloadStorageIfExists, purgeStorage, updateStorage } from "@lib/api/storage";
 
-export const pluginInstances = new Map<string, t.rainPlugin>;
-export const pluginSettings = createStorage<t.PluginSettingsStorage>("plugins/settings.json");
+export const pluginInstances = new Map<string, t.rainPlugin>();
+export const pluginSettings = createStorage<t.PluginSettingsStorage>("plugins/settings.json", {
+    dflt: {}
+});
 
 function assert<T>(condition: T, id: string, attempt: string): asserts condition {
     if (!condition) throw new Error(`[${id}] Attempted to ${attempt}`);
@@ -12,49 +14,82 @@ function assert<T>(condition: T, id: string, attempt: string): asserts condition
 export async function startPlugin(id: string, {} = {}) {
     let pluginInstance: t.rainPlugin;
     pluginInstance = pluginInstances.get(id)!;
-    assert(pluginInstance, id, "start a non-existent core plugin");
-    pluginInstances.set(id, pluginInstance);
+    
+    if (!pluginInstance) {
+        throw new Error(`Plugin ${id} not found`);
+    }
+    
     try {
         pluginInstance.start?.();
+        pluginSettings[id].enabled = true;
     } catch (error) {
         console.error(`[${id}] Failed to start:`, error);
-        alert(error);
+        throw error;
+    }
+}
+
+export async function startEagerPlugin(id: string, {} = {}) {
+    let pluginInstance: t.rainPlugin;
+    pluginInstance = pluginInstances.get(id)!;
+    
+    if (!pluginInstance) {
+        throw new Error(`Plugin ${id} not found`);
+    }
+    
+    try {
+        pluginInstance.eagerStart?.();
+        pluginSettings[id].enabled = true;
+    } catch (error) {
+        console.error(`[${id}] Failed to eager start:`, error);
+        throw error;
     }
 }
 
 export function stopPlugin(id: string) {
     const instance = pluginInstances.get(id);
     assert(instance, id, "stop a non-started plugin");
-    instance.stop?.();
-    pluginInstances.delete(id);
+    
+    try {
+        instance.stop?.();
+        if (pluginSettings[id]) {
+            pluginSettings[id].enabled = false;
+        }
+    } catch (error) {
+        console.error(`[${id}] Failed to stop:`, error);
+        throw error;
+    }
 }
 
 export async function initPlugins() {
-    awaitStorage([pluginSettings]);
+    await awaitStorage(pluginSettings);
+    
+    const rainPlugins = await import("#rain-plugins");
+    
+    for (const [id, plugin] of Object.entries(rainPlugins.default)) {
+        pluginInstances.set(id, plugin);
+        plugin.id = id;
+    }
+
+    await Promise.allSettled([...pluginInstances.keys()].map(async id => {
+        if (isPluginEnabled(id)) {
+            await startPlugin(id);
+        }
+    }));
+}
+
+export async function initEagerPlugins() {
+    await awaitStorage(pluginSettings);
+    
     const rainPlugins = await import("#rain-plugins");
     
     for (const [id, plugin] of Object.entries(rainPlugins.default)) {
         pluginInstances.set(id, plugin);
     }
-    
-    const nonLazyPlugins = [...pluginInstances.entries()]
-        .filter(([id, plugin]) => !plugin.islazy)
-        .map(([id]) => id);
-    
-    await Promise.allSettled(nonLazyPlugins.map(async id => {
-        startPlugin(id);
-    }));
-}
 
-export async function initLazyPlugins() {
-    awaitStorage([pluginSettings]);
-    
-    const lazyPlugins = [...pluginInstances.entries()]
-        .filter(([id, plugin]) => plugin.islazy)
-        .map(([id]) => id);
-    
-    await Promise.allSettled(lazyPlugins.map(async id => {
-        startPlugin(id);
+    await Promise.allSettled([...pluginInstances.keys()].map(async id => {
+        if (isPluginEnabled(id)) {
+            await startEagerPlugin(id);
+        }
     }));
 }
 
@@ -67,5 +102,13 @@ export function definePlugin(
 }
 
 export function isPluginEnabled(id: string) {
-    return Boolean(pluginSettings[id]?.enabled);
+    return pluginSettings[id]?.enabled ?? false;
+}
+
+export function isCorePlugin(id: string) {
+    if ( id.startsWith("core") ) {
+        return true
+    }
+
+    return false;
 }

@@ -19,7 +19,7 @@ async function gatherPlugins(plugins = [], dir = pluginsDirectoryPath, relativeP
                 const baseName = path.basename(pluginDir);
                 const newRelativePath = relativePath ? `${relativePath}/${pluginDir}` : pluginDir;
                 
-                if (baseName.startsWith("_") || baseName.startsWith(".")) {
+                if (baseName.startsWith("_")) {
                     await gatherPlugins(plugins, pluginPath, newRelativePath);
                 } else {
                     const pluginId = newRelativePath
@@ -56,7 +56,6 @@ async function makeModule() {
     });
     
     return `
-// Auto-generated plugin imports
 export default {
 ${pluginImports.join(",\n")}
 };

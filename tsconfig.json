@@ -8,7 +8,7 @@
             // Just to discourage from consuming the module directly
             "spitroast": ["./shims/emptyModule"],
 
-            "@core/*": ["./src/core/*"],
+            "@rain/*": ["./src/rain/*"],
             "@lib": ["./src/lib"],
             "@lib/*": ["./src/lib/*"],
             "@metro": ["./src/metro"],

@@ -1,4 +1,4 @@
-import { CardWrapper } from "./AddonCard";
+import { CardWrapper } from "../../../components/addons/AddonCard";
 import { UnifiedPluginModel } from "../models";
 import { usePluginCardStyles } from "../usePluginCardStyles";
 import { findAssetId } from "@lib/api/assets";
@@ -14,6 +14,7 @@ import { showSheet } from "@ui/sheets";
 import chroma from "chroma-js";
 import { createContext, useContext, useMemo } from "react";
 import { Image, View } from "react-native";
+import { isCorePlugin } from "@plugins"
 
 const CardContext = createContext<{
   plugin: UnifiedPluginModel;
@@ -35,8 +36,6 @@ function Title() {
       {m}
     </Text>
   ));
-
-  const icon = plugin.icon && findAssetId(plugin.icon);
 
   const textNode = (
     <Text numberOfLines={1} variant="heading-lg/semibold">
@@ -123,7 +122,9 @@ export default function PluginCard({
   result,
   item: plugin,
 }: CardWrapper<UnifiedPluginModel>) {
+const [, forceUpdate] = React.useReducer(() => ({}), 0);
 const cardContextValue = useMemo(() => ({ plugin, result }), [plugin, result]);
+  const core = isCorePlugin(plugin.id);
 
     return (
         <CardContext.Provider value={cardContextValue}>
@@ -137,11 +138,15 @@ const cardContextValue = useMemo(() => ({ plugin, result }), [plugin, result]);
                         <View>
                             <Stack spacing={12} direction="horizontal">
                                 <Actions />
-                                <View>
+                                <View style={core ? { opacity: 0.5 } : undefined}>
                                     <TableSwitch
-                                        value={plugin.isEnabled()}
+                                        value={core ? true : plugin.isEnabled()}
+                                        disabled={core}
                                         onValueChange={(v: boolean) => {
-                                          plugin.toggle(v);
+                                            if (!core) {
+                                                plugin.toggle(v);
+                                                forceUpdate();
+                                            }
                                         }}
                                     />
                                 </View>

@@ -1,5 +1,5 @@
 import { pluginInstances } from "@plugins";
-import AddonPage from "./components/AddonPage";
+import AddonPage from "@rain/ui/components/addons/AddonPage";
 import PluginCard from "./components/PluginCard";
 import { developer } from "@plugins/types";
 import { findAssetId } from "@lib/api/assets";
@@ -14,6 +14,7 @@ import { View } from "react-native";
 import { UnifiedPluginModel } from "./models";
 import unifyRainPlugin from "./models/rain";
 import { ErrorBoundary } from "@lib/ui/components";
+import * as React from "react";
 
 interface PluginPageProps
   extends Partial<ComponentProps<typeof AddonPage<UnifiedPluginModel>>> {
@@ -37,8 +38,15 @@ function PluginPage(props: PluginPageProps) {
       ]}
       sortOptions={{
         "Name (A-Z)": (a, b) => a.name.localeCompare(b.name),
-        "Name (Z-A)": (a, b) => b.name.localeCompare(a.name),
+        "Name (Z-A)": (a, b) => b.name.localeCompare(b.name),
+        "Enabled": (a, b) => Number(b.isEnabled()) - Number(a.isEnabled()),
+        "Disabled": (a, b) => Number(a.isEnabled()) - Number(b.isEnabled()),
       }}
+      filterOptions={{
+        "Hide Core Plugins": (p) => !p.id.startsWith("core"),
+        "Show Core Plugins": () => true,
+      }}
+      defaultFilterKey="Hide Core Plugins"
       items={items}
       {...props}
     />
