@@ -265,14 +265,12 @@ export default function FontEditor(props: {
     const [importing, setIsImporting] = useState<boolean>(false);
     const [errors, setErrors] = useState<Array<Error | undefined> | undefined>();
 
-    // Create a local Observable for the font entries
     const memoEntry = useMemo(() => {
         return Observable.from(props.name ? { ...fonts[props.name].main } : {});
     }, [props.name]);
 
     const fontEntries: Record<string, string> = memoEntry;
     
-    // Use the Observable hook to track changes
     useObservable([memoEntry]);
 
     const navigation = NavigationNative.useNavigation();
@@ -283,13 +281,12 @@ export default function FontEditor(props: {
         <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={12}>
             {!props.name
                 ? <TableRowGroup title="Import">
-                    {/** @ts-ignore */}
-                    {getCurrentTheme()?.data?.fonts && <TableRow
+                    data?.fonts && <TableRow
                         label={"Strings.LABEL_EXTRACT_FONTS_FROM_THEME"}
                         subLabel={"Strings.DESC_EXTRACT_FONTS_FROM_THEME"}
                         icon={<TableRow.Icon source={findAssetId("HammerIcon")} />}
                         onPress={() => promptActionSheet(FontsExtractor, fontEntries, { setName })}
-                    />}
+                    />
                     <TableRow
                         label={"Import font entries from a link"}
                         subLabel={"Directly import from a link with a pre-configured JSON file"}

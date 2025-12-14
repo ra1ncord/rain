@@ -4,7 +4,7 @@ import { settings } from "@lib/api/settings";
 import { dismissAlert, openAlert } from "@lib/ui/alerts";
 import { showSheet } from "@lib/ui/sheets";
 import isValidHttpUrl from "@lib/utils/isValidHttpUrl";
-import { lazyDestructure, proxyLazy } from "@lib/utils/lazy";
+import { lazyDestructure } from "@lib/utils/lazy";
 import { findByProps } from "@metro";
 import { clipboard, NavigationNative } from "@metro/common";
 import { AlertActionButton, AlertModal, Button, FlashList, FloatingActionButton, HelpMessage, IconButton, Stack, Text, TextInput, useSafeAreaInsets } from "@metro/common/components";
@@ -25,6 +25,7 @@ interface AddonPageProps<T extends object, I = any> {
     searchKeywords: SearchKeywords<T>;
     sortOptions?: Record<string, (a: T, b: T) => number>;
     filterOptions?: Record<string, (item: T) => boolean>;
+    defaultFilterKey?: string;
     resolveItem?: (value: I) => T | undefined;
     installAction?: {
         label?: string;
@@ -38,7 +39,6 @@ interface AddonPageProps<T extends object, I = any> {
     };
     
     OptionsActionSheetComponent?: ComponentType<any>;
-    defaultFilterKey?: string; 
 
     CardComponent: ComponentType<CardWrapper<T>>;
     ListHeaderComponent?: ComponentType<any>;
@@ -128,7 +128,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
                     size="sm"
                     variant="secondary"
                     icon={findAssetId("MoreHorizontalIcon")}
-                    onPress={() => showSheet?.("AddonMoreSheet", props.OptionsActionSheetComponent!)}
+                    onPress={() => showSheet("AddonMoreSheet", props.OptionsActionSheetComponent!)}
                 />
             });
         }
@@ -149,6 +149,16 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
         return fuzzysort.go(search, items, { keys: props.searchKeywords, all: true });
     }, [props.items, sortFn, filterFn, search]);
 
+    const onInstallPress = useCallback(() => {
+        if (!props.installAction) return () => { };
+        const { label, onPress, fetchFn } = props.installAction;
+        if (fetchFn) {
+            openAlert("AddonInputAlert", <InputAlert label={label ?? "Install"} fetchFn={fetchFn} />);
+        } else {
+            onPress?.();
+        }
+    }, [props.installAction]);
+
     if (results.length === 0 && !search) {
         return <View style={{ gap: 32, flexGrow: 1, justifyContent: "center", alignItems: "center" }}>
             <View style={{ gap: 8, alignItems: "center" }}>
@@ -157,6 +167,12 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
                     Oops! Nothing to see here… yet!
                 </Text>
             </View>
+            {props.installAction && <Button
+                size="lg"
+                icon={findAssetId("DownloadIcon")}
+                text={props.installAction.label ?? "Install"}
+                onPress={onInstallPress}
+            />}
         </View>;
     }
 
@@ -171,28 +187,11 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
     })) : [];
 
     const actionSheetOptions: ActionSheetOption[] = [
+        ...(sortOptions.length > 0 ? [{ label: "Sort Options", type: "header" as const }] : []),
         ...sortOptions,
+        ...(filterOptions.length > 0 ? [{ label: "Filter Options", type: "header" as const }] : []),
         ...filterOptions,
     ];
-
-    const onInstallPress = useCallback(() => {
-        if (!props.installAction) return () => { };
-        const { label, onPress, fetchFn } = props.installAction;
-        if (fetchFn) {
-            openAlert("AddonInputAlert", <InputAlert label={label ?? "Install"} fetchFn={fetchFn} />);
-        } else {
-            onPress?.();
-        }
-    }, []);
-
-    const finalActionSheetOptions = actionSheetOptions.filter(option => {
-        if ('type' in option && option.type === "header") {
-            if (option.label === "Sort Options") return sortOptions.length > 0;
-            if (option.label === "Filter Options") return filterOptions.length > 0;
-            return true; 
-        }
-        return true;
-    });
 
     const headerElement = (
         <View style={{ paddingBottom: 8 }}>
@@ -203,17 +202,22 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
                 {props.safeModeHint?.footer}
             </View>}
             <View style={{ flexDirection: "row", gap: 8 }}>
-                <Search style={{ flexGrow: 1 }} isRound={!!props.sortOptions || !!props.filterOptions} onChangeText={v => setSearch(v)} />
+                <Search 
+                    style={{ flexGrow: 1 }} 
+                    isRound={!!props.sortOptions || !!props.filterOptions} 
+                    onChangeText={v => setSearch(v)} 
+                />
                 {(props.sortOptions || props.filterOptions) && <IconButton
                     icon={findAssetId("ArrowsUpDownIcon")}
                     variant="tertiary"
+                    disabled={!!search}
                     onPress={() => showSimpleActionSheet({
                         key: "AddonListSortAndFilterOptions",
                         header: {
                             title: "List Options",
-                            onClose: () => hideActionSheet?.("AddonListSortAndFilterOptions"),
+                            onClose: () => hideActionSheet("AddonListSortAndFilterOptions"),
                         },
-                        options: finalActionSheetOptions,
+                        options: actionSheetOptions,
                     })}
                 />}
             </View>

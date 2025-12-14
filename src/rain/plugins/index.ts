@@ -14,16 +14,18 @@ function assert<T>(condition: T, id: string, attempt: string): asserts condition
 export async function startPlugin(id: string, {} = {}) {
     let pluginInstance: t.rainPlugin;
     pluginInstance = pluginInstances.get(id)!;
-    
     if (!pluginInstance) {
         throw new Error(`Plugin ${id} not found`);
     }
-    
     try {
         pluginInstance.start?.();
-        pluginSettings[id].enabled = true;
+        if (!pluginSettings[id]) {
+            pluginSettings[id] = { enabled: true };
+        } else {
+            pluginSettings[id].enabled = true;
+        }
     } catch (error) {
-        console.error(`[${id}] Failed to start:`, error);
+        alert(`[${id}] Failed to start:` + error);
         throw error;
     }
 }
@@ -31,14 +33,16 @@ export async function startPlugin(id: string, {} = {}) {
 export async function startEagerPlugin(id: string, {} = {}) {
     let pluginInstance: t.rainPlugin;
     pluginInstance = pluginInstances.get(id)!;
-    
     if (!pluginInstance) {
         throw new Error(`Plugin ${id} not found`);
     }
-    
     try {
         pluginInstance.eagerStart?.();
-        pluginSettings[id].enabled = true;
+        if (!pluginSettings[id]) {
+            pluginSettings[id] = { enabled: true };
+        } else {
+            pluginSettings[id].enabled = true;
+        }
     } catch (error) {
         console.error(`[${id}] Failed to eager start:`, error);
         throw error;

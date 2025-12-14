@@ -38,13 +38,13 @@ function initSettings() {
                 render: () => import("../../../ui/pages/Plugins"),
                 useTrailing: () => `60% complete`,
             },
-            //{
-            //    key: "EXTERNAL_PLUGINS",
-            //    title: () => "External Plugins",
-            //    icon: findAssetId("ActivitiesIcon"),
-            //    render: () => import("../../../ui/pages/ExternalPlugins"),
-            //    useTrailing: () => `0% complete`,
-            //},
+            {
+                key: "EXTERNAL_PLUGINS",
+                title: () => "External Plugins",
+                icon: findAssetId("ActivitiesIcon"),
+                render: () => import("../../../ui/pages/ExternalPlugins"),
+                useTrailing: () => `20% complete`,
+            },
             //{
             //    key: "RAIN_THEMES",
             //    title: () => "Themes",
@@ -57,7 +57,7 @@ function initSettings() {
                 title: () => "Fonts",
                 icon: findAssetId("LettersIcon"),
                 render: () => import("../../../ui/pages/Fonts"),
-                useTrailing: () => `0% complete`,
+                useTrailing: () => `40% complete`,
             },
             {
                 key: "RAIN_DEVELOPER",

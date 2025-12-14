@@ -31,9 +31,7 @@ export function validateFont(font: FontDefinition) {
     if (!font || typeof font !== "object") throw new Error("URL returned a null/non-object JSON");
     // less cool bunny font compatibility (spec:1)
     if (typeof font.spec !== "number") throw new Error("Invalid font 'spec' number");
-    if (font.spec >= 2) throw new Error("Only fonts which follows spec:1 are supported");
-    // cool rain font checks
-    if (font.type !== "font") throw new Error("This is not a font");
+    if (font.spec >= 2) throw new Error("Only fonts which follows spec:1 or spec:2 are supported");
 
     const requiredFields = ["name", "main"] as const;
     if (requiredFields.some(f => !font[f])) throw new Error(`Font is missing one of the fields: ${requiredFields.join(", ")}`);
