@@ -13,7 +13,7 @@ import * as metro from "@metro";
 import * as common from "@metro/common";
 import { Forms } from "@metro/common/components";
 import * as commonComponents from "@metro/common/components";
-import * as color from "@lib/ui/components";
+import * as color from "@lib/ui/components/color";
 import * as components from "@ui/components";
 import { createThemedStyleSheet } from "@lib/ui/styles";
 import * as toasts from "@lib/ui/toasts";
@@ -22,7 +22,7 @@ import { createElement, useEffect } from "react";
 import { View } from "react-native";
 import { Observable } from "@gullerya/object-observer";
 
-import { VdPluginManager, VendettaPlugin } from ".";
+import { VdPluginManager, VendettaPlugin } from "./";
 import { getLoaderIdentity } from "@lib/api/native/loader";
 
 export async function createVdPluginObject(plugin: VendettaPlugin) {
@@ -252,6 +252,8 @@ export const initVendettaObject = (): any => {
                 getAssetByID: (id: number) => assets.findAsset(id),
                 getAssetIDByName: (name: string) => assets.findAssetId(name)
             },
+            semanticColors: color.semanticColors,
+            rawColors: color.rawColors
         },
         plugins: {
             plugins: VdPluginManager.plugins,
@@ -262,6 +264,15 @@ export const initVendettaObject = (): any => {
             removePlugin: (id: string) => VdPluginManager.removePlugin(id),
             getSettings: (id: string) => VdPluginManager.getSettings(id)
         },
+        //themes: {
+        //    themes: themes.themes,
+        //    fetchTheme: (id: string, selected?: boolean) => themes.fetchTheme(id, selected),
+        //    installTheme: (id: string) => themes.installTheme(id),
+        //    selectTheme: (id: string) => themes.selectTheme(id === "default" ? null : themes.themes[id]),
+        //    removeTheme: (id: string) => themes.removeTheme(id),
+        //    getCurrentTheme: () => themes.getThemeFromLoader(),
+        //    updateThemes: () => themes.updateThemes()
+        //},
         commands: {
             registerCommand: commands.registerCommand
         },

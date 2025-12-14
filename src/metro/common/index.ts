@@ -25,7 +25,6 @@ export const tokens = findByPropsLazy("unsafe_rawColors", "colors");
 export const { useToken } = lazyDestructure(() => findByProps("useToken"));
 
 // Polyfill LinkingUtils
-
 const openURL = (url: string) => Linking.openURL(url);
 export const url = nativeModuleProxy.NativeLinkingModule || nativeModuleProxy.DCDLinkingManager ? {
     openURL,

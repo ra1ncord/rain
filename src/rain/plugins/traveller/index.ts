@@ -18,7 +18,11 @@ export default definePlugin({
 });
 
 async function initExternalPlugins() {
-    updatePlugins();
-    initPlugins();
-    VdPluginManager.initPlugins();
+    Promise.all([
+    updatePlugins(),
+    initPlugins(),
+    VdPluginManager.initPlugins()
+    ]).then(
+        u => u.forEach(f => f && lib.unload.push(f))
+    );
 }
