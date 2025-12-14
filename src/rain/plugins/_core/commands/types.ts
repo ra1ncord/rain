@@ -19,12 +19,12 @@ export interface ApplicationCommand {
     untranslatedName?: string;
     inputType?: ApplicationCommandInputType;
     type?: ApplicationCommandType;
-    __bunny?: {
+    __rain?: {
         shouldHide: () => boolean;
     };
 }
 
-export interface BunnyApplicationCommand extends ApplicationCommand {
+export interface RainApplicationCommand extends ApplicationCommand {
     shouldHide: () => boolean;
 }
 

@@ -83,15 +83,20 @@ export const VdPluginManager = {
      * @internal
      */
     async evalPlugin(plugin: VendettaPlugin) {
+        const vdStorage = await import("@lib/api/storage/vdstorage");
+
+        const pluginStorage = await vdStorage.createStorage(
+            vdStorage.createMMKVBackend(plugin.id)
+        );
+
         const vendettaForPlugins = {
             ...window.vendetta,
             plugin: {
                 id: plugin.id,
                 manifest: plugin.manifest,
-                // Create storage for the plugin using the new system
-                storage: createStorage<Record<string, any>>(plugin.id, { dflt: {} }),
+                storage: pluginStorage,
             },
-            logger: new LoggerClass(`Kettu » ${plugin.manifest.name}`),
+            logger: new LoggerClass(`Rain » ${plugin.manifest.name}`),
         };
         const pluginString = `vendetta=>{return ${plugin.js}}\n//# sourceURL=${plugin.id}`;
 
@@ -101,6 +106,7 @@ export const VdPluginManager = {
     },
 
     async startPlugin(id: string) {
+        await awaitStorage(plugins);
         if (!id.endsWith("/")) id += "/";
         const plugin = plugins[id];
         if (!plugin) throw new Error("Attempted to start non-existent plugin");

@@ -1,4 +1,4 @@
-import { ApplicationCommand, ApplicationCommandInputType, ApplicationCommandType, BunnyApplicationCommand } from "./types";
+import { ApplicationCommand, ApplicationCommandInputType, ApplicationCommandType, RainApplicationCommand } from "./types";
 import { after, instead } from "@lib/api/patcher";
 import { logger } from "@lib/utils/logger";
 import { commands as commandsModule, messageUtil } from "@metro/common";
@@ -10,10 +10,8 @@ export default definePlugin({
     author: [{ name: "cocobo1", id: 767650984175992833n }],
     id: "commands",
     version: "v1.0.0",
-    async start() {
+    start() {
         patchCommands();
-    },
-    eagerStart() {
     }
 });
 
@@ -26,9 +24,13 @@ export function patchCommands() {
     const unpatch = after("getBuiltInCommands", commandsModule, ([type], res: ApplicationCommand[]) => {
         return [...res, ...commands.filter(c =>
             (type instanceof Array ? type.includes(c.type) : type === c.type)
-            && c.__bunny?.shouldHide?.() !== false)
+            && c.__rain?.shouldHide?.() !== false)
         ];
     });
+
+    [
+        require("./builtins/debug")
+    ].forEach(r => registerCommand(r.default()));
 
     return () => {
         commands = [];
@@ -36,7 +38,7 @@ export function patchCommands() {
     };
 }
 
-export function registerCommand(command: BunnyApplicationCommand): () => void {
+export function registerCommand(command: RainApplicationCommand): () => void {
     // Get built in commands
     let builtInCommands: ApplicationCommand[];
     try {
@@ -53,7 +55,7 @@ export function registerCommand(command: BunnyApplicationCommand): () => void {
     command.id = (parseInt(lastCommand.id!, 10) - 1).toString();
 
     // Fill optional args
-    command.__bunny = {
+    command.__rain = {
         shouldHide: command.shouldHide
     };
 

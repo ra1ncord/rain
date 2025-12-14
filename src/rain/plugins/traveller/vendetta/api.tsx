@@ -1,6 +1,4 @@
 import * as alerts from "@lib/ui/alerts";
-import * as storage from "@lib/api/storage";
-import { createStorage } from "@lib/api/storage";
 import * as assets from "@lib/api/assets";
 import * as commands from "@plugins/_core/commands";
 import * as debug from "@lib/api/debug";
@@ -20,7 +18,8 @@ import * as toasts from "@lib/ui/toasts";
 import { omit } from "es-toolkit";
 import { createElement, useEffect } from "react";
 import { View } from "react-native";
-import { Observable } from "@gullerya/object-observer";
+import * as storage from "@lib/api/storage/vdstorage";
+import { createStorage } from "@lib/api/storage/vdstorage";
 
 import { VdPluginManager, VendettaPlugin } from "./";
 import { getLoaderIdentity } from "@lib/api/native/loader";
@@ -31,7 +30,8 @@ export async function createVdPluginObject(plugin: VendettaPlugin) {
         plugin: {
             id: plugin.id,
             manifest: plugin.manifest,
-            storage: createStorage<Record<string, any>>(plugin.id, { dflt: {} }),
+            // Wrapping this with wrapSync is NOT an option.
+            storage: await createStorage<Record<string, any>>(storage.createMMKVBackend(plugin.id)),
         },
         logger: new LoggerClass(`Rain » ${plugin.manifest.name}`),
     };
@@ -44,66 +44,6 @@ export const initVendettaObject = (): any => {
     const createStackBasedFilter = (fn: any) => {
         return (filter: (m: any) => boolean) => {
             return fn(metro.factories.createSimpleFilter(filter, cyrb64Hash(new Error().stack!)));
-        };
-    };
-
-    const createLegacyProxy = (target: any = {}) => {
-        const observable = Observable.from(target);
-        return {
-            proxy: observable,
-            emitter: {
-                on: () => {},
-                off: () => {},
-                emit: () => {}
-            }
-        };
-    };
-
-    const legacyUseProxy = (storageProxy: any) => {
-        storage.useObservable([storageProxy]);
-    };
-
-    const legacyCreateStorage = async (backend: any) => {
-        let storageName = "legacy-storage";
-        if (typeof backend?.get === "function") {
-            try {
-                const data = await backend.get();
-                if (data && typeof data === "object") {
-                    return createStorage(storageName, { dflt: data });
-                }
-            } catch {
-            }
-        }
-        return createStorage(storageName, { dflt: {} });
-    };
-
-    const legacyWrapSync = (store: any) => {
-        if (store instanceof Promise) {
-            let resolved: any;
-            store.then(s => resolved = s);
-            return new Proxy({}, {
-                get: (_, prop) => {
-                    if (resolved) return resolved[prop];
-                    throw new Error("Storage not yet initialized");
-                }
-            });
-        }
-        return store;
-    };
-
-    const legacyCreateMMKVBackend = (storeName: string) => {
-        const storage = createStorage(storeName, { dflt: {} });
-        return {
-            get: async () => storage,
-            set: async (data: any) => Object.assign(storage, data)
-        };
-    };
-
-    const legacyCreateFileBackend = (fileName: string) => {
-        const storage = createStorage(fileName, { dflt: {} });
-        return {
-            get: async () => storage,
-            set: async (data: any) => Object.assign(storage, data)
         };
     };
 
@@ -277,13 +217,20 @@ export const initVendettaObject = (): any => {
             registerCommand: commands.registerCommand
         },
         storage: {
-            createProxy: createLegacyProxy,
-            useProxy: legacyUseProxy,
-            createStorage: legacyCreateStorage,
-            wrapSync: legacyWrapSync,
+            createProxy: (target: any) => storage.createProxy(target),
+            useProxy: (_storage: any) => storage.useProxy(_storage),
+            createStorage: (backend: any) => storage.createStorage(backend),
+            wrapSync: (store: any) => storage.wrapSync(store),
             awaitSyncWrapper: (store: any) => storage.awaitStorage(store),
-            createMMKVBackend: legacyCreateMMKVBackend,
-            createFileBackend: legacyCreateFileBackend
+            createMMKVBackend: (store: string) => storage.createMMKVBackend(store),
+            createFileBackend: (file: string) => {
+                // Redirect path to vendetta_theme.json
+                if (isPyonLoader() && file === "vendetta_theme.json") {
+                    file = "pyon/current-theme.json";
+                }
+
+                return storage.createFileBackend(file);
+            }
         },
         settings,
         loader: {

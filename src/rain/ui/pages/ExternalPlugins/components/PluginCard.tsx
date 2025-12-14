@@ -110,7 +110,7 @@ const Actions = () => {
         icon={findAssetId("WrenchIcon")}
         disabled={!plugin.getPluginSettingsComponent()}
         onPress={() =>
-          navigation.push("PUPU_CUSTOM_PAGE", {
+          navigation.push("RAIN_CUSTOM_PAGE", {
             title: plugin.name,
             render: plugin.getPluginSettingsComponent(),
           })

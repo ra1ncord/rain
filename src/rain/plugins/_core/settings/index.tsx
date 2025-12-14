@@ -68,6 +68,28 @@ function initSettings() {
             },
         ]
     });
+
+    // compatibility hell lol
+    registerSection({
+        name: "Kettu",
+        items: [
+        ]
+    });
+    registerSection({
+        name: "Bunny",
+        items: [
+        ]
+    });
+    registerSection({
+        name: "Revenge",
+        items: [
+        ]
+    });
+    registerSection({
+        name: "Vendetta",
+        items: [
+        ]
+    });
 }
 
 export interface RowConfig {
