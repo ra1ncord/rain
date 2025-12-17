@@ -1,8 +1,13 @@
+import React from "react";
 import { findAssetId } from "@lib/api/assets";
 import { lazy } from "react";
 import type { ImageURISource } from "react-native";
 import { patchTabsUI } from "./patches/tabs";
 import { definePlugin } from "@plugins";
+import { RainIcon } from "@assets";
+import { isPluginEnabled } from "@plugins";
+import { settings } from "@lib/api/settings";
+import { useObservable } from "@lib/api/storage";
 
 export default definePlugin({
     name: "Settings",
@@ -27,7 +32,7 @@ function initSettings() {
             {
                 key: "RAIN",
                 title: () => "Rain",
-                icon: findAssetId("RobotIcon"),
+                icon: { uri: RainIcon },
                 render: () => import("../../../ui/pages/Rain"),
                 useTrailing: () => `10% complete`,
             },
@@ -45,13 +50,13 @@ function initSettings() {
                 render: () => import("../../../ui/pages/ExternalPlugins"),
                 useTrailing: () => `20% complete`,
             },
-            //{
-            //    key: "RAIN_THEMES",
-            //    title: () => "Themes",
-            //    icon: findAssetId("PaintPaletteIcon"),
-            //    render: () => import("../../../ui/pages/Themes"),
-            //    useTrailing: () => `0% complete`,
-            //},
+            {
+                key: "RAIN_THEMES",
+                title: () => "Themes",
+                icon: findAssetId("PaintPaletteIcon"),
+                render: () => import("../../../ui/pages/Themes"),
+                useTrailing: () => `10% complete`,
+            },
             {
                 key: "RAIN_FONTS",
                 title: () => "Fonts",
@@ -64,6 +69,10 @@ function initSettings() {
                 title: () => "Developer",
                 icon: findAssetId("WrenchIcon"),
                 render: () => import("../../../ui/pages/Developer"),
+                usePredicate: () => {
+                    useObservable([settings]);
+                    return settings.developerSettings ?? false;
+                },
                 useTrailing: () => `10% complete`,
             },
         ]
@@ -100,7 +109,7 @@ export interface RowConfig {
     icon?: ImageURISource | number;
     IconComponent?: React.ReactNode,
     usePredicate?: () => boolean,
-    useTrailing?: () => string | JSX.Element,
+    useTrailing?: () => string | React.ReactNode,
     rawTabsConfig?: Record<string, any>;
 }
 

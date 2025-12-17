@@ -105,6 +105,18 @@ const Actions = () => {
       <IconButton
         size="sm"
         variant="secondary"
+        icon={findAssetId("WrenchIcon")}
+        disabled={!plugin.getPluginSettingsComponent?.()}
+        onPress={() =>
+          navigation.push("RAIN_CUSTOM_PAGE", {
+            title: plugin.name,
+            render: plugin.getPluginSettingsComponent?.(),
+          })
+        }
+      />
+      <IconButton
+        size="sm"
+        variant="secondary"
         icon={findAssetId("CircleInformationIcon-primary")}
         onPress={() =>
           void showSheet(

@@ -11,10 +11,13 @@ function SettingsSection() {
     const navigation = NavigationNative.useNavigation();
 
     return <>
-        {Object.keys(registeredSections).map(sect => registeredSections[sect].length > 0 && (
+        {Object.keys(registeredSections).map(sect => {
+            const rows = Array.isArray(registeredSections[sect]) ? registeredSections[sect] : [];
+            if (rows.length === 0) return null;
+            return (
             <LegacyFormSection key={sect} title={sect}>
                 { /** Is usePredicate here safe? */}
-                {registeredSections[sect].filter(r => r.usePredicate?.() ?? true).map((row, i, arr) => (
+                {rows.filter(r => r.usePredicate?.() ?? true).map((row, i, arr) => (
                     <>
                         <LegacyFormRow
                             label={row.title()}
@@ -26,7 +29,8 @@ function SettingsSection() {
                     </>
                 ))}
             </LegacyFormSection>
-        ))}
+            );
+        })}
     </>;
 }
 

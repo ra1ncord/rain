@@ -1,4 +1,4 @@
-import { Author } from "@rain/plugins/traveller/types";
+import { Author } from "@rain/plugins/_core/traveller/types";
 import { ImageSourcePropType } from "react-native";
 
 interface Badge {

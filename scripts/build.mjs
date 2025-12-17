@@ -42,7 +42,7 @@ const config = {
         "const-and-let": false
     },
     footer: {
-        js: "//# sourceURL=rain"
+        js: "//# sourceURL=raincord.dev"
     },
     loader: {
         ".png": "dataurl"

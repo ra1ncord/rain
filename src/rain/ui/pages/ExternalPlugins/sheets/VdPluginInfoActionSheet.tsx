@@ -8,7 +8,7 @@ import { ScrollView, View } from "react-native";
 import TitleComponent from "./TitleComponent";
 import { PluginInfoActionSheetProps } from "./common";
 import { semanticColors } from "@lib/ui/components/color";
-import { VdPluginManager } from "@rain/plugins/traveller/vendetta";
+import { VdPluginManager } from "@rain/plugins/_core/traveller/vendetta";
 import { showConfirmationAlert } from "@rain/ui/components/alerts";
 
 export default function PluginInfoActionSheet({ plugin, navigation }: PluginInfoActionSheetProps) {

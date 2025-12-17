@@ -106,13 +106,24 @@ export function definePlugin(
 }
 
 export function isPluginEnabled(id: string) {
+    if (isCorePlugin(id)) {
+        return pluginSettings[id]?.enabled ?? true;
+    }
     return pluginSettings[id]?.enabled ?? false;
 }
 
 export function isCorePlugin(id: string) {
-    if ( id.startsWith("core") ) {
+    if (id.startsWith("core")) {
         return true
     }
 
     return false;
+}
+
+export function getPluginSettingsComponent(id: string): React.ComponentType<any> | null {
+    const instance = pluginInstances.get(id);
+    if (!instance) return null;
+
+    if (instance.settings) return instance.settings;
+    return null;
 }

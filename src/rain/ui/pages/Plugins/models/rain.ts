@@ -3,6 +3,7 @@ import {
   stopPlugin,
   isPluginEnabled,
   pluginSettings,
+  getPluginSettingsComponent,
 } from "@plugins";
 import { rainPlugin } from "@plugins/types";
 
@@ -32,6 +33,9 @@ export default function unifyRainPlugin(
       return Promise.resolve({
         default: require("../sheets/PluginInfoActionSheet").default,
       });
+    },
+    getPluginSettingsComponent() {
+      return getPluginSettingsComponent(manifest.id);
     },
   };
 }

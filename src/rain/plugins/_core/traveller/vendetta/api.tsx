@@ -21,7 +21,7 @@ import { View } from "react-native";
 import * as storage from "@lib/api/storage/vdstorage";
 import { createStorage } from "@lib/api/storage/vdstorage";
 
-import { VdPluginManager, VendettaPlugin } from "./";
+import { VdPluginManager, VendettaPlugin } from ".";
 import { getLoaderIdentity } from "@lib/api/native/loader";
 
 export async function createVdPluginObject(plugin: VendettaPlugin) {

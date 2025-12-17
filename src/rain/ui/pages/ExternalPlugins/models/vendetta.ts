@@ -1,4 +1,4 @@
-import { VdPluginManager, VendettaPlugin } from "@rain/plugins/traveller/vendetta";
+import { VdPluginManager, VendettaPlugin } from "@rain/plugins/_core/traveller/vendetta";
 import { useObservable } from "@lib/api/storage";
 import { UnifiedPluginModel } from ".";
 

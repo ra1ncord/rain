@@ -5,7 +5,6 @@ export interface Settings {
     debuggerUrl: string;
     devToolsUrl: string;
     developerSettings: boolean;
-    enableDiscordDeveloperSettings: boolean;
     autoDebugger: boolean;
     autoDevTools: boolean;
     safeMode?: {
@@ -28,7 +27,6 @@ export const settings = createStorage<Settings>("rain/RAIN_SETTINGS", {
         debuggerUrl: "",
         devToolsUrl: "",
         developerSettings: false,
-        enableDiscordDeveloperSettings: false,
         autoDebugger: false,
         autoDevTools: false
 }});

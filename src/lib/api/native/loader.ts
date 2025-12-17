@@ -1,4 +1,4 @@
-import { removeCacheFile } from "./fs";
+import { VdThemeInfo } from "@plugins/_core/painter/options";
 
 // @ts-ignore
 const pyonLoaderIdentity = globalThis.__PYON_LOADER__;
@@ -65,11 +65,23 @@ export function isLoaderConfigSupported() {
     return false;
 }
 
+export function getStoredTheme(): VdThemeInfo | null {
+    if (isPyonLoader()) {
+        return pyonLoaderIdentity.storedTheme;
+    } else if (isRainLoader()) {
+        return rainLoaderIdentity.storedTheme;
+    }
+
+    return null;
+}
+
 export function getThemeFilePath() {
     if (isPyonLoader()) {
         return "pyoncord/current-theme.json";
     }
-
+    if (isRainLoader()) {
+        return "rain/current-theme.json";
+    }
     return null;
 }
 

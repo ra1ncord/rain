@@ -1,3 +1,4 @@
+// @ts-nocheck
 import typescriptEslint from "@typescript-eslint/eslint-plugin";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import unusedImports from "eslint-plugin-unused-imports";
@@ -113,6 +114,9 @@ export default [{
             }, {
                 alias: "@plugins",
                 matcher: "^src/plugins",
+            }, {
+                alias: "@assets",
+                matcher: "^src/assets",
             }, {
                 alias: "@lib",
                 matcher: "^src/lib",
