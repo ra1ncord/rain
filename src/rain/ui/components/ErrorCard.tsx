@@ -1,4 +1,4 @@
-import { Codeblock } from "@lib/ui/components";
+import { Codeblock } from "@ui/components";
 import { Button, Card, Stack, Text, TwinButtons } from "@metro/common/components";
 import { ReactNode } from "react";
 

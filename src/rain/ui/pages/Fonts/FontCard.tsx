@@ -1,5 +1,5 @@
 import { CardWrapper } from "@rain/ui/components/addons/AddonCard";
-import { showConfirmationAlert } from "@rain/ui/components/alerts";
+import { showConfirmationAlert } from "@rain/ui/alerts";
 import { useObservable } from "@lib/api/storage";
 import { FontDefinition, fonts, selectFont } from "@plugins/_core/painter/fonts";
 import { findAssetId } from "@lib/api/assets";

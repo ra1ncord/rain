@@ -6,7 +6,7 @@ import { loaderConfig, settings } from "@lib/api/settings";
 import { NavigationNative } from "@metro/common";
 import { Button, LegacyFormText, Stack, TableRow, TableRowGroup, TableSwitchRow, TextInput } from "@metro/common/components";
 import { findByProps } from "@metro/wrappers";
-import { semanticColors } from "@lib/ui/components/color";
+import { semanticColors } from "@ui/components/color";
 import { ErrorBoundary } from "@ui/components";
 import { createStyles, TextStyleSheet } from "@ui/styles";
 import { ScrollView, StyleSheet } from "react-native";

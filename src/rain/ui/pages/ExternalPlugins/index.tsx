@@ -11,7 +11,7 @@ import { AlertActionButton, AlertActions, AlertModal, Card, FlashList, IconButto
 import { ComponentProps } from "react";
 import { View } from "react-native";
 import { UnifiedPluginModel } from "./models";
-import { ErrorBoundary } from "@lib/ui/components";
+import { ErrorBoundary } from "@ui/components";
 import * as React from "react";
 import { Author } from "@rain/plugins/_core/traveller/types";
 import { isPluginInstalled, pluginSettings, registeredPlugins } from "@rain/plugins/_core/traveller/bunny";
@@ -19,7 +19,7 @@ import { VdPluginManager } from "@rain/plugins/_core/traveller/vendetta";
 import unifyVdPlugin from "./models/vendetta";
 import unifyBunnyPlugin from "./models/bunny";
 import { navigation } from "@metro/common";
-import { openAlert } from "@lib/ui/alerts";
+import { openAlert } from "@ui/alerts";
 
 interface PluginPageProps
   extends Partial<ComponentProps<typeof AddonPage<UnifiedPluginModel>>> {

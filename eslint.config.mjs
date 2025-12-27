@@ -109,8 +109,8 @@ export default [{
                 alias: "@metro",
                 matcher: "^src/lib/metro",
             }, {
-                alias: "@core",
-                matcher: "^src/core",
+                alias: "@rain",
+                matcher: "^src/rain",
             }, {
                 alias: "@plugins",
                 matcher: "^src/plugins",

@@ -1,8 +1,8 @@
 import { CardWrapper } from "./AddonCard";
 import { findAssetId } from "@lib/api/assets";
 import { settings } from "@lib/api/settings";
-import { dismissAlert, openAlert } from "@lib/ui/alerts";
-import { showSheet } from "@lib/ui/sheets";
+import { dismissAlert, openAlert } from "@ui/alerts";
+import { showSheet } from "@ui/sheets";
 import isValidHttpUrl from "@lib/utils/isValidHttpUrl";
 import { lazyDestructure } from "@lib/utils/lazy";
 import { findByProps } from "@metro";

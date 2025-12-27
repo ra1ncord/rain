@@ -9,7 +9,7 @@ import { RainIcon, CodebergIcon, KofiIcon } from "@assets";
 import About from "./About";
 import { getDebugInfo } from "@lib/api/debug";
 import { settings } from "@lib/api/settings";
-import { openAlert } from "@lib/ui/alerts";
+import { openAlert } from "@ui/alerts";
 import { DISCORD_SERVER, GITHUB, CODEBERG, KOFI, DEVELOPERS } from "@lib/info";
 import { awaitStorage, useObservable } from "@lib/api/storage";
 

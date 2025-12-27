@@ -1,4 +1,4 @@
-import { hideSheet } from "@lib/ui/sheets";
+import { hideSheet } from "@ui/sheets";
 import { ActionSheet, Card, IconButton, Text } from "@metro/common/components";
 import { clipboard } from "@metro/common";
 import { purgeStorage } from "@lib/api/storage";
@@ -7,7 +7,7 @@ import { useState } from "react";
 import { ScrollView, View } from "react-native";
 import TitleComponent from "./TitleComponent";
 import { PluginInfoActionSheetProps } from "./common";
-import { semanticColors } from "@lib/ui/components/color";
+import { semanticColors } from "@ui/components/color";
 
 function PluginInfoIconButton(props) {
   const { onPress } = props;

@@ -13,7 +13,7 @@ import { View } from "react-native";
 
 import { UnifiedPluginModel } from "./models";
 import unifyRainPlugin from "./models/rain";
-import { ErrorBoundary } from "@lib/ui/components";
+import { ErrorBoundary } from "@ui/components";
 import * as React from "react";
 
 interface PluginPageProps
