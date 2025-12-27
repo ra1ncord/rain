@@ -1,6 +1,5 @@
 import { getMetroCache, indexBlacklistFlag, indexExportsFlags } from "@metro/internals/caches";
 import { Metro } from "@metro/types";
-
 import { ModuleFlags, ModulesMapInternal } from "./enums";
 
 const { before, instead } = require("spitroast");
@@ -8,7 +7,6 @@ const { before, instead } = require("spitroast");
 export const metroModules: Metro.ModuleList = window.modules;
 const metroRequire = (id: string | number) => window.__r(+id);
 
-// eslint-disable-next-line func-call-spacing
 const moduleSubscriptions = new Map<number, Set<() => void>>();
 const blacklistedIds = new Set<number>();
 const noopHandler = () => undefined;
@@ -19,7 +17,11 @@ let patchedImportTracker = false;
 let patchedNativeComponentRegistry = false;
 let _importingModuleId: number = -1;
 
-for (const key in metroModules) {
+const BAD_EXPORTS_CHECK_STRING = "<!@ this string is very bad! @>";
+
+const moduleKeys = Object.keys(metroModules);
+
+for (const key of moduleKeys) {
     const id = Number(key);
     const metroModule = metroModules[id];
 
@@ -59,11 +61,10 @@ for (const key in metroModules) {
             }
 
             _importingModuleId = originalImportingId;
-        }) as any); // If only spitroast had better types
+        }) as any);
     }
 }
 
-/** Makes the module associated with the specified ID non-enumberable. */
 function blacklistModule(id: number) {
     Object.defineProperty(metroModules, id, { enumerable: false });
     blacklistedIds.add(id);
@@ -71,17 +72,23 @@ function blacklistModule(id: number) {
 }
 
 function isBadExports(exports: any) {
-    return !exports
-        || exports === window
-        || exports["<!@ pylix was here :fuyusquish: \n Hi pylix! -cocobo1!@>"] === null
-        || (exports.__proto__ === Object.prototype && Reflect.ownKeys(exports).length === 0)
-        || (exports.default?.[Symbol.toStringTag] === "IntlMessagesProxy");
+    if (!exports) return true;
+    
+    if (exports === window) return true;
+    
+    if (exports[BAD_EXPORTS_CHECK_STRING] === null) return true;
+    
+    if (exports.__proto__ === Object.prototype) {
+        if (Reflect.ownKeys(exports).length === 0) return true;
+    }
+    
+    return exports.default?.[Symbol.toStringTag] === "IntlMessagesProxy";
 }
 
 function onModuleRequire(moduleExports: any, id: Metro.ModuleID) {
     indexExportsFlags(id, moduleExports);
 
-    // Temporary
+    // Temporary fixes
     moduleExports.initSentry &&= () => undefined;
     if (moduleExports.default?.track && moduleExports.default.trackMaker)
         moduleExports.default.track = () => Promise.resolve();
@@ -90,7 +97,6 @@ function onModuleRequire(moduleExports: any, id: Metro.ModuleID) {
         require("@lib/api/assets/patches").patchAssets(moduleExports);
     }
 
-    // There are modules registering the same native component
     if (!patchedNativeComponentRegistry && ["customBubblingEventTypes", "customDirectEventTypes", "register", "get"].every(x => moduleExports[x])) {
         instead("register", moduleExports, ([name, cb]: any, origFunc: any) => {
             try {
@@ -103,12 +109,9 @@ function onModuleRequire(moduleExports: any, id: Metro.ModuleID) {
         patchedNativeComponentRegistry = true;
     }
 
-
-    // Hook DeveloperExperimentStore
     if (moduleExports?.default?.constructor?.displayName === "DeveloperExperimentStore") {
         moduleExports.default = new Proxy(moduleExports.default, {
             get(target, property, receiver) {
-
                 return Reflect.get(target, property, receiver);
             }
         });
@@ -122,14 +125,12 @@ function onModuleRequire(moduleExports: any, id: Metro.ModuleID) {
         patchedImportTracker = true;
     }
 
-    // Funny infinity recursion caused by a race condition
     if (!patchedInspectSource && window["__core-js_shared__"]) {
         const inspect = (f: unknown) => typeof f === "function" && functionToString.apply(f, []);
         window["__core-js_shared__"].inspectSource = inspect;
         patchedInspectSource = true;
     }
 
-    //
     if (moduleExports.findHostInstance_DEPRECATED) {
         const prevExports = metroModules[id - 1]?.publicModule.exports;
         const inc = prevExports.default?.reactProfilingEnabled ? 1 : -1;
@@ -138,7 +139,6 @@ function onModuleRequire(moduleExports: any, id: Metro.ModuleID) {
         }
     }
 
-    // Hindi timestamps moment
     if (moduleExports.isMoment) {
         instead("defineLocale", moduleExports, (args: [string], orig: (lcl: string) => string) => {
             const origLocale = moduleExports.locale();
@@ -168,16 +168,17 @@ export function subscribeModule(id: number, cb: () => void): () => void {
 }
 
 export function requireModule(id: Metro.ModuleID) {
-    if (!metroModules[0]?.isInitialized) metroRequire(0);
     if (blacklistedIds.has(id)) return undefined;
+
+    if (!metroModules[0]?.isInitialized) metroRequire(0);
 
     if (Number(id) === -1) return require("@metro/polyfills/redesign");
 
-    if (metroModules[id]?.isInitialized && !metroModules[id]?.hasError) {
+    const module = metroModules[id];
+    if (module?.isInitialized && !module.hasError) {
         return metroRequire(id);
     }
 
-    // Disable Internal RN error reporting logic
     const originalHandler = ErrorUtils.getGlobalHandler();
     ErrorUtils.setGlobalHandler(noopHandler);
 
@@ -189,7 +190,6 @@ export function requireModule(id: Metro.ModuleID) {
         moduleExports = undefined;
     }
 
-    // Done initializing! Now, revert our hacks
     ErrorUtils.setGlobalHandler(originalHandler);
 
     return moduleExports;
@@ -198,9 +198,35 @@ export function requireModule(id: Metro.ModuleID) {
 export function* getModules(uniq: string, all = false) {
     yield [-1, require("@metro/polyfills/redesign")];
 
-    let cache = getMetroCache().findIndex[uniq];
-    if (all && !cache?.[`_${ModulesMapInternal.FULL_LOOKUP}`]) cache = undefined;
+    const cache = getMetroCache().findIndex[uniq];
+    
     if (cache?.[`_${ModulesMapInternal.NOT_FOUND}`]) return;
+    
+    const useCache = cache && (!all || cache[`_${ModulesMapInternal.FULL_LOOKUP}`]);
+
+    if (useCache) {
+        for (const id in cache) {
+            if (id[0] === "_") continue;
+            const exports = requireModule(Number(id));
+            if (isBadExports(exports)) continue;
+            yield [id, exports];
+        }
+    }
+
+    for (const id of moduleKeys) {
+        if (useCache && cache![id]) continue;
+        
+        const exports = requireModule(Number(id));
+        if (isBadExports(exports)) continue;
+        yield [id, exports];
+    }
+}
+
+export function* getCachedPolyfillModules(name: string) {
+    const cache = getMetroCache().polyfillIndex[name];
+    if (!cache) return;
+
+    const fullLookup = cache[`_${ModulesMapInternal.FULL_LOOKUP}`];
 
     for (const id in cache) {
         if (id[0] === "_") continue;
@@ -209,24 +235,10 @@ export function* getModules(uniq: string, all = false) {
         yield [id, exports];
     }
 
-    for (const id in metroModules) {
-        const exports = requireModule(Number(id));
-        if (isBadExports(exports)) continue;
-        yield [id, exports];
-    }
-}
-
-export function* getCachedPolyfillModules(name: string) {
-    const cache = getMetroCache().polyfillIndex[name]!;
-
-    for (const id in cache) {
-        const exports = requireModule(Number(id));
-        if (isBadExports(exports)) continue;
-        yield [id, exports];
-    }
-
-    if (!cache[`_${ModulesMapInternal.FULL_LOOKUP}`]) {
-        for (const id in metroModules) {
+    if (!fullLookup) {
+        for (const id of moduleKeys) {
+            if (cache[id]) continue;
+            
             const exports = requireModule(Number(id));
             if (isBadExports(exports)) continue;
             yield [id, exports];
@@ -282,33 +294,41 @@ export function waitFor<T = any>(
     if (filter.key) {
         const cache = getMetroCache().findIndex[filter.key];
         if (cache) {
-            for (const id in cache) {
-                if (id[0] === "_") continue;
-                const numId = Number(id);
-                
-                if (metroModules[numId]?.isInitialized) {
-                    if (checkModule(numId)) return cleanup;
-                } else {
-                    const unsub = subscribeModule(numId, () => {
-                        checkModule(numId);
-                    });
-                    unsubscribers.push(unsub);
+            const cachedCount = Object.keys(cache).filter(k => k[0] !== "_").length;
+            
+            if (cachedCount >= count) {
+                for (const id in cache) {
+                    if (id[0] === "_") continue;
+                    const numId = Number(id);
+                    
+                    if (metroModules[numId]?.isInitialized) {
+                        if (checkModule(numId)) return cleanup;
+                    } else {
+                        const unsub = subscribeModule(numId, () => {
+                            checkModule(numId);
+                        });
+                        unsubscribers.push(unsub);
+                    }
+                    
+                    if (!isActive) return cleanup;
                 }
             }
         }
     }
 
-    for (const id in metroModules) {
-        if (!isActive) break;
-        const numId = Number(id);
-        
-        if (metroModules[numId]?.isInitialized && !metroModules[numId]?.hasError) {
-            if (checkModule(numId)) return cleanup;
+    if (isActive) {
+        for (const id of moduleKeys) {
+            if (!isActive) break;
+            const numId = Number(id);
+            
+            if (metroModules[numId]?.isInitialized && !metroModules[numId]?.hasError) {
+                if (checkModule(numId)) return cleanup;
+            }
         }
     }
 
     if (isActive) {
-        for (const id in metroModules) {
+        for (const id of moduleKeys) {
             const numId = Number(id);
             if (!metroModules[numId]?.isInitialized) {
                 const unsub = subscribeModule(numId, () => {

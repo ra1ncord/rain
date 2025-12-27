@@ -1,7 +1,5 @@
 import { constants } from "@metro/common";
 import { findByProps, findByStoreNameLazy } from "@metro/wrappers";
-import { updateThemeColors } from "@rain/plugins/_core/painter/patches";
-import { getColorRef } from "@rain/plugins/_core/painter/colors/updater";
 
 //! This module is only found on 165.0+, under the assumption that iOS 165.0 is the same as Android 165.0.
 //* In 167.1, most if not all traces of the old color modules were removed.
@@ -19,17 +17,7 @@ export const semanticColors = (color?.default?.colors ?? constants?.ThemeColorMa
 // ? RawColor and default.unsafe_rawColors are effectively Colors
 //* Note that constants.Colors does still appear to exist on newer versions despite Discord not internally using it - what the fuck?
 const baseRawColors = (color?.default?.unsafe_rawColors ?? constants?.Colors) as Record<string, string>;
-export const rawColors = new Proxy(baseRawColors, {
-    get(target, prop, receiver) {
-        const key = typeof prop === "string" ? prop : undefined;
-        if (key) {
-            const ref = getColorRef();
-            const themed = ref.colors?.[key];
-            if (typeof themed === "string") return themed;
-        }
-        return Reflect.get(target, prop, receiver);
-    },
-}) as Record<string, string>;
+export const rawColors = (color?.default?.unsafe_rawColors ?? constants?.Colors) as Record<string, string>;
 
 const ThemeStore = findByStoreNameLazy("ThemeStore");
 const colorResolver = color.default.meta ??= color.default.internal;
@@ -39,14 +27,5 @@ export function isSemanticColor(sym: any): boolean {
 }
 
 export function resolveSemanticColor(sym: any, theme = ThemeStore.theme): string {
-    try { updateThemeColors(undefined as any); } catch {}
-    const ref = getColorRef();
-    const name = (() => {
-        try { return Object.getOwnPropertySymbols(sym)[0] as any; } catch { return undefined; }
-    })();
-    if (name) {
-        const themed = ref.semanticColors?.[name];
-        if (typeof themed === "string") return themed;
-    }
     return colorResolver.resolveSemanticColor(theme, sym);
 }

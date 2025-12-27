@@ -1,11 +1,10 @@
 import { fileExists, readFile, writeFile } from "@lib/api/native/fs";
 import { NativeClientInfoModule } from "@lib/api/native/modules";
 import { debounce } from "es-toolkit";
-
 import { ModuleFlags, ModulesMapInternal } from "./enums";
 
-const CACHE_VERSION = 102;
-const BUNNY_METRO_CACHE_PATH = "caches/metro_modules.json";
+const CACHE_VERSION = 1;
+const RAIN_METRO_CACHE_PATH = "caches/metro_modules.json";
 
 type ModulesMap = {
     [flag in number | `_${ModulesMapInternal}`]?: ModuleFlags;
@@ -25,13 +24,11 @@ function buildInitCache() {
         polyfillIndex: {} as Record<string, ModulesMap | undefined>
     } as const;
 
-    // Force load all modules so useful modules are pre-cached. Add a minor
-    // delay so the cache is initialized before the modules are loaded.
     setTimeout(() => {
         for (const id in window.modules) {
             require("./modules").requireModule(id);
         }
-    }, 100);
+    }, 20);
 
     _metroCache = cache;
     return cache;
@@ -39,9 +36,8 @@ function buildInitCache() {
 
 /** @internal */
 export async function initMetroCache() {
-    if (!await fileExists(BUNNY_METRO_CACHE_PATH)) return void buildInitCache();
-    const rawCache = await readFile(BUNNY_METRO_CACHE_PATH);
-
+    if (!await fileExists(RAIN_METRO_CACHE_PATH)) return void buildInitCache();
+    const rawCache = await readFile(RAIN_METRO_CACHE_PATH);
     try {
         _metroCache = JSON.parse(rawCache);
         if (_metroCache._v !== CACHE_VERSION) {
@@ -62,12 +58,11 @@ export async function initMetroCache() {
 }
 
 const saveCache = debounce(() => {
-    writeFile(BUNNY_METRO_CACHE_PATH, JSON.stringify(_metroCache));
+    writeFile(RAIN_METRO_CACHE_PATH, JSON.stringify(_metroCache));
 }, 1000);
 
 function extractExportsFlags(moduleExports: any) {
     if (!moduleExports) return undefined;
-
     const bit = ModuleFlags.EXISTS;
     return bit;
 }
@@ -97,14 +92,11 @@ export function getCacherForUniq(uniq: string, allFind: boolean) {
     return {
         cacheId(moduleId: number, exports: any) {
             indexObject[moduleId] ??= extractExportsFlags(exports);
-
             saveCache();
         },
-        // Finish may not be called by single find
         finish(notFound: boolean) {
             if (allFind) indexObject[`_${ModulesMapInternal.FULL_LOOKUP}`] = 1;
             if (notFound) indexObject[`_${ModulesMapInternal.NOT_FOUND}`] = 1;
-
             saveCache();
         }
     };
@@ -127,4 +119,9 @@ export function getPolyfillModuleCacher(name: string) {
             saveCache();
         }
     };
+}
+
+export function invalidateCache() {
+    _metroCache = buildInitCache();
+    saveCache.flush?.();
 }
