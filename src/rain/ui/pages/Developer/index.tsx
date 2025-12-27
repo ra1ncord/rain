@@ -1,6 +1,6 @@
 import { CheckState, useFileExists } from "@lib/api/storage/useFS";
 import { findAssetId } from "@lib/api/assets";
-import { connectToDebugger } from "@lib/api/debug";
+import { connectToDebugger, disconnectFromDebugger, isConnectedToDebugger } from "@lib/api/debug";
 import { getReactDevToolsProp, getReactDevToolsVersion, isLoaderConfigSupported, isReactDevToolsPreloaded } from "@lib/api/native/loader";
 import { loaderConfig, settings } from "@lib/api/settings";
 import { NavigationNative } from "@metro/common";
@@ -11,8 +11,10 @@ import { ErrorBoundary } from "@ui/components";
 import { createStyles, TextStyleSheet } from "@ui/styles";
 import { ScrollView, StyleSheet } from "react-native";
 import { awaitStorage, useObservable } from "@lib/api/storage";
+import { showToast } from "@rain/ui/toasts";
+import { useEffect, useState } from "react";
 
-const RDT_EMBED_LINK = "https://cdn.bwlok.dev/rdt/devTools.js";
+const RDT_EMBED_LINK = "https://codeberg.org/raincord/raindevtools/raw/branch/dev/dist/index.bundle";
 
 const useStyles = createStyles({
     leadingText: {
@@ -24,104 +26,122 @@ const useStyles = createStyles({
 
 export default function Developer() {
     const [rdtFileExists, fs] = useFileExists("preloads/reactDevtools.js");
+    const [isDebuggerConnected, setIsDebuggerConnected] = useState(isConnectedToDebugger());
 
     const styles = useStyles();
     const navigation = NavigationNative.useNavigation();
 
     useObservable([loaderConfig]);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setIsDebuggerConnected(isConnectedToDebugger());
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleDebuggerConnect = () => {
+        if (isDebuggerConnected) {
+            disconnectFromDebugger();
+            setIsDebuggerConnected(false);
+        } else {
+            connectToDebugger(settings.debuggerUrl);
+            setTimeout(() => setIsDebuggerConnected(isConnectedToDebugger()), 100);
+        }
+    };
+
     const showSimpleActionSheet = findByProps("showSimpleActionSheet")?.showSimpleActionSheet;
     const hideActionSheet = findByProps("openLazy", "hideActionSheet")?.hideActionSheet;
-
 
     return (
         <ErrorBoundary>
             <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 38 }}>
                 <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
 
+
                     <TableRowGroup title={"Strings.DEBUGGER_URL"}>
-                      <TextInput
+                        <TextInput
                           placeholder="127.0.0.1:9090"
-                          size="md"
-                          leadingIcon={() => <LegacyFormText style={styles.leadingText}>ws://</LegacyFormText>}
-                          defaultValue={settings.debuggerUrl}
-                          onChange={(v: string) => settings.debuggerUrl = v}
-                      />
-                      <Stack style={{
-                          marginTop: 4,
-                          borderTopLeftRadius: 16,
-                          borderTopRightRadius: 16,
-                          overflow: 'hidden'
-                      }}>
-                        <TableSwitchRow
-                            label={"Strings.AUTO_DEBUGGER"}
-                            icon={<TableRow.Icon source={findAssetId("copy")} />}
-                            value={settings.autoDebugger}
-                            onValueChange={(v: boolean) => {
-                                settings.autoDebugger = v;
-                            }}
+                            size="md"
+                            leadingIcon={() => <LegacyFormText style={styles.leadingText}>ws://</LegacyFormText>}
+                            defaultValue={settings.debuggerUrl}
+                            onChange={(v: string) => settings.debuggerUrl = v}
                         />
-                      </Stack>
-                      <TableRow
-                          label={"Strings.CONNECT_TO_DEBUG_WEBSOCKET"}
-                          icon={<TableRow.Icon source={findAssetId("copy")} />}
-                          onPress={() => connectToDebugger(settings.debuggerUrl)}
-                      />
+                        <Stack style={{
+                            marginTop: 4,
+                            borderTopLeftRadius: 16,
+                            borderTopRightRadius: 16,
+                            overflow: 'hidden'
+                        }}>
+                            <TableSwitchRow
+                                label={"Strings.AUTO_DEBUGGER"}
+                                subLabel={isDebuggerConnected ? "Connected" : undefined}
+                                icon={<TableRow.Icon source={findAssetId("copy")} />}
+                                value={settings.autoDebugger}
+                                onValueChange={(v: boolean) => {
+                                    settings.autoDebugger = v;
+                                }}
+                            />
+                        </Stack>
+                        <TableRow
+                            label={isDebuggerConnected ? "Disconnect from Debugger" :" Strings.CONNECT_TO_DEBUG_WEBSOCKET"}
+                            icon={<TableRow.Icon source={findAssetId(isDebuggerConnected ? "ic_message_delete" : "copy")} />}
+                            onPress={handleDebuggerConnect}
+                        />
 
                     </TableRowGroup>
                     {isReactDevToolsPreloaded() && <>
-                      <TableRowGroup title={"Strings.DEVTOOLS_URL"}>
-
-                      <TextInput
-                          placeholder="127.0.0.1:8097"
-                          size="md"
-                          leadingIcon={() => <LegacyFormText style={styles.leadingText}>ws://</LegacyFormText>}
-                          defaultValue={settings.devToolsUrl}
-                          onChange={(v: string) => settings.devToolsUrl = v}
-                      />
-                      <Stack style={{
-                          marginTop: 4,
-                          borderTopLeftRadius: 16,
-                          borderTopRightRadius: 16,
-                          overflow: 'hidden'
-                      }}>
-                        <TableSwitchRow
-                            label={"Strings.AUTO_DEVTOOLS"}
-                            icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
-                            value={settings.autoDevTools}
-                            onValueChange={(v: boolean) => {
-                                settings.autoDevTools = v;
-                            }}
-                        />
-                      </Stack>
-                      <TableRow
-                          label={"Strings.CONNECT_TO_REACT_DEVTOOLS"}
-                          icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
-                          onPress={async () => {
-                              if (!settings.devToolsUrl?.trim()) {
-                                  //showToast("Invalid devTools URL!", findAssetId("Small"));
-                                  return;
-                              }
-
-                                try {
-                                    const devTools = window[getReactDevToolsProp() || "__vendetta_rdc"];
-
-                                    if (!devTools?.connectToDevTools) {
-                                        //showToast("Invalid devTools URL!", findAssetId("Small"));
+                        <TableRowGroup title={"Strings.DEVTOOLS_URL"}>
+                            
+                            <TextInput
+                                placeholder="127.0.0.1:8097"
+                                size="md"
+                                leadingIcon={() => <LegacyFormText style={styles.leadingText}>ws://</LegacyFormText>}
+                                defaultValue={settings.devToolsUrl}
+                                onChange={(v: string) => settings.devToolsUrl = v}
+                            />
+                            <Stack style={{
+                                marginTop: 4,
+                                borderTopLeftRadius: 16,
+                                borderTopRightRadius: 16,
+                                overflow: 'hidden'
+                            }}>
+                                <TableSwitchRow
+                                    label={"Strings.AUTO_DEVTOOLS"}
+                                    icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
+                                    value={settings.autoDevTools}
+                                    onValueChange={(v: boolean) => {
+                                        settings.autoDevTools = v;
+                                    }}
+                                />
+                            </Stack>
+                            <TableRow
+                                label={"Strings.CONNECT_TO_REACT_DEVTOOLS"}
+                                icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
+                                onPress={async () => {
+                                    if (!settings.devToolsUrl?.trim()) {
+                                        showToast("Invalid devTools URL!", findAssetId("Small"));
                                         return;
                                     }
 
-                                    await devTools.connectToDevTools({
-                                        host: settings.devToolsUrl.split(":")?.[0],
-                                        resolveRNStyle: StyleSheet.flatten,
-                                    });
-                                } catch (error) {
-                                    //showToast("Invalid devTools URL!", findAssetId("Small"));
-                                }
-                            }}
+                                    try {
+                                        const devTools = window[getReactDevToolsProp() || "__vendetta_rdc"];
+                                        
+                                        if (!devTools?.connectToDevTools) {
+                                            showToast("Invalid devTools URL!", findAssetId("Small"));
+                                            return;
+                                        }
 
-                      />
-                      </TableRowGroup>
+                                        await devTools.connectToDevTools({
+                                            host: settings.devToolsUrl.split(":")?.[0],
+                                            resolveRNStyle: StyleSheet.flatten,
+                                        });
+                                    } catch (error) {
+                                        showToast("Invalid devTools URL!", findAssetId("Small"));
+                                    }
+                                }}
+                            />
+                        </TableRowGroup>
                     </>}
                     {isLoaderConfigSupported() && <>
                         <TableRowGroup title="Loader config">

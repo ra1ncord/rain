@@ -1,4 +1,4 @@
-import { VdThemeInfo } from "@plugins/_core/painter/options";
+import { removeCacheFile } from "./fs";
 
 // @ts-ignore
 const pyonLoaderIdentity = globalThis.__PYON_LOADER__;
@@ -23,6 +23,9 @@ export interface VendettaLoaderIdentity {
     };
 }
 
+export function isVendettaLoader() {
+    return vendettaLoaderIdentity != null;
+}
 
 export function isPyonLoader() {
     return pyonLoaderIdentity != null;
@@ -45,6 +48,7 @@ export function getLoaderIdentity() {
 export function getLoaderName() {
     if (isPyonLoader()) return pyonLoaderIdentity.loaderName;
     else if (isRainLoader()) return rainLoaderIdentity.loadername;
+    else if (isVendettaLoader()) return vendettaLoaderIdentity.name;
 
     return "Unknown";
 }
@@ -58,6 +62,8 @@ export function getLoaderVersion(): string | null {
 export function isLoaderConfigSupported() {
     if (isPyonLoader()) {
         return true;
+    } else if (isVendettaLoader()) {
+        return vendettaLoaderIdentity!!.features.loaderConfig;
     } else if (isRainLoader()) {
         return true;
     }
@@ -65,32 +71,47 @@ export function isLoaderConfigSupported() {
     return false;
 }
 
-export function getStoredTheme(): VdThemeInfo | null {
+export function isThemeSupported() {
     if (isPyonLoader()) {
-        return pyonLoaderIdentity.storedTheme;
+        return pyonLoaderIdentity.hasThemeSupport;
+    } else if (isVendettaLoader()) {
+        return vendettaLoaderIdentity!!.features.themes != null;
     } else if (isRainLoader()) {
-        return rainLoaderIdentity.storedTheme;
+        return false; // Rain has theme support disabled, this is here just to make sure it doesnt think it does
     }
 
-    return null;
+    return false;
 }
+
+//export function getStoredTheme(): VdThemeInfo | null {
+//    if (isPyonLoader()) {
+//        return pyonLoaderIdentity.storedTheme;
+//    } else if (isVendettaLoader()) {
+//        const themeProp = vendettaLoaderIdentity!!.features.themes?.prop;
+//        if (!themeProp) return null;
+//        // @ts-ignore
+//        return globalThis[themeProp] || null;
+//    }
+//
+//    return null;
+//}
 
 export function getThemeFilePath() {
     if (isPyonLoader()) {
         return "pyoncord/current-theme.json";
+    } else if (isVendettaLoader()) {
+        return "vendetta_theme.json";
     }
-    if (isRainLoader()) {
-        return "rain/current-theme.json";
-    }
+
     return null;
 }
 
 export function isReactDevToolsPreloaded() {
     if (isPyonLoader()) {
-        return Boolean(window.__reactDevTools);
+        return Boolean(window.__REACT_DEVTOOLS__);
     }
-    if (isRainLoader()) {
-        return Boolean(window.__reactDevTools);
+    if (isVendettaLoader()) {
+        return vendettaLoaderIdentity!!.features.devtools != null;
     }
 
     return false;
@@ -100,13 +121,12 @@ export function getReactDevToolsProp(): string | null {
     if (!isReactDevToolsPreloaded()) return null;
 
     if (isPyonLoader()) {
-        window.__pyoncord_rdt = window.__reactDevTools.exports;
+        window.__pyoncord_rdt = window.__REACT_DEVTOOLS__.exports;
         return "__pyoncord_rdt";
     }
 
-    if (isRainLoader()) {
-        window.__pyoncord_rdt = window.__reactDevTools.exports;
-        return "__pyoncord_rdt";
+    if (isVendettaLoader()) {
+        return vendettaLoaderIdentity!!.features.devtools!!.prop;
     }
 
     return null;
@@ -116,11 +136,10 @@ export function getReactDevToolsVersion() {
     if (!isReactDevToolsPreloaded()) return null;
 
     if (isPyonLoader()) {
-        return window.__reactDevTools.version || null;
+        return window.__REACT_DEVTOOLS__.version || null;
     }
-
-    if (isRainLoader()) {
-        return window.__reactDevTools.version || null;
+    if (isVendettaLoader()) {
+        return vendettaLoaderIdentity!!.features.devtools!!.version;
     }
 
     return null;
@@ -134,9 +153,8 @@ export function getSysColors() {
     if (!isSysColorsSupported()) return null;
     if (isPyonLoader()) {
         return pyonLoaderIdentity.sysColors;
-    }
-    if (isRainLoader()) {
-        return rainLoaderIdentity.sysColors;
+    } else if (isVendettaLoader()) {
+        return vendettaLoaderIdentity!!.features.syscolors!!.prop;
     }
 
     return null;
@@ -145,9 +163,22 @@ export function getSysColors() {
 export function getLoaderConfigPath() {
     if (isPyonLoader()) {
         return "pyoncord/loader.json";
+    } else if (isVendettaLoader()) {
+        return "vendetta_loader.json";
     } else if (isRainLoader()) {
         return "rain/loader.json";
     }
 
     return "loader.json";
+}
+
+export function isFontSupported() {
+    if (isPyonLoader()) return pyonLoaderIdentity.fontPatch === 2;
+
+    return false;
+}
+
+export async function clearBundle() {
+    // TODO: This should be not be hardcoded, maybe put in loader.json?
+    return void await removeCacheFile("bundle.js");
 }
