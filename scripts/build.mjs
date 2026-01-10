@@ -1,4 +1,3 @@
-// build.mjs
 // @ts-nocheck
 /* eslint-disable no-restricted-syntax */
 import swc from "@swc/core";
@@ -9,6 +8,7 @@ import globalPlugin from "esbuild-plugin-globals";
 import path from "path";
 import { fileURLToPath } from "url";
 import yargs from "yargs-parser";
+import fs from "fs/promises";
 
 import { printBuildSuccess } from "./util.mjs";
 import { pluginsImporterPlugin } from "./build/plugins/plugins-importer.mjs";
@@ -23,7 +23,8 @@ const args = yargs(process.argv.slice(2));
 const {
     "release-branch": releaseBranch,
     "build-minify": buildMinify,
-    "dev": dev
+    "dev": dev,
+    "build-bytecode": buildBytecode
 } = args;
 
 let context = null;
@@ -42,7 +43,7 @@ const config = {
         "const-and-let": false
     },
     footer: {
-        js: "//# sourceURL=raincord.dev"
+        js: "//# sourceURL=rain"
     },
     loader: {
         ".png": "dataurl"
@@ -120,6 +121,133 @@ const config = {
     ]
 };
 
+function findHermescPath() {
+    const possiblePaths = [
+        "node_modules/react-native/sdks/hermesc/linux64-bin/hermesc",
+        "node_modules/react-native/sdks/hermesc/win64-bin/hermesc.exe",
+        "node_modules/react-native/sdks/hermesc/osx-bin/hermesc",
+        "node_modules/hermes-engine/linux64-bin/hermesc",
+        "node_modules/hermes-engine/win64-bin/hermesc.exe",
+        "node_modules/hermes-engine/osx-bin/hermesc",
+        "hermesc"
+    ];
+    
+    for (const hermescPath of possiblePaths) {
+        try {
+            execSync(`${hermescPath} --version`, { stdio: "pipe" });
+            return hermescPath;
+        } catch {
+            continue;
+        }
+    }
+    
+    return null;
+}
+
+export async function getHermesBytecodeVersion() {
+    const hermescPath = findHermescPath();
+    
+    if (!hermescPath) {
+        console.warn("hermesc not found, skipping bytecode compilation");
+        console.warn("Install with: npm install hermes-engine");
+        return 0;
+    }
+    
+    try {
+        const output = execSync(`${hermescPath} --version`, { encoding: "utf-8" });
+        const match = output.match(/Bytecode version:\s*(\d+)/i);
+        if (match) {
+            return parseInt(match[1], 10);
+        }
+        console.warn("Could not determine Hermes bytecode version, defaulting to 96");
+        return 96;
+    } catch (error) {
+        console.warn("Error getting hermesc version:", error.message);
+        return 0;
+    }
+}
+
+async function compileWithHermesc(inputPath, outputPath, options = {}) {
+    const hermescPath = findHermescPath();
+    
+    if (!hermescPath) {
+        console.error("hermesc not found");
+        return false;
+    }
+    
+    const flags = options.flags || [
+        "-O",
+        "-g0",
+        "-w",             
+        "-reuse-prop-cache",
+        "-optimized-eval",
+        "-strict",
+        "-finline",
+        "-fno-static-builtins"
+    ];
+
+    const cmd = `${hermescPath} ${flags.join(" ")} -emit-binary -out ${outputPath} ${inputPath}`;
+    
+    try {
+        execSync(cmd, { encoding: "utf-8", stdio: "pipe" });
+        return true;
+    } catch (error) {
+        console.error(`Failed to compile bytecode: ${error.message}`);
+        return false;
+    }
+}
+
+// make big ints actually work :P
+// bit of a stupid approach, but it works
+async function transformBigIntLiterals(jsPath) {
+    let code = await fs.readFile(jsPath, "utf-8");
+    
+    code = code.replace(/([=:(\[,\s])(\d+)n\b/g, '$1BigInt("$2")');
+    
+    await fs.writeFile(jsPath, code, "utf-8");
+}
+
+async function compileToBytecode(jsPath) {
+    const startTime = performance.now();
+    const hbcVersion = await getHermesBytecodeVersion();
+    
+    if (hbcVersion <= 0) {
+        console.log("Skipping bytecode compilation (hermesc not available)");
+        return null;
+    }
+
+    const hbcPath = jsPath.replace(/\.js$/, `.${hbcVersion}.hbc`);
+    
+    console.log(`Compiling to Hermes bytecode (v${hbcVersion})...`);
+    
+    const tempPath = jsPath.replace(/\.js$/, `.temp.js`);
+    await fs.copyFile(jsPath, tempPath);
+    
+    try {
+        await transformBigIntLiterals(tempPath);
+        
+        const success = await compileWithHermesc(tempPath, hbcPath);
+        
+        if (success) {
+            const timeTook = performance.now() - startTime;
+            console.log(`Bytecode compiled in ${timeTook.toFixed(2)}ms: ${hbcPath}`);
+            
+            const jsStats = await fs.stat(jsPath);
+            const hbcStats = await fs.stat(hbcPath);
+            const reduction = ((1 - hbcStats.size / jsStats.size) * 100).toFixed(1);
+            console.log(`Size: ${(jsStats.size / 1024).toFixed(2)}KB → ${(hbcStats.size / 1024).toFixed(2)}KB (${reduction}% reduction)`);
+            
+            return hbcPath;
+        }
+        
+        return null;
+    } finally {
+        try {
+            await fs.unlink(tempPath);
+        } catch {}
+    }
+}
+
 export async function buildBundle(overrideConfig = {}) {
     context = {
         hash: releaseBranch ? execSync("git rev-parse --short HEAD").toString().trim() : crypto.randomBytes(8).toString("hex").slice(0, 7)
@@ -140,25 +268,68 @@ const pathPassedToNode = path.resolve(process.argv[1]);
 const isThisFileBeingRunViaCLI = pathToThisFile.includes(pathPassedToNode);
 
 if (isThisFileBeingRunViaCLI) {
-    const { timeTook } = await buildBundle();
+    const availablePaths = [];
+    const hash = crypto.createHash("sha256");
 
-    printBuildSuccess(
-        context.hash,
-        releaseBranch,
-        timeTook
-    );
+    const { timeTook } = await buildBundle();
+    printBuildSuccess(context.hash, releaseBranch, timeTook);
+    
+    availablePaths.push(config.outfile);
+    const jsContent = await fs.readFile(config.outfile, "utf-8");
+    hash.update(jsContent);
+
+    if (buildBytecode) {
+        const bytecodePath = await compileToBytecode(config.outfile);
+        if (bytecodePath) {
+            availablePaths.push(bytecodePath);
+            const hbcContent = await fs.readFile(bytecodePath);
+            hash.update(hbcContent);
+        }
+    }
 
     if (buildMinify) {
-        const { timeTook } = await buildBundle({
+        const minOutfile = config.outfile.replace(/\.js$/, ".min.js");
+        const { timeTook: minTimeTook } = await buildBundle({
             minify: true,
-            outfile: config.outfile.replace(/\.js$/, ".min.js")
+            outfile: minOutfile
         });
 
-        printBuildSuccess(
-            context.hash,
-            releaseBranch,
-            timeTook,
-            true
-        );
+        printBuildSuccess(context.hash, releaseBranch, minTimeTook, true);
+        
+        availablePaths.push(minOutfile);
+        const minJsContent = await fs.readFile(minOutfile, "utf-8");
+        hash.update(minJsContent);
+
+        if (buildBytecode) {
+            const minBytecodePath = await compileToBytecode(minOutfile);
+            if (minBytecodePath) {
+                availablePaths.push(minBytecodePath);
+                const minHbcContent = await fs.readFile(minBytecodePath);
+                hash.update(minHbcContent);
+            }
+        }
     }
+
+    const infoPath = "dist/info.json";
+    const packageJson = JSON.parse(await fs.readFile("./package.json", "utf-8"));
+    
+    const hbcVersion = await getHermesBytecodeVersion();
+    
+    await fs.writeFile(
+        infoPath,
+        JSON.stringify(
+            {
+                paths: availablePaths,
+                version: packageJson.version,
+                hash: hash.digest("hex"),
+                revision: context.hash,
+                hermesBytecodeVersion: hbcVersion > 0 ? hbcVersion : null
+            },
+            null,
+            2
+        )
+    );
+    
+    console.log(`\nAvailable paths: ${availablePaths.join(", ")}`);
+    console.log(`Info file written to ${infoPath}`);
 }
