@@ -1,11 +1,11 @@
-import { patchLogHook } from "@lib/api/debug";
-import { injectFluxInterceptor } from "@lib/api/flux";
-import { patchJsx } from "@lib/api/react/jsx";
+import { patchLogHook } from "./api/debug";
+import { injectFluxInterceptor } from "./api/flux";
+import { patchJsx } from "./api/react/jsx";
 import * as lib from "./lib";
 import { initEagerPlugins } from "@plugins/index";
 import { initPlugins } from "@plugins/index";
-import { loaderConfig, settings } from "@lib/api/settings";
-import { awaitStorage } from "@lib/api/storage";
+import { loaderConfig, settings } from "./api/settings";
+import { awaitStorage } from "./api/storage";
 
 export default async () => {
     const critical = await Promise.all([

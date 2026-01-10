@@ -1,5 +1,5 @@
-import { awaitStorage, createStorage } from "@lib/api/storage";
-import { clearFolder, downloadFile, fileExists, removeFile, writeFile } from "@lib/api/native/fs";
+import { awaitStorage, createStorage } from "@api/storage";
+import { clearFolder, downloadFile, fileExists, removeFile, writeFile } from "@api/native/fs";
 import { safeFetch } from "@lib/utils";
 
 type FontMap = Record<string, string>;

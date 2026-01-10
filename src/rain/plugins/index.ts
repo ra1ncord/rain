@@ -1,6 +1,6 @@
-import { settings } from "@lib/api/settings";
+import { settings } from "@api/settings";
 import * as t from "./types";
-import { awaitStorage, createStorage, getPreloadedStorage, preloadStorageIfExists, purgeStorage, updateStorage } from "@lib/api/storage";
+import { awaitStorage, createStorage, getPreloadedStorage, preloadStorageIfExists, purgeStorage, updateStorage } from "@api/storage";
 
 export const pluginInstances = new Map<string, t.rainPlugin>();
 export const pluginSettings = createStorage<t.PluginSettingsStorage>("plugins/settings.json", {

@@ -1,0 +1,91 @@
+import { RainIcon } from "@assets";
+import Version from "./Version";
+import { getDebugInfo } from "@api/debug";
+import { settings } from "@api/settings";
+import { Stack, TableRowGroup } from "@metro/common/components";
+import { Platform, ScrollView } from "react-native";
+
+export default function About() {
+    const debugInfo = getDebugInfo();
+
+    const versions = [
+        {
+            label: "Rain",
+            version: debugInfo.rain.version,
+            icon: { uri: RainIcon },
+        },
+        {
+            label: "Discord",
+            version: `${debugInfo.discord.version} (${debugInfo.discord.build})`,
+            icon: "Discord",
+        },
+        {
+            label: "React",
+            version: debugInfo.react.version,
+            icon: "ScienceIcon",
+        },
+        {
+            label: "React Native",
+            version: debugInfo.react.nativeVersion,
+            icon: "MobilePhoneIcon",
+        },
+        {
+            label: "Bytecode",
+            version: debugInfo.hermes.bytecodeVersion,
+            icon: "TopicsIcon",
+        },
+    ];
+
+    const platformInfo = [
+        {
+            label: "Loader",
+            version: `${debugInfo.rain.loader.name} (${debugInfo.rain.loader.version})`,
+            icon: "DownloadIcon",
+        },
+        {
+            label: "Operating System",
+            version: `${debugInfo.os.name} ${debugInfo.os.version}`,
+            icon: "ScreenIcon"
+        },
+        ...(debugInfo.os.sdk ? [{
+            label: "SDK",
+            version: debugInfo.os.sdk,
+            icon: "StaffBadgeIcon"
+        }] : []),
+        {
+            label: "Manufacturer",
+            version: debugInfo.device.manufacturer,
+            icon: "WrenchIcon"
+        },
+        ...(Platform.OS !== "ios" ? [{
+            label: "Brand",
+            version: debugInfo.device.brand,
+            icon: "MagicWandIcon"
+        }] : []),
+        {
+            label: "Model",
+            version: debugInfo.device.model,
+            icon: "MobilePhoneIcon"
+        },
+        {
+        ...(Platform.OS == "ios" ? [{
+            label: "Model ID",
+            version: debugInfo.device.codename,
+            icon: "TagIcon"
+        }] : []),
+        }
+    ];
+
+    return (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 38 }}>
+            <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
+                <TableRowGroup title={"Versions"}>
+                    {versions.map(v => <Version label={v.label} version={v.version} icon={v.icon} />)}
+                </TableRowGroup>
+                <TableRowGroup title={"Platforms"}>
+                    {platformInfo.filter((p): p is typeof p & { version: string; icon: string } => p.version !== undefined && p.icon !== undefined).map(p => <Version key={p.label} label={p.label} version={p.version} icon={p.icon} />)}
+                </TableRowGroup>
+            </Stack>
+        </ScrollView>
+    );
+}

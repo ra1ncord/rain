@@ -1,6 +1,6 @@
-import { awaitStorage, createStorage, purgeStorage } from "@lib/api/storage";
+import { awaitStorage, createStorage, purgeStorage } from "@api/storage";
 import { Author } from "../types";
-import { settings } from "@lib/api/settings";
+import { settings } from "@api/settings";
 import { safeFetch } from "@lib/utils";
 import { logger, LoggerClass } from "@lib/utils/logger";
 
@@ -83,7 +83,7 @@ export const VdPluginManager = {
      * @internal
      */
     async evalPlugin(plugin: VendettaPlugin) {
-        const vdStorage = await import("@lib/api/storage/vdstorage");
+        const vdStorage = await import("@api/storage/vdstorage");
 
         const pluginStorage = await vdStorage.createStorage(
             vdStorage.createMMKVBackend(plugin.id)

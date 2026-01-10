@@ -1,4 +1,4 @@
-import { createStorage } from "@lib/api/storage";
+import { createStorage } from "@api/storage";
 import { Logger } from "@lib/utils/logger";
 
 export type Author = { name: string, id?: `${bigint}`; };

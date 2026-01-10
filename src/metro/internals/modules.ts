@@ -94,7 +94,7 @@ function onModuleRequire(moduleExports: any, id: Metro.ModuleID) {
         moduleExports.default.track = () => Promise.resolve();
 
     if (moduleExports.registerAsset) {
-        require("@lib/api/assets/patches").patchAssets(moduleExports);
+        require("@api/assets/patches").patchAssets(moduleExports);
     }
 
     if (!patchedNativeComponentRegistry && ["customBubblingEventTypes", "customDirectEventTypes", "register", "get"].every(x => moduleExports[x])) {

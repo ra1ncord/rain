@@ -1,4 +1,4 @@
-import { patcher } from "@lib/api";
+import { patcher } from "@api";
 import { UserStore } from "@metro/common/stores";
 import { findByProps, findByStoreName } from "@metro";
 import { definePlugin } from "@plugins";

@@ -1,6 +1,6 @@
 import { definePlugin } from "@plugins";
-import { after, instead } from "@lib/api/patcher";
-import { createStorageAsync } from "@lib/api/storage";
+import { after, instead } from "@api/patcher";
+import { createStorageAsync } from "@api/storage";
 import { logger } from "@lib/utils/logger";
 import { findByProps, findByStoreName } from "@metro/wrappers";
 import { ReactNative } from "@metro/common";

@@ -1,4 +1,5 @@
 import { definePlugin } from "@plugins";
+//import  "./settings"
 
 export default definePlugin({
     name: "FakeNitro",
@@ -11,5 +12,7 @@ export default definePlugin({
     eagerStart() {
     },
     stop() {
+    },
+    settings(){
     }
 });

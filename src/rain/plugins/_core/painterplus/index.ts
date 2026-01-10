@@ -1,5 +1,5 @@
 import { instead } from "spitroast";
-import { findAssetId } from "@lib/api/assets";
+import { findAssetId } from "@api/assets";
 import { definePlugin } from "@plugins";
 import * as ThemerPatches from "../painter/patches";
 import { getStoredTheme } from "../painter/kettu/themes";

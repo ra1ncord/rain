@@ -1,5 +1,5 @@
 import { ApplicationCommand, ApplicationCommandOptionType } from "@plugins/_core/commands/types";
-import { getDebugInfo } from "@lib/api/debug";
+import { getDebugInfo } from "@api/debug";
 import { messageUtil } from "@metro/common";
 
 // todo: i18n

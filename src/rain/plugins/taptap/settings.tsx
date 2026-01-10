@@ -1,9 +1,9 @@
 import React from "react";
 import { Card, Stack, TableRow, TableRowGroup, TableSwitchRow, Text, TextInput } from "@metro/common/components";
-import { awaitStorage, createStorage, useObservable } from "@lib/api/storage";
+import { awaitStorage, createStorage, useObservable } from "@api/storage";
 import { ReactNative } from "@metro/common";
 import { View } from "react-native";
-import { settings } from "@lib/api/settings";
+import { settings } from "@api/settings";
 
 interface Settings {
   tapUsernameMention: boolean;

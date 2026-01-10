@@ -1,9 +1,9 @@
-import * as alerts from "@ui/alerts";
-import * as assets from "@lib/api/assets";
+import * as alerts from "@api/ui/alerts";
+import * as assets from "@api/assets";
 import * as commands from "@plugins/_core/commands";
-import * as debug from "@lib/api/debug";
-import patcher from "@lib/api/patcher";
-import { loaderConfig, settings } from "@lib/api/settings";
+import * as debug from "@api/debug";
+import patcher from "@api/patcher";
+import { loaderConfig, settings } from "@api/settings";
 import * as utils from "@lib/utils";
 import { cyrb64Hash } from "@lib/utils/cyrb64";
 import { LoggerClass } from "@lib/utils/logger";
@@ -11,18 +11,18 @@ import * as metro from "@metro";
 import * as common from "@metro/common";
 import { Forms } from "@metro/common/components";
 import * as commonComponents from "@metro/common/components";
-import * as color from "@ui/components/color";
-import * as components from "@ui/components";
-import { createThemedStyleSheet } from "@ui/styles";
-import * as toasts from "@ui/toasts";
+import * as color from "@api/ui/components/color";
+import * as components from "@api/ui/components";
+import { createThemedStyleSheet } from "@api/ui/styles";
+import * as toasts from "@api/ui/toasts";
 import { omit } from "es-toolkit";
 import { createElement, useEffect } from "react";
 import { View } from "react-native";
-import * as storage from "@lib/api/storage/vdstorage";
-import { createStorage } from "@lib/api/storage/vdstorage";
+import * as storage from "@api/storage/vdstorage";
+import { createStorage } from "@api/storage/vdstorage";
 
 import { VdPluginManager, VendettaPlugin } from ".";
-import { getLoaderIdentity } from "@lib/api/native/loader";
+import { getLoaderIdentity } from "@api/native/loader";
 
 export async function createVdPluginObject(plugin: VendettaPlugin) {
     return {

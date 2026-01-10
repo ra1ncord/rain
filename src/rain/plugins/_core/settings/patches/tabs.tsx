@@ -1,4 +1,4 @@
-import { after } from "@lib/api/patcher";
+import { after } from "@api/patcher";
 import { TableRow } from "@metro/common/components";
 import { findByNameLazy, findByPropsLazy } from "@metro/wrappers";
 import { registeredSections } from "..";

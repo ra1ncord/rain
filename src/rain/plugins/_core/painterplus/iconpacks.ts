@@ -1,5 +1,5 @@
-import { awaitStorage, createStorage } from "@lib/api/storage";
-import { assetsModule } from "@lib/api/assets/patches";
+import { awaitStorage, createStorage } from "@api/storage";
+import { assetsModule } from "@api/assets/patches";
 import safeFetch from "@lib/utils/safeFetch";
 import { logger } from "@lib/utils/logger";
 

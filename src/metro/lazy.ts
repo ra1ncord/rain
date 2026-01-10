@@ -1,4 +1,4 @@
-import { _patcherDelaySymbol } from "@lib/api/patcher";
+import { _patcherDelaySymbol } from "@api/patcher";
 import { proxyLazy } from "@lib/utils/lazy";
 
 import { findExports } from "./finders";

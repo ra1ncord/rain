@@ -1,5 +1,5 @@
-import { fileExists, readFile, writeFile } from "@lib/api/native/fs";
-import { NativeClientInfoModule } from "@lib/api/native/modules";
+import { fileExists, readFile, writeFile } from "@api/native/fs";
+import { NativeClientInfoModule } from "@api/native/modules";
 import { debounce } from "es-toolkit";
 import { ModuleFlags, ModulesMapInternal } from "./enums";
 

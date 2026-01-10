@@ -1,5 +1,5 @@
 import { findByProps } from "@metro";
-import { instead } from "@lib/api/patcher";
+import { instead } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
 import { definePlugin } from "@plugins";
 

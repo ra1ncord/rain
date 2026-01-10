@@ -13,13 +13,13 @@
             "@lib/*": ["./src/lib/*"],
             "@metro": ["./src/metro"],
             "@metro/*": ["./src/metro/*"],
-            "@ui": ["./src/rain/ui"],
-            "@ui/*": ["./src/rain/ui/*"],
             "@types": ["./src/lib/utils/types.ts"],
             "@assets": ["./src/assets"],
             "@assets/*": ["./src/assets/*"],
             "@plugins": ["./src/rain/plugins"],
-            "@plugins/*": ["./src/rain/plugins/*"]
+            "@plugins/*": ["./src/rain/plugins/*"],
+            "@api": ["./src/api"],
+            "@api/*": ["./src/api/*"]
         },
         "module": "esnext",
         "moduleResolution": "bundler",

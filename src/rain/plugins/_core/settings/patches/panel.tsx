@@ -1,4 +1,4 @@
-import { after } from "@lib/api/patcher";
+import { after } from "@api/patcher";
 import { i18n, NavigationNative } from "@metro/common";
 import { LegacyFormDivider,LegacyFormIcon, LegacyFormRow, LegacyFormSection } from "@metro/common/components";
 import { findByNameLazy } from "@metro/wrappers";

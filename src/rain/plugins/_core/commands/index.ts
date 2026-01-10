@@ -1,5 +1,5 @@
 import { ApplicationCommand, ApplicationCommandInputType, ApplicationCommandType, RainApplicationCommand } from "./types";
-import { after, instead } from "@lib/api/patcher";
+import { after, instead } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
 import { commands as commandsModule, messageUtil } from "@metro/common";
 import { definePlugin } from "@plugins";

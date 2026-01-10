@@ -1,13 +1,13 @@
 import React from "react";
-import { findAssetId } from "@lib/api/assets";
+import { findAssetId } from "@api/assets";
 import { lazy } from "react";
 import type { ImageURISource } from "react-native";
 import { patchTabsUI } from "./patches/tabs";
 import { definePlugin } from "@plugins";
 import { RainIcon } from "@assets";
 import { isPluginEnabled } from "@plugins";
-import { settings } from "@lib/api/settings";
-import { useObservable } from "@lib/api/storage";
+import { settings } from "@api/settings";
+import { useObservable } from "@api/storage";
 
 export default definePlugin({
     name: "Settings",
@@ -33,42 +33,42 @@ function initSettings() {
                 key: "RAIN",
                 title: () => "Rain",
                 icon: { uri: RainIcon },
-                render: () => import("../../../ui/pages/Rain"),
+                render: () => import("../../../pages/Rain"),
                 useTrailing: () => `10% complete`,
             },
             {
                 key: "RAIN_PLUGINS",
                 title: () => "Plugins",
                 icon: findAssetId("PuzzlePieceIcon"),
-                render: () => import("../../../ui/pages/Plugins"),
+                render: () => import("../../../pages/Plugins"),
                 useTrailing: () => `60% complete`,
             },
             {
                 key: "EXTERNAL_PLUGINS",
                 title: () => "External Plugins",
                 icon: findAssetId("ActivitiesIcon"),
-                render: () => import("../../../ui/pages/ExternalPlugins"),
+                render: () => import("../../../pages/ExternalPlugins"),
                 useTrailing: () => `20% complete`,
             },
             {
                 key: "RAIN_THEMES",
                 title: () => "Themes",
                 icon: findAssetId("PaintPaletteIcon"),
-                render: () => import("../../../ui/pages/Themes"),
+                render: () => import("../../../pages/Themes"),
                 useTrailing: () => `10% complete`,
             },
             {
                 key: "RAIN_FONTS",
                 title: () => "Fonts",
                 icon: findAssetId("LettersIcon"),
-                render: () => import("../../../ui/pages/Fonts"),
+                render: () => import("../../../pages/Fonts"),
                 useTrailing: () => `40% complete`,
             },
             {
                 key: "RAIN_DEVELOPER",
                 title: () => "Developer",
                 icon: findAssetId("WrenchIcon"),
-                render: () => import("../../../ui/pages/Developer"),
+                render: () => import("../../../pages/Developer"),
                 usePredicate: () => {
                     useObservable([settings]);
                     return settings.developerSettings ?? false;

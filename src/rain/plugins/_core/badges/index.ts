@@ -1,5 +1,5 @@
-import { after } from "@lib/api/patcher";
-import { onJsxCreate } from "@lib/api/react/jsx";
+import { after } from "@api/patcher";
+import { onJsxCreate } from "@api/react/jsx";
 import { findByNameLazy } from "@metro";
 import { useEffect, useState } from "react";
 import { definePlugin } from "@plugins";
