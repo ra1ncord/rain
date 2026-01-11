@@ -56,9 +56,9 @@ export async function serve(options) {
         for (const details of netinterfaces || []) {
             if (details.family !== "IPv4") continue;
             const port = chalk.green(server.address()?.port.toString());
-            console.info(`  http://${details.address}:${port}/bundle.js`);
+            console.info(`  http://${details.address}:${port}/rain.js`);
             if (hbcVersion > 0) {
-                console.info(`  http://${details.address}:${port}/bundle.hbc (v${hbcVersion})`);
+                console.info(`  http://${details.address}:${port}/rain.${hbcVersion}.hbc`);
             }
         }
     }

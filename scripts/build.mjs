@@ -175,15 +175,18 @@ async function compileWithHermesc(inputPath, outputPath, options = {}) {
         return false;
     }
     
+    // i basically just searched up the best hermes compilation flags :P
     const flags = options.flags || [
         "-O",
         "-g0",
-        "-w",             
+        "-fno-inline",
+        "-finline",
+        "-fstatic-builtins",
+        "-fstatic-require",
+        "-strict",
         "-reuse-prop-cache",
         "-optimized-eval",
-        "-strict",
-        "-finline",
-        "-fno-static-builtins"
+        "-emit-async-break-check"
     ];
 
     const cmd = `${hermescPath} ${flags.join(" ")} -emit-binary -out ${outputPath} ${inputPath}`;
