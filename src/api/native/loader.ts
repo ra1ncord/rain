@@ -1,3 +1,4 @@
+import { VendettaThemeManifest } from "@rain/plugins/_core/painter/themes/types";
 import { removeCacheFile } from "./fs";
 
 // @ts-ignore
@@ -21,6 +22,12 @@ export interface VendettaLoaderIdentity {
             prop: string;
         };
     };
+}
+
+export interface VdThemeInfo {
+    id: string;
+    selected: boolean;
+    data: VendettaThemeManifest;
 }
 
 export function isVendettaLoader() {
@@ -155,6 +162,19 @@ export function getSysColors() {
         return pyonLoaderIdentity.sysColors;
     } else if (isVendettaLoader()) {
         return vendettaLoaderIdentity!!.features.syscolors!!.prop;
+    }
+
+    return null;
+}
+
+export function getStoredTheme(): VdThemeInfo | null {
+    if (isPyonLoader()) {
+        return pyonLoaderIdentity.storedTheme;
+    } else if (isVendettaLoader()) {
+        const themeProp = vendettaLoaderIdentity!!.features.themes?.prop;
+        if (!themeProp) return null;
+        // @ts-ignore
+        return globalThis[themeProp] || null;
     }
 
     return null;

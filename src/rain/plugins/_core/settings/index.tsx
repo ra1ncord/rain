@@ -41,28 +41,24 @@ function initSettings() {
                 title: () => "Plugins",
                 icon: findAssetId("PuzzlePieceIcon"),
                 render: () => import("../../../pages/Plugins"),
-                useTrailing: () => `60% complete`,
             },
             {
                 key: "EXTERNAL_PLUGINS",
                 title: () => "External Plugins",
                 icon: findAssetId("ActivitiesIcon"),
                 render: () => import("../../../pages/ExternalPlugins"),
-                useTrailing: () => `20% complete`,
             },
             {
                 key: "RAIN_THEMES",
                 title: () => "Themes",
                 icon: findAssetId("PaintPaletteIcon"),
                 render: () => import("../../../pages/Themes"),
-                useTrailing: () => `10% complete`,
             },
             {
                 key: "RAIN_FONTS",
                 title: () => "Fonts",
                 icon: findAssetId("LettersIcon"),
                 render: () => import("../../../pages/Fonts"),
-                useTrailing: () => `40% complete`,
             },
             {
                 key: "RAIN_DEVELOPER",
@@ -73,7 +69,6 @@ function initSettings() {
                     useObservable([settings]);
                     return settings.developerSettings ?? false;
                 },
-                useTrailing: () => `10% complete`,
             },
         ]
     });

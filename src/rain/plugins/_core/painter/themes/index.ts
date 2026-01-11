@@ -1,0 +1,170 @@
+import { awaitStorage, createStorage } from "@api/storage";
+import { writeFile } from "@api/native/fs";
+import { getStoredTheme, getThemeFilePath, isPyonLoader, isThemeSupported } from "@api/native/loader";
+import { safeFetch } from "@lib/utils";
+import { Platform } from "react-native";
+import { settings } from "@api/settings";
+import initColors from "./colors";
+import { applyAndroidAlphaKeys, normalizeToHex } from "./parser";
+import { colorsPref } from "./preferences";
+import { VendettaThemeManifest } from "./types";
+import { updateBunnyColor } from "./updater";
+
+export interface VdThemeInfo {
+    id: string;
+    selected: boolean;
+    data: VendettaThemeManifest;
+}
+
+export const themes = createStorage<Record<string, VdThemeInfo>>("VENDETTA_THEMES", { dflt: {} });
+
+/**
+ * @internal
+ */
+export async function writeThemeToNative(theme: VdThemeInfo | {}) {
+    if (typeof theme !== "object") throw new Error("Theme must be an object");
+
+    // Save the current theme as current-theme.json. When supported by loader,
+    // this json will be written to appropriate path and be used to theme the native side.
+    const themePath = getThemeFilePath() || "theme.json";
+    await writeFile(themePath, JSON.stringify(theme));
+}
+
+// Process data for some compatiblity with native side
+function processData(data: VendettaThemeManifest) {
+    if (data.semanticColors) {
+        const { semanticColors } = data;
+
+        for (const key in semanticColors) {
+            for (const index in semanticColors[key]) {
+                semanticColors[key][index] &&= normalizeToHex(semanticColors[key][index] as string) || false;
+            }
+        }
+    }
+
+    if (data.rawColors) {
+        const { rawColors } = data;
+
+        for (const key in rawColors) {
+            const normalized = normalizeToHex(rawColors[key]);
+            if (normalized) data.rawColors[key] = normalized;
+        }
+
+        if (Platform.OS === "android") applyAndroidAlphaKeys(rawColors);
+    }
+
+    if (data.spec === undefined) {
+        if (!('theme_color_map' in data)) {
+            data.spec = 2;
+        }
+        //If not then Enmity theme and no spec
+    }
+
+    return data;
+}
+
+function validateTheme(themeJSON: any): boolean {
+    if (typeof themeJSON !== "object" || themeJSON === null) return false;
+
+    if (themeJSON.spec === 3 && !themeJSON.main) return false;
+
+    if (themeJSON.spec === 2) return true;
+
+    if (themeJSON.theme_color_map) return true;
+
+    return themeJSON.spec === 2 || themeJSON.spec === 3;
+}
+
+export async function fetchTheme(url: string, selected = false) {
+    let themeJSON: any;
+
+    try {
+        themeJSON = await (await safeFetch(url, { cache: "no-store" })).json();
+    } catch {
+        throw new Error(`Failed to fetch theme at ${url}`);
+    }
+
+    // Validate theme
+    if (!validateTheme(themeJSON)) throw new Error(`Invalid theme at ${url}`);
+
+    themes[url] = {
+        id: url,
+        selected: selected,
+        data: processData(themeJSON),
+    };
+
+    if (selected) {
+        writeThemeToNative(themes[url]);
+        updateBunnyColor(themes[url].data, { update: true });
+    }
+}
+
+export async function installTheme(url: string) {
+    if (typeof url !== "string" || url in themes) throw new Error("Theme already installed");
+    await fetchTheme(url);
+}
+
+export function selectTheme(theme: VdThemeInfo | null, write = true) {
+    if (theme) theme.selected = true;
+    Object.keys(themes).forEach(
+        k => themes[k].selected = themes[k].id === theme?.id
+    );
+
+    if (theme == null && write) {
+        updateBunnyColor(null, { update: true });
+        return writeThemeToNative({});
+    } else if (theme) {
+        updateBunnyColor(theme.data, { update: true });
+        return writeThemeToNative(theme);
+    }
+}
+
+export async function removeTheme(id: string) {
+    const theme = themes[id];
+    if (theme.selected) await selectTheme(null);
+    delete themes[id];
+
+    return theme.selected;
+}
+
+export async function updateThemes() {
+    await awaitStorage(themes);
+    const currentTheme = getThemeFromLoader();
+    await Promise.allSettled(Object.keys(themes).map(id => fetchTheme(id, currentTheme?.id === id)));
+}
+
+export function getCurrentTheme() {
+    return Object.values(themes).find(t => t.selected) ?? null;
+}
+
+/**
+ * @internal
+ */
+export function getThemeFromLoader(): VdThemeInfo | null {
+    return getStoredTheme();
+}
+
+/**
+ * @internal
+ */
+export async function initThemes() {
+    if (!isThemeSupported()) return;
+    if (settings.safeMode?.enabled) return;
+
+    try {
+        if (isPyonLoader()) {
+            writeFile("../vendetta_theme.json", "null");
+        }
+
+        await awaitStorage(colorsPref);
+
+        const currentTheme = getThemeFromLoader();
+        initColors(currentTheme?.data ?? null);
+
+        updateThemes().catch(e => console.error("Failed to update themes", e));
+    } catch (e) {
+        console.error("Failed to initialize themes", e);
+    }
+}
+
+export { getStoredTheme };
