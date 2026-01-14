@@ -6,15 +6,14 @@ import os from "os";
 import readline from "readline";
 import url from "url";
 import yargs from "yargs-parser";
-import { buildBundle, getHermesBytecodeVersion } from "./build.mjs";
-import { printBuildSuccess } from "./util.mjs";
+import { buildBundle, getHermesBytecodeVersion, compileToBytecode } from "./build.mjs";
+import { printBuildSuccess, printBytecodeBuildSuccess } from "./util.mjs";
 
 const args = yargs(process.argv.slice(2));
 
 export async function serve(options) {
     const hbcVersion = await getHermesBytecodeVersion();
     
-    // @ts-ignore
     const server = http.createServer(async (req, res) => {
         const { pathname } = url.parse(req.url || "", true);
         
@@ -27,13 +26,30 @@ export async function serve(options) {
                     timeTook
                 );
                 
-                const filePath = pathname?.endsWith(".hbc") 
-                    ? config.outfile.replace(/\.js$/, `.${hbcVersion}.hbc`)
-                    : config.outfile;
+                let filePath;
+                let contentType;
                 
-                const contentType = pathname?.endsWith(".hbc")
-                    ? "application/octet-stream"
-                    : "application/javascript";
+                if (pathname?.endsWith(".hbc")) {
+                    const hbcStartTime = performance.now();
+                    const hbcPath = await compileToBytecode(config.outfile);
+                    const hbcTimeTook = performance.now() - hbcStartTime;
+                    
+                    if (!hbcPath) {
+                        throw new Error("Failed to compile bytecode");
+                    }
+                    
+                    filePath = hbcPath;
+                    contentType = "application/octet-stream";
+
+                    printBytecodeBuildSuccess(
+                        context.hash,
+                        hbcVersion,
+                        hbcTimeTook
+                    );
+                } else {
+                    filePath = config.outfile;
+                    contentType = "application/javascript";
+                }
                 
                 res.writeHead(200, { "Content-Type": contentType });
                 res.end(await readFile(filePath));
@@ -47,10 +63,10 @@ export async function serve(options) {
             res.end();
         }
     }, options);
-
+    
     server.listen(args.port ?? 4040);
     console.info(chalk.bold.blueBright("Its raining on:"));
-    
+
     const netInterfaces = os.networkInterfaces();
     for (const netinterfaces of Object.values(netInterfaces)) {
         for (const details of netinterfaces || []) {

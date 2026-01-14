@@ -11,7 +11,6 @@ export default () => <ApplicationCommand>{
         const content = [
             "**Rain Debug Info**",
             `> Rain: ${info.rain.version} (${info.rain.loader.name} ${info.rain.loader.version})`,
-            `> Bunny Compatibility: ${info.bunny.version}`,
             `> Discord: ${info.discord.version} (${info.discord.build})`,
             `> React: ${info.react.version} (RN ${info.react.nativeVersion})`,
             `> Hermes: ${info.hermes.version} (bcv${info.hermes.bytecodeVersion})`,

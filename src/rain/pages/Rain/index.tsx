@@ -27,7 +27,7 @@ export default function General() {
                     <TableRow
                         label={"Rain"}
                         icon={<TableRow.Icon source={{ uri: RainIcon }} />}
-                        trailing={<TableRow.TrailingText text={debugInfo.bunny.version} />}
+                        trailing={<TableRow.TrailingText text={debugInfo.rain.version} />}
                     />
                     <TableRow
                         label={"Discord"}

@@ -5,7 +5,7 @@ import { after } from "./patcher";
 import { settings } from "./settings";
 import { logger } from "@lib/utils/logger";
 import { showToast } from "@api/ui/toasts";
-import { version } from "bunny-build-info";
+import { version } from "rain-build-info";
 import { Platform, type PlatformConstants, StyleSheet } from "react-native";
 
 export interface RNConstants extends PlatformConstants {

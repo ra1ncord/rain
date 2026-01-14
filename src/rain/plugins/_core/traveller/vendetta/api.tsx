@@ -22,7 +22,7 @@ import * as storage from "@api/storage/vdstorage";
 import { createStorage } from "@api/storage/vdstorage";
 
 import { VdPluginManager, VendettaPlugin } from ".";
-import { getLoaderIdentity } from "@api/native/loader";
+import { getLoaderIdentity, isPyonLoader, isRainLoader } from "@api/native/loader";
 
 export async function createVdPluginObject(plugin: VendettaPlugin) {
     return {
@@ -225,10 +225,13 @@ export const initVendettaObject = (): any => {
             createMMKVBackend: (store: string) => storage.createMMKVBackend(store),
             createFileBackend: (file: string) => {
                 // Redirect path to vendetta_theme.json
-                if (isPyonLoader() && file === "vendetta_theme.json") {
-                    file = "pyon/current-theme.json";
+                if (isRainLoader() && file === "vendetta_theme.json") {
+                    file = "raincord/current-theme.json";
                 }
-
+                if (isPyonLoader() && file === "vendetta_theme.json") {
+                    file = "pyoncord/current-theme.json";
+                }
+                
                 return storage.createFileBackend(file);
             }
         },

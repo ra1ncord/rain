@@ -10,12 +10,6 @@ import findInReactTree from "@lib/utils/findInReactTree";
 const settingConstants = findByPropsLazy("SETTING_RENDERER_CONFIG");
 const createListModule = findByPropsLazy("createList");
 
-function useIsFirstRender() {
-    let firstRender = false;
-    React.useEffect(() => void (firstRender = true), []);
-    return firstRender;
-}
-
 export function patchTabsUI(unpatches: (() => void | boolean)[]) {
     const getRows = () => Object.values(registeredSections)
         .flatMap(sect => sect.map(row => ({

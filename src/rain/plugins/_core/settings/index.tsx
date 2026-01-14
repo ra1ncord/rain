@@ -8,6 +8,7 @@ import { RainIcon } from "@assets";
 import { isPluginEnabled } from "@plugins";
 import { settings } from "@api/settings";
 import { useObservable } from "@api/storage";
+import { version } from "rain-build-info";
 
 export default definePlugin({
     name: "Settings",
@@ -16,11 +17,9 @@ export default definePlugin({
     id: "settings",
     version: "v1.0.0",
     start() {
-        initSettings();
-    },
-    eagerStart() {
         patchSettings();
-    },
+        initSettings();
+    }
 });
 
 function initSettings() {
@@ -33,38 +32,38 @@ function initSettings() {
                 key: "RAIN",
                 title: () => "Rain",
                 icon: { uri: RainIcon },
-                render: () => import("../../../pages/Rain"),
-                useTrailing: () => `10% complete`,
+                render: () => import("@rain/pages/Rain"),
+                useTrailing: () => `(${version})`
             },
             {
                 key: "RAIN_PLUGINS",
                 title: () => "Plugins",
                 icon: findAssetId("PuzzlePieceIcon"),
-                render: () => import("../../../pages/Plugins"),
+                render: () => import("@rain/pages/Plugins"),
             },
             {
                 key: "EXTERNAL_PLUGINS",
                 title: () => "External Plugins",
                 icon: findAssetId("ActivitiesIcon"),
-                render: () => import("../../../pages/ExternalPlugins"),
+                render: () => import("@rain/pages/ExternalPlugins"),
             },
             {
                 key: "RAIN_THEMES",
                 title: () => "Themes",
                 icon: findAssetId("PaintPaletteIcon"),
-                render: () => import("../../../pages/Themes"),
+                render: () => import("@rain/pages/Themes"),
             },
             {
                 key: "RAIN_FONTS",
                 title: () => "Fonts",
                 icon: findAssetId("LettersIcon"),
-                render: () => import("../../../pages/Fonts"),
+                render: () => import("@rain/pages/Fonts"),
             },
             {
                 key: "RAIN_DEVELOPER",
                 title: () => "Developer",
                 icon: findAssetId("WrenchIcon"),
-                render: () => import("../../../pages/Developer"),
+                render: () => import("@rain/pages/Developer"),
                 usePredicate: () => {
                     useObservable([settings]);
                     return settings.developerSettings ?? false;

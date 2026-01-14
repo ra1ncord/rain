@@ -10,7 +10,7 @@ import { fileURLToPath } from "url";
 import yargs from "yargs-parser";
 import fs from "fs/promises";
 
-import { printBuildSuccess } from "./util.mjs";
+import { printBuildSuccess, printBytecodeBuildSuccess } from "./util.mjs";
 import { pluginsImporterPlugin } from "./build/plugins/plugins-importer.mjs";
 
 /** @type string[] */
@@ -149,7 +149,6 @@ export async function getHermesBytecodeVersion() {
     
     if (!hermescPath) {
         console.warn("hermesc not found, skipping bytecode compilation");
-        console.warn("Install with: npm install hermes-engine");
         return 0;
     }
     
@@ -159,8 +158,6 @@ export async function getHermesBytecodeVersion() {
         if (match) {
             return parseInt(match[1], 10);
         }
-        console.warn("Could not determine Hermes bytecode version, defaulting to 96");
-        return 96;
     } catch (error) {
         console.warn("Error getting hermesc version:", error.message);
         return 0;
@@ -181,7 +178,6 @@ async function compileWithHermesc(inputPath, outputPath, options = {}) {
         "-g0",
         "-fno-inline",
         "-finline",
-        "-fstatic-builtins",
         "-fstatic-require",
         "-strict",
         "-reuse-prop-cache",
@@ -210,7 +206,7 @@ async function transformBigIntLiterals(jsPath) {
     await fs.writeFile(jsPath, code, "utf-8");
 }
 
-async function compileToBytecode(jsPath) {
+export async function compileToBytecode(jsPath) {
     const startTime = performance.now();
     const hbcVersion = await getHermesBytecodeVersion();
     
@@ -221,8 +217,6 @@ async function compileToBytecode(jsPath) {
 
     const hbcPath = jsPath.replace(/\.js$/, `.${hbcVersion}.hbc`);
     
-    console.log(`Compiling to Hermes bytecode (v${hbcVersion})...`);
-    
     const tempPath = jsPath.replace(/\.js$/, `.temp.js`);
     await fs.copyFile(jsPath, tempPath);
     
@@ -232,13 +226,11 @@ async function compileToBytecode(jsPath) {
         const success = await compileWithHermesc(tempPath, hbcPath);
         
         if (success) {
-            const timeTook = performance.now() - startTime;
-            console.log(`Bytecode compiled in ${timeTook.toFixed(2)}ms: ${hbcPath}`);
+            var timeTook = performance.now() - startTime;
             
             const jsStats = await fs.stat(jsPath);
             const hbcStats = await fs.stat(hbcPath);
             const reduction = ((1 - hbcStats.size / jsStats.size) * 100).toFixed(1);
-            console.log(`Size: ${(jsStats.size / 1024).toFixed(2)}KB → ${(hbcStats.size / 1024).toFixed(2)}KB (${reduction}% reduction)`);
             
             return hbcPath;
         }
@@ -282,12 +274,19 @@ if (isThisFileBeingRunViaCLI) {
     hash.update(jsContent);
 
     if (buildBytecode) {
+        const startTime = performance.now();
         const bytecodePath = await compileToBytecode(config.outfile);
+        const hbcTimeTook = performance.now() - startTime;
+
         if (bytecodePath) {
             availablePaths.push(bytecodePath);
             const hbcContent = await fs.readFile(bytecodePath);
             hash.update(hbcContent);
         }
+
+        const hbcVersion = await getHermesBytecodeVersion();
+
+        printBytecodeBuildSuccess(context.hash, hbcVersion, hbcTimeTook);
     }
 
     if (buildMinify) {

@@ -104,7 +104,7 @@ export async function installTheme(url: string) {
     await fetchTheme(url);
 }
 
-export function selectTheme(theme: VdThemeInfo | null, write = true) {
+export async function selectTheme(theme: VdThemeInfo | null, write = true) {
     if (theme) theme.selected = true;
     Object.keys(themes).forEach(
         k => themes[k].selected = themes[k].id === theme?.id
@@ -112,10 +112,10 @@ export function selectTheme(theme: VdThemeInfo | null, write = true) {
 
     if (theme == null && write) {
         updateBunnyColor(null, { update: true });
-        return writeThemeToNative({});
+        return await writeThemeToNative({});
     } else if (theme) {
         updateBunnyColor(theme.data, { update: true });
-        return writeThemeToNative(theme);
+        return await writeThemeToNative(theme);
     }
 }
 
@@ -148,7 +148,6 @@ export function getThemeFromLoader(): VdThemeInfo | null {
  * @internal
  */
 export async function initThemes() {
-    if (!isThemeSupported()) return;
     if (settings.safeMode?.enabled) return;
 
     try {
