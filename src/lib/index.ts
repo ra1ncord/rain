@@ -10,7 +10,6 @@ export * as _jsx from "react/jsx-runtime";
 
 /**
  * @internal
- * @deprecated Moved to top level (bunny.*)
  */
 
 const _disposer = [] as Array<() => unknown>;

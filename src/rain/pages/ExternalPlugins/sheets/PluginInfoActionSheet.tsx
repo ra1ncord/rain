@@ -10,6 +10,7 @@ import { PluginInfoActionSheetProps } from "./common";
 import { semanticColors } from "@api/ui/components/color";
 import { VdPluginManager } from "@rain/plugins/_core/traveller/vendetta";
 import { showConfirmationAlert } from "@api/ui/alerts";
+import { showToast } from "@api/ui/toasts";
 
 function PluginInfoIconButton(props) {
   const { onPress } = props;
@@ -27,10 +28,7 @@ export default function PluginInfoActionSheet({
   plugin.usePluginState();
   const [loading, setLoading] = useState(false);
 
-  // Determine plugin type
   const isVendettaPlugin = plugin.id.includes("/");
-  const isCorePlugin =
-    plugin.id.startsWith("bunny.") || plugin.id.startsWith("vendetta.");
 
   const copyPluginUrl = () => {
     let url = plugin.id;
@@ -50,7 +48,7 @@ export default function PluginInfoActionSheet({
       }
     }
     clipboard.setString(url);
-    //showToast("Copied to clipboard!", findAssetId("toast_copy_link"));
+    showToast("Copied to clipboard!", findAssetId("toast_copy_link"));
   };
 
   const refetchPlugin = async () => {
@@ -61,14 +59,10 @@ export default function PluginInfoActionSheet({
         if (vdPlugin.enabled) VdPluginManager.stopPlugin(plugin.id, false);
         await VdPluginManager.fetchPlugin(plugin.id);
         if (vdPlugin.enabled) await VdPluginManager.startPlugin(plugin.id);
-        //showToast("Plugin refreshed successfully");
-      } else {
-        // For Bunny plugins
-        // If you have a refreshPlugin function, call it here
-        //showToast("Plugin refreshed successfully");
+        showToast("Plugin refreshed successfully");
       }
     } catch (e) {
-      //showToast("Failed to refresh plugin");
+      showToast("Failed to refresh plugin");
     } finally {
       setLoading(false);
     }
@@ -93,19 +87,15 @@ export default function PluginInfoActionSheet({
           } else {
             await purgeStorage(`plugins/storage/${plugin.id}.json`);
           }
-          //showToast("Plugin data cleared successfully");
+          showToast("Plugin data cleared successfully");
         } catch (e) {
-          //showToast("Failed to clear plugin data");
+          showToast("Failed to clear plugin data");
         }
       },
     });
   };
 
   const uninstallPluginHandler = () => {
-    if (isCorePlugin) {
-      //showToast("Core plugins cannot be uninstalled");
-      return;
-    }
     showConfirmationAlert({
       title: "Uninstall Plugin",
       content:
@@ -118,14 +108,12 @@ export default function PluginInfoActionSheet({
         try {
           if (isVendettaPlugin) {
             await VdPluginManager.removePlugin(plugin.id);
-          } else {
-            // If you have an uninstallPlugin function, call it here
           }
-          //showToast("Plugin uninstalled successfully");
+          showToast("Plugin uninstalled successfully");
         } catch (e) {
-          //showToast(
-          //  `Failed to uninstall plugin: ${e instanceof Error ? e.message : String(e)}`,
-          //);
+          showToast(
+            `Failed to uninstall plugin: ${e instanceof Error ? e.message : String(e)}`,
+          );
         }
       },
     });
@@ -168,7 +156,6 @@ export default function PluginInfoActionSheet({
               });
             }}
           />
-          {!isCorePlugin && (
           <PluginInfoIconButton
             label="Refetch"
             variant="secondary"
@@ -176,29 +163,24 @@ export default function PluginInfoActionSheet({
             onPress={refetchPlugin}
             disabled={loading}
           />
-          )}
-          {!isCorePlugin && (
           <PluginInfoIconButton
             label="Copy URL"
             variant="secondary"
             icon={findAssetId("LinkIcon")}
             onPress={copyPluginUrl}
           />
-          )}
           <PluginInfoIconButton
             label="Clear Data"
             variant="secondary"
             icon={findAssetId("FileIcon")}
             onPress={clearPluginData}
           />
-          {!isCorePlugin && (
             <PluginInfoIconButton
               label="Uninstall"
               variant="secondary"
               icon={findAssetId("TrashIcon")}
               onPress={uninstallPluginHandler}
             />
-          )}
         </View>
         <Card>
           <Text

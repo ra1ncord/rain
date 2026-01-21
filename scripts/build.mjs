@@ -123,12 +123,9 @@ const config = {
 
 function findHermescPath() {
     const possiblePaths = [
-        "node_modules/react-native/sdks/hermesc/linux64-bin/hermesc",
-        "node_modules/react-native/sdks/hermesc/win64-bin/hermesc.exe",
-        "node_modules/react-native/sdks/hermesc/osx-bin/hermesc",
-        "node_modules/hermes-engine/linux64-bin/hermesc",
-        "node_modules/hermes-engine/win64-bin/hermesc.exe",
-        "node_modules/hermes-engine/osx-bin/hermesc",
+        "node_modules/hermes-compiler/hermesc/linux64-bin/hermesc",
+        "node_modules/hermes-compiler/hermesc/win64-bin/hermesc.exe",
+        "node_modules/hermes-compiler/hermesc/osx-bin/hermesc",
         "hermesc"
     ];
     
@@ -182,9 +179,11 @@ async function compileWithHermesc(inputPath, outputPath, options = {}) {
         "-strict",
         "-reuse-prop-cache",
         "-optimized-eval",
-        "-emit-async-break-check"
+        "-emit-async-break-check",
+        "-block-scoping"
     ];
 
+    // -emit-binary and -out are here to stop idiots like me removing them :P
     const cmd = `${hermescPath} ${flags.join(" ")} -emit-binary -out ${outputPath} ${inputPath}`;
     
     try {
