@@ -9,6 +9,8 @@ import { isPluginEnabled } from "@plugins";
 import { settings } from "@api/settings";
 import { useObservable } from "@api/storage";
 import { version } from "rain-build-info";
+import { patchAssets } from "@api/assets/patches";
+import { findByPropsLazy } from "@metro";
 
 export default definePlugin({
     name: "Settings",
@@ -17,6 +19,7 @@ export default definePlugin({
     id: "settings",
     version: "v1.0.0",
     start() {
+        patchAssets(findByPropsLazy("registerAsset"));
         patchSettings();
         initSettings();
     }

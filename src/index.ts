@@ -12,6 +12,7 @@ export default async () => {
         patchLogHook(),
         patchJsx(),
         injectFluxInterceptor(),
+        window.rain = lib
     ]);
 
     const core = await Promise.all([
@@ -21,8 +22,4 @@ export default async () => {
 
     critical.forEach(f => { if (f !== undefined) lib.unload.push(f); });
     core.forEach(f => { if (f !== undefined) lib.unload.push(f); });
-
-    window.rain = lib;
-
-    initPlugins();
 };

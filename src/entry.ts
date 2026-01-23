@@ -1,4 +1,5 @@
 import type { Metro } from "@metro/types";
+import { initPlugins } from "@plugins";
 const { instead } = require("spitroast");
 
 // @ts-ignore - window is defined later in the bundle, so we assign it early
@@ -10,7 +11,7 @@ async function initializeRain() {
         Object.freeze = Object.seal = Object;
 
         await require("@metro/internals/caches").initMetroCache();
-        await require(".").default();
+        require(".").default();
     } catch (e) {
         const { ClientInfoManager } = require("@api/native/modules");
         const stack = e instanceof Error ? e.stack : undefined;
@@ -72,12 +73,12 @@ if (typeof window.__r === "undefined") {
             );
         }
 
-        const initPromise = initializeRain();
-        
         originalRequire(0);
         
-        await initPromise;
         resumeDeferred();
+        await initializeRain();
+        //todo: move initplugins out of
+        initPlugins()
     };
 
     Object.defineProperties(globalThis, {
@@ -109,4 +110,5 @@ if (typeof window.__r === "undefined") {
     });
 } else {
     initializeRain();
+    initPlugins()
 }
