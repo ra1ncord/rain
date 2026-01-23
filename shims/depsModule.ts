@@ -1,4 +1,4 @@
-import { findByPropsLazy } from "../src/metro";
+import { findByPropsLazy } from "@metro/wrappers";
 
 module.exports = {
     "react": findByPropsLazy("createElement"),
@@ -7,5 +7,4 @@ module.exports = {
     "moment": findByPropsLazy("isMoment"),
     "chroma-js": findByPropsLazy("brewer"),
     "lodash": findByPropsLazy("forEachRight"),
-    "@shopify/react-native-skia": findByPropsLazy("useFont")
 };
