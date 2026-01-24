@@ -30,7 +30,7 @@ export default function About() {
             icon: "MobilePhoneIcon",
         },
         {
-            label: "Bytecode",
+            label: "Hermes Bytecode",
             version: debugInfo.hermes.bytecodeVersion,
             icon: "TopicsIcon",
         },

@@ -187,7 +187,7 @@ async function compileWithHermesc(inputPath, outputPath, options = {}) {
     const cmd = `${hermescPath} ${flags.join(" ")} -emit-binary -out ${outputPath} ${inputPath}`;
     
     try {
-        execSync(cmd, { encoding: "utf-8", stdio: "pipe" });
+        execSync(cmd, { encoding: "utf-8", stdio: "ignore", maxBuffer: 50 * 1024 * 1024 });
         return true;
     } catch (error) {
         console.error(`Failed to compile bytecode: ${error.message}`);
@@ -205,7 +205,7 @@ async function transformBigIntLiterals(jsPath) {
     await fs.writeFile(jsPath, code, "utf-8");
 }
 
-export async function compileToBytecode(jsPath) {
+export async function compileToBytecode(jsPath, customOutputPath = null) {
     const startTime = performance.now();
     const hbcVersion = await getHermesBytecodeVersion();
     
@@ -214,7 +214,7 @@ export async function compileToBytecode(jsPath) {
         return null;
     }
 
-    const hbcPath = jsPath.replace(/\.js$/, `.${hbcVersion}.hbc`);
+    const hbcPath = customOutputPath || jsPath.replace(/\.js$/, `.${hbcVersion}.hbc`);
     
     const tempPath = jsPath.replace(/\.js$/, `.temp.js`);
     await fs.copyFile(jsPath, tempPath);
@@ -273,8 +273,17 @@ if (isThisFileBeingRunViaCLI) {
     hash.update(jsContent);
 
     if (buildBytecode) {
+        const minOutfileForBytecode = config.outfile.replace(/\.js$/, ".min.js");
+        await buildBundle({
+            minify: true,
+            outfile: minOutfileForBytecode
+        });
+        
+        const hbcVersion = await getHermesBytecodeVersion();
+        const hbcPath = config.outfile.replace(/\.js$/, `.${hbcVersion}.hbc`);
+        
         const startTime = performance.now();
-        const bytecodePath = await compileToBytecode(config.outfile);
+        const bytecodePath = await compileToBytecode(minOutfileForBytecode, hbcPath);
         const hbcTimeTook = performance.now() - startTime;
 
         if (bytecodePath) {
@@ -283,9 +292,9 @@ if (isThisFileBeingRunViaCLI) {
             hash.update(hbcContent);
         }
 
-        const hbcVersion = await getHermesBytecodeVersion();
-
         printBytecodeBuildSuccess(context.hash, hbcVersion, hbcTimeTook);
+        
+        await fs.unlink(minOutfileForBytecode);
     }
 
     if (buildMinify) {

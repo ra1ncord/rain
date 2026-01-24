@@ -13,10 +13,10 @@ const args = yargs(process.argv.slice(2));
 
 export async function serve(options) {
     const hbcVersion = await getHermesBytecodeVersion();
-    
+
     const server = http.createServer(async (req, res) => {
         const { pathname } = url.parse(req.url || "", true);
-        
+
         if (pathname?.endsWith(".js") || pathname?.endsWith(".hbc")) {
             try {
                 const { config, context, timeTook } = await buildBundle();
@@ -25,20 +25,28 @@ export async function serve(options) {
                     args.production,
                     timeTook
                 );
-                
+
                 let filePath;
                 let contentType;
-                
+
                 if (pathname?.endsWith(".hbc")) {
-                    const hbcStartTime = performance.now();
-                    const hbcPath = await compileToBytecode(config.outfile);
-                    const hbcTimeTook = performance.now() - hbcStartTime;
+                    const minOutfileForBytecode = config.outfile.replace(/\.js$/, ".min.js");
+                    await buildBundle({
+                        minify: true,
+                        outfile: minOutfileForBytecode
+                    });
                     
-                    if (!hbcPath) {
+                    const hbcPath = config.outfile.replace(/\.js$/, `.${hbcVersion}.hbc`);
+                    
+                    const hbcStartTime = performance.now();
+                    const bytecodePath = await compileToBytecode(minOutfileForBytecode, hbcPath);
+                    const hbcTimeTook = performance.now() - hbcStartTime;
+
+                    if (!bytecodePath) {
                         throw new Error("Failed to compile bytecode");
                     }
-                    
-                    filePath = hbcPath;
+
+                    filePath = bytecodePath;
                     contentType = "application/octet-stream";
 
                     printBytecodeBuildSuccess(
@@ -50,11 +58,11 @@ export async function serve(options) {
                     filePath = config.outfile;
                     contentType = "application/javascript";
                 }
-                
+
                 res.writeHead(200, { "Content-Type": contentType });
                 res.end(await readFile(filePath));
             } catch (error) {
-                console.error(chalk.red(`Error: ${error.message}`));
+                console.error(chalk.red`Error: ${error.message}`);
                 res.writeHead(500);
                 res.end();
             }
@@ -63,7 +71,7 @@ export async function serve(options) {
             res.end();
         }
     }, options);
-    
+
     server.listen(args.port ?? 4040);
     console.info(chalk.bold.blueBright("Its raining on:"));
 
@@ -73,12 +81,12 @@ export async function serve(options) {
             if (details.family !== "IPv4") continue;
             const port = chalk.green(server.address()?.port.toString());
             console.info(`  http://${details.address}:${port}/rain.js`);
-            if (hbcVersion > 0) {
+            if (hbcVersion) {
                 console.info(`  http://${details.address}:${port}/rain.${hbcVersion}.hbc`);
             }
         }
     }
-    
+
     return server;
 }
 
