@@ -173,7 +173,6 @@ async function compileWithHermesc(inputPath, outputPath, options = {}) {
     const flags = options.flags || [
         "-O",
         "-g0",
-        "-fno-inline",
         "-finline",
         "-fstatic-require",
         "-strict",
