@@ -2,19 +2,10 @@ import { pluginInstances } from "@plugins";
 import AddonPage from "@rain/pages/Addon/AddonPage";
 import PluginCard from "./components/PluginCard";
 import { developer } from "@plugins/types";
-import { findAssetId } from "@api/assets";
-import { settings } from "@api/settings";
-import { awaitStorage, useObservable } from "@api/storage";
-import { lazyDestructure } from "@lib/utils/lazy";
-import { findByProps } from "@metro";
-import { Card } from "@metro/common/components";
+import { useSettings } from "@api/settings";
 import { ComponentProps } from "react";
-import { View } from "react-native";
-
 import { UnifiedPluginModel } from "./models";
 import unifyRainPlugin from "./models/rain";
-import { ErrorBoundary } from "@api/ui/components";
-import * as React from "react";
 
 interface PluginPageProps
   extends Partial<ComponentProps<typeof AddonPage<UnifiedPluginModel>>> {
@@ -23,7 +14,7 @@ interface PluginPageProps
 
 function PluginPage(props: PluginPageProps) {
   const items = props.useItems();
-
+  
   return (
     <AddonPage<UnifiedPluginModel>
       CardComponent={PluginCard}
@@ -54,10 +45,8 @@ function PluginPage(props: PluginPageProps) {
 }
 
 export default function Plugins() {
-
-  awaitStorage(settings)
-  useObservable([settings]);
-
+  useSettings();
+  
   return (
     <PluginPage
       useItems={() => {

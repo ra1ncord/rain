@@ -1,25 +1,16 @@
-import { pluginInstances } from "@plugins";
 import AddonPage from "@rain/pages/Addon/AddonPage";
 import PluginCard from "./components/PluginCard";
-import { developer } from "@plugins/types";
-import { findAssetId } from "@api/assets";
-import { settings } from "@api/settings";
-import { awaitStorage, useObservable } from "@api/storage";
-import { lazyDestructure } from "@lib/utils/lazy";
-import { findByProps } from "@metro";
+import { settings, useSettings } from "@api/settings";
+import { awaitStorage, useObservable } from "@api/storage/bnstorage";
 import { AlertActionButton, AlertActions, AlertModal, Card, FlashList, IconButton, Text } from "@metro/common/components";
 import { ComponentProps } from "react";
-import { View } from "react-native";
 import { UnifiedPluginModel } from "./models";
-import { ErrorBoundary } from "@api/ui/components";
 import * as React from "react";
 import { Author } from "@rain/plugins/_core/traveller/types";
 import { isPluginInstalled, pluginSettings, registeredPlugins } from "@rain/plugins/_core/traveller/bunny";
 import { VdPluginManager } from "@rain/plugins/_core/traveller/vendetta";
 import unifyVdPlugin from "./models/vendetta";
 import unifyBunnyPlugin from "./models/bunny";
-import { navigation } from "@metro/common";
-import { openAlert } from "@api/ui/alerts";
 
 interface PluginPageProps
   extends Partial<ComponentProps<typeof AddonPage<UnifiedPluginModel>>> {
@@ -70,7 +61,7 @@ export default function Plugins() {
     });
   }, []);
 
-  useObservable([settings]);
+  useSettings();
 
   if (!isReady) {
     return <Text>Loading plugins...</Text>;

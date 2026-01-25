@@ -1,8 +1,7 @@
 import { CheckState, useFileExists } from "@api/storage/useFS";
 import { findAssetId } from "@api/assets";
 import { connectToDebugger, disconnectFromDebugger, isConnectedToDebugger } from "@api/debug";
-import { getReactDevToolsProp, getReactDevToolsVersion, isLoaderConfigSupported, isReactDevToolsPreloaded } from "@api/native/loader";
-import { loaderConfig, settings } from "@api/settings";
+import { getReactDevToolsProp, isLoaderConfigSupported, isReactDevToolsPreloaded } from "@api/native/loader";
 import { NavigationNative } from "@metro/common";
 import { Button, LegacyFormText, Stack, TableRow, TableRowGroup, TableSwitchRow, TextInput } from "@metro/common/components";
 import { findByProps } from "@metro/wrappers";
@@ -10,9 +9,10 @@ import { semanticColors } from "@api/ui/components/color";
 import { ErrorBoundary } from "@api/ui/components";
 import { createStyles, TextStyleSheet } from "@api/ui/styles";
 import { ScrollView, StyleSheet } from "react-native";
-import { awaitStorage, useObservable } from "@api/storage";
 import { showToast } from "@api/ui/toasts";
 import { useEffect, useState } from "react";
+
+import { useSettings, useLoaderConfig } from "@api/settings"; 
 
 const RDT_EMBED_LINK = "https://codeberg.org/raincord/raindevtools/raw/branch/dev/dist/index.bundle";
 
@@ -25,20 +25,22 @@ const useStyles = createStyles({
 });
 
 export default function Developer() {
+    const settings = useSettings();
+    const loaderConfig = useLoaderConfig();
+
     const [rdtFileExists, fs] = useFileExists("preloads/reactDevtools.js");
     const [isDebuggerConnected, setIsDebuggerConnected] = useState(isConnectedToDebugger());
 
     const styles = useStyles();
     const navigation = NavigationNative.useNavigation();
 
-    useObservable([loaderConfig]);
-
     useEffect(() => {
         const interval = setInterval(() => {
-            setIsDebuggerConnected(isConnectedToDebugger());
+            const connected = isConnectedToDebugger();
+            if (connected !== isDebuggerConnected) setIsDebuggerConnected(connected);
         }, 1000);
         return () => clearInterval(interval);
-    }, []);
+    }, [isDebuggerConnected]);
 
     const handleDebuggerConnect = () => {
         if (isDebuggerConnected) {
@@ -58,61 +60,45 @@ export default function Developer() {
             <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 38 }}>
                 <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
 
-
                     <TableRowGroup title={"Strings.DEBUGGER_URL"}>
                         <TextInput
-                          placeholder="127.0.0.1:9090"
+                            placeholder="127.0.0.1:9090"
                             size="md"
                             leadingIcon={() => <LegacyFormText style={styles.leadingText}>ws://</LegacyFormText>}
                             defaultValue={settings.debuggerUrl}
-                            onChange={(v: string) => settings.debuggerUrl = v}
+                            onChange={(v: string) => settings.updateSettings({ debuggerUrl: v })}
                         />
-                        <Stack style={{
-                            marginTop: 4,
-                            borderTopLeftRadius: 16,
-                            borderTopRightRadius: 16,
-                            overflow: 'hidden'
-                        }}>
+                        <Stack style={{ marginTop: 4, borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: 'hidden' }}>
                             <TableSwitchRow
                                 label={"Strings.AUTO_DEBUGGER"}
                                 subLabel={isDebuggerConnected ? "Connected" : undefined}
                                 icon={<TableRow.Icon source={findAssetId("copy")} />}
                                 value={settings.autoDebugger}
-                                onValueChange={(v: boolean) => {
-                                    settings.autoDebugger = v;
-                                }}
+                                onValueChange={(v: boolean) => settings.updateSettings({ autoDebugger: v })}
                             />
                         </Stack>
                         <TableRow
-                            label={isDebuggerConnected ? "Disconnect from Debugger" :" Strings.CONNECT_TO_DEBUG_WEBSOCKET"}
+                            label={isDebuggerConnected ? "Disconnect from Debugger" : "Strings.CONNECT_TO_DEBUG_WEBSOCKET"}
                             icon={<TableRow.Icon source={findAssetId(isDebuggerConnected ? "ic_message_delete" : "copy")} />}
                             onPress={handleDebuggerConnect}
                         />
-
                     </TableRowGroup>
-                    {isReactDevToolsPreloaded() && <>
+
+                    {isReactDevToolsPreloaded() && (
                         <TableRowGroup title={"Strings.DEVTOOLS_URL"}>
-                            
                             <TextInput
                                 placeholder="127.0.0.1:8097"
                                 size="md"
                                 leadingIcon={() => <LegacyFormText style={styles.leadingText}>ws://</LegacyFormText>}
                                 defaultValue={settings.devToolsUrl}
-                                onChange={(v: string) => settings.devToolsUrl = v}
+                                onChange={(v: string) => settings.updateSettings({ devToolsUrl: v })}
                             />
-                            <Stack style={{
-                                marginTop: 4,
-                                borderTopLeftRadius: 16,
-                                borderTopRightRadius: 16,
-                                overflow: 'hidden'
-                            }}>
+                            <Stack style={{ marginTop: 4, borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: 'hidden' }}>
                                 <TableSwitchRow
                                     label={"Strings.AUTO_DEVTOOLS"}
                                     icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
                                     value={settings.autoDevTools}
-                                    onValueChange={(v: boolean) => {
-                                        settings.autoDevTools = v;
-                                    }}
+                                    onValueChange={(v: boolean) => settings.updateSettings({ autoDevTools: v })}
                                 />
                             </Stack>
                             <TableRow
@@ -123,15 +109,12 @@ export default function Developer() {
                                         showToast("Invalid devTools URL!", findAssetId("Small"));
                                         return;
                                     }
-
                                     try {
                                         const devTools = window[getReactDevToolsProp() || "__vendetta_rdc"];
-                                        
                                         if (!devTools?.connectToDevTools) {
                                             showToast("Invalid devTools URL!", findAssetId("Small"));
                                             return;
                                         }
-
                                         await devTools.connectToDevTools({
                                             host: settings.devToolsUrl.split(":")?.[0],
                                             resolveRNStyle: StyleSheet.flatten,
@@ -142,27 +125,39 @@ export default function Developer() {
                                 }}
                             />
                         </TableRowGroup>
-                    </>}
-                    {isLoaderConfigSupported() && <>
+                    )}
+
+                    {isLoaderConfigSupported() && (
                         <TableRowGroup title="Loader config">
                             <TableSwitchRow
                                 label={"Strings.LOAD_FROM_CUSTOM_URL"}
                                 subLabel={"Strings.LOAD_FROM_CUSTOM_URL_DEC"}
                                 icon={<TableRow.Icon source={findAssetId("copy")} />}
                                 value={loaderConfig.customLoadUrl.enabled}
-                                onValueChange={(v: boolean) => {
-                                    loaderConfig.customLoadUrl.enabled = v;
-                                }}
+                                onValueChange={(v: boolean) => 
+                                    loaderConfig.updateLoaderConfig({ 
+                                        customLoadUrl: { ...loaderConfig.customLoadUrl, enabled: v } 
+                                    })
+                                }
                             />
-                            {loaderConfig.customLoadUrl.enabled && <TableRow label={<TextInput
-                                defaultValue={loaderConfig.customLoadUrl.url}
-                                size="md"
-                                onChange={(v: string) => loaderConfig.customLoadUrl.url = v}
-                                placeholder="http://localhost:4040/kettu.js"
-                                label={"Strings.PUPU_URL"}
-                            />} />}
+                            {loaderConfig.customLoadUrl.enabled && (
+                                <TableRow label={
+                                    <TextInput
+                                        defaultValue={loaderConfig.customLoadUrl.url}
+                                        size="md"
+                                        onChange={(v: string) => 
+                                            loaderConfig.updateLoaderConfig({ 
+                                                customLoadUrl: { ...loaderConfig.customLoadUrl, url: v } 
+                                            })
+                                        }
+                                        placeholder="http://localhost:4040/kettu.js"
+                                        label={"Strings.PUPU_URL"}
+                                    />
+                                } />
+                            )}
                         </TableRowGroup>
-                    </>}
+                    )}
+
                     <TableRowGroup title="Other">
                         <TableRow
                             arrow
@@ -176,8 +171,7 @@ export default function Developer() {
                                     onClose: () => hideActionSheet(),
                                 },
                                 options: [
-                                    // @ts-expect-error
-                                    // Of course, to trigger an error, we need to do something incorrectly. The below will do!
+                                    //@ts-expect-error this needs to be an error so it crashes duh
                                     { label: "Strings.PUPU", onPress: () => navigation.push("PUPU_CUSTOM_PAGE", { render: () => <undefined /> }) },
                                     { label: "Discord", isDestructive: true, onPress: () => navigation.push("PUPU_CUSTOM_PAGE", { noErrorBoundary: true }) },
                                 ],
@@ -211,9 +205,7 @@ export default function Developer() {
                             subLabel={"Strings.ENABLE_EVAL_COMMAND_DESC"}
                             icon={<TableRow.Icon source={findAssetId("PencilIcon")} />}
                             value={!!settings.enableEvalCommand}
-                            onValueChange={(v: boolean) => {
-                                settings.enableEvalCommand = v;
-                            }}
+                            onValueChange={(v: boolean) => settings.updateSettings({ enableEvalCommand: v })}
                         />
                     </TableRowGroup>
                 </Stack>

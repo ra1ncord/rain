@@ -2,23 +2,17 @@ import { findAssetId } from "@api/assets";
 import { NavigationNative } from "@metro/common";
 import { AlertActionButton, AlertActions, AlertModal, Stack, TableRow, TableRowGroup, TableSwitchRow, Text } from "@metro/common/components";
 import { Linking, ScrollView } from "react-native";
-import { BundleUpdaterManager, NativeClientInfoModule } from "@api/native/modules";
-import { findByProps } from "@metro/wrappers";
-import { useState } from "react";
 import { RainIcon, CodebergIcon, KofiIcon } from "@assets";
 import About from "./About";
 import { getDebugInfo } from "@api/debug";
-import { settings } from "@api/settings";
-import { openAlert } from "@api/ui/alerts";
+import { useSettings } from "@api/settings";
 import { DISCORD_SERVER, GITHUB, CODEBERG, KOFI, DEVELOPERS } from "@lib/info";
-import { awaitStorage, useObservable } from "@api/storage";
 
 export default function General() {
     const debugInfo = getDebugInfo();
     const navigation = NavigationNative.useNavigation();
 
-    awaitStorage(settings)
-    useObservable([settings]);
+    const { developerSettings, updateSettings } = useSettings();
 
     return (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 38 }}>
@@ -80,9 +74,9 @@ export default function General() {
                     <TableSwitchRow
                         label={"Developer Settings"}
                         icon={<TableRow.Icon source={findAssetId("WrenchIcon")!} />}
-                        value={settings.developerSettings}
+                        value={developerSettings}
                         onValueChange={(v: boolean) => {
-                            settings.developerSettings = v;
+                            updateSettings({ developerSettings: v });
                         }}
                     />
                 </TableRowGroup>

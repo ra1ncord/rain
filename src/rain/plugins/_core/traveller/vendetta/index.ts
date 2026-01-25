@@ -1,4 +1,4 @@
-import { awaitStorage, createStorage, purgeStorage } from "@api/storage";
+import { awaitStorage, createStorage, purgeStorage } from "@api/storage/bnstorage";
 import { Author } from "../types";
 import { settings } from "@api/settings";
 import { safeFetch } from "@lib/utils";

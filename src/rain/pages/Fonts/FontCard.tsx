@@ -1,7 +1,6 @@
 import { CardWrapper } from "@rain/pages/Addon/AddonCard";
 import { showConfirmationAlert } from "@api/ui/alerts";
-import { useObservable } from "@api/storage";
-import { FontDefinition, fonts, selectFont } from "@plugins/_core/painter/fonts";
+import { useFonts, FontDefinition, selectFont } from "@plugins/_core/painter/fonts";
 import { findAssetId } from "@api/assets";
 import { BundleUpdaterManager } from "@api/native/modules";
 import { lazyDestructure } from "@lib/utils/lazy";
@@ -14,10 +13,9 @@ import FontEditor from "./FontEditor";
 const { useToken } = lazyDestructure(() => findByProps("useToken"));
 
 export default function FontCard({ item: font }: CardWrapper<FontDefinition>) {
-    useObservable([fonts]);
-    
+    const selectedFont = useFonts((state) => state.fonts.__selected);
     const navigation = NavigationNative.useNavigation();
-    const selected = fonts.__selected === font.name;
+    const selected = selectedFont === font.name;
     
     return (
         <Card>

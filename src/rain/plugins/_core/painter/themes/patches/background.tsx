@@ -1,7 +1,6 @@
-import { colorsPref } from "../preferences";
+import { useColorsPref } from "../preferences";
 import { _colorRef } from "../updater";
 import { after } from "@api/patcher";
-import { useObservable } from "@api/storage";
 import { findInReactTree } from "@lib/utils";
 import { findByFilePathLazy } from "@metro";
 import chroma from "chroma-js";
@@ -11,16 +10,16 @@ import { logger } from "@lib/utils/logger";
 const Messages = findByFilePathLazy("modules/messages/native/Messages.tsx", true);
 
 function ThemeBackground({ children }: { children: React.ReactNode; }) {
-    useObservable([colorsPref]);
-
+    const customBackground = useColorsPref((state) => state.customBackground);
+    
     if (!_colorRef.current
-        || colorsPref.customBackground === "hidden"
+        || customBackground === "hidden"
         || !_colorRef.current.background?.url
         || _colorRef.current.background?.blur && (typeof _colorRef.current.background?.blur !== "number")
     ) {
         return children;
     }
-
+    
     return <ImageBackground
         style={{ flex: 1, height: "100%" }}
         source={{ uri: _colorRef.current.background?.url }}
@@ -35,12 +34,10 @@ export default function patchChatBackground() {
         const patches = [
             after("render", Messages, (_, ret) => {
                 if (!_colorRef.current || !_colorRef.current.background?.url) return;
-
                 const messagesComponent = findInReactTree(
                     ret,
                     x => x && "HACK_fixModalInteraction" in x.props && x?.props?.style
                 );
-
                 if (messagesComponent) {
                     const flattened = StyleSheet.flatten(messagesComponent.props.style);
                     const backgroundColor = chroma(
@@ -48,13 +45,11 @@ export default function patchChatBackground() {
                     ).alpha(
                         1 - (_colorRef.current.background?.opacity ?? 1)
                     ).hex();
-
                     messagesComponent.props.style = StyleSheet.flatten([
                         messagesComponent.props.style,
                         { backgroundColor }
                     ]);
                 }
-
                 return <ThemeBackground>{ret}</ThemeBackground>;
             })
         ];

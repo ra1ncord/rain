@@ -1,20 +1,20 @@
 import AddonPage from "@rain/pages/Addon/AddonPage";
 import FontEditor from "./FontEditor";
-import { useObservable } from "@api/storage";
-import { FontDefinition, fonts } from "@plugins/_core/painter/fonts";
-import { settings } from "@api/settings";
+import { useFonts } from "@plugins/_core/painter/fonts";
+import { FontDefinition } from "@plugins/_core/painter/fonts";
+import { useSettings } from "@api/settings";
 import { NavigationNative } from "@metro/common";
 import FontCard from "./FontCard";
 
 export default function Fonts() {
-    useObservable([settings, fonts]);
-    
+    useSettings();
+    const fonts = useFonts((state) => state.fonts);
     const navigation = NavigationNative.useNavigation();
     
     return (
         <AddonPage<FontDefinition>
             title={"Fonts"}
-            searchKeywords={["name", "description"]}
+            searchKeywords={["name", "description"]}   
             sortOptions={{
                 "Name (A-Z)": (a, b) => a.name.localeCompare(b.name),
                 "Name (Z-A)": (a, b) => b.name.localeCompare(a.name)

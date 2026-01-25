@@ -1,6 +1,6 @@
 import { patcher } from "@api";
 import { registerCommand } from "@plugins/_core/commands";
-import { createStorage } from "@api/storage";
+import { createStorage } from "@api/storage/bnstorage";
 import { logger } from "@lib/utils/logger";
 
 import { registeredPlugins } from ".";

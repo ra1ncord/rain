@@ -1,10 +1,10 @@
 import { definePlugin } from "@plugins";
 import { after, instead } from "@api/patcher";
-import { createStorageAsync } from "@api/storage";
 import { logger } from "@lib/utils/logger";
 import { findByProps, findByStoreName } from "@metro/wrappers";
 import { ReactNative } from "@metro/common";
 import TapTapSettings from "./settings";
+import { taptapSettings, waitForTapTapHydration } from "./storage";
 
 type Unpatch = () => void;
 
@@ -24,16 +24,6 @@ let timeoutTap: any = null;
 let handlerInstances = new WeakSet<any>();
 let patches: Unpatch[] = [];
 
-type Settings = {
-    tapUsernameMention: boolean;
-    reply: boolean;
-    userEdit: boolean;
-    keyboardPopup: boolean;
-    delay: string;
-    debugMode: boolean;
-};
-let settings: Settings;
-
 function resetTapState() {
     try {
         if (timeoutTap) {
@@ -48,7 +38,7 @@ function resetTapState() {
 }
 
 function openKeyboard() {
-    if (!settings.keyboardPopup) return;
+    if (!taptapSettings.keyboardPopup) return;
     try {
         const keyboardModule = findByProps("openSystemKeyboard", "openSystemKeyboardForLastCreatedInput");
         if (keyboardModule?.openSystemKeyboard) {
@@ -72,13 +62,13 @@ function openKeyboard() {
             }, 50);
         }
     } catch (e) {
-        if (settings.debugMode) logger.error("TapTap: openKeyboard error", e);
+        if (taptapSettings.debugMode) logger.error("TapTap: openKeyboard error", e);
     }
 }
 
 function doubleTapState(state: "UNKNOWN" | "INCOMPLETE" | "COMPLETE", nativeEvent?: any) {
     try {
-        if (settings.debugMode) {
+        if (taptapSettings.debugMode) {
             logger.log("TapTap: DoubleTapState", { state, data: nativeEvent });
         }
     } catch (e) {
@@ -107,9 +97,9 @@ function patchHandlers(handlers: any) {
                     const currentUser = UserStore?.getCurrentUser?.();
                     const isAuthor = !!(currentUser && message.author && message.author.id === currentUser.id);
 
-                    if (isAuthor && settings.userEdit) {
+                    if (isAuthor && taptapSettings.userEdit) {
                         Messages?.startEditMessage?.(channelId, messageId, message.content ?? "");
-                    } else if (settings.reply && channel) {
+                    } else if (taptapSettings.reply && channel) {
                         ReplyManager?.createPendingReply?.({ channel, message, shouldMention: true });
                     }
 
@@ -125,7 +115,7 @@ function patchHandlers(handlers: any) {
         if (handlers.handleTapUsername) {
             const un = instead("handleTapUsername", handlers, (args, orig) => {
                 try {
-                    if (!settings.tapUsernameMention) return orig.apply(handlers, args);
+                    if (!taptapSettings.tapUsernameMention) return orig.apply(handlers, args);
                     const evt = args?.[0]?.nativeEvent;
                     if (!evt) return orig.apply(handlers, args);
 
@@ -167,7 +157,7 @@ function patchHandlers(handlers: any) {
                     }
 
                     let delayMs = 1000;
-                    const parsed = parseInt(settings.delay, 10);
+                    const parsed = parseInt(taptapSettings.delay, 10);
                     if (!Number.isNaN(parsed) && parsed >= 200) delayMs = parsed;
 
                     if (timeoutTap) clearTimeout(timeoutTap);
@@ -187,12 +177,12 @@ function patchHandlers(handlers: any) {
                     resetTapState();
 
                     if (isAuthor) {
-                        if (settings.userEdit) {
+                        if (taptapSettings.userEdit) {
                             Messages?.startEditMessage?.(channelId, mid, enriched.content);
-                        } else if (settings.reply && channel) {
+                        } else if (taptapSettings.reply && channel) {
                             ReplyManager?.createPendingReply?.({ channel, message, shouldMention: true });
                         }
-                    } else if (settings.reply && channel) {
+                    } else if (taptapSettings.reply && channel) {
                         ReplyManager?.createPendingReply?.({ channel, message, shouldMention: true });
                     }
 
@@ -277,16 +267,7 @@ export default definePlugin({
     id: "taptap",
     version: "v1.0.0",
     async start() {
-        settings = await createStorageAsync<Settings>("plugins/taptap.json", {
-            dflt: {
-                tapUsernameMention: ReactNative.Platform.select({ ios: true, android: false, default: true })!,
-                reply: true,
-                userEdit: true,
-                keyboardPopup: true,
-                delay: "300",
-                debugMode: false,
-            }
-        });
+        await waitForTapTapHydration();
 
         resolveRuntimeModules();
 
@@ -295,8 +276,10 @@ export default definePlugin({
             return;
         }
 
-        const parsed = parseInt(settings.delay, 10);
-        if (Number.isNaN(parsed) || parsed < 150) settings.delay = "300";
+        const parsed = parseInt(taptapSettings.delay, 10);
+        if (Number.isNaN(parsed) || parsed < 150) {
+            taptapSettings.delay = "300";
+        }
 
         hookMessagesHandlersGetter();
     },

@@ -1,5 +1,5 @@
 import { readFile, removeFile, writeFile } from "@api/native/fs";
-import { awaitStorage, createStorage, getPreloadedStorage, preloadStorageIfExists, purgeStorage, updateStorage } from "@api/storage";
+import { awaitStorage, createStorage, getPreloadedStorage, preloadStorageIfExists, purgeStorage, updateStorage } from "@api/storage/bnstorage";
 import { safeFetch } from "@lib/utils";
 import { semver } from "@metro/common";
 

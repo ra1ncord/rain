@@ -1,5 +1,4 @@
-import { useObservable } from "@api/storage";
-import { FontDefinition, fonts, removeFont, saveFont, updateFont, validateFont } from "@plugins/_core/painter/fonts";
+import { useFonts, FontDefinition, fonts, removeFont, saveFont, updateFont, validateFont } from "@plugins/_core/painter/fonts";
 import { findAssetId } from "@api/assets";
 import { safeFetch } from "@lib/utils";
 import { lazyDestructure } from "@lib/utils/lazy";
@@ -16,13 +15,16 @@ const { openAlert } = lazyDestructure(() => findByProps("openAlert", "dismissAle
 const { AlertModal, AlertActionButton } = lazyDestructure(() => findByProps("AlertModal", "AlertActions"));
 
 function promptDetachConfirmationForThen(fontName: string | undefined, cb: () => void) {
-    if (fontName && fonts[fontName].source) openAlert("revenge-fonts-detach-source-confirmation", <AlertModal
+    const currentFonts = useFonts.getState().fonts;
+    if (fontName && currentFonts[fontName].source) openAlert("revenge-fonts-detach-source-confirmation", <AlertModal
         title="Detach font pack URL?"
         content="You need to detach the font pack URL from this font pack before you can manually edit its font entries. Do you want to detach the font pack URL?"
         actions={
             <Stack>
                 <AlertActionButton text="Detach" variant="destructive" onPress={() => {
-                    delete fonts[fontName!].source;
+                    const font = { ...currentFonts[fontName!] };
+                    delete font.source;
+                    useFonts.getState().setFont(fontName!, font);
                     cb();
                 }} />
                 <AlertActionButton text={"Strings.CANCEL"} variant="secondary" />
@@ -201,8 +203,8 @@ function promptActionSheet(
 }
 
 function NewEntryRow({ fontName, fontEntry }: { fontName: string | undefined, fontEntry: Record<string, string>; }) {
-    const nameRef = useRef<string>();
-    const urlRef = useRef<string>();
+    const nameRef = useRef<string | undefined>(undefined);
+    const urlRef = useRef<string | undefined>(undefined);
 
     const [nameSet, setNameSet] = useState(false);
     const [error, setError] = useState<string | undefined>();
@@ -260,18 +262,17 @@ function NewEntryRow({ fontName, fontEntry }: { fontName: string | undefined, fo
 export default function FontEditor(props: {
     name?: string;
 }) {
+    const currentFonts = useFonts((state) => state.fonts);
     const [name, setName] = useState<string | undefined>(props.name);
-    const [source, setSource] = useState<string | undefined>(props.name && fonts[props.name].source);
+    const [source, setSource] = useState<string | undefined>(props.name && currentFonts[props.name]?.source);
     const [importing, setIsImporting] = useState<boolean>(false);
     const [errors, setErrors] = useState<Array<Error | undefined> | undefined>();
 
     const memoEntry = useMemo(() => {
-        return Observable.from(props.name ? { ...fonts[props.name].main } : {});
-    }, [props.name]);
+        return Observable.from(props.name ? { ...currentFonts[props.name]?.main } : {});
+    }, [props.name, currentFonts]);
 
     const fontEntries: Record<string, string> = memoEntry;
-    
-    useObservable([memoEntry]);
 
     const navigation = NavigationNative.useNavigation();
 
@@ -299,7 +300,7 @@ export default function FontEditor(props: {
                         label={"Refetch fonts from source"}
                         icon={<TableRow.Icon source={findAssetId("RetryIcon")} />}
                         onPress={async () => {
-                            await updateFont(fonts[props.name!]);
+                            await updateFont(currentFonts[props.name!]);
                             navigation.goBack();
                         }}
                     />
@@ -317,7 +318,7 @@ export default function FontEditor(props: {
                 placeholder={"Whitney"}
                 onChange={setName}
             />
-            {props.name && fonts[props.name].source && <TextInput
+            {props.name && currentFonts[props.name]?.source && <TextInput
                 size="lg"
                 value={source}
                 label="Font Pack URL"
@@ -385,12 +386,15 @@ export default function FontEditor(props: {
                                 .catch(e => setErrors(e))
                                 .finally(() => setIsImporting(false));
                         } else {
-                            Object.assign(fonts[props.name], {
+                            const updatedFont = {
+                                ...currentFonts[props.name],
                                 name: name,
                                 main: fontEntries,
-                            });
+                            };
+                            
+                            useFonts.getState().setFont(props.name, updatedFont);
 
-                            updateFont(fonts[props.name])
+                            updateFont(updatedFont)
                                 .then(() => navigation.goBack())
                                 .catch(e => setErrors(e))
                                 .finally(() => setIsImporting(false));

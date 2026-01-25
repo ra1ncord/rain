@@ -1,18 +1,19 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { fileExists, readFile, writeFile } from "@api/native/fs";
+import { ReactNative } from "@metro/common";
 
-interface BunnyColorPreferencesStorage {
-    selected: string | null;
-    type?: "dark" | "light" | null;
-    customBackground: "hidden" | null;
-    per?: Record<string, { autoUpdate?: string; } | undefined>;
+interface Settings {
+    tapUsernameMention: boolean;
+    reply: boolean;
+    userEdit: boolean;
+    keyboardPopup: boolean;
+    delay: string;
+    debugMode: boolean;
 }
 
-interface ColorsPrefStore extends BunnyColorPreferencesStorage {
-    setType: (type: "dark" | "light" | null | undefined) => void;
-    setCustomBackground: (background: "hidden" | null) => void;
-    setSelected: (selected: string | null) => void;
+interface TapTapSettingsStore extends Settings {
+    updateSettings: (settings: Partial<Settings>) => void;
     _hasHydrated: boolean;
     setHasHydrated: (state: boolean) => void;
 }
@@ -37,25 +38,27 @@ const createFileStorage = (filePath: string) => {
             }
         },
         removeItem: async (name: string): Promise<void> => {
-            // who goes here anyway
+            // maybe this should be implemented :P
         },
     };
 };
 
-export const useColorsPref = create<ColorsPrefStore>()(
+export const useTapTapSettings = create<TapTapSettingsStore>()(
     persist(
         (set) => ({
-            selected: null,
-            customBackground: null,
+            tapUsernameMention: ReactNative.Platform.select({ ios: true, android: false, default: true })!,
+            reply: true,
+            userEdit: true,
+            keyboardPopup: true,
+            delay: "300",
+            debugMode: false,
             _hasHydrated: false,
-            setType: (type) => set({ type }),
-            setCustomBackground: (background) => set({ customBackground: background }),
-            setSelected: (selected) => set({ selected }),
+            updateSettings: (newSettings) => set((state) => ({ ...state, ...newSettings })),
             setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
         }),
         {
-            name: 'colors-pref',
-            storage: createJSONStorage(() => createFileStorage("themes/colors/preferences.json")),
+            name: 'taptap-settings',
+            storage: createJSONStorage(() => createFileStorage("plugins/taptap.json")),
             onRehydrateStorage: () => (state) => {
                 state?.setHasHydrated(true);
             }
@@ -63,27 +66,14 @@ export const useColorsPref = create<ColorsPrefStore>()(
     )
 );
 
-export const colorsPref = new Proxy({} as BunnyColorPreferencesStorage, {
-    get(target, prop: string) {
-        return useColorsPref.getState()[prop as keyof BunnyColorPreferencesStorage];
-    },
-    set(target, prop: string, value: any) {
-        const state = useColorsPref.getState();
-        if (prop === 'type') state.setType(value);
-        else if (prop === 'customBackground') state.setCustomBackground(value);
-        else if (prop === 'selected') state.setSelected(value);
-        return true;
-    }
-});
-
-export async function waitForColorsPrefHydration(): Promise<void> {
+export async function waitForTapTapHydration(): Promise<void> {
     return new Promise((resolve) => {
-        if (useColorsPref.getState()._hasHydrated) {
+        if (useTapTapSettings.getState()._hasHydrated) {
             resolve();
             return;
         }
         
-        const unsubscribe = useColorsPref.subscribe(
+        const unsubscribe = useTapTapSettings.subscribe(
             (state) => {
                 if (state._hasHydrated) {
                     unsubscribe();
@@ -98,3 +88,13 @@ export async function waitForColorsPrefHydration(): Promise<void> {
         }, 5000);
     });
 }
+
+export const taptapSettings = new Proxy({} as Settings, {
+    get(target, prop: string) {
+        return useTapTapSettings.getState()[prop as keyof Settings];
+    },
+    set(target, prop: string, value: any) {
+        useTapTapSettings.getState().updateSettings({ [prop]: value } as Partial<Settings>);
+        return true;
+    }
+});

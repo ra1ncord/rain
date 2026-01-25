@@ -1,5 +1,6 @@
-import { awaitStorage, createStorage } from "@api/storage";
-import { clearFolder, downloadFile, fileExists, removeFile, writeFile } from "@api/native/fs";
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { fileExists, readFile, writeFile, clearFolder, downloadFile, removeFile } from "@api/native/fs";
 import { safeFetch } from "@lib/utils";
 
 type FontMap = Record<string, string>;
@@ -15,7 +16,117 @@ export type FontDefinition = {
 
 type FontStorage = Record<string, FontDefinition> & { __selected?: string; };
 
-export const fonts = createStorage<FontStorage>("BUNNY_FONTS", { dflt: {} });
+const createFileStorage = (filePath: string) => {
+    return {
+        getItem: async (name: string): Promise<string | null> => {
+            try {
+                const exists = await fileExists(filePath);
+                if (!exists) return null;
+                return await readFile(filePath);
+            } catch (e) {
+                console.error(`Failed to read storage from '${filePath}'`, e);
+                return null;
+            }
+        },
+        setItem: async (name: string, value: string): Promise<void> => {
+            try {
+                await writeFile(filePath, value);
+            } catch (e) {
+                console.error(`Failed to write storage to '${filePath}'`, e);
+            }
+        },
+        removeItem: async (name: string): Promise<void> => {
+            //not real
+        },
+    };
+};
+
+interface FontsStore {
+    fonts: FontStorage;
+    _hasHydrated: boolean;
+    setFont: (name: string, font: FontDefinition) => void;
+    removeFont: (name: string) => void;
+    setSelected: (name: string | null) => void;
+    setHasHydrated: (state: boolean) => void;
+}
+
+export const useFonts = create<FontsStore>()(
+    persist(
+        (set, get) => ({
+            fonts: {},
+            _hasHydrated: false,
+            setFont: (name: string, font: FontDefinition) => {
+                set((state) => ({
+                    fonts: {
+                        ...state.fonts,
+                        [name]: font
+                    }
+                }));
+            },
+            removeFont: (name: string) => {
+                set((state) => {
+                    const newFonts = { ...state.fonts };
+                    delete newFonts[name];
+                    return { fonts: newFonts };
+                });
+            },
+            setSelected: (name: string | null) => {
+                set((state) => {
+                    const newFonts = { ...state.fonts };
+                    if (name) {
+                        newFonts.__selected = name;
+                    } else {
+                        delete newFonts.__selected;
+                    }
+                    return { fonts: newFonts };
+                });
+            },
+            setHasHydrated: (state: boolean) => {
+                set({ _hasHydrated: state });
+            }
+        }),
+        {
+            name: 'bunny-fonts',
+            storage: createJSONStorage(() => createFileStorage("BUNNY_FONTS")),
+            onRehydrateStorage: () => (state) => {
+                state?.setHasHydrated(true);
+            }
+        }
+    )
+);
+
+export const fonts = new Proxy({} as FontStorage, {
+    get(target, prop: string) {
+        return useFonts.getState().fonts[prop];
+    },
+    set(target, prop: string, value: FontDefinition | string) {
+        if (prop === '__selected') {
+            useFonts.getState().setSelected(value as string);
+        } else {
+            useFonts.getState().setFont(prop, value as FontDefinition);
+        }
+        return true;
+    },
+    deleteProperty(target, prop: string) {
+        useFonts.getState().removeFont(prop);
+        return true;
+    },
+    has(target, prop: string) {
+        return prop in useFonts.getState().fonts;
+    },
+    ownKeys(target) {
+        return Object.keys(useFonts.getState().fonts);
+    },
+    getOwnPropertyDescriptor(target, prop) {
+        const fonts = useFonts.getState().fonts;
+        if (prop in fonts) {
+            return {
+                enumerable: true,
+                configurable: true,
+            };
+        }
+    }
+});
 
 async function writeFont(font: FontDefinition | null) {
     if (!font && font !== null) throw new Error("Arg font must be a valid object or null");
@@ -65,8 +176,8 @@ export async function saveFont(data: string | FontDefinition, selected = false) 
     
     if (errors.some(it => it)) throw errors;
     
-    fonts[fontDefJson.name] = fontDefJson;
-    if (selected) writeFont(fonts[fontDefJson.name]);
+    useFonts.getState().setFont(fontDefJson.name, fontDefJson);
+    if (selected) writeFont(fontDefJson);
     
     return fontDefJson;
 }
@@ -83,7 +194,7 @@ export async function updateFont(fontDef: FontDefinition) {
         };
     }
     
-    const selected = fonts.__selected === fontDef.name;
+    const selected = useFonts.getState().fonts.__selected === fontDef.name;
     await removeFont(fontDef.name);
     await saveFont(fontDefCopy, selected);
 }
@@ -94,22 +205,18 @@ export async function installFont(url: string, selected = false) {
 }
 
 export async function selectFont(name: string | null) {
-    if (name && !(name in fonts)) throw new Error("Selected font does not exist!");
+    const currentFonts = useFonts.getState().fonts;
+    if (name && !(name in currentFonts)) throw new Error("Selected font does not exist!");
     
-    if (name) {
-        fonts.__selected = name;
-    } else {
-        delete fonts.__selected;
-    }
-    
-    await writeFont(name == null ? null : fonts[name]);
+    useFonts.getState().setSelected(name);
+    await writeFont(name == null ? null : currentFonts[name]);
 }
 
 export async function removeFont(name: string) {
-    const selected = fonts.__selected === name;
+    const selected = useFonts.getState().fonts.__selected === name;
     if (selected) await selectFont(null);
     
-    delete fonts[name];
+    useFonts.getState().removeFont(name);
     
     try {
         await clearFolder(`downloads/fonts/${name}`);
@@ -118,12 +225,37 @@ export async function removeFont(name: string) {
     }
 }
 
+async function waitForHydration(): Promise<void> {
+    return new Promise((resolve) => {
+        if (useFonts.getState()._hasHydrated) {
+            resolve();
+            return;
+        }
+        
+        const unsubscribe = useFonts.subscribe(
+            (state) => {
+                if (state._hasHydrated) {
+                    unsubscribe();
+                    resolve();
+                }
+            }
+        );
+        
+        setTimeout(() => {
+            unsubscribe();
+            resolve();
+        }, 5000);
+    });
+}
+
 export async function initFonts() {
-    await awaitStorage(fonts);
+    await waitForHydration();
+    
+    const currentFonts = useFonts.getState().fonts;
     
     Promise.allSettled(
-        Object.keys(fonts).map(
-            name => saveFont(fonts[name], fonts.__selected === name)
+        Object.keys(currentFonts).map(
+            name => saveFont(currentFonts[name], currentFonts.__selected === name)
         )
     );
 }

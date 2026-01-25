@@ -5,9 +5,7 @@ import type { ImageURISource } from "react-native";
 import { patchTabsUI } from "./patches/tabs";
 import { definePlugin } from "@plugins";
 import { RainIcon } from "@assets";
-import { isPluginEnabled } from "@plugins";
-import { settings } from "@api/settings";
-import { useObservable } from "@api/storage";
+import { useSettings } from "@api/settings";
 import { version } from "rain-build-info";
 import { patchAssets } from "@api/assets/patches";
 import { findByPropsLazy } from "@metro";
@@ -27,7 +25,6 @@ export default definePlugin({
 
 function initSettings() {
     // todo: i18n ALL of settings
-    // todo: neaten up the imports
     registerSection({
         name: "Rain",
         items: [
@@ -68,8 +65,8 @@ function initSettings() {
                 icon: findAssetId("WrenchIcon"),
                 render: () => import("@rain/pages/Developer"),
                 usePredicate: () => {
-                    useObservable([settings]);
-                    return settings.developerSettings ?? false;
+                    const developerSettings = useSettings((state) => state.developerSettings);
+                    return developerSettings ?? false;
                 },
             },
         ]
@@ -124,8 +121,6 @@ export function registerSection(section: { name: string; items: RowConfig[]; }) 
  */
 export function patchSettings() {
     const unpatches = new Array<() => boolean>;
-
     patchTabsUI(unpatches);
-
     return () => unpatches.forEach(u => u());
 }

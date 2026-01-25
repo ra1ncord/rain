@@ -1,10 +1,81 @@
-import { settings } from "@api/settings";
 import * as t from "./types";
-import { awaitStorage, createStorage, getPreloadedStorage, preloadStorageIfExists, purgeStorage, updateStorage } from "@api/storage";
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { fileExists, readFile, writeFile } from "@api/native/fs";
 
 export const pluginInstances = new Map<string, t.rainPlugin>();
-export const pluginSettings = createStorage<t.PluginSettingsStorage>("plugins/settings.json", {
-    dflt: {}
+
+const createFileStorage = (filePath: string) => {
+    return {
+        getItem: async (name: string): Promise<string | null> => {
+            try {
+                const exists = await fileExists(filePath);
+                if (!exists) return null;
+                return await readFile(filePath);
+            } catch (e) {
+                console.error(`Failed to read storage from '${filePath}'`, e);
+                return null;
+            }
+        },
+        setItem: async (name: string, value: string): Promise<void> => {
+            try {
+                await writeFile(filePath, value);
+            } catch (e) {
+                console.error(`Failed to write storage to '${filePath}'`, e);
+            }
+        },
+        removeItem: async (name: string): Promise<void> => {
+            //we dont need this
+        },
+    };
+};
+
+interface PluginSettingsStore {
+    settings: t.PluginSettingsStorage;
+    _hasHydrated: boolean;
+    updatePluginSetting: (id: string, enabled: boolean) => void;
+    getPluginSetting: (id: string) => { enabled: boolean } | undefined;
+    setHasHydrated: (state: boolean) => void;
+}
+
+export const usePluginSettings = create<PluginSettingsStore>()(
+    persist(
+        (set, get) => ({
+            settings: {},
+            _hasHydrated: false,
+            updatePluginSetting: (id: string, enabled: boolean) => {
+                set((state) => ({
+                    settings: {
+                        ...state.settings,
+                        [id]: { enabled }
+                    }
+                }));
+            },
+            getPluginSetting: (id: string) => {
+                return get().settings[id];
+            },
+            setHasHydrated: (state: boolean) => {
+                set({ _hasHydrated: state });
+            }
+        }),
+        {
+            name: 'plugin-settings',
+            storage: createJSONStorage(() => createFileStorage("plugins/settings.json")),
+            onRehydrateStorage: () => (state) => {
+                state?.setHasHydrated(true);
+            }
+        }
+    )
+);
+
+export const pluginSettings = new Proxy({} as t.PluginSettingsStorage, {
+    get(target, prop: string) {
+        return usePluginSettings.getState().settings[prop];
+    },
+    set(target, prop: string, value: { enabled: boolean }) {
+        usePluginSettings.getState().updatePluginSetting(prop, value.enabled);
+        return true;
+    }
 });
 
 function assert<T>(condition: T, id: string, attempt: string): asserts condition {
@@ -14,16 +85,14 @@ function assert<T>(condition: T, id: string, attempt: string): asserts condition
 export async function startPlugin(id: string, {} = {}) {
     let pluginInstance: t.rainPlugin;
     pluginInstance = pluginInstances.get(id)!;
+    
     if (!pluginInstance) {
         throw new Error(`Plugin ${id} not found`);
     }
+    
     try {
         pluginInstance.start?.();
-        if (!pluginSettings[id]) {
-            pluginSettings[id] = { enabled: true };
-        } else {
-            pluginSettings[id].enabled = true;
-        }
+        usePluginSettings.getState().updatePluginSetting(id, true);
     } catch (error) {
         alert(`[${id}] Failed to start:` + error);
         throw error;
@@ -33,16 +102,14 @@ export async function startPlugin(id: string, {} = {}) {
 export async function startEagerPlugin(id: string, {} = {}) {
     let pluginInstance: t.rainPlugin;
     pluginInstance = pluginInstances.get(id)!;
+    
     if (!pluginInstance) {
         throw new Error(`Plugin ${id} not found`);
     }
+    
     try {
         pluginInstance.eagerStart?.();
-        if (!pluginSettings[id]) {
-            pluginSettings[id] = { enabled: true };
-        } else {
-            pluginSettings[id].enabled = true;
-        }
+        usePluginSettings.getState().updatePluginSetting(id, true);
     } catch (error) {
         console.error(`[${id}] Failed to eager start:`, error);
         throw error;
@@ -55,17 +122,38 @@ export function stopPlugin(id: string) {
     
     try {
         instance.stop?.();
-        if (pluginSettings[id]) {
-            pluginSettings[id].enabled = false;
-        }
+        usePluginSettings.getState().updatePluginSetting(id, false);
     } catch (error) {
         console.error(`[${id}] Failed to stop:`, error);
         throw error;
     }
 }
 
+async function waitForHydration(): Promise<void> {
+    return new Promise((resolve) => {
+        if (usePluginSettings.getState()._hasHydrated) {
+            resolve();
+            return;
+        }
+        
+        const unsubscribe = usePluginSettings.subscribe(
+            (state) => {
+                if (state._hasHydrated) {
+                    unsubscribe();
+                    resolve();
+                }
+            }
+        );
+        
+        setTimeout(() => {
+            unsubscribe();
+            resolve();
+        }, 5000);
+    });
+}
+
 export async function initPlugins() {
-    await awaitStorage(pluginSettings);
+    await waitForHydration();
     
     const rainPlugins = await import("#rain-plugins");
     
@@ -73,7 +161,7 @@ export async function initPlugins() {
         pluginInstances.set(id, plugin);
         plugin.id = id;
     }
-
+    
     await Promise.allSettled([...pluginInstances.keys()].map(async id => {
         if (isPluginEnabled(id)) {
             await startPlugin(id);
@@ -82,14 +170,14 @@ export async function initPlugins() {
 }
 
 export async function initEagerPlugins() {
-    await awaitStorage(pluginSettings);
+    await waitForHydration();
     
     const rainPlugins = await import("#rain-plugins");
     
     for (const [id, plugin] of Object.entries(rainPlugins.default)) {
         pluginInstances.set(id, plugin);
     }
-
+    
     await Promise.allSettled([...pluginInstances.keys()].map(async id => {
         if (isPluginEnabled(id)) {
             await startEagerPlugin(id);
@@ -106,24 +194,25 @@ export function definePlugin(
 }
 
 export function isPluginEnabled(id: string) {
+    const setting = usePluginSettings.getState().settings[id];
+    
     if (isCorePlugin(id)) {
-        return pluginSettings[id]?.enabled ?? true;
+        return setting?.enabled ?? true;
     }
-    return pluginSettings[id]?.enabled ?? false;
+    
+    return setting?.enabled ?? false;
 }
 
 export function isCorePlugin(id: string) {
     if (id.startsWith("core")) {
-        return true
+        return true;
     }
-
     return false;
 }
 
 export function getPluginSettingsComponent(id: string): React.ComponentType<any> | null {
     const instance = pluginInstances.get(id);
     if (!instance) return null;
-
     if (instance.settings) return instance.settings;
     return null;
 }

@@ -2,13 +2,11 @@ import {
   startPlugin,
   stopPlugin,
   isPluginEnabled,
-  pluginSettings,
+  usePluginSettings,
   getPluginSettingsComponent,
 } from "@plugins";
 import { rainPlugin } from "@plugins/types";
-
 import { UnifiedPluginModel } from ".";
-import { useObservable } from "@api/storage";
 
 export default function unifyRainPlugin(
   manifest: rainPlugin,
@@ -27,7 +25,7 @@ export default function unifyRainPlugin(
       }
     },
     usePluginState() {
-      useObservable([pluginSettings]);
+      usePluginSettings((state) => state.settings);
     },
     resolveSheetComponent() {
       return Promise.resolve({

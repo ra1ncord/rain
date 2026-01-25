@@ -1,17 +1,11 @@
 import AddonPage from "@rain/pages/Addon/AddonPage";
 import ThemeCard from "./ThemeCard";
-import {
-  getCurrentTheme,
-  installTheme,
-  themes,
-  VdThemeInfo,
-} from "@plugins/_core/painter/themes";
-import { colorsPref } from "@plugins/_core/painter/themes/preferences";
+import { useThemes, getCurrentTheme, installTheme, VdThemeInfo, waitForThemesHydration } from "@plugins/_core/painter/themes";
+import { useColorsPref, waitForColorsPrefHydration } from "@plugins/_core/painter/themes/preferences";
 import { updateBunnyColor } from "@plugins/_core/painter/themes/updater";
 import { Author } from "@plugins/_core/painter/themes/types";
 import { findAssetId } from "@api/assets";
-import { settings } from "@api/settings";
-import { useObservable } from "@api/storage";
+import { useSettings } from "@api/settings";
 import {
   ActionSheet,
   BottomSheetTitleHeader,
@@ -28,7 +22,9 @@ import { View } from "react-native";
  */
 
 export default function Themes() {
-  useObservable([settings, themes]);
+  const themesMap = useThemes(s => s.themes);
+  const themesList = Object.values(themesMap);
+  const safeMode = useSettings((state) => state.safeMode);
 
   return (
     <AddonPage<VdThemeInfo>
@@ -46,69 +42,55 @@ export default function Themes() {
         label: "Install a theme",
         fetchFn: installTheme,
       }}
-      items={Object.values(themes)}
+      items={themesList}
       safeModeHint={{
-        message: settings.safeMode?.currentThemeId 
+        message: safeMode?.currentThemeId 
           ? "A theme is currently applied in safe mode"
           : "Themes are disabled in safe mode",
-        footer: settings.safeMode?.currentThemeId && (
+        footer: safeMode?.currentThemeId && (
           <Button
             size="small"
             text="Disable Theme"
-            onPress={() => delete settings.safeMode?.currentThemeId}
+            onPress={() => {
+              delete safeMode.currentThemeId;
+              useSettings.getState().updateSettings({ safeMode });
+            }}
             style={{ marginTop: 8 }}
           />
         ),
       }}
       CardComponent={ThemeCard}
       OptionsActionSheetComponent={() => {
-        useObservable([colorsPref]);
+        const { type, customBackground, setType, setCustomBackground } = useColorsPref();
 
         return (
           <ActionSheet>
             <BottomSheetTitleHeader title="Options" />
             <View style={{ paddingVertical: 20, gap: 12 }}>
-              {/* Changed from TableRadioGroup to individual TableSwitchRow components
-                  for better UX - users can now toggle options individually */}
               <TableRowGroup title="Override Theme Type">
                 <TableSwitchRow
                   label="Auto"
                   icon={<TableRowIcon source={findAssetId("RobotIcon")} />}
-                  value={!colorsPref.type}
+                  value={!type}
                   onValueChange={(enabled: boolean) => {
-                    if (enabled) {
-                      colorsPref.type = undefined;
-                    } else {
-                      colorsPref.type = "dark";
-                    }
-                    getCurrentTheme()?.data &&
-                      updateBunnyColor(getCurrentTheme()!.data!, {
-                        update: true,
-                      });
+                     if (enabled) setType(undefined);
+                     else setType("dark");
                   }}
                 />
                 <TableSwitchRow
                   label="Dark"
                   icon={<TableRowIcon source={findAssetId("ThemeDarkIcon")} />}
-                  value={colorsPref.type === "dark"}
+                  value={type === "dark"}
                   onValueChange={(enabled: boolean) => {
-                    colorsPref.type = enabled ? "dark" : undefined;
-                    getCurrentTheme()?.data &&
-                      updateBunnyColor(getCurrentTheme()!.data!, {
-                        update: true,
-                      });
+                    setType(enabled ? "dark" : undefined);
                   }}
                 />
                 <TableSwitchRow
                   label="Light"
                   icon={<TableRowIcon source={findAssetId("ThemeLightIcon")} />}
-                  value={colorsPref.type === "light"}
+                  value={type === "light"}
                   onValueChange={(enabled: boolean) => {
-                    colorsPref.type = enabled ? "light" : undefined;
-                    getCurrentTheme()?.data &&
-                      updateBunnyColor(getCurrentTheme()!.data!, {
-                        update: true,
-                      });
+                    setType(enabled ? "light" : undefined);
                   }}
                 />
               </TableRowGroup>
@@ -116,17 +98,17 @@ export default function Themes() {
                 <TableSwitchRow
                   label="Show Background"
                   icon={<TableRowIcon source={findAssetId("ImageIcon")} />}
-                  value={!colorsPref.customBackground}
+                  value={!customBackground}
                   onValueChange={(enabled: boolean) => {
-                    colorsPref.customBackground = enabled ? null : "hidden";
+                    setCustomBackground(enabled ? null : "hidden");
                   }}
                 />
                 <TableSwitchRow
                   label="Hide Background"
                   icon={<TableRowIcon source={findAssetId("DenyIcon")} />}
-                  value={colorsPref.customBackground === "hidden"}
+                  value={customBackground === "hidden"}
                   onValueChange={(enabled: boolean) => {
-                    colorsPref.customBackground = enabled ? "hidden" : null;
+                    setCustomBackground(enabled ? "hidden" : null);
                   }}
                 />
               </TableRowGroup>

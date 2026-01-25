@@ -1,7 +1,7 @@
 import { hideSheet } from "@api/ui/sheets";
 import { ActionSheet, Card, IconButton, Text } from "@metro/common/components";
 import { clipboard } from "@metro/common";
-import { purgeStorage } from "@api/storage";
+import { purgeStorage } from "@api/storage/bnstorage";
 import { findAssetId } from "@api/assets";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
