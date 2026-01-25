@@ -78,7 +78,7 @@ const config = {
                                 constModules: {
                                     globals: {
                                         "rain-build-info": {
-                                            version: `"v0.1.0"`
+                                            version: `"v0.2.0"`
                                         },
                                         // For backwards compatibility
                                         "bunny-build-info": {
