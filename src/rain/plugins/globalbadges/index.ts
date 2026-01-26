@@ -22,7 +22,7 @@ async function fetchBadges(userId: string): Promise<CustomBadges> {
 export default definePlugin({
   name: "GlobalBadges",
   description: "Display custom badges from various Discord mod clients",
-  author: [{ name: "nexpid", id: 0n }],
+  author: [{ name: "wolfie", id: 347096063569559553n }],
   id: "globalbadges",
   version: "v1.0.0",
   start() {
