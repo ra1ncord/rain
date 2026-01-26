@@ -16,7 +16,7 @@ export default definePlugin({
     description: "Adds badges to a user's profile",
     author: [{ name: "cocobo1", id: 767650984175992833n }],
     id: "badges",
-    version: "v1.0.0",
+    version: "v1.1.0",
     start() {
         let allBadges: { [x: string]: any; } | null = null;
         const badgeProps = {} as Record<string, any>;
@@ -71,7 +71,7 @@ export default definePlugin({
                         userId: user.userId,
                     };
 
-                    result.push({
+                    result.unshift({
                         id: badgeId,
                         description: badge.label,
                         icon: " _",

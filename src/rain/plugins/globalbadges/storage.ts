@@ -1,0 +1,93 @@
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { fileExists, readFile, writeFile } from "@api/native/fs";
+
+interface Settings {
+    left: boolean;
+    mods: boolean;
+    customs: boolean;
+}
+
+interface CustomBadgesSettingsStore extends Settings {
+    updateSettings: (settings: Partial<Settings>) => void;
+    _hasHydrated: boolean;
+    setHasHydrated: (state: boolean) => void;
+}
+
+const createFileStorage = (filePath: string) => {
+    return {
+        getItem: async (name: string): Promise<string | null> => {
+            try {
+                const exists = await fileExists(filePath);
+                if (!exists) return null;
+                return await readFile(filePath);
+            } catch (e) {
+                console.error(`Failed to read storage from '${filePath}'`, e);
+                return null;
+            }
+        },
+        setItem: async (name: string, value: string): Promise<void> => {
+            try {
+                await writeFile(filePath, value);
+            } catch (e) {
+                console.error(`Failed to write storage to '${filePath}'`, e);
+            }
+        },
+        removeItem: async (name: string): Promise<void> => {
+            // Not implemented
+        },
+    };
+};
+
+export const useCustomBadgesSettings = create<CustomBadgesSettingsStore>()(
+    persist(
+        (set) => ({
+            left: false,
+            mods: false,
+            customs: false,
+            _hasHydrated: false,
+            updateSettings: (newSettings) => set((state) => ({ ...state, ...newSettings })),
+            setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
+        }),
+        {
+            name: 'globalbadges-settings',
+            storage: createJSONStorage(() => createFileStorage("plugins/globalbadges.json")),
+            onRehydrateStorage: () => (state) => {
+                state?.setHasHydrated(true);
+            }
+        }
+    )
+);
+
+export async function waitForCustomBadgesHydration(): Promise<void> {
+    return new Promise((resolve) => {
+        if (useCustomBadgesSettings.getState()._hasHydrated) {
+            resolve();
+            return;
+        }
+        
+        const unsubscribe = useCustomBadgesSettings.subscribe(
+            (state) => {
+                if (state._hasHydrated) {
+                    unsubscribe();
+                    resolve();
+                }
+            }
+        );
+        
+        setTimeout(() => {
+            unsubscribe();
+            resolve();
+        }, 5000);
+    });
+}
+
+export const customBadgesSettings = new Proxy({} as Settings, {
+    get(target, prop: string) {
+        return useCustomBadgesSettings.getState()[prop as keyof Settings];
+    },
+    set(target, prop: string, value: any) {
+        useCustomBadgesSettings.getState().updateSettings({ [prop]: value } as Partial<Settings>);
+        return true;
+    }
+});

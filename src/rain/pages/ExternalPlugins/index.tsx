@@ -11,6 +11,8 @@ import { isPluginInstalled, pluginSettings, registeredPlugins } from "@rain/plug
 import { VdPluginManager } from "@rain/plugins/_core/traveller/vendetta";
 import unifyVdPlugin from "./models/vendetta";
 import unifyBunnyPlugin from "./models/bunny";
+import { bunnyToRainMap } from "./map";
+import { findPluginById, startPlugin } from "@rain/plugins";
 
 interface PluginPageProps
   extends Partial<ComponentProps<typeof AddonPage<UnifiedPluginModel>>> {
@@ -80,9 +82,21 @@ export default function Plugins() {
       installAction={{
         label: "Install a plugin",
         fetchFn: async (url: string) => {
-          return await VdPluginManager.installPlugin(url);
+          const alternative = bunnyToRainMap[url];
+          findPluginById(alternative);
+          replaceWithRainPlugin();
+          //startPlugin(alternative);
+          //return await VdPluginManager.installPlugin(url);
         },
       }}
     />
   );
+}
+
+function replaceWithRainPlugin() {
+  return( <AlertModal
+      title={"Hey wait!"}
+      content="Theres a rain plugin for that, are you sure you want to install the vendetta version?"
+  />
+  )
 }

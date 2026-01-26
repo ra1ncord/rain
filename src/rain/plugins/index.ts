@@ -129,6 +129,14 @@ export function stopPlugin(id: string) {
     }
 }
 
+export function findPluginById(id: string) {
+    if (pluginInstances.has(id)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 async function waitForHydration(): Promise<void> {
     return new Promise((resolve) => {
         if (usePluginSettings.getState()._hasHydrated) {
