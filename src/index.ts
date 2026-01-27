@@ -16,9 +16,9 @@ export default async () => {
     const core = await Promise.all([
         initEagerPlugins(),
     ]);
-
+    
     critical.forEach(f => { if (f !== undefined) lib.unload.push(f); });
     core.forEach(f => { if (f !== undefined) lib.unload.push(f); });
-
-    initPlugins();
 };
+
+export { initPlugins };

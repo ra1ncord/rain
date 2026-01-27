@@ -3,7 +3,7 @@ import { findAssetId } from "@api/assets";
 import { lazy } from "react";
 import type { ImageURISource } from "react-native";
 import { patchTabsUI } from "./patches/tabs";
-import { definePlugin } from "@plugins";
+import { definePlugin, isPluginEnabled, usePluginSettings } from "@plugins";
 import { RainIcon } from "@assets";
 import { useSettings } from "@api/settings";
 import { version } from "rain-build-info";
@@ -46,6 +46,10 @@ function initSettings() {
                 title: () => "External Plugins",
                 icon: findAssetId("ActivitiesIcon"),
                 render: () => import("@rain/pages/ExternalPlugins"),
+                usePredicate: () => {
+                    const isEnabled = usePluginSettings((state) => state.settings["traveller"]?.enabled);
+                    return isEnabled ?? isPluginEnabled("traveller");
+                }
             },
             {
                 key: "RAIN_THEMES",

@@ -6,9 +6,9 @@ import { AlertActionButton, AlertActions, AlertModal, Card, FlashList, IconButto
 import { ComponentProps } from "react";
 import { UnifiedPluginModel } from "./models";
 import * as React from "react";
-import { Author } from "@rain/plugins/_core/traveller/types";
-import { isPluginInstalled, pluginSettings, registeredPlugins } from "@rain/plugins/_core/traveller/bunny";
-import { VdPluginManager } from "@rain/plugins/_core/traveller/vendetta";
+import { Author } from "@rain/plugins/traveller/types";
+import { isPluginInstalled, pluginSettings, registeredPlugins } from "@rain/plugins/traveller/bunny";
+import { VdPluginManager } from "@rain/plugins/traveller/vendetta";
 import unifyVdPlugin from "./models/vendetta";
 import unifyBunnyPlugin from "./models/bunny";
 import { bunnyToRainMap } from "./map";

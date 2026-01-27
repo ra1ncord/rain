@@ -1,14 +1,14 @@
 import { hideSheet } from "@api/ui/sheets";
 import { ActionSheet, ActionSheetRow, Button, Card, IconButton, TableRow, Text } from "@metro/common/components";
 import { clipboard } from "@metro/common";
-import { purgeStorage } from "@api/storage";
+import { purgeStorage } from "@api/storage/bnstorage";
 import { findAssetId } from "@api/assets";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 import TitleComponent from "./TitleComponent";
 import { PluginInfoActionSheetProps } from "./common";
 import { semanticColors } from "@api/ui/components/color";
-import { VdPluginManager } from "@rain/plugins/_core/traveller/vendetta";
+import { VdPluginManager } from "@rain/plugins/traveller/vendetta";
 import { showConfirmationAlert } from "@api/ui/alerts";
 
 export default function PluginInfoActionSheet({ plugin, navigation }: PluginInfoActionSheetProps) {

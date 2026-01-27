@@ -1,4 +1,4 @@
-import { byDisplayName, byFilePath, byName, byProps, byStoreName, byTypeName } from "./filters";
+import { byDisplayName, byFilePath, byName, byProps, byStoreName, byTypeDisplayName, byTypeName } from "./filters";
 import { findAllExports, findExports } from "./finders";
 import { createLazyModule } from "./lazy";
 
@@ -23,3 +23,7 @@ export const findByStoreNameLazy = (name: string) => createLazyModule(byStoreNam
 
 export const findByFilePath = (path: string, expDefault = false) => findExports(byFilePath(path, expDefault));
 export const findByFilePathLazy = (path: string, expDefault = false) => createLazyModule(byFilePath(path, expDefault));
+
+export const findByTypeDisplayName = (name: string, expDefault = true) => findExports(expDefault ? byTypeDisplayName(name) : byTypeDisplayName.byRaw(name));
+export const findByTypeDisplayNameLazy = (name: string, expDefault = true) => createLazyModule(expDefault ? byTypeDisplayName(name) : byTypeDisplayName.byRaw(name));
+export const findByTypeDisplayNameAll = (name: string, expDefault = true) => findAllExports(expDefault ? byTypeDisplayName(name) : byTypeDisplayName.byRaw(name));

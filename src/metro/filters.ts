@@ -26,6 +26,11 @@ export const byStoreName = createFilterDefinition<[string]>(
     name => `rain.metro.byStoreName(${name})`
 );
 
+export const byTypeDisplayName = createFilterDefinition<[string]>(
+    ([displayName], m) => m.type?.displayName === displayName,
+    name => `rain.metro.byTypeDisplayName(${name})`
+);
+
 export const byFilePath = createFilterDefinition<[string, boolean]>(
     // module return depends on defaultCheck. if true, it'll return module.default, otherwise the whole module
     // unlike filters like byName, defaultCheck doesn't affect the return since we don't rely on exports, but only its ID

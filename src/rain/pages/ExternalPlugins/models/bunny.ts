@@ -4,8 +4,8 @@ import {
   getPluginSettingsComponent,
   isPluginEnabled,
   pluginSettings,
-} from "@rain/plugins/_core/traveller/bunny";
-import { BunnyPluginManifest } from "@rain/plugins/_core/traveller/types";
+} from "@rain/plugins/traveller/bunny";
+import { BunnyPluginManifest } from "@rain/plugins/traveller/types";
 import { useObservable } from "@api/storage/bnstorage";
 
 import { UnifiedPluginModel } from ".";
