@@ -12,8 +12,8 @@ const unpatches: Unpatch[] = [];
 
 export default definePlugin({
     name: "BetterChatButtons",
-    description: "Customize which buttons appear in the chat input",
-    author: [{ name: "palmdevs", id: 0n }],
+    description: "Customize all the annoying chat buttons",
+    author: [{ name: "palmdevs", id: 629368283354628116n }],
     id: "betterchatbuttons",
     version: "v1.0.0",
     start() {
@@ -23,8 +23,6 @@ export default definePlugin({
         let hasText = true;
         let sendBtnRef: React.MutableRefObject<{ setHasText(hasText: boolean): void }>;
         let actionsRef: React.MutableRefObject<{ onShowActions(): void; onDismissActions(): void }>;
-
-        const storage = useBetterChatButtonsSettings.getState();
 
         if (ChatInputSendButton?.type) {
             unpatches.push(
