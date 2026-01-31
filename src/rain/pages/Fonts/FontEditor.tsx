@@ -7,7 +7,7 @@ import { NavigationNative } from "@metro/common";
 import { ActionSheet, BottomSheetTitleHeader, Button, IconButton, Stack, TableRow, TableRowGroup, Text, TextInput } from "@metro/common/components";
 import { findByProps, findByPropsLazy } from "@metro/wrappers";
 import { FontDefinition, removeFont, saveFont, updateFont, useFonts, validateFont } from "@plugins/_core/painter/fonts";
-import { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useReducer } from "react";
 import { ScrollView, View } from "react-native";
 
 const actionSheet = findByPropsLazy("hideActionSheet");
@@ -27,7 +27,7 @@ function promptDetachConfirmationForThen(fontName: string | undefined, cb: () =>
                     useFonts.getState().setFont(fontName!, font);
                     cb();
                 }} />
-                <AlertActionButton text={"Strings.CANCEL"} variant="secondary" />
+                <AlertActionButton text="Cancel" variant="secondary" />
             </Stack>
         }
     />);
@@ -62,7 +62,7 @@ function FontsExtractor({ fonts, setName }: {
         <TextInput
             autoFocus
             size="md"
-            label={"Strings.FONT_NAME"}
+            label="Font Name"
             value={fontName}
             placeholder={fontName || "Whitney"}
             onChange={setFontName}
@@ -75,7 +75,7 @@ function FontsExtractor({ fonts, setName }: {
         <Button
             size="md"
             variant="primary"
-            text={"Strings.EXTRACT"}
+            text="Extract"
             disabled={!fontName}
             onPress={() => {
                 if (!fontName) return;
@@ -110,9 +110,9 @@ function JsonFontImporter({ fonts, setName, setSource }: {
         <TextInput
             autoFocus
             size="md"
-            label={"Font Link"}
+            label="Font Link"
             value={fontLink}
-            placeholder={"https://link.to/font/pack.json"}
+            placeholder="https://link.to/font/pack.json"
             onChange={setFontLink}
             errorMessage={error}
             state={error ? "error" : void 0}
@@ -120,21 +120,25 @@ function JsonFontImporter({ fonts, setName, setSource }: {
         <Button
             size="md"
             variant="primary"
-            text={"Import"}
+            text="Import"
             disabled={!fontLink || saving}
             loading={saving}
             onPress={() => {
                 setSaving(true);
+                setError(undefined);
 
                 (async () => {
                     const res = await safeFetch(fontLink, { cache: "no-store" });
                     const json = await res.json() as FontDefinition;
                     validateFont(json);
 
+                    // Clear existing entries
+                    Object.keys(fonts).forEach(key => delete fonts[key]);
+                    // Add new entries
+                    Object.assign(fonts, json.main);
+                    
                     setName(json.name);
                     setSource(fontLink);
-
-                    Object.assign(fonts, json.main);
                 })()
                     .then(() => actionSheet.hideActionSheet())
                     .catch(e => setError(String(e)))
@@ -156,22 +160,22 @@ function EntryEditorActionSheet(props: {
         <TextInput
             autoFocus
             size="md"
-            label={"Family Name (to override)"}
+            label="Family Name (to override)"
             value={familyName}
-            placeholder={"ggsans-Bold"}
+            placeholder="ggsans-Bold"
             onChange={setFamilyName}
         />
         <TextInput
             size="md"
-            label={"Font URL"}
+            label="Font URL"
             value={fontUrl}
-            placeholder={"https://link.to/the/font.ttf"}
+            placeholder="https://link.to/the/font.ttf"
             onChange={setFontUrl}
         />
         <Button
             size="md"
             variant="primary"
-            text={"Apply"}
+            text="Apply"
             onPress={() => {
                 delete props.fontEntries[props.name];
                 props.fontEntries[familyName] = fontUrl;
@@ -276,28 +280,28 @@ export default function FontEditor(props: {
 
     const navigation = NavigationNative.useNavigation();
 
-    const [, forceUpdate] = React.useReducer(() => ({}), 0);
+    const [, forceUpdate] = useReducer(() => ({}), 0);
 
     return <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 38 }}>
         <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={12}>
             {!props.name
                 ? <TableRowGroup title="Import">
-                    data?.fonts && <TableRow
-                        label={"Strings.LABEL_EXTRACT_FONTS_FROM_THEME"}
-                        subLabel={"Strings.DESC_EXTRACT_FONTS_FROM_THEME"}
+                    {Object.keys(currentFonts).length > 0 && <TableRow
+                        label="Extract fonts from theme"
+                        subLabel="Extract font definitions from the current theme"
                         icon={<TableRow.Icon source={findAssetId("HammerIcon")} />}
                         onPress={() => promptActionSheet(FontsExtractor, fontEntries, { setName })}
-                    />
+                    />}
                     <TableRow
-                        label={"Import font entries from a link"}
-                        subLabel={"Directly import from a link with a pre-configured JSON file"}
+                        label="Import font entries from a link"
+                        subLabel="Directly import from a link with a pre-configured JSON file"
                         icon={<TableRow.Icon source={findAssetId("LinkIcon")} />}
                         onPress={() => promptActionSheet(JsonFontImporter, fontEntries, { setName, setSource })}
                     />
                 </TableRowGroup>
                 : <TableRowGroup title="Actions">
                     <TableRow
-                        label={"Refetch fonts from source"}
+                        label="Refetch fonts from source"
                         icon={<TableRow.Icon source={findAssetId("RetryIcon")} />}
                         onPress={async () => {
                             await updateFont(currentFonts[props.name!]);
@@ -306,7 +310,7 @@ export default function FontEditor(props: {
                     />
                     <TableRow
                         variant="danger"
-                        label={"Delete font pack"}
+                        label="Delete font pack"
                         icon={<TableRow.Icon variant="danger" source={findAssetId("TrashIcon")} />}
                         onPress={() => removeFont(props.name!).then(() => navigation.goBack())}
                     />
@@ -314,8 +318,8 @@ export default function FontEditor(props: {
             <TextInput
                 size="lg"
                 value={name}
-                label={"Strings.FONT_NAME"}
-                placeholder={"Whitney"}
+                label="Font Name"
+                placeholder="Whitney"
                 onChange={setName}
             />
             {props.name && currentFonts[props.name]?.source && <TextInput
@@ -329,6 +333,7 @@ export default function FontEditor(props: {
                     const error = errors?.[index];
 
                     return <TableRow
+                        key={name}
                         label={name}
                         subLabel={error ? <Text variant="text-xs/medium" color="text-danger">{error.message}</Text> : url}
                         trailing={<Stack spacing={8} direction="horizontal">

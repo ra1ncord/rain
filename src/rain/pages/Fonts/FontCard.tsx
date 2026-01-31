@@ -11,8 +11,10 @@ import { FontDefinition, selectFont, useFonts } from "@plugins/_core/painter/fon
 import { CardWrapper } from "@rain/pages/Addon/AddonCard";
 import { useEffect, useMemo, useState } from "react";
 import { PixelRatio, View } from "react-native";
+import { Platform } from "react-native"
 
 import FontEditor from "./FontEditor";
+import previewHtml from "./preview.html"
 
 const { useToken } = lazyDestructure(() => findByProps("useToken"));
 
@@ -27,6 +29,8 @@ const useStyles = createStyles({
 
 function FontPreview({ font }: { font: FontDefinition; }) {
     const [loaded, setLoaded] = useState(false);
+    const [WebView, setWebView] = useState<any>(null);
+    const [isReady, setIsReady] = useState(false);
     const styles = useStyles();
 
     const [fontUri, setFontUri] = useState<string | null>(null);
@@ -34,6 +38,15 @@ function FontPreview({ font }: { font: FontDefinition; }) {
     const TEXT_DEFAULT = useToken(tokens.colors.TEXT_DEFAULT);
     const { fontFamily: fontFamilyList, fontSize } = TextStyleSheet["text-md/medium"];
     const fontFamily = fontFamilyList!.split(/,/g)[0];
+
+    useEffect(() => {
+        if (Platform.OS === "android") {
+            const webViewModule = findByProps("WebView");
+            if (webViewModule?.WebView) {
+                setWebView(() => webViewModule.WebView);
+            }
+        }
+    }, []);
 
     useEffect(() => {
         const getFontUri = async () => {
@@ -57,21 +70,66 @@ function FontPreview({ font }: { font: FontDefinition; }) {
         getFontUri();
     }, [font, fontFamily]);
 
+    useEffect(() => {
+        if (WebView && fontUri) {
+            setIsReady(true);
+        }
+    }, [WebView, fontUri]);
+
     const props = useMemo(() => ({
         family: fontUri,
         size: fontSize! * PixelRatio.getFontScale(),
         color: TEXT_DEFAULT,
-        text:
-            "The quick brown fox jumps over the lazy dog",
+        text: "The quick brown fox jumps over the lazy dog",
     }), [fontUri, fontSize, TEXT_DEFAULT]);
 
-    return <View style={{ width: "100%", height:32 }}>
-        {!loaded && <View style={[styles.full, { justifyContent: "center", alignItems: "center" }]}>
-            <Text color="text-muted" variant="heading-lg/semibold">
-                Loading...
-            </Text>
-        </View>}
-    </View>;
+    if (Platform.OS === "android" && isReady && WebView) {
+        return (
+            <View style={{ width: "100%", height: 32 }}>
+                <WebView
+                    onMessage={() => setLoaded(true)}
+                    source={{
+                        html: previewHtml.replace("$$props", JSON.stringify(props))
+                    }}
+                    javaScriptEnabled
+                    scrollEnabled={false}
+                    overScrollMode="never"
+                    showsHorizontalScrollIndicator={false}
+                    showsVerticalScrollIndicator={false}
+                    pointerEvents="none"
+                    style={[styles.full, { backgroundColor: "transparent", opacity: Number(loaded) }]}
+                />
+                {!loaded && (
+                    <View style={[styles.full, { justifyContent: "center", alignItems: "center" }]}>
+                        <Text color="text-muted" variant="heading-lg/semibold">
+                            Loading...
+                        </Text>
+                    </View>
+                )}
+            </View>
+        );
+    } else if (Platform.OS === "android" && !isReady) {
+        return (
+            <View style={{ width: "100%", height: 32 }}>
+                <View style={[styles.full, { justifyContent: "center", alignItems: "center" }]}>
+                    <Text color="text-muted" variant="heading-lg/semibold">
+                        Loading preview...
+                    </Text>
+                </View>
+            </View>
+        );
+    } else {
+        // todo: maybe they still have skia?
+        return (
+            <View style={{ width: "100%", height: 32 }}>
+                <View style={[styles.full, { justifyContent: "center", alignItems: "center" }]}>
+                    <Text color="text-muted" variant="heading-lg/semibold">
+                        Font previews are not supported on iOS
+                    </Text>
+                </View>
+            </View>
+        );
+    }
 }
 
 export default function FontCard({ item: font }: CardWrapper<FontDefinition>) {
