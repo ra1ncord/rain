@@ -3,8 +3,8 @@ import { awaitStorage, createStorage, getPreloadedStorage, preloadStorageIfExist
 import { safeFetch } from "@lib/utils";
 import { semver } from "@metro/common";
 
-import { createBunnyPluginApi } from "./api";
 import * as t from "../types";
+import { createBunnyPluginApi } from "./api";
 
 type PluginInstantiator = (
     bunny: t.BunnyPluginObject,

@@ -1,5 +1,5 @@
-import { Nullish } from "@lib/utils/types";
 import { TextStyles, ThemeColors } from "@api/ui/types";
+import { Nullish } from "@lib/utils/types";
 import { Falsey } from "lodash";
 import { FC, MutableRefObject, PropsWithoutRef, ReactNode, RefObject } from "react";
 import type * as RN from "react-native";

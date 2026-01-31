@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import { fileExists, readFile, writeFile } from "@api/native/fs";
+import { create } from "zustand";
+import { createJSONStorage,persist } from "zustand/middleware";
 
 interface Settings {
     left: boolean;
@@ -41,18 +41,18 @@ const createFileStorage = (filePath: string) => {
 
 export const useCustomBadgesSettings = create<CustomBadgesSettingsStore>()(
     persist(
-        (set) => ({
+        set => ({
             left: false,
             mods: false,
             customs: false,
             _hasHydrated: false,
-            updateSettings: (newSettings) => set((state) => ({ ...state, ...newSettings })),
+            updateSettings: newSettings => set(state => ({ ...state, ...newSettings })),
             setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
         }),
         {
-            name: 'globalbadges-settings',
+            name: "globalbadges-settings",
             storage: createJSONStorage(() => createFileStorage("plugins/globalbadges.json")),
-            onRehydrateStorage: () => (state) => {
+            onRehydrateStorage: () => state => {
                 state?.setHasHydrated(true);
             }
         }
@@ -60,21 +60,21 @@ export const useCustomBadgesSettings = create<CustomBadgesSettingsStore>()(
 );
 
 export async function waitForCustomBadgesHydration(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         if (useCustomBadgesSettings.getState()._hasHydrated) {
             resolve();
             return;
         }
-        
+
         const unsubscribe = useCustomBadgesSettings.subscribe(
-            (state) => {
+            state => {
                 if (state._hasHydrated) {
                     unsubscribe();
                     resolve();
                 }
             }
         );
-        
+
         setTimeout(() => {
             unsubscribe();
             resolve();

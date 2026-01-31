@@ -1,15 +1,13 @@
-import { hideSheet } from "@api/ui/sheets";
-import { ActionSheet, ActionSheetRow, Button, Card, IconButton, TableRow, Text } from "@metro/common/components";
-import { clipboard } from "@metro/common";
-import { purgeStorage } from "@api/storage/bnstorage";
 import { findAssetId } from "@api/assets";
-import { useState } from "react";
-import { ScrollView, View } from "react-native";
-import TitleComponent from "./TitleComponent";
-import { PluginInfoActionSheetProps } from "./common";
-import { semanticColors } from "@api/ui/components/color";
-import { VdPluginManager } from "@rain/plugins/traveller/vendetta";
+import { purgeStorage } from "@api/storage/bnstorage";
 import { showConfirmationAlert } from "@api/ui/alerts";
+import { hideSheet } from "@api/ui/sheets";
+import { clipboard } from "@metro/common";
+import { ActionSheet, ActionSheetRow, Button, TableRow, Text } from "@metro/common/components";
+import { VdPluginManager } from "@rain/plugins/traveller/vendetta";
+import { ScrollView, View } from "react-native";
+
+import { PluginInfoActionSheetProps } from "./common";
 
 export default function PluginInfoActionSheet({ plugin, navigation }: PluginInfoActionSheetProps) {
     plugin.usePluginState();
@@ -48,9 +46,9 @@ export default function PluginInfoActionSheet({ plugin, navigation }: PluginInfo
 
                         try {
                             await VdPluginManager.fetchPlugin(plugin.id);
-                            //showToast(Strings.PLUGIN_REFETCH_SUCCESSFUL, findAssetId("toast_image_saved"));
+                            // showToast(Strings.PLUGIN_REFETCH_SUCCESSFUL, findAssetId("toast_image_saved"));
                         } catch {
-                            //showToast(Strings.PLUGIN_REFETCH_FAILED, findAssetId("Small"));
+                            // showToast(Strings.PLUGIN_REFETCH_FAILED, findAssetId("Small"));
                         }
 
                         if (vdPlugin.enabled) await VdPluginManager.startPlugin(plugin.id);
@@ -62,7 +60,7 @@ export default function PluginInfoActionSheet({ plugin, navigation }: PluginInfo
                     icon={<TableRow.Icon source={findAssetId("LinkIcon")} />}
                     onPress={() => {
                         clipboard.setString(plugin.id);
-                        //showToast.showCopyToClipboard();
+                        // showToast.showCopyToClipboard();
                     }}
                 />
                 <ActionSheetRow
@@ -70,10 +68,10 @@ export default function PluginInfoActionSheet({ plugin, navigation }: PluginInfo
                     icon={<TableRow.Icon source={findAssetId("DownloadIcon")} />}
                     onPress={() => {
                         vdPlugin.update = !vdPlugin.update;
-                        //showToast(formatString("TOASTS_PLUGIN_UPDATE", {
+                        // showToast(formatString("TOASTS_PLUGIN_UPDATE", {
                         //    update: vdPlugin.update,
                         //    name: plugin.name
-                        //}), findAssetId("toast_image_saved"));
+                        // }), findAssetId("toast_image_saved"));
                     }}
                 />
                 <ActionSheetRow
@@ -91,9 +89,9 @@ export default function PluginInfoActionSheet({ plugin, navigation }: PluginInfo
 
                             try {
                                 await VdPluginManager.fetchPlugin(plugin.id);
-                                //showToast(Strings.PLUGIN_REFETCH_SUCCESSFUL, findAssetId("toast_image_saved"));
+                                // showToast(Strings.PLUGIN_REFETCH_SUCCESSFUL, findAssetId("toast_image_saved"));
                             } catch {
-                                //showToast(Strings.PLUGIN_REFETCH_FAILED, findAssetId("Small"));
+                                // showToast(Strings.PLUGIN_REFETCH_FAILED, findAssetId("Small"));
                             }
 
                             let message: any[];
@@ -104,10 +102,10 @@ export default function PluginInfoActionSheet({ plugin, navigation }: PluginInfo
                                 message = ["CLEAR_DATA_FAILED", "Small"];
                             }
 
-                            //showToast(
+                            // showToast(
                             //    formatString(message[0], { name: plugin.name }),
                             //    findAssetId(message[1])
-                            //);
+                            // );
 
                             if (vdPlugin.enabled) await VdPluginManager.startPlugin(plugin.id);
                             hideSheet("PluginInfoActionSheet");
@@ -128,7 +126,7 @@ export default function PluginInfoActionSheet({ plugin, navigation }: PluginInfo
                             try {
                                 VdPluginManager.removePlugin(plugin.id);
                             } catch (e) {
-                                //showToast(String(e), findAssetId("Small"));
+                                // showToast(String(e), findAssetId("Small"));
                             }
                             hideSheet("PluginInfoActionSheet");
                         }

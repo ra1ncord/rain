@@ -1,5 +1,6 @@
 import { NavigationNative } from "@metro/common";
 import { findByPropsLazy } from "@metro/wrappers";
+
 import { RowConfig } from "..";
 
 const tabsNavigationRef = findByPropsLazy("getRootNavigationRef");

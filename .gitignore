@@ -1,4 +1,8 @@
-/.directory
-/node_modules/
-/dist/
+node_modules/
+package-lock.json
+yarn.lock
 .DS_Store
+lib-dist/
+/packages/types
+dist
+.directory

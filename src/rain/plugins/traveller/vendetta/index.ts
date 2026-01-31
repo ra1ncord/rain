@@ -1,8 +1,9 @@
-import { awaitStorage, createStorage, purgeStorage } from "@api/storage/bnstorage";
-import { Author } from "../types";
 import { settings } from "@api/settings";
+import { awaitStorage, createStorage, purgeStorage } from "@api/storage/bnstorage";
 import { safeFetch } from "@lib/utils";
 import { logger, LoggerClass } from "@lib/utils/logger";
+
+import { Author } from "../types";
 
 type EvaledPlugin = {
     onLoad?(): void;

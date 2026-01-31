@@ -1,9 +1,9 @@
-import { RainIcon } from "@assets";
-import Version from "./Version";
 import { getDebugInfo } from "@api/debug";
-import { settings } from "@api/settings";
+import { RainIcon } from "@assets";
 import { Stack, TableRowGroup } from "@metro/common/components";
 import { Platform, ScrollView } from "react-native";
+
+import Version from "./Version";
 
 export default function About() {
     const debugInfo = getDebugInfo();
@@ -68,11 +68,11 @@ export default function About() {
             icon: "MobilePhoneIcon"
         },
         {
-        ...(Platform.OS == "ios" ? [{
-            label: "Model ID",
-            version: debugInfo.device.codename,
-            icon: "TagIcon"
-        }] : []),
+            ...(Platform.OS == "ios" ? [{
+                label: "Model ID",
+                version: debugInfo.device.codename,
+                icon: "TagIcon"
+            }] : []),
         }
     ];
 

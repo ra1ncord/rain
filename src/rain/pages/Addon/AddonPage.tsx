@@ -1,19 +1,20 @@
-import { CardWrapper } from "./AddonCard";
 import { findAssetId } from "@api/assets";
 import { settings } from "@api/settings";
 import { dismissAlert, openAlert } from "@api/ui/alerts";
+import { ErrorBoundary, Search } from "@api/ui/components";
 import { showSheet } from "@api/ui/sheets";
 import isValidHttpUrl from "@lib/utils/isValidHttpUrl";
 import { lazyDestructure } from "@lib/utils/lazy";
 import { findByProps } from "@metro";
 import { clipboard, NavigationNative } from "@metro/common";
 import { AlertActionButton, AlertModal, Button, FlashList, FloatingActionButton, HelpMessage, IconButton, Stack, Text, TextInput, useSafeAreaInsets } from "@metro/common/components";
-import { ErrorBoundary, Search } from "@api/ui/components";
 import { isNotNil } from "es-toolkit";
 import fuzzysort from "fuzzysort";
 import { ComponentType, ReactNode, useCallback, useEffect, useMemo } from "react";
-import { Image, ScrollView, View } from "react-native";
 import * as React from "react";
+import { Image, ScrollView, View } from "react-native";
+
+import { CardWrapper } from "./AddonCard";
 
 const { showSimpleActionSheet, hideActionSheet } = lazyDestructure(() => findByProps("showSimpleActionSheet"));
 
@@ -37,7 +38,7 @@ interface AddonPageProps<T extends object, I = any> {
         message?: string;
         footer?: ReactNode;
     };
-    
+
     OptionsActionSheetComponent?: ComponentType<any>;
 
     CardComponent: ComponentType<CardWrapper<T>>;
@@ -137,9 +138,9 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
     const results = useMemo(() => {
         let values = props.items;
         if (props.resolveItem) values = values.map(props.resolveItem).filter(isNotNil);
-        
+
         let items = values.filter(i => isNotNil(i) && typeof i === "object") as T[];
-        
+
         if (filterFn) {
             items = items.filter(filterFn);
         }
@@ -187,9 +188,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
     })) : [];
 
     const actionSheetOptions: ActionSheetOption[] = [
-        ...(sortOptions.length > 0 ? [{ label: "Sort Options", type: "header" as const }] : []),
         ...sortOptions,
-        ...(filterOptions.length > 0 ? [{ label: "Filter Options", type: "header" as const }] : []),
         ...filterOptions,
     ];
 
@@ -202,10 +201,10 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
                 {props.safeModeHint?.footer}
             </View>}
             <View style={{ flexDirection: "row", gap: 8 }}>
-                <Search 
-                    style={{ flexGrow: 1 }} 
-                    isRound={!!props.sortOptions || !!props.filterOptions} 
-                    onChangeText={v => setSearch(v)} 
+                <Search
+                    style={{ flexGrow: 1 }}
+                    isRound={!!props.sortOptions || !!props.filterOptions}
+                    onChangeText={v => setSearch(v)}
                 />
                 {(props.sortOptions || props.filterOptions) && <IconButton
                     icon={findAssetId("ArrowsUpDownIcon")}

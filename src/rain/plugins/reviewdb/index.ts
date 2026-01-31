@@ -1,0 +1,35 @@
+import { definePlugin } from "@plugins";
+import patchProfile from "./patches/patchProfile";
+import patchSimplifiedProfile from "./patches/patchSimplifiedProfile";
+import patchServer from "./patches/patchServer";
+import patchContextMenu from "./patches/patchContextMenu";
+import { getAdmins } from "./lib/api";
+import { waitForReviewDBHydration } from "./storage";
+import Settings from "./Settings";
+
+let patches: (() => boolean)[] = [];
+export const admins: any[] = [];
+
+export default definePlugin({
+    name: "ReviewDB",
+    description: "Disable the untrusted link popup for every link",
+    author: [
+        { name: "John", id: 780819226839220265n },
+        { name: "maisy", id: 257109471589957632n },
+    ],
+    id: "reviewdb",
+    version: "v1.0.0",
+    async start() {
+        await waitForReviewDBHydration();
+        patches.push(patchProfile());
+        patches.push(patchSimplifiedProfile());
+        patches.push(patchServer());
+        patches.push(patchContextMenu());
+
+        getAdmins().then((i) => admins.push(...i));
+    },
+    stop() {
+        for (const unpatch of patches) unpatch();
+    },
+    settings: Settings,
+});

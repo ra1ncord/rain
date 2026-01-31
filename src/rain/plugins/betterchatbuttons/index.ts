@@ -1,10 +1,11 @@
-import { definePlugin } from "@plugins";
 import { after, before } from "@api/patcher";
 import { findByTypeDisplayName } from "@metro";
 import { ReactNative } from "@metro/common";
+import { definePlugin } from "@plugins";
+import React from "react";
+
 import BetterChatButtonsSettings from "./settings";
 import { useBetterChatButtonsSettings } from "./storage";
-import React from "react";
 
 type Unpatch = () => void;
 
@@ -17,8 +18,8 @@ export default definePlugin({
     id: "betterchatbuttons",
     version: "v1.0.0",
     start() {
-        const ChatInputSendButton = findByTypeDisplayName('ChatInputSendButton');
-        const ChatInputActions = findByTypeDisplayName('ChatInputActions');
+        const ChatInputSendButton = findByTypeDisplayName("ChatInputSendButton");
+        const ChatInputActions = findByTypeDisplayName("ChatInputActions");
 
         let hasText = true;
         let sendBtnRef: React.MutableRefObject<{ setHasText(hasText: boolean): void }>;
@@ -26,7 +27,7 @@ export default definePlugin({
 
         if (ChatInputSendButton?.type) {
             unpatches.push(
-                before('render', ChatInputSendButton.type, ([props, ref]) => {
+                before("render", ChatInputSendButton.type, ([props, ref]) => {
                     const state = useBetterChatButtonsSettings.getState();
                     if (props.canSendVoiceMessage) props.canSendVoiceMessage = !state.hide.voice;
                     sendBtnRef = ref;
@@ -34,7 +35,7 @@ export default definePlugin({
             );
 
             unpatches.push(
-                after('render', ChatInputSendButton.type, () => {
+                after("render", ChatInputSendButton.type, () => {
                     setImmediate(() =>
                         setImmediate(() => {
                             if (sendBtnRef?.current) {
@@ -56,7 +57,7 @@ export default definePlugin({
 
         if (ChatInputActions?.type) {
             unpatches.push(
-                before('render', ChatInputActions.type, ([props, ref]) => {
+                before("render", ChatInputActions.type, ([props, ref]) => {
                     const state = useBetterChatButtonsSettings.getState();
                     if (props.isAppLauncherEnabled) props.isAppLauncherEnabled = !state.hide.app;
                     props.canStartThreads = state.show.thread || !state.hide.thread;
@@ -66,7 +67,7 @@ export default definePlugin({
             );
 
             unpatches.push(
-                after('render', ChatInputActions.type, () => {
+                after("render", ChatInputActions.type, () => {
                     setImmediate(() =>
                         setImmediate(() => {
                             if (actionsRef?.current) {

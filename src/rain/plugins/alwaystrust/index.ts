@@ -3,7 +3,7 @@ import { findByStoreName } from "@metro";
 import { definePlugin } from "@plugins";
 
 const MaskedLink = findByStoreName("MaskedLinkStore");
-let patches: (() => boolean)[] = [];
+const patches: (() => boolean)[] = [];
 
 export default definePlugin({
     name: "AlwaysTrust",

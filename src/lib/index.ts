@@ -1,8 +1,8 @@
 import "../global.d.ts"; // eslint-disable-line import-alias/import-alias
 import "../modules.d.ts"; // eslint-disable-line import-alias/import-alias
 
-export * as api from "@api/index.js";
 export * as utils from "./utils";
+export * as api from "@api/index.js";
 export * as metro from "@metro";
 
 /** @internal */

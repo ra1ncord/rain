@@ -1,9 +1,15 @@
-import * as alerts from "@api/ui/alerts";
 import * as assets from "@api/assets";
-import * as commands from "@plugins/_core/commands";
 import * as debug from "@api/debug";
+import { getLoaderIdentity, isPyonLoader, isRainLoader } from "@api/native/loader";
 import patcher from "@api/patcher";
 import { loaderConfig, settings } from "@api/settings";
+import * as storage from "@api/storage/vdstorage";
+import { createStorage } from "@api/storage/vdstorage";
+import * as alerts from "@api/ui/alerts";
+import * as components from "@api/ui/components";
+import * as color from "@api/ui/components/color";
+import { createThemedStyleSheet } from "@api/ui/styles";
+import * as toasts from "@api/ui/toasts";
 import * as utils from "@lib/utils";
 import { cyrb64Hash } from "@lib/utils/cyrb64";
 import { LoggerClass } from "@lib/utils/logger";
@@ -11,18 +17,12 @@ import * as metro from "@metro";
 import * as common from "@metro/common";
 import { Forms } from "@metro/common/components";
 import * as commonComponents from "@metro/common/components";
-import * as color from "@api/ui/components/color";
-import * as components from "@api/ui/components";
-import { createThemedStyleSheet } from "@api/ui/styles";
-import * as toasts from "@api/ui/toasts";
+import * as commands from "@plugins/_core/commands";
 import { omit } from "es-toolkit";
 import { createElement, useEffect } from "react";
 import { View } from "react-native";
-import * as storage from "@api/storage/vdstorage";
-import { createStorage } from "@api/storage/vdstorage";
 
 import { VdPluginManager, VendettaPlugin } from ".";
-import { getLoaderIdentity, isPyonLoader, isRainLoader } from "@api/native/loader";
 
 export async function createVdPluginObject(plugin: VendettaPlugin) {
     return {
@@ -204,7 +204,7 @@ export const initVendettaObject = (): any => {
             removePlugin: (id: string) => VdPluginManager.removePlugin(id),
             getSettings: (id: string) => VdPluginManager.getSettings(id)
         },
-        //themes: {
+        // themes: {
         //    themes: themes.themes,
         //    fetchTheme: (id: string, selected?: boolean) => themes.fetchTheme(id, selected),
         //    installTheme: (id: string) => themes.installTheme(id),
@@ -212,7 +212,7 @@ export const initVendettaObject = (): any => {
         //    removeTheme: (id: string) => themes.removeTheme(id),
         //    getCurrentTheme: () => themes.getThemeFromLoader(),
         //    updateThemes: () => themes.updateThemes()
-        //},
+        // },
         commands: {
             registerCommand: commands.registerCommand
         },
@@ -231,7 +231,7 @@ export const initVendettaObject = (): any => {
                 if (isPyonLoader() && file === "vendetta_theme.json") {
                     file = "pyoncord/current-theme.json";
                 }
-                
+
                 return storage.createFileBackend(file);
             }
         },

@@ -46,7 +46,8 @@ const config = {
         js: "//# sourceURL=rain"
     },
     loader: {
-        ".png": "dataurl"
+        ".png": "dataurl",
+        ".html": "text"
     },
     define: {
         window: "globalThis",

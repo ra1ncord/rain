@@ -1,7 +1,8 @@
-import { constants } from "@metro/common";
-import { semanticColors } from "./color";
 import { createStyles } from "@api/ui/styles";
+import { constants } from "@metro/common";
 import { Platform, Text, TextInput } from "react-native";
+
+import { semanticColors } from "./color";
 
 export interface CodeblockProps {
     selectable?: boolean;

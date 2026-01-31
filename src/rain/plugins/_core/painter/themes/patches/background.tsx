@@ -1,17 +1,18 @@
-import { useColorsPref } from "../preferences";
-import { _colorRef } from "../updater";
 import { after } from "@api/patcher";
 import { findInReactTree } from "@lib/utils";
+import { logger } from "@lib/utils/logger";
 import { findByFilePathLazy } from "@metro";
 import chroma from "chroma-js";
 import { ImageBackground, StyleSheet } from "react-native";
-import { logger } from "@lib/utils/logger";
+
+import { useColorsPref } from "../preferences";
+import { _colorRef } from "../updater";
 
 const Messages = findByFilePathLazy("modules/messages/native/Messages.tsx", true);
 
 function ThemeBackground({ children }: { children: React.ReactNode; }) {
-    const customBackground = useColorsPref((state) => state.customBackground);
-    
+    const customBackground = useColorsPref(state => state.customBackground);
+
     if (!_colorRef.current
         || customBackground === "hidden"
         || !_colorRef.current.background?.url
@@ -19,7 +20,7 @@ function ThemeBackground({ children }: { children: React.ReactNode; }) {
     ) {
         return children;
     }
-    
+
     return <ImageBackground
         style={{ flex: 1, height: "100%" }}
         source={{ uri: _colorRef.current.background?.url }}

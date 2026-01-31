@@ -1,10 +1,11 @@
-import { UnifiedPluginModel } from "../models";
 import { lazyDestructure } from "@lib/utils/lazy";
 import { findByNameLazy, findByProps } from "@metro";
 import { FluxUtils } from "@metro/common";
 import { Avatar, AvatarPile, Text } from "@metro/common/components";
 import { UserStore } from "@metro/common/stores";
 import { View } from "react-native";
+
+import { UnifiedPluginModel } from "../models";
 
 const showUserProfileActionSheet = findByNameLazy("showUserProfileActionSheet");
 const { getUser: maybeFetchUser } = lazyDestructure(() => findByProps("getUser", "fetchProfile"));

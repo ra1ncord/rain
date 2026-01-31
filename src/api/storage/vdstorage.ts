@@ -1,6 +1,7 @@
-import { Emitter, EmitterEvent, EmitterListener, EmitterListenerData } from "./Emitter";
-import { NativeCacheModule, NativeFileModule } from "../native/modules";
 import { Platform } from "react-native";
+
+import { NativeCacheModule, NativeFileModule } from "../native/modules";
+import { Emitter, EmitterEvent, EmitterListener, EmitterListenerData } from "./Emitter";
 
 const emitterSymbol = Symbol.for("vendetta.storage.emitter");
 const syncAwaitSymbol = Symbol.for("vendetta.storage.accessor");

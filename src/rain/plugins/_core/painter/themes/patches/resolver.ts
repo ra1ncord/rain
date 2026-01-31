@@ -1,10 +1,11 @@
-import { _colorRef } from "../updater";
 import { NativeThemeModule } from "@api/native/modules";
 import { before, instead } from "@api/patcher";
 import { findByProps } from "@metro";
 import { byMutableProp } from "@metro/filters";
 import { createLazyModule } from "@metro/lazy";
 import chroma from "chroma-js";
+
+import { _colorRef } from "../updater";
 
 const tokenReference = findByProps("SemanticColor");
 const isThemeModule = createLazyModule(byMutableProp("isThemeDark"));
@@ -34,7 +35,7 @@ export default function patchDefinitionAndResolver() {
             get: () => {
                 const ret = _colorRef.current?.raw[key];
                 if (ret) return ret;
-                
+
                 return origRawColor[key];
             }
         });

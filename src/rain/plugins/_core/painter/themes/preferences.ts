@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import { fileExists, readFile, writeFile } from "@api/native/fs";
+import { create } from "zustand";
+import { createJSONStorage,persist } from "zustand/middleware";
 
 interface BunnyColorPreferencesStorage {
     selected: string | null;
@@ -44,19 +44,19 @@ const createFileStorage = (filePath: string) => {
 
 export const useColorsPref = create<ColorsPrefStore>()(
     persist(
-        (set) => ({
+        set => ({
             selected: null,
             customBackground: null,
             _hasHydrated: false,
-            setType: (type) => set({ type }),
-            setCustomBackground: (background) => set({ customBackground: background }),
-            setSelected: (selected) => set({ selected }),
+            setType: type => set({ type }),
+            setCustomBackground: background => set({ customBackground: background }),
+            setSelected: selected => set({ selected }),
             setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
         }),
         {
-            name: 'colors-pref',
+            name: "colors-pref",
             storage: createJSONStorage(() => createFileStorage("themes/colors/preferences.json")),
-            onRehydrateStorage: () => (state) => {
+            onRehydrateStorage: () => state => {
                 state?.setHasHydrated(true);
             }
         }
@@ -69,29 +69,29 @@ export const colorsPref = new Proxy({} as BunnyColorPreferencesStorage, {
     },
     set(target, prop: string, value: any) {
         const state = useColorsPref.getState();
-        if (prop === 'type') state.setType(value);
-        else if (prop === 'customBackground') state.setCustomBackground(value);
-        else if (prop === 'selected') state.setSelected(value);
+        if (prop === "type") state.setType(value);
+        else if (prop === "customBackground") state.setCustomBackground(value);
+        else if (prop === "selected") state.setSelected(value);
         return true;
     }
 });
 
 export async function waitForColorsPrefHydration(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         if (useColorsPref.getState()._hasHydrated) {
             resolve();
             return;
         }
-        
+
         const unsubscribe = useColorsPref.subscribe(
-            (state) => {
+            state => {
                 if (state._hasHydrated) {
                     unsubscribe();
                     resolve();
                 }
             }
         );
-        
+
         setTimeout(() => {
             unsubscribe();
             resolve();

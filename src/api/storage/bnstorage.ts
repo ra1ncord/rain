@@ -1,10 +1,8 @@
-import { Emitter } from "./Emitter";
 import { Observable, ObserverOptions } from "@gullerya/object-observer";
-import { fileExists, readFile, removeFile, writeFile } from "../native/fs";
-import settings from "@plugins/_core/settings";
 import { debounce } from "es-toolkit";
-import { loaderConfig } from "../settings";
-import { pluginSettings } from "@plugins";
+
+import { fileExists, readFile, removeFile, writeFile } from "../native/fs";
+import { Emitter } from "./Emitter";
 
 const storageInitErrorSymbol = Symbol.for("rain.storage.initError");
 const storagePromiseSymbol = Symbol.for("rain.storage.promise");

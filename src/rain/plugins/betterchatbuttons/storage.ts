@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import { fileExists, readFile, writeFile } from "@api/native/fs";
+import { create } from "zustand";
+import { createJSONStorage,persist } from "zustand/middleware";
 
 interface Settings {
     hide: {
@@ -50,7 +50,7 @@ const createFileStorage = (filePath: string) => {
 
 export const useBetterChatButtonsSettings = create<BetterChatButtonsSettingsStore>()(
     persist(
-        (set) => ({
+        set => ({
             hide: {
                 app: true,
                 gift: true,
@@ -65,13 +65,13 @@ export const useBetterChatButtonsSettings = create<BetterChatButtonsSettingsStor
                 send: false,
             },
             _hasHydrated: false,
-            updateSettings: (newSettings) => set((state) => ({ ...state, ...newSettings })),
+            updateSettings: newSettings => set(state => ({ ...state, ...newSettings })),
             setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
         }),
         {
-            name: 'betterchatbuttons-settings',
+            name: "betterchatbuttons-settings",
             storage: createJSONStorage(() => createFileStorage("plugins/betterchatbuttons.json")),
-            onRehydrateStorage: () => (state) => {
+            onRehydrateStorage: () => state => {
                 state?.setHasHydrated(true);
             }
         }
@@ -79,21 +79,21 @@ export const useBetterChatButtonsSettings = create<BetterChatButtonsSettingsStor
 );
 
 export async function waitForBetterChatButtonsHydration(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         if (useBetterChatButtonsSettings.getState()._hasHydrated) {
             resolve();
             return;
         }
-        
+
         const unsubscribe = useBetterChatButtonsSettings.subscribe(
-            (state) => {
+            state => {
                 if (state._hasHydrated) {
                     unsubscribe();
                     resolve();
                 }
             }
         );
-        
+
         setTimeout(() => {
             unsubscribe();
             resolve();
@@ -104,15 +104,15 @@ export async function waitForBetterChatButtonsHydration(): Promise<void> {
 export const betterChatButtonsSettings = new Proxy({} as Settings, {
     get(target, prop: string) {
         const state = useBetterChatButtonsSettings.getState();
-        if (prop.includes('.')) {
-            const [parent, child] = prop.split('.');
+        if (prop.includes(".")) {
+            const [parent, child] = prop.split(".");
             return (state as any)[parent]?.[child];
         }
         return (state as any)[prop];
     },
     set(target, prop: string, value: any) {
-        if (prop.includes('.')) {
-            const [parent, child] = prop.split('.');
+        if (prop.includes(".")) {
+            const [parent, child] = prop.split(".");
             const state = useBetterChatButtonsSettings.getState();
             useBetterChatButtonsSettings.getState().updateSettings({
                 [parent]: {

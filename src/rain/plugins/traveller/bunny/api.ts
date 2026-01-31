@@ -1,10 +1,10 @@
 import { patcher } from "@api";
-import { registerCommand } from "@plugins/_core/commands";
 import { createStorage } from "@api/storage/bnstorage";
 import { logger } from "@lib/utils/logger";
+import { registerCommand } from "@plugins/_core/commands";
 
-import { registeredPlugins } from ".";
 import { BunnyPluginObject } from "../types";
+import { registeredPlugins } from ".";
 
 type DisposableFn = (...props: any[]) => () => unknown;
 function shimDisposableFn<F extends DisposableFn>(unpatches: (() => void)[], f: F): F {

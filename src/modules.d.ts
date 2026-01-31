@@ -3,6 +3,11 @@ declare module "*.png" {
     export default str;
 }
 
+declare module "*.html" {
+    const html: string;
+    export default html;
+}
+
 declare module "#rain-plugins" {
     const plugins: Record<string, import("./rain/plugins/types").rainPlugin>;
     export default plugins;

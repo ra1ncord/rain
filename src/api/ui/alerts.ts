@@ -3,8 +3,8 @@ import { findByProps } from "@metro";
 
 export const { openAlert, dismissAlert } = lazyDestructure(() => findByProps("openAlert", "dismissAlert"));
 
-import { findByPropsLazy } from "@metro/wrappers";
 import InputAlert, { InputAlertProps } from "@api/ui/components/InputAlert";
+import { findByPropsLazy } from "@metro/wrappers";
 
 const Alerts = findByPropsLazy("openLazy", "close");
 

@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import { fileExists, readFile, writeFile } from "@api/native/fs";
+import { create } from "zustand";
+import { createJSONStorage,persist } from "zustand/middleware";
 
 interface Settings {
     redirect: boolean;
@@ -39,17 +39,17 @@ const createFileStorage = (filePath: string) => {
 
 export const useCleanUrlsSettings = create<CleanUrlsSettingsStore>()(
     persist(
-        (set) => ({
+        set => ({
             redirect: true,
             referrals: false,
             _hasHydrated: false,
-            updateSettings: (newSettings) => set((state) => ({ ...state, ...newSettings })),
+            updateSettings: newSettings => set(state => ({ ...state, ...newSettings })),
             setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
         }),
         {
-            name: 'cleanurls-settings',
+            name: "cleanurls-settings",
             storage: createJSONStorage(() => createFileStorage("plugins/cleanurls.json")),
-            onRehydrateStorage: () => (state) => {
+            onRehydrateStorage: () => state => {
                 state?.setHasHydrated(true);
             }
         }
@@ -57,21 +57,21 @@ export const useCleanUrlsSettings = create<CleanUrlsSettingsStore>()(
 );
 
 export async function waitForCleanUrlsHydration(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         if (useCleanUrlsSettings.getState()._hasHydrated) {
             resolve();
             return;
         }
-        
+
         const unsubscribe = useCleanUrlsSettings.subscribe(
-            (state) => {
+            state => {
                 if (state._hasHydrated) {
                     unsubscribe();
                     resolve();
                 }
             }
         );
-        
+
         setTimeout(() => {
             unsubscribe();
             resolve();

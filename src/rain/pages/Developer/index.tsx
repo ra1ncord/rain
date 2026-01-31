@@ -1,18 +1,17 @@
-import { CheckState, useFileExists } from "@api/storage/useFS";
 import { findAssetId } from "@api/assets";
 import { connectToDebugger, disconnectFromDebugger, isConnectedToDebugger } from "@api/debug";
 import { getReactDevToolsProp, isLoaderConfigSupported, isReactDevToolsPreloaded } from "@api/native/loader";
+import { useLoaderConfig,useSettings } from "@api/settings";
+import { CheckState, useFileExists } from "@api/storage/useFS";
+import { ErrorBoundary } from "@api/ui/components";
+import { semanticColors } from "@api/ui/components/color";
+import { createStyles, TextStyleSheet } from "@api/ui/styles";
+import { showToast } from "@api/ui/toasts";
 import { NavigationNative } from "@metro/common";
 import { Button, LegacyFormText, Stack, TableRow, TableRowGroup, TableSwitchRow, TextInput } from "@metro/common/components";
 import { findByProps } from "@metro/wrappers";
-import { semanticColors } from "@api/ui/components/color";
-import { ErrorBoundary } from "@api/ui/components";
-import { createStyles, TextStyleSheet } from "@api/ui/styles";
-import { ScrollView, StyleSheet } from "react-native";
-import { showToast } from "@api/ui/toasts";
 import { useEffect, useState } from "react";
-
-import { useSettings, useLoaderConfig } from "@api/settings"; 
+import { ScrollView, StyleSheet } from "react-native";
 
 const RDT_EMBED_LINK = "https://codeberg.org/raincord/raindevtools/raw/branch/dev/dist/index.bundle";
 
@@ -68,7 +67,7 @@ export default function Developer() {
                             defaultValue={settings.debuggerUrl}
                             onChange={(v: string) => settings.updateSettings({ debuggerUrl: v })}
                         />
-                        <Stack style={{ marginTop: 4, borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: 'hidden' }}>
+                        <Stack style={{ marginTop: 4, borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: "hidden" }}>
                             <TableSwitchRow
                                 label={"Strings.AUTO_DEBUGGER"}
                                 subLabel={isDebuggerConnected ? "Connected" : undefined}
@@ -93,7 +92,7 @@ export default function Developer() {
                                 defaultValue={settings.devToolsUrl}
                                 onChange={(v: string) => settings.updateSettings({ devToolsUrl: v })}
                             />
-                            <Stack style={{ marginTop: 4, borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: 'hidden' }}>
+                            <Stack style={{ marginTop: 4, borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: "hidden" }}>
                                 <TableSwitchRow
                                     label={"Strings.AUTO_DEVTOOLS"}
                                     icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
@@ -134,9 +133,9 @@ export default function Developer() {
                                 subLabel={"Strings.LOAD_FROM_CUSTOM_URL_DEC"}
                                 icon={<TableRow.Icon source={findAssetId("copy")} />}
                                 value={loaderConfig.customLoadUrl.enabled}
-                                onValueChange={(v: boolean) => 
-                                    loaderConfig.updateLoaderConfig({ 
-                                        customLoadUrl: { ...loaderConfig.customLoadUrl, enabled: v } 
+                                onValueChange={(v: boolean) =>
+                                    loaderConfig.updateLoaderConfig({
+                                        customLoadUrl: { ...loaderConfig.customLoadUrl, enabled: v }
                                     })
                                 }
                             />
@@ -145,9 +144,9 @@ export default function Developer() {
                                     <TextInput
                                         defaultValue={loaderConfig.customLoadUrl.url}
                                         size="md"
-                                        onChange={(v: string) => 
-                                            loaderConfig.updateLoaderConfig({ 
-                                                customLoadUrl: { ...loaderConfig.customLoadUrl, url: v } 
+                                        onChange={(v: string) =>
+                                            loaderConfig.updateLoaderConfig({
+                                                customLoadUrl: { ...loaderConfig.customLoadUrl, url: v }
                                             })
                                         }
                                         placeholder="http://localhost:4040/kettu.js"
@@ -171,7 +170,7 @@ export default function Developer() {
                                     onClose: () => hideActionSheet(),
                                 },
                                 options: [
-                                    //@ts-expect-error this needs to be an error so it crashes duh
+                                    // @ts-expect-error this needs to be an error so it crashes duh
                                     { label: "Strings.PUPU", onPress: () => navigation.push("PUPU_CUSTOM_PAGE", { render: () => <undefined /> }) },
                                     { label: "Discord", isDestructive: true, onPress: () => navigation.push("PUPU_CUSTOM_PAGE", { noErrorBoundary: true }) },
                                 ],

@@ -1,20 +1,20 @@
 import { patcher } from "@api";
-import { UserStore } from "@metro/common/stores";
 import { findByProps, findByStoreName } from "@metro";
+import { UserStore } from "@metro/common/stores";
 import { definePlugin } from "@plugins";
 
-let unpatchIsStaffEnv
-let unpatchDevStoreProps
+let unpatchIsStaffEnv;
+let unpatchDevStoreProps;
 
 function reinitStore() {
     const DeveloperExperimentStore = findByStoreName("DeveloperExperimentStore");
     try {
         if (unpatchDevStoreProps) unpatchDevStoreProps();
-        
+
         unpatchDevStoreProps = patcher.instead("defineProperties", Object, () => {});
-        
+
         DeveloperExperimentStore.initialize();
-        
+
         if (unpatchDevStoreProps) unpatchDevStoreProps();
         unpatchDevStoreProps = undefined;
     } catch (e) {
@@ -45,7 +45,7 @@ export default definePlugin({
             unpatchIsStaffEnv();
             unpatchIsStaffEnv = undefined;
         }
-        
+
         if (unpatchDevStoreProps) {
             unpatchDevStoreProps();
             unpatchDevStoreProps = undefined;

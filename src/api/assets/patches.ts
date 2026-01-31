@@ -1,6 +1,7 @@
-import { after } from "../patcher";
 import { indexAssetModuleFlag } from "@metro/internals/caches";
 import { getImportingModuleId } from "@metro/internals/modules";
+
+import { after } from "../patcher";
 
 interface AssetModule {
     registerAsset(assetDefinition: any): number;

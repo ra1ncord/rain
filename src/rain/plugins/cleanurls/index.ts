@@ -1,9 +1,10 @@
-import { definePlugin } from "@plugins";
 import { logger } from "@lib/utils/logger";
+import { definePlugin } from "@plugins";
+
+import { setupPatches } from "./patcher";
+import { useRulesStore,waitForRulesHydration } from "./rulesStore";
 import CleanUrlsSettings from "./settings";
 import { waitForCleanUrlsHydration } from "./storage";
-import { waitForRulesHydration, useRulesStore } from "./rulesStore";
-import { setupPatches } from "./patcher";
 
 type Unpatch = () => void;
 
@@ -20,9 +21,9 @@ export default definePlugin({
             waitForCleanUrlsHydration(),
             waitForRulesHydration()
         ]);
-        
+
         patches = setupPatches();
-        
+
         useRulesStore.getState().update();
     },
     stop() {

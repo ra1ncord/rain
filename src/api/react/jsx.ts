@@ -1,5 +1,6 @@
-import { after } from "../patcher";
 import { findByPropsLazy } from "@metro";
+
+import { after } from "../patcher";
 
 type Callback = (Component: any, ret: JSX.Element) => JSX.Element;
 const callbacks = new Map<string, Callback[]>();
@@ -24,9 +25,9 @@ export function deleteJsxCreate(Component: string, callback: Callback) {
 export function patchJsx() {
     const callback = ([Component]: unknown[], ret: JSX.Element) => {
         // Band-aid fix for iOS invalid element type crashes
-        if (typeof ret.type === 'undefined') {
-            ret.type = 'RCTView'
-            return ret
+        if (typeof ret.type === "undefined") {
+            ret.type = "RCTView";
+            return ret;
         }
 
         // The check could be more complex, but this is fine for now to avoid overhead

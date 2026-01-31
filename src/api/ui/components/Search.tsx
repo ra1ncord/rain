@@ -1,6 +1,6 @@
 import { findAssetId } from "@api/assets";
-import { TextInput } from "@metro/common/components";
 import ErrorBoundary from "@api/ui/components/ErrorBoundary";
+import { TextInput } from "@metro/common/components";
 import { Image, View, ViewStyle } from "react-native";
 
 export interface SearchProps {

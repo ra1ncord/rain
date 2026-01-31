@@ -171,24 +171,24 @@ export function parseColorManifest(manifest: ColorManifest): InternalColorDefini
     throw new Error("Invalid theme spec");
 }
 
-  function convertEnmityToDiscordRawKey(enmityKey: string): string {
-      const conversions: Record<string, string> = {
-          "PRIMARY_DARK": "PRIMARY_100",
-          "PRIMARY_DARK_100": "PRIMARY_100",
-          "PRIMARY_DARK_200": "PRIMARY_200",
-          "PRIMARY_DARK_300": "PRIMARY_300",
-          "PRIMARY_DARK_360": "PRIMARY_360",
-          "PRIMARY_DARK_400": "PRIMARY_400",
-          "PRIMARY_DARK_500": "PRIMARY_500",
-          "PRIMARY_DARK_600": "PRIMARY_600",
-          "PRIMARY_DARK_630": "PRIMARY_630",
-          "PRIMARY_DARK_700": "PRIMARY_700",
-          "PRIMARY_DARK_800": "PRIMARY_800",
-          "PRIMARY_DARK_900": "PRIMARY_900",
-        };
+function convertEnmityToDiscordRawKey(enmityKey: string): string {
+    const conversions: Record<string, string> = {
+        "PRIMARY_DARK": "PRIMARY_100",
+        "PRIMARY_DARK_100": "PRIMARY_100",
+        "PRIMARY_DARK_200": "PRIMARY_200",
+        "PRIMARY_DARK_300": "PRIMARY_300",
+        "PRIMARY_DARK_360": "PRIMARY_360",
+        "PRIMARY_DARK_400": "PRIMARY_400",
+        "PRIMARY_DARK_500": "PRIMARY_500",
+        "PRIMARY_DARK_600": "PRIMARY_600",
+        "PRIMARY_DARK_630": "PRIMARY_630",
+        "PRIMARY_DARK_700": "PRIMARY_700",
+        "PRIMARY_DARK_800": "PRIMARY_800",
+        "PRIMARY_DARK_900": "PRIMARY_900",
+    };
 
-      return conversions[enmityKey] || enmityKey;
-    }
+    return conversions[enmityKey] || enmityKey;
+}
 
 export function applyAndroidAlphaKeys(rawColors?: Record<string, string>) {
     if (!rawColors) return;

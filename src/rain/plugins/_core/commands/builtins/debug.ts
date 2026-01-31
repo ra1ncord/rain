@@ -1,6 +1,6 @@
-import { ApplicationCommand, ApplicationCommandOptionType } from "@plugins/_core/commands/types";
 import { getDebugInfo } from "@api/debug";
 import { messageUtil } from "@metro/common";
+import { ApplicationCommand } from "@plugins/_core/commands/types";
 
 // todo: i18n
 export default () => <ApplicationCommand>{
@@ -22,7 +22,7 @@ export default () => <ApplicationCommand>{
             messageUtil.sendBotMessage(ctx.channel.id, content);
         } else {
             const fixNonce = Date.now().toString();
-            messageUtil.sendMessage(ctx.channel.id, { content }, void 0, {nonce:fixNonce});
+            messageUtil.sendMessage(ctx.channel.id, { content }, void 0, { nonce:fixNonce });
         }
     }
 };

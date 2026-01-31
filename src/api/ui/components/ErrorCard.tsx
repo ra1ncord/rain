@@ -1,5 +1,5 @@
 import { Codeblock } from "@api/ui/components";
-import { Button, Card, Stack, Text, TwinButtons } from "@metro/common/components";
+import { Card, Stack, Text } from "@metro/common/components";
 import { ReactNode } from "react";
 
 export const INDEX_BUNDLE_FILE: string = window.HermesInternal.getFunctionLocation(window.__r).fileName;

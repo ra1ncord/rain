@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import { fileExists, readFile, writeFile } from "@api/native/fs";
+import { create } from "zustand";
+import { createJSONStorage,persist } from "zustand/middleware";
 
 export interface RulesType {
     providers: Record<
@@ -65,29 +65,29 @@ export const useRulesStore = create<RulesState>()(
                     if (lastMod) {
                         headers["if-modified-since"] = lastMod;
                     }
-                    
+
                     const res = await fetch(listUrl, { headers });
                     if (!res.ok) return;
-                    
+
                     const rules = await res.json();
                     const newLastModified = res.headers.get("last-modified");
-                    
-                    set({ 
-                        rules, 
-                        lastModified: newLastModified 
+
+                    set({
+                        rules,
+                        lastModified: newLastModified
                     });
                 } catch (e) {
                 }
             },
         }),
         {
-            name: 'cleanurls-rules',
+            name: "cleanurls-rules",
             storage: createJSONStorage(() => createFileStorage("plugins/cleanurls-rules.json")),
-            partialize: (state) => ({
+            partialize: state => ({
                 rules: state.rules,
                 lastModified: state.lastModified,
             }),
-            onRehydrateStorage: () => (state) => {
+            onRehydrateStorage: () => state => {
                 state?.setHasHydrated(true);
                 state?.update();
             }
@@ -96,21 +96,21 @@ export const useRulesStore = create<RulesState>()(
 );
 
 export async function waitForRulesHydration(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         if (useRulesStore.getState()._hasHydrated) {
             resolve();
             return;
         }
-        
+
         const unsubscribe = useRulesStore.subscribe(
-            (state) => {
+            state => {
                 if (state._hasHydrated) {
                     unsubscribe();
                     resolve();
                 }
             }
         );
-        
+
         setTimeout(() => {
             unsubscribe();
             resolve();

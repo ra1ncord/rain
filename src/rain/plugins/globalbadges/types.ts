@@ -126,8 +126,8 @@ export type BadgeCache = {
   lastFetch: number;
 };
 
-export type BadgeGroupItem = { 
-  type: string; 
-  label: string; 
-  uri: string 
+export type BadgeGroupItem = {
+  type: string;
+  label: string;
+  uri: string
 };

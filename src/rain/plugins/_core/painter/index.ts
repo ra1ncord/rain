@@ -1,4 +1,5 @@
 import { definePlugin } from "@plugins";
+
 import { initFonts } from "./fonts";
 import { initThemes } from "./themes";
 

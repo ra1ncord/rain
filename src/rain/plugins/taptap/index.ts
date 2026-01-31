@@ -15,6 +15,7 @@ let Messages: any;
 let ReplyManager: any;
 let ChatInputRef: any;
 let MessagesHandlers: any;
+let getChatInputRef: any;
 
 let unpatchGetter: Unpatch | null = null;
 let unpatchHandlers: Unpatch | null = null;
@@ -37,10 +38,18 @@ function resetTapState() {
     }
 }
 
-function openKeyboard() {
+function openKeyboard(channelId: string) {
     if (!taptapSettings.keyboardPopup) return;
     try {
-        const keyboardModule = findByProps("openSystemKeyboard", "openSystemKeyboardForLastCreatedInput");
+        const ChatInputRef = getChatInputRef(channelId, 0);
+        if (ChatInputRef?.openSystemKeyboard) {
+            ChatInputRef?.openSystemKeyboard();
+            return;
+        }
+        const keyboardModule = findByProps(
+            "openSystemKeyboard",
+            "openSystemKeyboardForLastCreatedInput",
+        );
         if (keyboardModule?.openSystemKeyboard) {
             keyboardModule.openSystemKeyboard();
             return;
@@ -62,11 +71,15 @@ function openKeyboard() {
             }, 50);
         }
     } catch (e) {
-        if (taptapSettings.debugMode) logger.error("TapTap: openKeyboard error", e);
+        if (taptapSettings.debugMode)
+            logger.error("TapTap: openKeyboard error", e);
     }
 }
 
-function doubleTapState(state: "UNKNOWN" | "INCOMPLETE" | "COMPLETE", nativeEvent?: any) {
+function doubleTapState(
+    state: "UNKNOWN" | "INCOMPLETE" | "COMPLETE",
+    nativeEvent?: any,
+) {
     try {
         if (taptapSettings.debugMode) {
             logger.log("TapTap: DoubleTapState", { state, data: nativeEvent });
@@ -82,40 +95,60 @@ function patchHandlers(handlers: any) {
 
     try {
         if (handlers.handleDoubleTapMessage) {
-            const un = instead("handleDoubleTapMessage", handlers, (args, orig) => {
-                try {
-                    const evt = args?.[0]?.nativeEvent;
-                    if (!evt) return;
-                    const channelId = evt.channelId;
-                    const messageId = evt.messageId;
-                    if (!channelId || !messageId) return;
+            const un = instead(
+                "handleDoubleTapMessage",
+                handlers,
+                (args, orig) => {
+                    try {
+                        const evt = args?.[0]?.nativeEvent;
+                        if (!evt) return;
+                        const channelId = evt.channelId;
+                        const messageId = evt.messageId;
+                        if (!channelId || !messageId) return;
 
-                    const channel = ChannelStore?.getChannel?.(channelId);
-                    const message = MessageStore?.getMessage?.(channelId, messageId);
-                    if (!message) return;
+                        const channel = ChannelStore?.getChannel?.(channelId);
+                        const message = MessageStore?.getMessage?.(
+                            channelId,
+                            messageId,
+                        );
+                        if (!message) return;
 
-                    const currentUser = UserStore?.getCurrentUser?.();
-                    const isAuthor = !!(currentUser && message.author && message.author.id === currentUser.id);
+                        const currentUser = UserStore?.getCurrentUser?.();
+                        const isAuthor = !!(
+                            currentUser &&
+                            message.author &&
+                            message.author.id === currentUser.id
+                        );
 
-                    if (isAuthor && taptapSettings.userEdit) {
-                        Messages?.startEditMessage?.(channelId, messageId, message.content ?? "");
-                    } else if (taptapSettings.reply && channel) {
-                        ReplyManager?.createPendingReply?.({ channel, message, shouldMention: true });
+                        if (isAuthor && taptapSettings.userEdit) {
+                            Messages?.startEditMessage?.(
+                                channelId,
+                                messageId,
+                                message.content ?? "",
+                            );
+                        } else if (taptapSettings.reply && channel) {
+                            ReplyManager?.createPendingReply?.({
+                                channel,
+                                message,
+                                shouldMention: true,
+                            });
+                        }
+
+                        openKeyboard(channelId);
+                        return;
+                    } catch (e) {
+                        logger.error("TapTap: handleDoubleTapMessage error", e);
                     }
-
-                    openKeyboard();
-                    return;
-                } catch (e) {
-                    logger.error("TapTap: handleDoubleTapMessage error", e);
-                }
-            });
+                },
+            );
             patches.push(un);
         }
 
         if (handlers.handleTapUsername) {
             const un = instead("handleTapUsername", handlers, (args, orig) => {
                 try {
-                    if (!taptapSettings.tapUsernameMention) return orig.apply(handlers, args);
+                    if (!taptapSettings.tapUsernameMention)
+                        return orig.apply(handlers, args);
                     const evt = args?.[0]?.nativeEvent;
                     if (!evt) return orig.apply(handlers, args);
 
@@ -124,11 +157,19 @@ function patchHandlers(handlers: any) {
                     const channelId = ChatInput?.props?.channel?.id;
                     if (!channelId) return orig.apply(handlers, args);
 
-                    const message = MessageStore?.getMessage?.(channelId, messageId);
+                    const message = MessageStore?.getMessage?.(
+                        channelId,
+                        messageId,
+                    );
                     if (!message?.author) return orig.apply(handlers, args);
 
-                    const discr = message.author.discriminator !== "0" ? `#${message.author.discriminator}` : "";
-                    ChatInputRef?.insertText?.(`@${message.author.username}${discr}`);
+                    const discr =
+                        message.author.discriminator !== "0"
+                            ? `#${message.author.discriminator}`
+                            : "";
+                    ChatInputRef?.insertText?.(
+                        `@${message.author.username}${discr}`,
+                    );
                 } catch (e) {
                     logger.error("TapTap: handleTapUsername error", e);
                     return orig.apply(handlers, args);
@@ -147,10 +188,14 @@ function patchHandlers(handlers: any) {
                     if (!channelId || !messageId) return;
 
                     const channel = ChannelStore?.getChannel?.(channelId);
-                    const message = MessageStore?.getMessage?.(channelId, messageId);
+                    const message = MessageStore?.getMessage?.(
+                        channelId,
+                        messageId,
+                    );
                     if (!message) return;
 
-                    if (currentMessageID === messageId) currentTapIndex++; else {
+                    if (currentMessageID === messageId) currentTapIndex++;
+                    else {
                         resetTapState();
                         currentTapIndex = 1;
                         currentMessageID = messageId;
@@ -158,15 +203,26 @@ function patchHandlers(handlers: any) {
 
                     let delayMs = 1000;
                     const parsed = parseInt(taptapSettings.delay, 10);
-                    if (!Number.isNaN(parsed) && parsed >= 200) delayMs = parsed;
+                    if (!Number.isNaN(parsed) && parsed >= 200)
+                        delayMs = parsed;
 
                     if (timeoutTap) clearTimeout(timeoutTap);
                     timeoutTap = setTimeout(() => resetTapState(), delayMs);
 
                     const currentUser = UserStore?.getCurrentUser?.();
-                    const isAuthor = !!(currentUser && message.author && message.author.id === currentUser.id);
+                    const isAuthor = !!(
+                        currentUser &&
+                        message.author &&
+                        message.author.id === currentUser.id
+                    );
 
-                    const enriched = { ...nativeEvent, taps: currentTapIndex, content: message.content ?? "", authorId: message.author?.id, isAuthor };
+                    const enriched = {
+                        ...nativeEvent,
+                        taps: currentTapIndex,
+                        content: message.content ?? "",
+                        authorId: message.author?.id,
+                        isAuthor,
+                    };
 
                     if (currentTapIndex !== 2) {
                         doubleTapState("INCOMPLETE", enriched);
@@ -178,15 +234,27 @@ function patchHandlers(handlers: any) {
 
                     if (isAuthor) {
                         if (taptapSettings.userEdit) {
-                            Messages?.startEditMessage?.(channelId, mid, enriched.content);
+                            Messages?.startEditMessage?.(
+                                channelId,
+                                mid,
+                                enriched.content,
+                            );
                         } else if (taptapSettings.reply && channel) {
-                            ReplyManager?.createPendingReply?.({ channel, message, shouldMention: true });
+                            ReplyManager?.createPendingReply?.({
+                                channel,
+                                message,
+                                shouldMention: true,
+                            });
                         }
                     } else if (taptapSettings.reply && channel) {
-                        ReplyManager?.createPendingReply?.({ channel, message, shouldMention: true });
+                        ReplyManager?.createPendingReply?.({
+                            channel,
+                            message,
+                            shouldMention: true,
+                        });
                     }
 
-                    openKeyboard();
+                    openKeyboard(channelId);
                     doubleTapState("COMPLETE", enriched);
                 } catch (e) {
                     logger.error("TapTap: handleTapMessage error", e);
@@ -198,7 +266,11 @@ function patchHandlers(handlers: any) {
 
         unpatchHandlers = () => {
             try {
-                patches.forEach(u => { try { u?.(); } catch {} });
+                patches.forEach((u) => {
+                    try {
+                        u?.();
+                    } catch {}
+                });
                 patches = [];
                 handlerInstances = new WeakSet();
             } catch (e) {
@@ -212,12 +284,20 @@ function patchHandlers(handlers: any) {
 
 function hookMessagesHandlersGetter() {
     if (!MessagesHandlers?.prototype) return;
-    const propNames = ["params", "handlers", "_params", "messageHandlers"] as const;
+    const propNames = [
+        "params",
+        "handlers",
+        "_params",
+        "messageHandlers",
+    ] as const;
     let used: string | null = null;
     let origGet: any = null;
 
     for (const name of propNames) {
-        const desc = Object.getOwnPropertyDescriptor(MessagesHandlers.prototype, name);
+        const desc = Object.getOwnPropertyDescriptor(
+            MessagesHandlers.prototype,
+            name,
+        );
         if (desc?.get) {
             used = name;
             origGet = desc.get;
@@ -233,15 +313,20 @@ function hookMessagesHandlersGetter() {
 
     Object.defineProperty(MessagesHandlers.prototype, used, {
         configurable: true,
-        get: function() {
-            try { if (this) patchHandlers(this); } catch {}
+        get: function () {
+            try {
+                if (this) patchHandlers(this);
+            } catch {}
             return origGet.call(this);
-        }
+        },
     });
 
     unpatchGetter = () => {
         try {
-            Object.defineProperty(MessagesHandlers.prototype, used!, { configurable: true, get: origGet });
+            Object.defineProperty(MessagesHandlers.prototype, used!, {
+                configurable: true,
+                get: origGet,
+            });
         } catch (e) {
             logger.error("TapTap: unpatchGetter error", e);
         }
@@ -255,6 +340,7 @@ function resolveRuntimeModules() {
     Messages = findByProps("sendMessage", "startEditMessage");
     ReplyManager = findByProps("createPendingReply");
     ChatInputRef = findByProps("insertText");
+    getChatInputRef = findByProps("getChatInputRef").getChatInputRef;
 
     let mhModule = findByProps("MessagesHandlers");
     MessagesHandlers = mhModule?.MessagesHandlers ?? null;
@@ -263,7 +349,7 @@ function resolveRuntimeModules() {
 export default definePlugin({
     name: "TapTap",
     description: "Double-tap others to reply, Double-tap self to edit",
-    author: [{ name: "LampDelivery", id: 0n }],
+    author: [{ name: "LampDelivery", id: 650805815623680030n }],
     id: "taptap",
     version: "v1.0.0",
     async start() {
@@ -285,14 +371,25 @@ export default definePlugin({
     },
     stop() {
         resetTapState();
-        try { unpatchGetter?.(); } catch {}
-        try { unpatchHandlers?.(); } catch {}
-        if (timeoutTap) { clearTimeout(timeoutTap); timeoutTap = null; }
-        patches.forEach(u => { try { u?.(); } catch {} });
+        try {
+            unpatchGetter?.();
+        } catch {}
+        try {
+            unpatchHandlers?.();
+        } catch {}
+        if (timeoutTap) {
+            clearTimeout(timeoutTap);
+            timeoutTap = null;
+        }
+        patches.forEach((u) => {
+            try {
+                u?.();
+            } catch {}
+        });
         patches = [];
         handlerInstances = new WeakSet();
     },
     settings() {
         return TapTapSettings();
-    }
+    },
 });

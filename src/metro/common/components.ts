@@ -1,4 +1,4 @@
-/* eslint-disable prefer-destructuring */
+
 import { lazyDestructure, proxyLazy } from "@lib/utils/lazy";
 import { createFilterDefinition } from "@metro/factories";
 import { findExports } from "@metro/finders";

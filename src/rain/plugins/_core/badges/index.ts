@@ -1,8 +1,8 @@
 import { after } from "@api/patcher";
 import { onJsxCreate } from "@api/react/jsx";
 import { findByNameLazy } from "@metro";
-import { useEffect, useState } from "react";
 import { definePlugin } from "@plugins";
+import { useEffect, useState } from "react";
 
 interface Badge {
     label: string;
@@ -20,7 +20,7 @@ export default definePlugin({
     start() {
         let allBadges: { [x: string]: any; } | null = null;
         const badgeProps = {} as Record<string, any>;
-        
+
         onJsxCreate("ProfileBadge", (component, ret) => {
             if (ret.props.id?.startsWith("rain-")) {
                 const cachedProps = badgeProps[ret.props.id];
@@ -31,7 +31,7 @@ export default definePlugin({
                 }
             }
         });
-        
+
         onJsxCreate("RenderedBadge", (component, ret) => {
             if (ret.props.id?.startsWith("rain-")) {
                 const cachedProps = badgeProps[ret.props.id];
@@ -40,30 +40,30 @@ export default definePlugin({
                 }
             }
         });
-        
+
         after("default", useBadgesModule, ([user], result) => {
             const [badges, setBadges] = useState<Badge[]>([]);
-            
+
             useEffect(() => {
                 if (!user) return;
-                
+
                 if (!allBadges) {
                     fetch("https://codeberg.org/raincord/badges/raw/branch/main/badges.json")
                         .then(r => r.json())
                         .then(data => {
                             allBadges = data;
-                            //@ts-expect-error
+                            // @ts-expect-error
                             setBadges(allBadges[user.userId] || []);
-                        })
+                        });
                 } else {
                     setBadges(allBadges[user.userId] || []);
                 }
             }, [user?.userId]);
-            
+
             if (user && badges.length > 0) {
                 badges.forEach((badge, i) => {
                     const badgeId = `rain-${user.userId}-${i}`;
-                    
+
                     badgeProps[badgeId] = {
                         id: badgeId,
                         source: { uri: badge.url },

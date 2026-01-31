@@ -12,7 +12,7 @@ async function initializeRain() {
         await require("@metro/internals/caches").initMetroCache();
         require(".").default();
     } catch (e) {
-        alert(e)
+        alert(e);
     }
 }
 
@@ -32,10 +32,10 @@ if (typeof window.__r === "undefined") {
     const unpatches: Array<() => void> = [];
 
     const deferMethodExecution = (
-        object: any, 
-        method: string, 
-        condition?: (...args: any[]) => boolean, 
-        resume?: (queue: DeferredQueue) => void, 
+        object: any,
+        method: string,
+        condition?: (...args: any[]) => boolean,
+        resume?: (queue: DeferredQueue) => void,
         returnWith?: (queue: DeferredQueue) => any
     ) => {
         const restore = instead(method, object, function (this: any, args: any[], original: any) {
@@ -50,7 +50,7 @@ if (typeof window.__r === "undefined") {
         });
 
         unpatches.push(restore);
-    }
+    };
 
     const resumeDeferred = () => {
         for (const queue of deferredCalls) {
@@ -64,7 +64,7 @@ if (typeof window.__r === "undefined") {
         }
 
         deferredCalls.length = 0;
-    }
+    };
 
     const onceIndexRequired = (originalRequire: Metro.RequireFn) => {
         // We hold calls from the native side
@@ -90,21 +90,21 @@ if (typeof window.__r === "undefined") {
             deferMethodExecution(window.RN$AppRegistry, "runApplication");
         }
 
-    const startDiscord = async () => {
-        await initializeRain();
+        const startDiscord = async () => {
+            await initializeRain();
 
-        for (const unpatch of unpatches) unpatch();
-        unpatches.length = 0;
+            for (const unpatch of unpatches) unpatch();
+            unpatches.length = 0;
 
-        originalRequire(0);
-        resumeDeferred();
+            originalRequire(0);
+            resumeDeferred();
 
-        const { initPlugins } = require(".");
-        initPlugins();
-    };
+            const { initPlugins } = require(".");
+            initPlugins();
+        };
 
         startDiscord();
-    }
+    };
 
     Object.defineProperties(globalThis, {
         __r: {

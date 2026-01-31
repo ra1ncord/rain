@@ -1,7 +1,8 @@
+import * as lib from "@lib";
 import { definePlugin } from "@plugins";
+
 import { initPlugins, updatePlugins } from "./bunny";
 import { VdPluginManager } from "./vendetta";
-import * as lib from "@lib";
 import { initVendettaObject } from "./vendetta/api";
 
 export default definePlugin({
@@ -19,9 +20,9 @@ export default definePlugin({
 
 async function initExternalPlugins() {
     Promise.all([
-    updatePlugins(),
-    initPlugins(),
-    VdPluginManager.initPlugins()
+        updatePlugins(),
+        initPlugins(),
+        VdPluginManager.initPlugins()
     ]).then(
         u => u.forEach(f => f && lib.unload.push(f))
     );

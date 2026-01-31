@@ -1,12 +1,13 @@
 import { findAssetId } from "@api/assets";
-import { NavigationNative } from "@metro/common";
-import { AlertActionButton, AlertActions, AlertModal, Stack, TableRow, TableRowGroup, TableSwitchRow, Text } from "@metro/common/components";
-import { Linking, ScrollView } from "react-native";
-import { RainIcon, CodebergIcon, KofiIcon } from "@assets";
-import About from "./About";
 import { getDebugInfo } from "@api/debug";
 import { useSettings } from "@api/settings";
-import { DISCORD_SERVER, GITHUB, CODEBERG, KOFI, DEVELOPERS } from "@lib/info";
+import { CodebergIcon, KofiIcon,RainIcon } from "@assets";
+import { CODEBERG, DEVELOPERS,DISCORD_SERVER, GITHUB, KOFI } from "@lib/info";
+import { NavigationNative } from "@metro/common";
+import { Stack, TableRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
+import { Linking, ScrollView } from "react-native";
+
+import About from "./About";
 
 export default function General() {
     const debugInfo = getDebugInfo();
@@ -48,7 +49,7 @@ export default function General() {
                     <TableRow
                         arrow={true}
                         label={"Codeberg"}
-                        icon={<TableRow.Icon source={{ uri: CodebergIcon}} />}
+                        icon={<TableRow.Icon source={{ uri: CodebergIcon }} />}
                         onPress={() => Linking.openURL(CODEBERG)}
                     />
                     <TableRow

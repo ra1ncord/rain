@@ -1,5 +1,6 @@
 import { getMetroCache, indexBlacklistFlag, indexExportsFlags } from "@metro/internals/caches";
 import { Metro } from "@metro/types";
+
 import { ModuleFlags, ModulesMapInternal } from "./enums";
 
 const { before, instead } = require("spitroast");
@@ -73,15 +74,15 @@ function blacklistModule(id: number) {
 
 function isBadExports(exports: any) {
     if (!exports) return true;
-    
+
     if (exports === window) return true;
-    
+
     if (exports[BAD_EXPORTS_CHECK_STRING] === null) return true;
-    
+
     if (exports.__proto__ === Object.prototype) {
         if (Reflect.ownKeys(exports).length === 0) return true;
     }
-    
+
     return exports.default?.[Symbol.toStringTag] === "IntlMessagesProxy";
 }
 
@@ -199,9 +200,9 @@ export function* getModules(uniq: string, all = false) {
     yield [-1, require("@metro/polyfills/redesign")];
 
     const cache = getMetroCache().findIndex[uniq];
-    
+
     if (cache?.[`_${ModulesMapInternal.NOT_FOUND}`]) return;
-    
+
     const useCache = cache && (!all || cache[`_${ModulesMapInternal.FULL_LOOKUP}`]);
 
     if (useCache) {
@@ -215,7 +216,7 @@ export function* getModules(uniq: string, all = false) {
 
     for (const id of moduleKeys) {
         if (useCache && cache![id]) continue;
-        
+
         const exports = requireModule(Number(id));
         if (isBadExports(exports)) continue;
         yield [id, exports];
@@ -238,7 +239,7 @@ export function* getCachedPolyfillModules(name: string) {
     if (!fullLookup) {
         for (const id of moduleKeys) {
             if (cache[id]) continue;
-            
+
             const exports = requireModule(Number(id));
             if (isBadExports(exports)) continue;
             yield [id, exports];
@@ -282,7 +283,7 @@ export function waitFor<T = any>(
         if (!result) return false;
 
         callback(result, id);
-        
+
         if (++currentCount >= count) {
             cleanup();
             return true;
@@ -295,12 +296,12 @@ export function waitFor<T = any>(
         const cache = getMetroCache().findIndex[filter.key];
         if (cache) {
             const cachedCount = Object.keys(cache).filter(k => k[0] !== "_").length;
-            
+
             if (cachedCount >= count) {
                 for (const id in cache) {
                     if (id[0] === "_") continue;
                     const numId = Number(id);
-                    
+
                     if (metroModules[numId]?.isInitialized) {
                         if (checkModule(numId)) return cleanup;
                     } else {
@@ -309,7 +310,7 @@ export function waitFor<T = any>(
                         });
                         unsubscribers.push(unsub);
                     }
-                    
+
                     if (!isActive) return cleanup;
                 }
             }
@@ -320,7 +321,7 @@ export function waitFor<T = any>(
         for (const id of moduleKeys) {
             if (!isActive) break;
             const numId = Number(id);
-            
+
             if (metroModules[numId]?.isInitialized && !metroModules[numId]?.hasError) {
                 if (checkModule(numId)) return cleanup;
             }
@@ -346,7 +347,7 @@ export function waitForModule<T = any>(
     filter: ModuleFilter<T>,
     options: WaitForOptions = {}
 ): Promise<T> {
-    return new Promise((resolve) => {
-        waitFor(filter, (exports) => resolve(exports), options);
+    return new Promise(resolve => {
+        waitFor(filter, exports => resolve(exports), options);
     });
 }

@@ -1,5 +1,5 @@
-import { tokens } from "@metro/common";
 import { createStyles } from "@api/ui/styles";
+import { tokens } from "@metro/common";
 
 export const usePluginCardStyles = createStyles({
     smallIcon: {

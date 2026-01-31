@@ -1,14 +1,15 @@
-import React from "react";
 import { findAssetId } from "@api/assets";
+import { patchAssets } from "@api/assets/patches";
+import { useSettings } from "@api/settings";
+import { RainIcon } from "@assets";
+import { findByPropsLazy } from "@metro";
+import { definePlugin, isPluginEnabled, usePluginSettings } from "@plugins";
+import { version } from "rain-build-info";
+import React from "react";
 import { lazy } from "react";
 import type { ImageURISource } from "react-native";
+
 import { patchTabsUI } from "./patches/tabs";
-import { definePlugin, isPluginEnabled, usePluginSettings } from "@plugins";
-import { RainIcon } from "@assets";
-import { useSettings } from "@api/settings";
-import { version } from "rain-build-info";
-import { patchAssets } from "@api/assets/patches";
-import { findByPropsLazy } from "@metro";
 
 export default definePlugin({
     name: "Settings",
@@ -44,10 +45,10 @@ function initSettings() {
             {
                 key: "EXTERNAL_PLUGINS",
                 title: () => "External Plugins",
-                icon: findAssetId("ActivitiesIcon"),
+                icon: findAssetId("AppsIcon"),
                 render: () => import("@rain/pages/ExternalPlugins"),
                 usePredicate: () => {
-                    const isEnabled = usePluginSettings((state) => state.settings["traveller"]?.enabled);
+                    const isEnabled = usePluginSettings(state => state.settings.traveller?.enabled);
                     return isEnabled ?? isPluginEnabled("traveller");
                 }
             },
@@ -69,7 +70,7 @@ function initSettings() {
                 icon: findAssetId("WrenchIcon"),
                 render: () => import("@rain/pages/Developer"),
                 usePredicate: () => {
-                    const developerSettings = useSettings((state) => state.developerSettings);
+                    const developerSettings = useSettings(state => state.developerSettings);
                     return developerSettings ?? false;
                 },
             },

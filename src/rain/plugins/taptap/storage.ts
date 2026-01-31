@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import { fileExists, readFile, writeFile } from "@api/native/fs";
 import { ReactNative } from "@metro/common";
+import { create } from "zustand";
+import { createJSONStorage,persist } from "zustand/middleware";
 
 interface Settings {
     tapUsernameMention: boolean;
@@ -45,7 +45,7 @@ const createFileStorage = (filePath: string) => {
 
 export const useTapTapSettings = create<TapTapSettingsStore>()(
     persist(
-        (set) => ({
+        set => ({
             tapUsernameMention: ReactNative.Platform.select({ ios: true, android: false, default: true })!,
             reply: true,
             userEdit: true,
@@ -53,13 +53,13 @@ export const useTapTapSettings = create<TapTapSettingsStore>()(
             delay: "300",
             debugMode: false,
             _hasHydrated: false,
-            updateSettings: (newSettings) => set((state) => ({ ...state, ...newSettings })),
+            updateSettings: newSettings => set(state => ({ ...state, ...newSettings })),
             setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
         }),
         {
-            name: 'taptap-settings',
+            name: "taptap-settings",
             storage: createJSONStorage(() => createFileStorage("plugins/taptap.json")),
-            onRehydrateStorage: () => (state) => {
+            onRehydrateStorage: () => state => {
                 state?.setHasHydrated(true);
             }
         }
@@ -67,21 +67,21 @@ export const useTapTapSettings = create<TapTapSettingsStore>()(
 );
 
 export async function waitForTapTapHydration(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         if (useTapTapSettings.getState()._hasHydrated) {
             resolve();
             return;
         }
-        
+
         const unsubscribe = useTapTapSettings.subscribe(
-            (state) => {
+            state => {
                 if (state._hasHydrated) {
                     unsubscribe();
                     resolve();
                 }
             }
         );
-        
+
         setTimeout(() => {
             unsubscribe();
             resolve();

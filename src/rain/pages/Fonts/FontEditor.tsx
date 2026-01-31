@@ -1,14 +1,14 @@
-import { useFonts, FontDefinition, fonts, removeFont, saveFont, updateFont, validateFont } from "@plugins/_core/painter/fonts";
 import { findAssetId } from "@api/assets";
+import { ErrorBoundary } from "@api/ui/components";
+import { Observable } from "@gullerya/object-observer";
 import { safeFetch } from "@lib/utils";
 import { lazyDestructure } from "@lib/utils/lazy";
 import { NavigationNative } from "@metro/common";
 import { ActionSheet, BottomSheetTitleHeader, Button, IconButton, Stack, TableRow, TableRowGroup, Text, TextInput } from "@metro/common/components";
 import { findByProps, findByPropsLazy } from "@metro/wrappers";
-import { ErrorBoundary } from "@api/ui/components";
+import { FontDefinition, removeFont, saveFont, updateFont, useFonts, validateFont } from "@plugins/_core/painter/fonts";
 import { useMemo, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
-import { Observable } from "@gullerya/object-observer";
 
 const actionSheet = findByPropsLazy("hideActionSheet");
 const { openAlert } = lazyDestructure(() => findByProps("openAlert", "dismissAlert"));
@@ -32,7 +32,7 @@ function promptDetachConfirmationForThen(fontName: string | undefined, cb: () =>
         }
     />);
     else cb();
-};
+}
 
 function guessFontName(urls: string[]) {
     const fileNames = urls.map(url => {
@@ -262,7 +262,7 @@ function NewEntryRow({ fontName, fontEntry }: { fontName: string | undefined, fo
 export default function FontEditor(props: {
     name?: string;
 }) {
-    const currentFonts = useFonts((state) => state.fonts);
+    const currentFonts = useFonts(state => state.fonts);
     const [name, setName] = useState<string | undefined>(props.name);
     const [source, setSource] = useState<string | undefined>(props.name && currentFonts[props.name]?.source);
     const [importing, setIsImporting] = useState<boolean>(false);
@@ -330,7 +330,7 @@ export default function FontEditor(props: {
 
                     return <TableRow
                         label={name}
-                        subLabel={error ? <Text variant='text-xs/medium' color='text-danger'>{error.message}</Text> : url}
+                        subLabel={error ? <Text variant="text-xs/medium" color="text-danger">{error.message}</Text> : url}
                         trailing={<Stack spacing={8} direction="horizontal">
                             <IconButton
                                 size="sm"
@@ -361,7 +361,7 @@ export default function FontEditor(props: {
                 })}
                 <TableRow label={<NewEntryRow fontName={props.name} fontEntry={fontEntries} />} />
             </TableRowGroup>
-            {errors && <Text variant='text-sm/medium' color='text-danger'>Some font entries cannot be imported. Please modify the entries and try again.</Text>}
+            {errors && <Text variant="text-sm/medium" color="text-danger">Some font entries cannot be imported. Please modify the entries and try again.</Text>}
             <View style={{ flexDirection: "row", justifyContent: "flex-end", bottom: 0, left: 0 }}>
                 <Button
                     size="lg"
@@ -391,7 +391,7 @@ export default function FontEditor(props: {
                                 name: name,
                                 main: fontEntries,
                             };
-                            
+
                             useFonts.getState().setFont(props.name, updatedFont);
 
                             updateFont(updatedFont)

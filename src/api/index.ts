@@ -4,4 +4,4 @@ export * as flux from "./flux";
 export * as native from "./native";
 export * as patcher from "./patcher";
 export * as react from "./react";
-export * from "@plugins"
+export * from "@plugins";

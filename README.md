@@ -1,23 +1,41 @@
-<div align="center">
-	<img height="150" alt="Rain logo" src="https://codeberg.org/raincord/rain/raw/branch/main/rain-temp.png" />
-</div>
- 
-### [![Discord](https://img.shields.io/discord/1368145952266911755?logo=discord&logoColor=%23ffffffff&color=%231D88CF&link=https%3A%2F%2Fdiscord.gg%2F6cN7wKa8gp)](https://discord.gg/6cN7wKa8gp) [![Static Badge](https://img.shields.io/badge/kofi-cocobo1-%23FF6433?style=flat&logo=ko-fi&labelColor=%23ffffff)](https://www.ko-fi.com/cocobo1) ![Codeberg Last Commit](https://img.shields.io/gitea/last-commit/raincord/rain?gitea_url=https%3A%2F%2Fwww.codeberg.org&logo=codeberg&logoColor=%23ffffffff)
+# Kettu
+A mod for Discord on Mobile
 
-# Welcome to **rain**
-rain is a work-in-progress custom Discord client for android, designed to be lightweight and feature-packed!
+### [![Discord](https://img.shields.io/discord/1368145952266911755?logo=discord&logoColor=%23ffffffff&color=%231D88CF&link=https%3A%2F%2Fdiscord.gg%2F6cN7wKa8gp)](https://discord.gg/6cN7wKa8gp) [![Static Badge](https://img.shields.io/badge/kofi-cocobo1-%23FF6433?style=flat&logo=ko-fi&labelColor=%23ffffff)](https://www.ko-fi.com/cocobo1) ![Codeberg Last Commit](https://img.shields.io/gitea/last-commit/cocobo1/Kettu?gitea_url=https%3A%2F%2Fwww.codeberg.org&logo=codeberg&logoColor=%23ffffffff)
 
-## What is rain?
-rain is a work-in-progress custom client for discord aimed at being written from the ground up, depending on code from as little projects as possible (minus the kotlin side).
+## Installing
 
-## When will rain be available and what devices will it be available for?
-rain currently is still nowhere near a state where it is ready for any sort of release. as for platforms it will be available for, android is the target however iOS is something that is being planned!
+### Android
+- **Root** with Xposed - [KettuXposed](https://github.com/C0C0B01/KettuXposed/releases/latest)
+- **Non-root** - [KettuManager](https://github.com/C0C0B01/KettuManager/releases/latest)
 
-## How can I support the project?
-rain can be supported in many ways, you can [contribute](#Contributing), make a [bug report](#Bug-reporting) or [donate](https://www.ko-fi.com/cocobo1)
+If you do not know what root is, go with the manager
 
-## Bug-reporting
-Bug reports are a crucial part of development, they make the project more stable and make developers aware of issues. before filing an issue please make sure it isnt a duplicate
+### iOS
 
-## Contributing
-Contributing can be many things: a bug fix, a new plugin, translation. git commits are made in the layout of: category(target): what you did e.g. "made #### be #####"
+- **Jailbroken** - [KettuTweak](https://github.com/C0C0B01/KettuTweak)
+- **Jailed** - [BTLoader](https://github.com/CloudySn0w/BTLoader)
+
+if you dont know what jailbreak is, go with BTLoader
+
+## Building
+1. Install a Kettu loader with loader config support (any mentioned in the [Installing](#installing) section).
+1. Go to Settings > General and enable Developer Settings.
+1. Clone the repo:
+    ```
+    git clone https://codeberg.org/cocobo1/Kettu
+    ```
+1. Install dependencies:
+    ```
+    bun i
+    ```
+1. Build Kettu's code:
+    ```
+    bun run build
+    ```
+1. In the newly created `dist` directory, run a HTTP server. I recommend [http-server](https://www.npmjs.com/package/http-server).
+1. Go to Settings > Developer enabled earlier. Enable `Load from custom url` and input the IP address and port of the server (e.g. `http://192.168.1.236:4040/kettu.js`) in the new input box labelled `Kettu URL`.
+1. Restart Discord. Upon reload, you should notice that your device will download Kettu's bundled code from your server, rather than GitHub.
+1. Make your changes, rebuild, reload, go wild!
+
+Alternatively, you can directly *serve* the bundled code by running `bun run serve`. `kettu.js` will be served on your local address under the port 4040. You will then insert `http://<local ip address>:4040/kettu.js` as a custom url and reload. Whenever you restart your mobile client, the script will rebuild the bundle as your client fetches it.

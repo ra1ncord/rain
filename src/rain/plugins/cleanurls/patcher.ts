@@ -1,6 +1,6 @@
 import { before } from "@api/patcher";
 import { findByProps } from "@metro/wrappers";
-import { logger } from "@lib/utils/logger";
+
 import { cleanUrl } from "./rules";
 
 const HTTP_REGEX_MULTI = /https?:\/\/[^\s<]+[^<.,:;"')\]\s]/g;
@@ -27,28 +27,28 @@ function handleMessage(msg: any) {
 
 export function setupPatches(): Unpatch[] {
     const patches: Unpatch[] = [];
-    
+
     try {
         const Messages = findByProps("sendMessage", "editMessage", "startEditMessage");
-        
+
         if (Messages?.sendMessage) {
             patches.push(
-                before("sendMessage", Messages, (args) => {
+                before("sendMessage", Messages, args => {
                     handleMessage(args[1]);
                 })
             );
         }
-        
+
         if (Messages?.editMessage) {
             patches.push(
-                before("editMessage", Messages, (args) => {
+                before("editMessage", Messages, args => {
                     handleMessage(args[2]);
                 })
             );
         }
-        
+
     } catch (e) {
     }
-    
+
     return patches;
 }

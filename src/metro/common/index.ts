@@ -1,6 +1,7 @@
 import { lazyDestructure } from "@lib/utils/lazy";
 import { findByFilePathLazy, findByProps, findByPropsLazy } from "@metro/wrappers";
 import { Linking } from "react-native";
+
 import type { Dispatcher } from "./types/flux";
 
 export * as components from "./components";

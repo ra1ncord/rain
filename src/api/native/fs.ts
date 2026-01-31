@@ -50,9 +50,9 @@ export async function writeFile(path: string, data: string, { prefix = "pyoncord
  * @param path Path to the file
  * @param fallback Fallback data to return if the file doesn't exist, and will be written to the file
  */
-export async function readFile(path: string, { prefix = "pyoncord/" } = {}): Promise<string> {
+export async function readFile(path: string, { prefix = "pyoncord/", encoding = "utf8" }: { prefix?: string, encoding?: "utf8" | "base64" } = {}): Promise<string> {
     try {
-        return await NativeFileModule.readFile(`${NativeFileModule.getConstants().DocumentsDirPath}/${prefix}${path}`, "utf8");
+        return await NativeFileModule.readFile(`${NativeFileModule.getConstants().DocumentsDirPath}/${prefix}${path}`, encoding);
     } catch (err) {
         throw new Error(`An error occured while writing to '${path}'`, { cause: err });
     }

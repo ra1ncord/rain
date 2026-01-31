@@ -1,7 +1,7 @@
 import { findAssetId } from "@api/assets";
+import { showToast } from "@api/ui/toasts";
 import { clipboard } from "@metro/common";
 import { TableRow, TableRowTrailingText } from "@metro/common/components";
-import { showToast } from "@api/ui/toasts";
 import { ImageURISource } from "react-native";
 
 interface VersionProps {

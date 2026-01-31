@@ -1,6 +1,7 @@
 import { fileExists, readFile, writeFile } from "@api/native/fs";
 import { NativeClientInfoModule } from "@api/native/modules";
 import { debounce } from "es-toolkit";
+
 import { ModuleFlags, ModulesMapInternal } from "./enums";
 
 const CACHE_VERSION = 1;

@@ -1,7 +1,7 @@
-import { lazyDestructure, proxyLazy } from "@lib/utils/lazy";
-import { findByProps, findByPropsLazy } from "@metro/wrappers";
 import { isSemanticColor, resolveSemanticColor } from "@api/ui/components/color";
 import { TextStyles } from "@api/ui/types";
+import { lazyDestructure, proxyLazy } from "@lib/utils/lazy";
+import { findByProps, findByPropsLazy } from "@metro/wrappers";
 import { ImageStyle, StyleSheet, TextStyle, ViewStyle } from "react-native";
 
 type NamedStyles<T> = { [P in keyof T]: ViewStyle | TextStyle | ImageStyle };

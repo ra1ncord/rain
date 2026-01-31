@@ -1,7 +1,8 @@
-import ErrorCard from "./ErrorCard";
-import { React } from "@metro/common";
 import { ThemeContext } from "@api/ui/styles";
+import { React } from "@metro/common";
 import { Falsy } from "react-native";
+
+import ErrorCard from "./ErrorCard";
 
 type ErrorBoundaryState = {
     hasErr: false;

@@ -1,12 +1,13 @@
+import { showToast } from "@api/ui/toasts";
+import { logger } from "@lib/utils/logger";
+import { version } from "rain-build-info";
+import { Platform, type PlatformConstants, StyleSheet } from "react-native";
+
 import { findAssetId } from "./assets";
 import { getLoaderName, getLoaderVersion, getReactDevToolsProp, isReactDevToolsPreloaded } from "./native/loader";
 import { BundleUpdaterManager, NativeClientInfoModule, NativeDeviceModule } from "./native/modules";
 import { after } from "./patcher";
 import { settings } from "./settings";
-import { logger } from "@lib/utils/logger";
-import { showToast } from "@api/ui/toasts";
-import { version } from "rain-build-info";
-import { Platform, type PlatformConstants, StyleSheet } from "react-native";
 
 export interface RNConstants extends PlatformConstants {
     // Android
@@ -45,17 +46,17 @@ let originalLoggerWarn: any;
 const VERSION = 1;
 
 enum MessageType {
-    Hello = 'hello',
-    Hi = 'hi',
-    Log = 'log',
-    Run = 'run',
+    Hello = "hello",
+    Hi = "hi",
+    Log = "log",
+    Run = "run",
 }
 
 enum LogLevel {
-    Debug = 'debug',
-    Default = 'default',
-    Warn = 'warn',
-    Error = 'error',
+    Debug = "debug",
+    Default = "default",
+    Warn = "warn",
+    Error = "error",
 }
 
 interface LogMessage {
@@ -183,7 +184,7 @@ export function connectToDebugger(url: string) {
 
         socket.addEventListener("open", () => {
             showToast("Connected to debugger.", findAssetId("Check"));
-            
+
             const hello: HelloMessage = {
                 type: MessageType.Hello,
                 data: {
@@ -198,7 +199,7 @@ export function connectToDebugger(url: string) {
         socket.addEventListener("message", (message: any) => {
             try {
                 const data = JSON.parse(message.data);
-                
+
                 if (data.type === MessageType.Run && data.data?.code) {
                     try {
                         (0, eval)(data.data.code);
@@ -266,20 +267,20 @@ export function connectRdt(url: string, quiet?: boolean) {
     const base = url.split(":").slice(0, -1).join(":");
     const ws = (rdtClient = new WebSocket(`ws://${base}:${rdtPort}`));
 
-    ws.addEventListener('open', () => {
+    ws.addEventListener("open", () => {
         if (!quiet) showToast("Connected to React DevTools", findAssetId("CheckmarkSmallIcon"));
         rdtConnected = true;
         bump();
     });
 
-    ws.addEventListener('close', () => {
+    ws.addEventListener("close", () => {
         cleanupRdt();
     });
 
-    ws.addEventListener('error', (e: any) => {
+    ws.addEventListener("error", (e: any) => {
         cleanupRdt();
         const err = e?.message ?? e?.stack ?? String(e);
-        logger.error('React DevTools error:', err);
+        logger.error("React DevTools error:", err);
         if (!quiet) showToast(err, findAssetId("CircleXIcon-primary"));
     });
 
@@ -313,7 +314,7 @@ export function useIsRdtConnected() {
 export function patchLogHook() {
     const unpatch = after("nativeLoggingHook", globalThis, args => {
         if (socket?.readyState === WebSocket.OPEN) {
-            sendLog(args[1] === 'error' ? LogLevel.Error : args[1] === 'warn' ? LogLevel.Warn : LogLevel.Default, args[0]);
+            sendLog(args[1] === "error" ? LogLevel.Error : args[1] === "warn" ? LogLevel.Warn : LogLevel.Default, args[0]);
         }
         logger.log(args[0]);
     });
@@ -355,7 +356,7 @@ export function getDebugInfo() {
                 version: getLoaderVersion()
             }
         },
-        
+
         discord: {
             version: NativeClientInfoModule.getConstants().Version,
             build: NativeClientInfoModule.getConstants().Build,

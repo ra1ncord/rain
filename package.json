@@ -8,8 +8,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "serve": "node scripts/serve.mjs",
-    "lint": "eslint ./src --ext .js,.jsx,.ts,.tsx",
-    "test": "node scripts/test.mjs"
+    "lint": "eslint ./src --ext .js,.jsx,.ts,.tsx"
   },
   "license": "Mozilla Public License 2.0",
   "devDependencies": {
@@ -35,7 +34,8 @@
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-unused-imports": "^4.3.0",
     "typescript": "^5.9.3",
-    "yargs-parser": "^22.0.0"
+    "yargs-parser": "^22.0.0",
+    "@react-native-community/cli": "latest"
   },
   "dependencies": {
     "@gullerya/object-observer": "^6.1.4",
@@ -55,8 +55,8 @@
     "react-devtools": "^7.0.1",
     "react-native": "^0.83.1",
     "react-native-reanimated": "^4.2.1",
+    "react-native-webview": "^13.16.0",
     "spitroast": "^2.1.6",
-    "synchronous-promise": "^2.0.17",
     "type-fest": "^5.4.1",
     "zustand": "^5.0.10"
   },

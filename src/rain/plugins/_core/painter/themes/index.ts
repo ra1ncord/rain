@@ -1,13 +1,14 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import { fileExists, readFile, writeFile } from "@api/native/fs";
-import { getStoredTheme, getThemeFilePath, isPyonLoader, isThemeSupported } from "@api/native/loader";
+import { getStoredTheme, getThemeFilePath, isPyonLoader } from "@api/native/loader";
+import { useSettings } from "@api/settings";
 import { safeFetch } from "@lib/utils";
 import { Platform } from "react-native";
-import { useSettings } from "@api/settings";
+import { create } from "zustand";
+import { createJSONStorage,persist } from "zustand/middleware";
+
 import initColors from "./colors";
 import { applyAndroidAlphaKeys, normalizeToHex } from "./parser";
-import { useColorsPref, waitForColorsPrefHydration } from "./preferences";
+import { waitForColorsPrefHydration } from "./preferences";
 import { VendettaThemeManifest } from "./types";
 import { updateBunnyColor } from "./updater";
 
@@ -88,7 +89,7 @@ function processData(data: VendettaThemeManifest) {
     }
 
     if (data.spec === undefined) {
-        if (!('theme_color_map' in data)) {
+        if (!("theme_color_map" in data)) {
             data.spec = 2;
         }
     }
@@ -114,7 +115,7 @@ export const useThemes = create<ThemesStore>()(
             themes: {},
             _hasHydrated: false,
             setTheme: (id: string, theme: VdThemeInfo) => {
-                set((state) => ({
+                set(state => ({
                     themes: {
                         ...state.themes,
                         [id]: theme
@@ -124,8 +125,8 @@ export const useThemes = create<ThemesStore>()(
             removeTheme: async (id: string) => {
                 const theme = get().themes[id];
                 if (theme?.selected) await get().selectTheme(null);
-                
-                set((state) => {
+
+                set(state => {
                     const newThemes = { ...state.themes };
                     delete newThemes[id];
                     return { themes: newThemes };
@@ -134,10 +135,10 @@ export const useThemes = create<ThemesStore>()(
                 return theme?.selected ?? false;
             },
             selectTheme: async (id: string | null, write = true) => {
-                const themes = get().themes;
+                const { themes } = get();
                 const theme = id ? themes[id] : null;
-                
-                set((state) => {
+
+                set(state => {
                     const newThemes = { ...state.themes };
                     Object.keys(newThemes).forEach(k => {
                         newThemes[k] = {
@@ -181,13 +182,13 @@ export const useThemes = create<ThemesStore>()(
                 }
             },
             installTheme: async (url: string) => {
-                const themes = get().themes;
+                const { themes } = get();
                 if (typeof url !== "string" || url in themes) throw new Error("Theme already installed");
                 await get().fetchTheme(url);
             },
             updateThemes: async () => {
                 const currentTheme = getCurrentTheme();
-                const themes = get().themes;
+                const { themes } = get();
                 await Promise.allSettled(
                     Object.keys(themes).map(id => get().fetchTheme(id, currentTheme?.id === id))
                 );
@@ -195,9 +196,9 @@ export const useThemes = create<ThemesStore>()(
             setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
         }),
         {
-            name: 'vendetta-themes',
+            name: "vendetta-themes",
             storage: createJSONStorage(() => createFileStorage("VENDETTA_THEMES")),
-            onRehydrateStorage: () => (state) => {
+            onRehydrateStorage: () => state => {
                 state?.setHasHydrated(true);
             }
         }
@@ -223,7 +224,7 @@ export const themes = new Proxy({} as Record<string, VdThemeInfo>, {
         return Object.keys(useThemes.getState().themes);
     },
     getOwnPropertyDescriptor(target, prop) {
-        const themes = useThemes.getState().themes;
+        const { themes } = useThemes.getState();
         if (prop in themes) {
             return {
                 enumerable: true,
@@ -265,21 +266,21 @@ export function getThemeFromLoader(): VdThemeInfo | null {
 }
 
 export async function waitForThemesHydration(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         if (useThemes.getState()._hasHydrated) {
             resolve();
             return;
         }
-        
+
         const unsubscribe = useThemes.subscribe(
-            (state) => {
+            state => {
                 if (state._hasHydrated) {
                     unsubscribe();
                     resolve();
                 }
             }
         );
-        
+
         setTimeout(() => {
             unsubscribe();
             resolve();

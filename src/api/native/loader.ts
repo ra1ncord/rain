@@ -1,4 +1,5 @@
 import { VendettaThemeManifest } from "@rain/plugins/_core/painter/themes/types";
+
 import { removeCacheFile } from "./fs";
 
 // @ts-ignore
