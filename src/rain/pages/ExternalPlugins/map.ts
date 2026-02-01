@@ -1,5 +1,8 @@
 export const bunnyToRainMap = {
     "https://rico040.github.io/bunny-plugins/freemoji/": "fakenitro",
+    "https://dziurwa14.github.io/vendetta-plugins/Freecons/": "fakenitro",
+    "https://aliernfrog.github.io/vd-plugins/FreeStickers/": "fakenitro",
+    "https://aeongdesu.github.io/vdplugins/ClientThemes/": "fakenitro",
     "https://fres621.github.io/vendetta-plugins/AlwaysTrust/": "alwaystrust",
     "https://raw.githubusercontent.com/PalmDevs/revenge-plugins-builds/main/better-chat-buttons/": "betterchatbuttons",
     "https://revenge.nexpid.xyz/clean-urls/": "cleanurls",

@@ -79,45 +79,45 @@ export default function Plugins() {
                     .map(unifyBunnyPlugin);
                 return [...vdPlugins, ...bnPlugins];
             }}
-installAction={{
-    label: "Install a plugin",
-    fetchFn: async (url: string) => {
-        const alternative = bunnyToRainMap[url];
-        
-        if (alternative) {
-            openAlert("PluginAlternativeAlert", (
-                <AlertModal
-                    title="Hey wait!"
-                    content="There's a Rain plugin for that! Are you sure you want to install the Vendetta version?"
-                    actions={
-                        <Stack>
-                            <Button
-                                text="Use the Rain version instead"
-                                variant="primary"
-                                onPress={() => {
-                                    startPlugin(alternative);
-                                    dismissAlert("PluginAlternativeAlert");
-                                }}
+            installAction={{
+                label: "Install a plugin",
+                fetchFn: async (url: string) => {
+                    const alternative = bunnyToRainMap[url];
+                    
+                    if (alternative) {
+                        openAlert("PluginAlternativeAlert", (
+                            <AlertModal
+                                title="Hey wait!"
+                                content="There's a Rain plugin for that! Are you sure you want to install the Vendetta version?"
+                                actions={
+                                    <Stack>
+                                        <Button
+                                            text="Use the Rain version instead"
+                                            variant="primary"
+                                            onPress={() => {
+                                                startPlugin(alternative);
+                                                dismissAlert("PluginAlternativeAlert");
+                                            }}
+                                        />
+                                        <Button 
+                                            text="Install Vendetta version anyway"
+                                            variant="secondary"
+                                            onPress={async () => {
+                                                await VdPluginManager.installPlugin(url);
+                                                dismissAlert("PluginAlternativeAlert");
+                                            }}
+                                        />
+                                        <AlertActionButton text="Cancel" variant="tertiary" />
+                                    </Stack>
+                                }
                             />
-                            <Button 
-                                text="Install Vendetta version anyway"
-                                variant="secondary"
-                                onPress={async () => {
-                                    await VdPluginManager.installPlugin(url);
-                                    dismissAlert("PluginAlternativeAlert");
-                                }}
-                            />
-                            <AlertActionButton text="Cancel" variant="tertiary" />
-                        </Stack>
+                        ));
+                        return;
+                    } else {
+                        return await VdPluginManager.installPlugin(url);
                     }
-                />
-            ));
-            return;
-        } else {
-            return await VdPluginManager.installPlugin(url);
-        }
-    },
-}}
+                },
+            }}
         />
     );
 }
