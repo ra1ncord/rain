@@ -6,7 +6,7 @@ import { ApplicationCommand } from "@api/commands/types";
 
 export default definePlugin({
     name: "Commands",
-    description: "Allows you to use custom commands",
+    description: "Provides core commands",
     author: [{ name: "cocobo1", id: 767650984175992833n }],
     id: "commands",
     version: "v1.0.0",

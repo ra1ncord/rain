@@ -41,7 +41,6 @@
     "@gullerya/object-observer": "^6.1.4",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@shopify/flash-list": "^2.2.0",
-    "@shopify/react-native-skia": "^2.4.14",
     "@tanstack/react-query": "^5.90.19",
     "@types/chroma-js": "^3.1.2",
     "@types/lodash": "^4.17.23",
@@ -62,6 +61,7 @@
   },
   "trustedDependencies": [
     "@swc/core",
+    "electron",
     "esbuild"
   ]
 }

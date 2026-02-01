@@ -17,12 +17,13 @@ import * as metro from "@metro";
 import * as common from "@metro/common";
 import { Forms } from "@metro/common/components";
 import * as commonComponents from "@metro/common/components";
-import * as commands from "@plugins/_core/commands";
 import { omit } from "es-toolkit";
 import { createElement, useEffect } from "react";
 import { View } from "react-native";
 
 import { VdPluginManager, VendettaPlugin } from ".";
+import { registerCommand } from "@api/commands";
+import { fetchTheme, getThemeFromLoader, installTheme, removeTheme, selectTheme, themes, updateThemes } from "@rain/plugins/_core/painter/themes";
 
 export async function createVdPluginObject(plugin: VendettaPlugin) {
     return {
@@ -204,17 +205,17 @@ export const initVendettaObject = (): any => {
             removePlugin: (id: string) => VdPluginManager.removePlugin(id),
             getSettings: (id: string) => VdPluginManager.getSettings(id)
         },
-        // themes: {
-        //    themes: themes.themes,
-        //    fetchTheme: (id: string, selected?: boolean) => themes.fetchTheme(id, selected),
-        //    installTheme: (id: string) => themes.installTheme(id),
-        //    selectTheme: (id: string) => themes.selectTheme(id === "default" ? null : themes.themes[id]),
-        //    removeTheme: (id: string) => themes.removeTheme(id),
-        //    getCurrentTheme: () => themes.getThemeFromLoader(),
-        //    updateThemes: () => themes.updateThemes()
-        // },
+        themes: {
+           themes: themes,
+           fetchTheme: (id: string, selected?: boolean) => fetchTheme(id, selected),
+           installTheme: (id: string) => installTheme(id),
+           selectTheme: (id: string) => selectTheme(id === "default" ? null : themes[id]),
+           removeTheme: (id: string) => removeTheme(id),
+           getCurrentTheme: () => getThemeFromLoader(),
+           updateThemes: () => updateThemes()
+        },
         commands: {
-            registerCommand: commands.registerCommand
+            registerCommand: registerCommand
         },
         storage: {
             createProxy: (target: any) => storage.createProxy(target),

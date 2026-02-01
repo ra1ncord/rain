@@ -1,8 +1,8 @@
 import { useSettings } from "@api/settings";
 import { awaitStorage, useObservable } from "@api/storage/bnstorage";
-import { AlertModal, Text } from "@metro/common/components";
+import { AlertActionButton, AlertModal, Button, Stack, Text } from "@metro/common/components";
 import AddonPage from "@rain/pages/Addon/AddonPage";
-import { findPluginById } from "@rain/plugins";
+import { findPluginById, startPlugin } from "@rain/plugins";
 import { isPluginInstalled, pluginSettings, registeredPlugins } from "@rain/plugins/traveller/bunny";
 import { Author } from "@rain/plugins/traveller/types";
 import { VdPluginManager } from "@rain/plugins/traveller/vendetta";
@@ -14,6 +14,7 @@ import { bunnyToRainMap } from "./map";
 import { UnifiedPluginModel } from "./models";
 import unifyBunnyPlugin from "./models/bunny";
 import unifyVdPlugin from "./models/vendetta";
+import { dismissAlert, openAlert } from "@api/ui/alerts";
 
 interface PluginPageProps
   extends Partial<ComponentProps<typeof AddonPage<UnifiedPluginModel>>> {
@@ -78,24 +79,45 @@ export default function Plugins() {
                     .map(unifyBunnyPlugin);
                 return [...vdPlugins, ...bnPlugins];
             }}
-            installAction={{
-                label: "Install a plugin",
-                fetchFn: async (url: string) => {
-                    const alternative = bunnyToRainMap[url];
-                    findPluginById(alternative);
-                    replaceWithRainPlugin();
-                    // startPlugin(alternative);
-                    // return await VdPluginManager.installPlugin(url);
-                },
-            }}
+installAction={{
+    label: "Install a plugin",
+    fetchFn: async (url: string) => {
+        const alternative = bunnyToRainMap[url];
+        
+        if (alternative) {
+            openAlert("PluginAlternativeAlert", (
+                <AlertModal
+                    title="Hey wait!"
+                    content="There's a Rain plugin for that! Are you sure you want to install the Vendetta version?"
+                    actions={
+                        <Stack>
+                            <Button
+                                text="Use the Rain version instead"
+                                variant="primary"
+                                onPress={() => {
+                                    startPlugin(alternative);
+                                    dismissAlert("PluginAlternativeAlert");
+                                }}
+                            />
+                            <Button 
+                                text="Install Vendetta version anyway"
+                                variant="secondary"
+                                onPress={async () => {
+                                    await VdPluginManager.installPlugin(url);
+                                    dismissAlert("PluginAlternativeAlert");
+                                }}
+                            />
+                            <AlertActionButton text="Cancel" variant="tertiary" />
+                        </Stack>
+                    }
+                />
+            ));
+            return;
+        } else {
+            return await VdPluginManager.installPlugin(url);
+        }
+    },
+}}
         />
-    );
-}
-
-function replaceWithRainPlugin() {
-    return(<AlertModal
-        title={"Hey wait!"}
-        content="Theres a rain plugin for that, are you sure you want to install the vendetta version?"
-    />
     );
 }
