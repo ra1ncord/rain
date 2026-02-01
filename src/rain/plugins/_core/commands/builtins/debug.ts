@@ -1,6 +1,6 @@
 import { getDebugInfo } from "@api/debug";
 import { messageUtil } from "@metro/common";
-import { ApplicationCommand } from "@plugins/_core/commands/types";
+import { ApplicationCommand } from "@api/commands/types";
 
 // todo: i18n
 export default () => <ApplicationCommand>{
@@ -15,7 +15,7 @@ export default () => <ApplicationCommand>{
             `> React: ${info.react.version} (RN ${info.react.nativeVersion})`,
             `> Hermes: ${info.hermes.version} (bcv${info.hermes.bytecodeVersion})`,
             `> System: ${info.os.name} ${info.os.version} ${info.os.sdk ? `(SDK ${info.os.sdk})` : ""}`.trimEnd(),
-            `> Device: ${info.device.model} (${info.device?.codename})`,
+            `> Device: ${info.device.model}`,
         ].join("\n");
 
         if (ephemeral?.value) {

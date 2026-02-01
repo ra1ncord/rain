@@ -1,10 +1,29 @@
 import { after, instead } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
 import { commands as commandsModule, messageUtil } from "@metro/common";
-
 import { ApplicationCommand, ApplicationCommandInputType, ApplicationCommandType, RainApplicationCommand } from "./types"
 
-let commands: ApplicationCommand[] = [];
+let commands: ApplicationCommand[] = []
+const patches = new Set<() => void>();
+
+export function patchCommands() {
+    const unpatchGetBuiltInCommands = after("getBuiltInCommands", commandsModule, (args, res) => {
+        const commandType = args[0];
+        
+        return res.concat(
+            commands.filter(c => {
+                if (Array.isArray(commandType)) {
+                    return commandType.includes(c.type);
+                }
+                return c.type === commandType;
+            }).filter(c => {
+                return !c.__rain?.shouldHide || !c.__rain.shouldHide();
+            })
+        );
+    });
+    
+    patches.add(unpatchGetBuiltInCommands);
+}
 
 export function registerCommand(command: RainApplicationCommand): () => void {
     // Get built in commands
@@ -16,7 +35,6 @@ export function registerCommand(command: RainApplicationCommand): () => void {
     }
 
     builtInCommands.sort((a: ApplicationCommand, b: ApplicationCommand) => parseInt(b.id!) - parseInt(a.id!));
-
     const lastCommand = builtInCommands[builtInCommands.length - 1];
 
     // Override the new command's id to the last command id - 1
@@ -26,7 +44,6 @@ export function registerCommand(command: RainApplicationCommand): () => void {
     command.__rain = {
         shouldHide: command.shouldHide
     };
-
     command.applicationId ??= "-1";
     command.type ??= ApplicationCommandType.CHAT;
     command.inputType = ApplicationCommandInputType.BUILT_IN;
