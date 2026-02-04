@@ -80,10 +80,6 @@ const config = {
                                     globals: {
                                         "rain-build-info": {
                                             version: `"v0.2.0"`
-                                        },
-                                        // For backwards compatibility
-                                        "bunny-build-info": {
-                                            version: `"v1.3.7"`
                                         }
                                     }
                                 },

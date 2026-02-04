@@ -1,4 +1,4 @@
-import { createThemedStyleSheet } from "@api/ui/styles";
+import { createStyles } from "@api/ui/styles";
 import { Badge } from "../def";
 import { useThemedColor } from "../lib/utils";
 import ReviewBadge from "./ReviewBadge";
@@ -10,7 +10,7 @@ interface ReviewUsernameProps {
     badges: Badge[];
 }
 
-const styles = createThemedStyleSheet({
+const useStyles = createStyles({
     row: {
         flexDirection: "row",
         alignItems: "center",
@@ -19,16 +19,20 @@ const styles = createThemedStyleSheet({
 
 const { FormLabel } = Forms;
 
-export default ({ username, badges }: ReviewUsernameProps) => (
-    <RN.View style={styles.row}>
-        <FormLabel
-            text={username}
-            style={{ color: useThemedColor("TEXT_NORMAL") }}
-        />
+export default ({ username, badges }: ReviewUsernameProps) => {
+    const styles = useStyles();
+    
+    return (
         <RN.View style={styles.row}>
-            {badges.map((b) => (
-                <ReviewBadge badge={b} />
-            ))}
+            <FormLabel
+                text={username}
+                style={{ color: useThemedColor("TEXT_NORMAL") }}
+            />
+            <RN.View style={styles.row}>
+                {badges.map((b) => (
+                    <ReviewBadge badge={b} />
+                ))}
+            </RN.View>
         </RN.View>
-    </RN.View>
-);
+    );
+};

@@ -344,19 +344,6 @@ export function getDebugInfo() {
             }
         },
 
-        // silly compats
-        vendetta: {
-            version: versionHash.split("-")[0],
-            loader: getLoaderName(),
-        },
-        bunny: {
-            version: versionHash,
-            loader: {
-                name: getLoaderName(),
-                version: getLoaderVersion()
-            }
-        },
-
         discord: {
             version: NativeClientInfoModule.getConstants().Version,
             build: NativeClientInfoModule.getConstants().Build,

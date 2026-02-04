@@ -132,11 +132,6 @@ export function getReactDevToolsVersion() {
     return null;
 }
 
-export function isSysColorsSupported() {
-    // vendetta plugin compatibility
-    return true;
-}
-
 export function getSysColors() {
     if (isRainLoader()) {
         return rainLoaderIdentity.sysColors;

@@ -43,16 +43,6 @@ function initSettings() {
                 render: () => import("@rain/pages/Plugins"),
             },
             {
-                key: "EXTERNAL_PLUGINS",
-                title: () => "External Plugins",
-                icon: findAssetId("AppsIcon"),
-                render: () => import("@rain/pages/ExternalPlugins"),
-                usePredicate: () => {
-                    const isEnabled = usePluginSettings(state => state.settings.traveller?.enabled);
-                    return isEnabled ?? isPluginEnabled("traveller");
-                }
-            },
-            {
                 key: "RAIN_THEMES",
                 title: () => "Themes",
                 icon: findAssetId("PaintPaletteIcon"),
@@ -74,28 +64,6 @@ function initSettings() {
                     return developerSettings ?? false;
                 },
             },
-        ]
-    });
-
-    // compatibility hell lol
-    registerSection({
-        name: "Kettu",
-        items: [
-        ]
-    });
-    registerSection({
-        name: "Bunny",
-        items: [
-        ]
-    });
-    registerSection({
-        name: "Revenge",
-        items: [
-        ]
-    });
-    registerSection({
-        name: "Vendetta",
-        items: [
         ]
     });
 }

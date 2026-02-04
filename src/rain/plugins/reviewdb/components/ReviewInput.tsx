@@ -2,7 +2,7 @@ import { constants, ReactNative as RN } from "@metro/common";
 import { addReview } from "../lib/api";
 import { useThemedColor } from "../lib/utils";
 import { TextInput, Button } from "../lib/redesign";
-import { createThemedStyleSheet } from "@api/ui/styles";
+import { createStyles } from "@api/ui/styles";
 import { useReviewDBSettings } from "../storage";
 import { rawColors, semanticColors } from "@api/ui/components/color";
 import { findAssetId } from "@api/assets";
@@ -15,7 +15,7 @@ interface ReviewInputProps {
     refetch: () => void;
 }
 
-const styles = createThemedStyleSheet({
+const useStyles = createStyles({
     container: {
         flex: 1,
         flexDirection: "row",
@@ -27,8 +27,6 @@ const styles = createThemedStyleSheet({
     container_redesign: {
         backgroundColor: semanticColors.CARD_PRIMARY_BG,
         flex: 1,
-        //flexDirection: "row",
-        //alignItems: "center",
         justifyContent: "center",
         paddingHorizontal: 8,
         paddingVertical: 4,
@@ -57,6 +55,7 @@ export default function ReviewInput({
     shouldEdit,
     refetch,
 }: ReviewInputProps) {
+    const styles = useStyles();
     const reviewdbSettings = useReviewDBSettings();
     const [reviewText, setReviewText] = React.useState("");
     const disableTextArea = !reviewdbSettings.authToken;

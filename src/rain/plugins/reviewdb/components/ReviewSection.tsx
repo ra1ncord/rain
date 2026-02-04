@@ -4,7 +4,7 @@ import { getReviews } from "../lib/api";
 import ReviewRow from "./ReviewRow";
 import ReviewInput from "./ReviewInput";
 import { findByName, findByProps, findByStoreName } from "@metro";
-import { createThemedStyleSheet } from "@api/ui/styles";
+import { createStyles } from "@api/ui/styles";
 import { ErrorBoundary } from "@api/ui/components";
 import { semanticColors } from "@api/ui/components/color";
 
@@ -16,23 +16,23 @@ interface ReviewSectionProps {
 }
 
 const { FlashList } = findByProps("FlashList");
-
 const { getDisplayProfile } = findByProps("getDisplayProfile");
 
 export default function ReviewSection({ userId }: ReviewSectionProps) {
     const [reviews, setReviews] = React.useState<Review[]>([]);
-
     const fetchReviews = () => {
         getReviews(userId).then((i) => setReviews(i));
     };
+    
     React.useEffect(fetchReviews, []);
-
+    
     const hasExistingReview =
         reviews.filter((i) => i.sender.discordID === getCurrentUser()?.id)
             .length !== 0;
-
+    
     const themeColors = getDisplayProfile?.(userId)?.themeColors;
-    const styles = createThemedStyleSheet({
+    
+    const useStyles = createStyles({
         avatar: {
             height: 36,
             width: 36,
@@ -53,7 +53,9 @@ export default function ReviewSection({ userId }: ReviewSectionProps) {
                     : `#00000083`,
         },
     });
-
+    
+    const styles = useStyles();
+    
     return (
         <ErrorBoundary>
             <RN.View style={[styles.card]}>
