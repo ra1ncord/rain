@@ -3,6 +3,7 @@ import settings from "./settings";
 import nitroChecks from "./patches/nitroChecks";
 import sendMessage from "./patches/sendMessage";
 import transformEmoji from "./patches/transformEmoji";
+import transformSticker from "@plugins/fakenitro/patches/transformSticker";
 import appIcons from "./patches/appIcons";
 
 const patches: any[] = [];
@@ -17,6 +18,7 @@ export default definePlugin({
 		patches.push(...nitroChecks);
 		patches.push(...sendMessage);
 		patches.push(...transformEmoji);
+		patches.push(...transformSticker);
 		patches.push(...appIcons);
 	},
 	stop() {

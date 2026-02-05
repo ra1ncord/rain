@@ -2,6 +2,7 @@ import { findByStoreName } from "@metro";
 import { Message } from "./def";
 import { fakenitroSettings } from "./storage";
 const { getCustomEmojiById } = findByStoreName("EmojiStore");
+const { getStickerById } = findByStoreName("StickersStore");
 const { getGuildId } = findByStoreName("SelectedGuildStore");
 
 // https://github.com/luimu64/nitro-spoof/blob/1bb75a2471c39669d590bfbabeb7b922672929f5/index.js#L25
@@ -41,7 +42,7 @@ function extractUnusableEmojis(messageString: string, size: number) {
 	};
 }
 
-export default function modifyIfNeeded(msg: Message) {
+export function modifyIfNeeded(msg: Message) {
 	if (!msg.content.match(hasEmotesRegex)) return;
 
 	// Find all emojis from the captured message string and return object with emojiURLS and content
@@ -57,4 +58,15 @@ export default function modifyIfNeeded(msg: Message) {
 
 	// Set invalidEmojis to empty to prevent Discord yelling to you about you not having nitro
 	msg.invalidEmojis = [];
+}
+
+export function buildStickerURL(sticker: string) {
+	switch (getStickerById(sticker).format_type) {
+		case 1:
+			return `https://media.discordapp.net/stickers/${sticker}.png`;
+		case 2:
+			return `https://media.discordapp.net/stickers/${sticker}.png?size=160`; //apng - todo add size selection in settings
+		default:
+			return `https://media.discordapp.net/stickers/${sticker}.gif`;
+	}
 }
