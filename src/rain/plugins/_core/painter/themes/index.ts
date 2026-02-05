@@ -11,6 +11,7 @@ import { applyAndroidAlphaKeys, normalizeToHex } from "./parser";
 import { waitForColorsPrefHydration } from "./preferences";
 import { VendettaThemeManifest } from "./types";
 import { updateBunnyColor } from "./updater";
+import fixStatusBar, { patchKeyboardAppearance } from "./devices";
 
 export interface VdThemeInfo {
     id: string;
@@ -311,6 +312,10 @@ export async function initThemes() {
         }
 
         updateThemes().catch(e => console.error("Failed to update themes", e));
+
+        fixStatusBar();
+        patchKeyboardAppearance();
+
     } catch (e) {
         console.error("Failed to initialize themes", e);
     }

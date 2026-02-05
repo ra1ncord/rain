@@ -10,6 +10,8 @@ import { _colorRef } from "../updater";
 const tokenReference = findByProps("SemanticColor");
 const isThemeModule = createLazyModule(byMutableProp("isThemeDark"));
 
+const origRawColor = { ...tokenReference.RawColor };
+
 const SEMANTIC_FALLBACK_MAP: Record<string, string> = {
     "BG_BACKDROP": "BACKGROUND_FLOATING",
     "BG_BASE_PRIMARY": "BACKGROUND_PRIMARY",
@@ -23,7 +25,12 @@ const SEMANTIC_FALLBACK_MAP: Record<string, string> = {
     "BG_SURFACE_RAISED": "BACKGROUND_MOBILE_PRIMARY"
 };
 
-const origRawColor = { ...tokenReference.RawColor };
+const RAW_FALLBACK_MAP: Record<string, string> = {
+    "PRIMARY_700": origRawColor.PRIMARY_800 || origRawColor.PRIMARY_600,
+    "PRIMARY_300": origRawColor.PRIMARY_800 || origRawColor.PRIMARY_600,
+    "PRIMARY_230": origRawColor.PRIMARY_800 || origRawColor.PRIMARY_600,
+    "PRIMARY_100": origRawColor.PRIMARY_800 || origRawColor.PRIMARY_600,
+};
 
 export default function patchDefinitionAndResolver() {
     const callback = ([theme]: any[]) => theme === _colorRef.key ? [_colorRef.current!.reference] : void 0;
@@ -35,7 +42,10 @@ export default function patchDefinitionAndResolver() {
             get: () => {
                 const ret = _colorRef.current?.raw[key];
                 if (ret) return ret;
-
+                
+                const fallback = RAW_FALLBACK_MAP[key];
+                if (fallback) return fallback;
+                
                 return origRawColor[key];
             }
         });
@@ -67,6 +77,11 @@ export default function patchDefinitionAndResolver() {
             if (rawValue) {
                 // Set opacity if needed
                 return colorDef.opacity === 1 ? rawValue : chroma(rawValue).alpha(colorDef.opacity).hex();
+            }
+
+            const fallbackValue = RAW_FALLBACK_MAP[colorDef.raw];
+            if (fallbackValue) {
+                return colorDef.opacity === 1 ? fallbackValue : chroma(fallbackValue).alpha(colorDef.opacity).hex();
             }
 
             // Fallback to default
