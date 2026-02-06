@@ -4,6 +4,14 @@ export interface Message {
 	invalidEmojis: any[];
 }
 
+export interface Sticker {
+	id: string;
+	name: string;
+	format_type: number;
+	guild_id: number;
+	pack_id: string;
+}
+
 export declare enum EmbedType {
 	Article = "article",
 	Image = "image",

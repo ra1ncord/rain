@@ -1,5 +1,5 @@
 import { findByStoreName } from "@metro";
-import { Message } from "./def";
+import {Message, Sticker} from "./def";
 import { fakenitroSettings } from "./storage";
 const { getCustomEmojiById } = findByStoreName("EmojiStore");
 const { getStickerById } = findByStoreName("StickersStore");
@@ -54,18 +54,18 @@ export function modifyIfNeeded(msg: Message) {
 	msg.content = newContent;
 
 	if (extractedEmojis.length > 0)
-		msg.content += "\n" + extractedEmojis.join("\n");
+		msg.content += "\n" + extractedEmojis.join("\ni");
 
 	// Set invalidEmojis to empty to prevent Discord yelling to you about you not having nitro
 	msg.invalidEmojis = [];
 }
 
-export function buildStickerURL(sticker: string) {
-	switch (getStickerById(sticker).format_type) {
+export function buildStickerURL(sticker: Sticker) {
+	switch (sticker.format_type) {
 		case 1:
 			return `https://media.discordapp.net/stickers/${sticker}.png`;
 		case 2:
-			return `https://media.discordapp.net/stickers/${sticker}.png?size=160`; //apng - todo add size selection in settings
+			return `https://media.discordapp.net/stickers/${sticker}.png`; //apng - todo make xposed module for local conversion
 		default:
 			return `https://media.discordapp.net/stickers/${sticker}.gif`;
 	}

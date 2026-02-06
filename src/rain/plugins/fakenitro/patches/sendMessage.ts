@@ -25,7 +25,7 @@ const patches = [
 		//dont care if its a server sticker
 		if (channel === sticker.guild_id) return origFunc(...args);
 		let stickerName = sticker.name ?? "FakeNitroSticker";
-		let stickerURL = buildStickerURL(sticker.id);
+		let stickerURL = buildStickerURL(sticker);
 		if (stickerName) stickerURL = `[${stickerName}](${stickerURL})`;
 		messageModule.sendMessage(args[0], {content: stickerURL}, null, args[3]);
 	}),

@@ -11,10 +11,11 @@ const animatedGifRegex = /https:\/\/media\.discordapp\.net\/stickers\/(\d+)\.gif
 const attachmentGifRegex = /https:\/\/media\.discordapp\.net\/attachments\/\d+\/\d+\/(\d+)\.gif/;
 
 function makeStickerItem(id: string, format: number) {
+    const sticker = getStickerById(id);
     return [{
         id,
-        format_type: getStickerById(id)?.format_type ?? format, // fallback
-        name: getStickerById(id)?.name ?? "FakeNitroSticker"
+        format_type: sticker?.format_type ?? format, // fallback
+        name: sticker?.name ?? "FakeNitroSticker"
     }];
 }
 
