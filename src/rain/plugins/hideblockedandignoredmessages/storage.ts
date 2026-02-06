@@ -3,14 +3,12 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { fileExists, readFile, writeFile } from "@api/native/fs";
 
 interface Settings {
-	emojiSize: number;
-	hyperLink: boolean;
-	transformEmoji: boolean;
-	stickerHyperLink: boolean;
-	transformSticker: boolean;
+	blocked: boolean;
+	ignored: boolean;
+	removeReplies: boolean;
 }
 
-interface FakeNitroSettingsStore extends Settings {
+interface HideBlockedAndIgnoredMessagesSettingsStore extends Settings {
 	updateSettings: (settings: Partial<Settings>) => void;
 	_hasHydrated: boolean;
 	setHasHydrated: (state: boolean) => void;
@@ -41,23 +39,21 @@ const createFileStorage = (filePath: string) => {
 	};
 };
 
-export const useFakeNitroSettings = create<FakeNitroSettingsStore>()(
+export const useHideBlockedAndIgnoredMessagesSettings = create<HideBlockedAndIgnoredMessagesSettingsStore>()(
 	persist(
 		(set) => ({
-			emojiSize: 48,
-			hyperLink: true,
-			transformEmoji: true,
-			stickerHyperLink: true,
-			transformSticker: true,
+			blocked: true,
+			ignored: true,
+			removeReplies: true,
 			_hasHydrated: false,
 			updateSettings: (newSettings) =>
 				set((state) => ({ ...state, ...newSettings })),
 			setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
 		}),
 		{
-			name: "fakenitro-settings",
+			name: "hideblockedandignoredmessages-settings",
 			storage: createJSONStorage(() =>
-				createFileStorage("plugins/fakenitro.json"),
+				createFileStorage("plugins/hideblockedandignored.json"),
 			),
 			onRehydrateStorage: () => (state) => {
 				state?.setHasHydrated(true);
@@ -66,14 +62,14 @@ export const useFakeNitroSettings = create<FakeNitroSettingsStore>()(
 	),
 );
 
-export async function waitForFakeNitroSettingsHydration(): Promise<void> {
+export async function waitForHideBlockedAndIgnoredMessagesSettingsHydration(): Promise<void> {
 	return new Promise((resolve) => {
-		if (useFakeNitroSettings.getState()._hasHydrated) {
+		if (useHideBlockedAndIgnoredMessagesSettings.getState()._hasHydrated) {
 			resolve();
 			return;
 		}
 
-		const unsubscribe = useFakeNitroSettings.subscribe((state) => {
+		const unsubscribe = useHideBlockedAndIgnoredMessagesSettings.subscribe((state) => {
 			if (state._hasHydrated) {
 				unsubscribe();
 				resolve();
@@ -87,12 +83,12 @@ export async function waitForFakeNitroSettingsHydration(): Promise<void> {
 	});
 }
 
-export const fakenitroSettings = new Proxy({} as Settings, {
+export const hideblockedandignoredmessagesSettings = new Proxy({} as Settings, {
 	get(target, prop: string) {
-		return useFakeNitroSettings.getState()[prop as keyof Settings];
+		return useHideBlockedAndIgnoredMessagesSettings.getState()[prop as keyof Settings];
 	},
 	set(target, prop: string, value: any) {
-		useFakeNitroSettings
+		useHideBlockedAndIgnoredMessagesSettings
 			.getState()
 			.updateSettings({ [prop]: value } as Partial<Settings>);
 		return true;

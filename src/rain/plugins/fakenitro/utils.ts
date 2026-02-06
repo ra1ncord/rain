@@ -1,7 +1,8 @@
 import { findByStoreName } from "@metro";
-import { Message } from "./def";
+import {Message, Sticker} from "./def";
 import { fakenitroSettings } from "./storage";
 const { getCustomEmojiById } = findByStoreName("EmojiStore");
+const { getStickerById } = findByStoreName("StickersStore");
 const { getGuildId } = findByStoreName("SelectedGuildStore");
 
 // https://github.com/luimu64/nitro-spoof/blob/1bb75a2471c39669d590bfbabeb7b922672929f5/index.js#L25
@@ -24,7 +25,7 @@ function extractUnusableEmojis(messageString: string, size: number) {
 				? `&animated=${emoji.animated}`
 				: "";
 			// Add to emotes to send
-			if (fakenitroSettings.hyperLink === true)
+			if (fakenitroSettings.hyperLink)
 				emojiUrls.push(
 					`[${emoji.name}](${url.split("?")[0]}?size=${size}&name=${emoji.name}${animated})`,
 				);
@@ -41,7 +42,7 @@ function extractUnusableEmojis(messageString: string, size: number) {
 	};
 }
 
-export default function modifyIfNeeded(msg: Message) {
+export function modifyIfNeeded(msg: Message) {
 	if (!msg.content.match(hasEmotesRegex)) return;
 
 	// Find all emojis from the captured message string and return object with emojiURLS and content
@@ -53,8 +54,19 @@ export default function modifyIfNeeded(msg: Message) {
 	msg.content = newContent;
 
 	if (extractedEmojis.length > 0)
-		msg.content += "\n" + extractedEmojis.join("\n");
+		msg.content += "\n" + extractedEmojis.join("\ni");
 
 	// Set invalidEmojis to empty to prevent Discord yelling to you about you not having nitro
 	msg.invalidEmojis = [];
+}
+
+export function buildStickerURL(sticker: Sticker) {
+	switch (sticker.format_type) {
+		case 1:
+			return `https://media.discordapp.net/stickers/${sticker.id}.png`;
+		case 2:
+			return `https://media.discordapp.net/stickers/${sticker.id}.png`; //apng - todo make xposed module for local conversion
+		default:
+			return `https://media.discordapp.net/stickers/${sticker.id}.gif`;
+	}
 }
