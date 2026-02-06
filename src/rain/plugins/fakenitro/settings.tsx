@@ -69,6 +69,22 @@ export default () => {
 					value={fakenitroSettings.transformEmoji}
 				/>
 			</TableRowGroup>
+			<TableRowGroup title="Stickers" titleStyleType="no_border">
+				<TableSwitchRow
+					label="Use hyperlinks when sending fake stickers"
+					onValueChange={(v: boolean) => {
+						fakenitroSettings.stickerHyperLink = v;
+					}}
+					value={fakenitroSettings.stickerHyperLink}
+				/>
+				<TableSwitchRow
+					label="Transform fake stickers into real ones"
+					onValueChange={(v: boolean) => {
+						fakenitroSettings.transformSticker = v;
+					}}
+					value={fakenitroSettings.transformSticker}
+				/>
+			</TableRowGroup>
 		</Stack>
 	);
 };
