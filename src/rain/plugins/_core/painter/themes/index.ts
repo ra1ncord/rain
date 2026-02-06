@@ -314,7 +314,6 @@ export async function initThemes() {
         updateThemes().catch(e => console.error("Failed to update themes", e));
 
         fixStatusBar();
-        //patchKeyboardAppearance();
 
     } catch (e) {
         console.error("Failed to initialize themes", e);
