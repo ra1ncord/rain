@@ -4,6 +4,7 @@ import { Stack, TableRadioGroup, TableRadioRow, TableRow,TableRowGroup, TableSwi
 import React from "react";
 
 import { useBetterChatButtonsSettings } from "./storage";
+import { ScrollView } from "react-native";
 
 export default function BetterChatButtonsSettings() {
     const settings = useBetterChatButtonsSettings();
@@ -40,7 +41,7 @@ export default function BetterChatButtonsSettings() {
     };
 
     return (
-        <ReactNative.ScrollView style={{ flex: 1 }}>
+        <ScrollView style={{ flex: 1 }}>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
                 <TableRowGroup title="Hide Action Buttons">
                     <TableSwitchRow
@@ -106,6 +107,6 @@ export default function BetterChatButtonsSettings() {
                     />
                 </TableRadioGroup>
             </Stack>
-        </ReactNative.ScrollView>
+        </ScrollView>
     );
 }
