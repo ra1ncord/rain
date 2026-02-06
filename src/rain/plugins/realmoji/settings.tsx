@@ -1,5 +1,5 @@
 import {findByProps} from "@metro";
-import {realnitroSettings} from "./storage";
+import {realmojiSettings} from "./storage";
 import {ScrollView} from "react-native";
 
 const {
@@ -19,18 +19,18 @@ export default () => {
                     <TableSwitchRow
                         label="Transform fake emojis into real ones"
                         onValueChange={(v: boolean) => {
-                            realnitroSettings.transformEmoji = v;
+                            realmojiSettings.transformEmoji = v;
                         }}
-                        value={realnitroSettings.transformEmoji}
+                        value={realmojiSettings.transformEmoji}
                     />
                 </TableRowGroup>
                 <TableRowGroup title="Stickers" titleStyleType="no_border">
                     <TableSwitchRow
                         label="Transform fake stickers into real ones"
                         onValueChange={(v: boolean) => {
-                            realnitroSettings.transformSticker = v;
+                            realmojiSettings.transformSticker = v;
                         }}
-                        value={realnitroSettings.transformSticker}
+                        value={realmojiSettings.transformSticker}
                     />
                 </TableRowGroup>
             </Stack>

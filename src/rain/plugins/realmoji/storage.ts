@@ -7,7 +7,7 @@ interface Settings {
 	transformSticker: boolean;
 }
 
-interface RealNitroSettingsStore extends Settings {
+interface RealMojiSettingsStore extends Settings {
 	updateSettings: (settings: Partial<Settings>) => void;
 	_hasHydrated: boolean;
 	setHasHydrated: (state: boolean) => void;
@@ -38,7 +38,7 @@ const createFileStorage = (filePath: string) => {
 	};
 };
 
-export const useRealNitroSettings = create<RealNitroSettingsStore>()(
+export const useRealMojiSettings = create<RealMojiSettingsStore>()(
 	persist(
 		(set) => ({
 			transformEmoji: true,
@@ -49,9 +49,9 @@ export const useRealNitroSettings = create<RealNitroSettingsStore>()(
 			setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
 		}),
 		{
-			name: "realnitro-settings",
+			name: "realmoji-settings",
 			storage: createJSONStorage(() =>
-				createFileStorage("plugins/realnitro.json"),
+				createFileStorage("plugins/realmoji.json"),
 			),
 			onRehydrateStorage: () => (state) => {
 				state?.setHasHydrated(true);
@@ -60,14 +60,14 @@ export const useRealNitroSettings = create<RealNitroSettingsStore>()(
 	),
 );
 
-export async function waitForRealNitroSettingsHydration(): Promise<void> {
+export async function waitForRealMojiSettingsHydration(): Promise<void> {
 	return new Promise((resolve) => {
-		if (useRealNitroSettings.getState()._hasHydrated) {
+		if (useRealMojiSettings.getState()._hasHydrated) {
 			resolve();
 			return;
 		}
 
-		const unsubscribe = useRealNitroSettings.subscribe((state) => {
+		const unsubscribe = useRealMojiSettings.subscribe((state) => {
 			if (state._hasHydrated) {
 				unsubscribe();
 				resolve();
@@ -81,12 +81,12 @@ export async function waitForRealNitroSettingsHydration(): Promise<void> {
 	});
 }
 
-export const realnitroSettings = new Proxy({} as Settings, {
+export const realmojiSettings = new Proxy({} as Settings, {
 	get(target, prop: string) {
-		return useRealNitroSettings.getState()[prop as keyof Settings];
+		return useRealMojiSettings.getState()[prop as keyof Settings];
 	},
 	set(target, prop: string, value: any) {
-		useRealNitroSettings
+		useRealMojiSettings
 			.getState()
 			.updateSettings({ [prop]: value } as Partial<Settings>);
 		return true;

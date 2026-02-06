@@ -1,7 +1,7 @@
 import { after, before } from "@api/patcher";
 import { findByName, findByStoreName } from "@metro";
 import { Embed, Message } from "../def";
-import {realnitroSettings} from "../storage";
+import {realmojiSettings} from "../storage";
 
 const { getCustomEmojiById } = findByStoreName("EmojiStore");
 const RowManager = findByName("RowManager");
@@ -9,7 +9,7 @@ const emojiRegex = /https:\/\/cdn.discordapp.com\/emojis\/(\d+)\.\w+/;
 
 export default [
 	before("generate", RowManager.prototype, ([data]) => {
-		if (data.rowType !== 1 || !realnitroSettings.transformEmoji) return;
+		if (data.rowType !== 1 || !realmojiSettings.transformEmoji) return;
 
 		let content = data.message.content as string;
 		if (!content?.length) return;
@@ -36,7 +36,7 @@ export default [
 		data.__realmoji = true;
 	}),
 	after("generate", RowManager.prototype, ([data], row) => {
-		if (data.rowType !== 1 || data.__realmoji !== true || !realnitroSettings.transformEmoji) return;
+		if (data.rowType !== 1 || data.__realmoji !== true || !realmojiSettings.transformEmoji) return;
 		const { content } = row.message as Message;
 		if (!Array.isArray(content)) return;
 
