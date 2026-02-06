@@ -1,6 +1,7 @@
 import { after, before } from "@api/patcher";
 import { findByName, findByStoreName } from "@metro";
 import { Embed, Message } from "../def";
+import {fakenitroSettings} from "@plugins/fakenitro/storage";
 
 const { getCustomEmojiById } = findByStoreName("EmojiStore");
 const RowManager = findByName("RowManager");
@@ -8,7 +9,7 @@ const emojiRegex = /https:\/\/cdn.discordapp.com\/emojis\/(\d+)\.\w+/;
 
 export default [
 	before("generate", RowManager.prototype, ([data]) => {
-		if (data.rowType !== 1) return;
+		if (data.rowType !== 1 || !fakenitroSettings.transformEmoji) return;
 
 		let content = data.message.content as string;
 		if (!content?.length) return;
@@ -35,7 +36,7 @@ export default [
 		data.__realmoji = true;
 	}),
 	after("generate", RowManager.prototype, ([data], row) => {
-		if (data.rowType !== 1 || data.__realmoji !== true) return;
+		if (data.rowType !== 1 || data.__realmoji !== true || !fakenitroSettings.transformEmoji) return;
 		const { content } = row.message as Message;
 		if (!Array.isArray(content)) return;
 

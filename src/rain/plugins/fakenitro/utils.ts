@@ -25,7 +25,7 @@ function extractUnusableEmojis(messageString: string, size: number) {
 				? `&animated=${emoji.animated}`
 				: "";
 			// Add to emotes to send
-			if (fakenitroSettings.hyperLink === true)
+			if (fakenitroSettings.hyperLink)
 				emojiUrls.push(
 					`[${emoji.name}](${url.split("?")[0]}?size=${size}&name=${emoji.name}${animated})`,
 				);

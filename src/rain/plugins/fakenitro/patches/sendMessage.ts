@@ -1,6 +1,7 @@
 import { before,instead } from "@api/patcher";
 import { findByProps, findByStoreName } from "@metro";
 import {modifyIfNeeded, buildStickerURL} from "../utils";
+import {fakenitroSettings} from "../storage";
 
 const messageModule = findByProps("sendMessage", "receiveMessage");
 const uploadModule = findByProps("uploadLocalFiles");
@@ -26,7 +27,7 @@ const patches = [
 		if (channel === sticker.guild_id) return origFunc(...args);
 		let stickerName = sticker.name ?? "FakeNitroSticker";
 		let stickerURL = buildStickerURL(sticker);
-		if (stickerName) stickerURL = `[${stickerName}](${stickerURL})`;
+		if (stickerName) stickerURL = fakenitroSettings.stickerHyperLink ? `[${stickerName}](${stickerURL})` : stickerURL;
 		messageModule.sendMessage(args[0], {content: stickerURL}, null, args[3]);
 	}),
 ];

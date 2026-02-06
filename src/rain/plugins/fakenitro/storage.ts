@@ -6,6 +6,8 @@ interface Settings {
 	emojiSize: number;
 	hyperLink: boolean;
 	transformEmoji: boolean;
+	stickerHyperLink: boolean;
+	transformSticker: boolean;
 }
 
 interface FakeNitroSettingsStore extends Settings {
@@ -45,6 +47,8 @@ export const useFakeNitroSettings = create<FakeNitroSettingsStore>()(
 			emojiSize: 48,
 			hyperLink: true,
 			transformEmoji: true,
+			stickerHyperLink: true,
+			transformSticker: true,
 			_hasHydrated: false,
 			updateSettings: (newSettings) =>
 				set((state) => ({ ...state, ...newSettings })),
