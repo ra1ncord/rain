@@ -63,10 +63,10 @@ export function modifyIfNeeded(msg: Message) {
 export function buildStickerURL(sticker: Sticker) {
 	switch (sticker.format_type) {
 		case 1:
-			return `https://media.discordapp.net/stickers/${sticker}.png`;
+			return `https://media.discordapp.net/stickers/${sticker.id}.png`;
 		case 2:
-			return `https://media.discordapp.net/stickers/${sticker}.png`; //apng - todo make xposed module for local conversion
+			return `https://media.discordapp.net/stickers/${sticker.id}.png`; //apng - todo make xposed module for local conversion
 		default:
-			return `https://media.discordapp.net/stickers/${sticker}.gif`;
+			return `https://media.discordapp.net/stickers/${sticker.id}.gif`;
 	}
 }
