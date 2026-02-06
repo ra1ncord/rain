@@ -4,7 +4,6 @@ import {ReactNative as RN} from "@metro/common";
 import {ScrollView} from "react-native";
 
 const {
-    TableRow,
     TableSwitchRow,
     TableRadioGroup,
     TableRadioRow,
@@ -63,13 +62,6 @@ export default () => {
                         }}
                         value={fakenitroSettings.hyperLink}
                     />
-                    <TableSwitchRow
-                        label="Transform fake emojis into real ones"
-                        onValueChange={(v: boolean) => {
-                            fakenitroSettings.transformEmoji = v;
-                        }}
-                        value={fakenitroSettings.transformEmoji}
-                    />
                 </TableRowGroup>
                 <TableRowGroup title="Stickers" titleStyleType="no_border">
                     <TableSwitchRow
@@ -78,13 +70,6 @@ export default () => {
                             fakenitroSettings.stickerHyperLink = v;
                         }}
                         value={fakenitroSettings.stickerHyperLink}
-                    />
-                    <TableSwitchRow
-                        label="Transform fake stickers into real ones"
-                        onValueChange={(v: boolean) => {
-                            fakenitroSettings.transformSticker = v;
-                        }}
-                        value={fakenitroSettings.transformSticker}
                     />
                 </TableRowGroup>
             </Stack>

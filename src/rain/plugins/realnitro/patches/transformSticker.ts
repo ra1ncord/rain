@@ -1,6 +1,6 @@
 import { before } from "@api/patcher";
 import { findByName, findByStoreName } from "@metro";
-import {fakenitroSettings} from "@plugins/fakenitro/storage";
+import {realnitroSettings} from "../storage";
 
 // heavily based off the godsent work of: https://github.com/Vendicated/Vencord/blob/575421f4d06fe6cda9c1cb3227060a20cd1c700f/src/plugins/fakeNitro/index.tsx
 
@@ -22,7 +22,7 @@ function makeStickerItem(id: string, format: number) {
 
 export default [
     before("generate", RowManager.prototype, ([data]) => {
-        if (data.rowType !== 1 || !fakenitroSettings.transformSticker) return;
+        if (data.rowType !== 1 || !realnitroSettings.transformSticker) return;
 
         const content = data.message.content;
         if (!content) return;

@@ -3,12 +3,11 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { fileExists, readFile, writeFile } from "@api/native/fs";
 
 interface Settings {
-	emojiSize: number;
-	hyperLink: boolean;
-	stickerHyperLink: boolean;
+	transformEmoji: boolean;
+	transformSticker: boolean;
 }
 
-interface FakeNitroSettingsStore extends Settings {
+interface RealNitroSettingsStore extends Settings {
 	updateSettings: (settings: Partial<Settings>) => void;
 	_hasHydrated: boolean;
 	setHasHydrated: (state: boolean) => void;
@@ -39,21 +38,20 @@ const createFileStorage = (filePath: string) => {
 	};
 };
 
-export const useFakeNitroSettings = create<FakeNitroSettingsStore>()(
+export const useRealNitroSettings = create<RealNitroSettingsStore>()(
 	persist(
 		(set) => ({
-			emojiSize: 48,
-			hyperLink: true,
-			stickerHyperLink: true,
+			transformEmoji: true,
+			transformSticker: true,
 			_hasHydrated: false,
 			updateSettings: (newSettings) =>
 				set((state) => ({ ...state, ...newSettings })),
 			setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
 		}),
 		{
-			name: "fakenitro-settings",
+			name: "realnitro-settings",
 			storage: createJSONStorage(() =>
-				createFileStorage("plugins/fakenitro.json"),
+				createFileStorage("plugins/realnitro.json"),
 			),
 			onRehydrateStorage: () => (state) => {
 				state?.setHasHydrated(true);
@@ -62,14 +60,14 @@ export const useFakeNitroSettings = create<FakeNitroSettingsStore>()(
 	),
 );
 
-export async function waitForFakeNitroSettingsHydration(): Promise<void> {
+export async function waitForRealNitroSettingsHydration(): Promise<void> {
 	return new Promise((resolve) => {
-		if (useFakeNitroSettings.getState()._hasHydrated) {
+		if (useRealNitroSettings.getState()._hasHydrated) {
 			resolve();
 			return;
 		}
 
-		const unsubscribe = useFakeNitroSettings.subscribe((state) => {
+		const unsubscribe = useRealNitroSettings.subscribe((state) => {
 			if (state._hasHydrated) {
 				unsubscribe();
 				resolve();
@@ -83,12 +81,12 @@ export async function waitForFakeNitroSettingsHydration(): Promise<void> {
 	});
 }
 
-export const fakenitroSettings = new Proxy({} as Settings, {
+export const realnitroSettings = new Proxy({} as Settings, {
 	get(target, prop: string) {
-		return useFakeNitroSettings.getState()[prop as keyof Settings];
+		return useRealNitroSettings.getState()[prop as keyof Settings];
 	},
 	set(target, prop: string, value: any) {
-		useFakeNitroSettings
+		useRealNitroSettings
 			.getState()
 			.updateSettings({ [prop]: value } as Partial<Settings>);
 		return true;
