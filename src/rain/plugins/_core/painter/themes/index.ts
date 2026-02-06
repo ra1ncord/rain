@@ -11,7 +11,7 @@ import { applyAndroidAlphaKeys, normalizeToHex } from "./parser";
 import { waitForColorsPrefHydration } from "./preferences";
 import { VendettaThemeManifest } from "./types";
 import { updateBunnyColor } from "./updater";
-import fixStatusBar from "./devices";
+import { fixStatusBar } from "./devices";
 
 export interface VdThemeInfo {
     id: string;

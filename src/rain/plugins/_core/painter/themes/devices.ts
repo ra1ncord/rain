@@ -11,9 +11,8 @@ function getBarColor() {
     }
 }
 
-export default function fixStatusBar() {
+export function fixStatusBar() {
     setInterval(() => { 
         StatusBar.setBarStyle(getBarColor(), true); 
-        Keyboard
     }, 200)
 }
