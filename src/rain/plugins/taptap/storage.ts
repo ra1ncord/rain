@@ -1,4 +1,5 @@
 import { fileExists, readFile, writeFile } from "@api/native/fs";
+import { createFileStorage } from "@api/storage";
 import { ReactNative } from "@metro/common";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
@@ -17,31 +18,6 @@ interface TapTapSettingsStore extends Settings {
     _hasHydrated: boolean;
     setHasHydrated: (state: boolean) => void;
 }
-
-const createFileStorage = (filePath: string) => {
-    return {
-        getItem: async (name: string): Promise<string | null> => {
-            try {
-                const exists = await fileExists(filePath);
-                if (!exists) return null;
-                return await readFile(filePath);
-            } catch (e) {
-                console.error(`Failed to read storage from '${filePath}'`, e);
-                return null;
-            }
-        },
-        setItem: async (name: string, value: string): Promise<void> => {
-            try {
-                await writeFile(filePath, value);
-            } catch (e) {
-                console.error(`Failed to write storage to '${filePath}'`, e);
-            }
-        },
-        removeItem: async (name: string): Promise<void> => {
-            // maybe this should be implemented :P
-        },
-    };
-};
 
 export const useTapTapSettings = create<TapTapSettingsStore>()(
     persist(
@@ -65,29 +41,6 @@ export const useTapTapSettings = create<TapTapSettingsStore>()(
         }
     )
 );
-
-export async function waitForTapTapHydration(): Promise<void> {
-    return new Promise(resolve => {
-        if (useTapTapSettings.getState()._hasHydrated) {
-            resolve();
-            return;
-        }
-
-        const unsubscribe = useTapTapSettings.subscribe(
-            state => {
-                if (state._hasHydrated) {
-                    unsubscribe();
-                    resolve();
-                }
-            }
-        );
-
-        setTimeout(() => {
-            unsubscribe();
-            resolve();
-        }, 5000);
-    });
-}
 
 export const taptapSettings = new Proxy({} as Settings, {
     get(target, prop: string) {

@@ -1,4 +1,5 @@
 import { fileExists, readFile, writeFile } from "@api/native/fs";
+import { createFileStorage } from "@api/storage";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
 
@@ -12,30 +13,6 @@ interface CleanUrlsSettingsStore extends Settings {
     _hasHydrated: boolean;
     setHasHydrated: (state: boolean) => void;
 }
-
-const createFileStorage = (filePath: string) => {
-    return {
-        getItem: async (name: string): Promise<string | null> => {
-            try {
-                const exists = await fileExists(filePath);
-                if (!exists) return null;
-                return await readFile(filePath);
-            } catch (e) {
-                console.error(`Failed to read storage from '${filePath}'`, e);
-                return null;
-            }
-        },
-        setItem: async (name: string, value: string): Promise<void> => {
-            try {
-                await writeFile(filePath, value);
-            } catch (e) {
-                console.error(`Failed to write storage to '${filePath}'`, e);
-            }
-        },
-        removeItem: async (name: string): Promise<void> => {
-        },
-    };
-};
 
 export const useCleanUrlsSettings = create<CleanUrlsSettingsStore>()(
     persist(
@@ -55,29 +32,6 @@ export const useCleanUrlsSettings = create<CleanUrlsSettingsStore>()(
         }
     )
 );
-
-export async function waitForCleanUrlsHydration(): Promise<void> {
-    return new Promise(resolve => {
-        if (useCleanUrlsSettings.getState()._hasHydrated) {
-            resolve();
-            return;
-        }
-
-        const unsubscribe = useCleanUrlsSettings.subscribe(
-            state => {
-                if (state._hasHydrated) {
-                    unsubscribe();
-                    resolve();
-                }
-            }
-        );
-
-        setTimeout(() => {
-            unsubscribe();
-            resolve();
-        }, 5000);
-    });
-}
 
 export const cleanUrlsSettings = new Proxy({} as Settings, {
     get(target, prop: string) {

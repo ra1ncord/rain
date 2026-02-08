@@ -4,7 +4,8 @@ import { logger } from "@lib/utils/logger";
 import { findByProps, findByStoreName } from "@metro/wrappers";
 import { ReactNative } from "@metro/common";
 import TapTapSettings from "./settings";
-import { taptapSettings, waitForTapTapHydration } from "./storage";
+import { taptapSettings, useTapTapSettings } from "./storage";
+import { waitForHydration } from "@api/storage";
 
 type Unpatch = () => void;
 
@@ -353,7 +354,7 @@ export default definePlugin({
     id: "taptap",
     version: "v1.0.0",
     async start() {
-        await waitForTapTapHydration();
+        await waitForHydration(useTapTapSettings);
 
         resolveRuntimeModules();
 

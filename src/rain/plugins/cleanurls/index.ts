@@ -2,9 +2,10 @@ import { logger } from "@lib/utils/logger";
 import { definePlugin } from "@plugins";
 
 import { setupPatches } from "./patcher";
-import { useRulesStore,waitForRulesHydration } from "./rulesStore";
+import { useRulesStore } from "./rulesStore";
 import CleanUrlsSettings from "./settings";
-import { waitForCleanUrlsHydration } from "./storage";
+import { useCleanUrlsSettings } from "./storage";
+import { waitForHydration } from "@api/storage";
 
 type Unpatch = () => void;
 
@@ -18,8 +19,8 @@ export default definePlugin({
     version: "v1.0.0",
     async start() {
         await Promise.all([
-            waitForCleanUrlsHydration(),
-            waitForRulesHydration()
+            waitForHydration(useCleanUrlsSettings),
+            waitForHydration(useRulesStore)
         ]);
 
         patches = setupPatches();

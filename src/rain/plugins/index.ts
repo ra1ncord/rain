@@ -1,35 +1,10 @@
-import { fileExists, readFile, writeFile } from "@api/native/fs";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
 
 import * as t from "./types";
+import { createFileStorage } from "@api/storage";
 
 export const pluginInstances = new Map<string, t.rainPlugin>();
-
-const createFileStorage = (filePath: string) => {
-    return {
-        getItem: async (name: string): Promise<string | null> => {
-            try {
-                const exists = await fileExists(filePath);
-                if (!exists) return null;
-                return await readFile(filePath);
-            } catch (e) {
-                console.error(`Failed to read storage from '${filePath}'`, e);
-                return null;
-            }
-        },
-        setItem: async (name: string, value: string): Promise<void> => {
-            try {
-                await writeFile(filePath, value);
-            } catch (e) {
-                console.error(`Failed to write storage to '${filePath}'`, e);
-            }
-        },
-        removeItem: async (name: string): Promise<void> => {
-            // we dont need this
-        },
-    };
-};
 
 interface PluginSettingsStore {
     settings: t.PluginSettingsStorage;

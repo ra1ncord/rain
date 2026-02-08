@@ -55,3 +55,24 @@ export const createFlattenedFileStorage = <T>(filePath: string) => {
         removeItem: async () => {},
     };
 };
+
+export async function waitForHydration(usePluginSettings: any): Promise<void> {
+    return new Promise((resolve) => {
+        if (usePluginSettings.getState()._hasHydrated) {
+            resolve();
+            return;
+        }
+
+        const unsubscribe = usePluginSettings.subscribe((state: any) => {
+            if (state._hasHydrated) {
+                unsubscribe();
+                resolve();
+            }
+        });
+
+        setTimeout(() => {
+            unsubscribe();
+            resolve();
+        }, 5000);
+    });
+}

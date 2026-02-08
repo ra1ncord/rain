@@ -1,4 +1,4 @@
-import { fileExists, readFile, writeFile } from "@api/native/fs";
+import { createFileStorage } from "@api/storage";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
 
@@ -16,31 +16,6 @@ interface ColorsPrefStore extends BunnyColorPreferencesStorage {
     _hasHydrated: boolean;
     setHasHydrated: (state: boolean) => void;
 }
-
-const createFileStorage = (filePath: string) => {
-    return {
-        getItem: async (name: string): Promise<string | null> => {
-            try {
-                const exists = await fileExists(filePath);
-                if (!exists) return null;
-                return await readFile(filePath);
-            } catch (e) {
-                console.error(`Failed to read storage from '${filePath}'`, e);
-                return null;
-            }
-        },
-        setItem: async (name: string, value: string): Promise<void> => {
-            try {
-                await writeFile(filePath, value);
-            } catch (e) {
-                console.error(`Failed to write storage to '${filePath}'`, e);
-            }
-        },
-        removeItem: async (name: string): Promise<void> => {
-            // who goes here anyway
-        },
-    };
-};
 
 export const useColorsPref = create<ColorsPrefStore>()(
     persist(

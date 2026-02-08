@@ -1,4 +1,5 @@
 import { clearFolder, downloadFile, fileExists, readFile, removeFile,writeFile } from "@api/native/fs";
+import { createFileStorage, waitForHydration } from "@api/storage";
 import { safeFetch } from "@lib/utils";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
@@ -15,31 +16,6 @@ export type FontDefinition = {
 };
 
 type FontStorage = Record<string, FontDefinition> & { __selected?: string; };
-
-const createFileStorage = (filePath: string) => {
-    return {
-        getItem: async (name: string): Promise<string | null> => {
-            try {
-                const exists = await fileExists(filePath);
-                if (!exists) return null;
-                return await readFile(filePath);
-            } catch (e) {
-                console.error(`Failed to read storage from '${filePath}'`, e);
-                return null;
-            }
-        },
-        setItem: async (name: string, value: string): Promise<void> => {
-            try {
-                await writeFile(filePath, value);
-            } catch (e) {
-                console.error(`Failed to write storage to '${filePath}'`, e);
-            }
-        },
-        removeItem: async (name: string): Promise<void> => {
-            // not real
-        },
-    };
-};
 
 interface FontsStore {
     fonts: FontStorage;
@@ -86,8 +62,8 @@ export const useFonts = create<FontsStore>()(
             }
         }),
         {
-            name: "bunny-fonts",
-            storage: createJSONStorage(() => createFileStorage("BUNNY_FONTS")),
+            name: "rain-fonts",
+            storage: createJSONStorage(() => createFileStorage("RAIN_FONTS")),
             onRehydrateStorage: () => state => {
                 state?.setHasHydrated(true);
             }
@@ -225,31 +201,8 @@ export async function removeFont(name: string) {
     }
 }
 
-async function waitForHydration(): Promise<void> {
-    return new Promise(resolve => {
-        if (useFonts.getState()._hasHydrated) {
-            resolve();
-            return;
-        }
-
-        const unsubscribe = useFonts.subscribe(
-            state => {
-                if (state._hasHydrated) {
-                    unsubscribe();
-                    resolve();
-                }
-            }
-        );
-
-        setTimeout(() => {
-            unsubscribe();
-            resolve();
-        }, 5000);
-    });
-}
-
 export async function initFonts() {
-    await waitForHydration();
+    await waitForHydration(useFonts);
 
     const currentFonts = useFonts.getState().fonts;
 

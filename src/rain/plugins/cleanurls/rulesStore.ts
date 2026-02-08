@@ -1,4 +1,5 @@
 import { fileExists, readFile, writeFile } from "@api/native/fs";
+import { createFileStorage } from "@api/storage";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
 
@@ -25,31 +26,6 @@ interface RulesState {
 }
 
 const listUrl = "https://rules2.clearurls.xyz/data.minify.json";
-
-const createFileStorage = (filePath: string) => {
-    return {
-        getItem: async (name: string): Promise<string | null> => {
-            try {
-                const exists = await fileExists(filePath);
-                if (!exists) return null;
-                return await readFile(filePath);
-            } catch (e) {
-                console.error(`Failed to read storage from '${filePath}'`, e);
-                return null;
-            }
-        },
-        setItem: async (name: string, value: string): Promise<void> => {
-            try {
-                await writeFile(filePath, value);
-            } catch (e) {
-                console.error(`Failed to write storage to '${filePath}'`, e);
-            }
-        },
-        removeItem: async (name: string): Promise<void> => {
-            // Not existent
-        },
-    };
-};
 
 export const useRulesStore = create<RulesState>()(
     persist(
@@ -94,26 +70,3 @@ export const useRulesStore = create<RulesState>()(
         }
     )
 );
-
-export async function waitForRulesHydration(): Promise<void> {
-    return new Promise(resolve => {
-        if (useRulesStore.getState()._hasHydrated) {
-            resolve();
-            return;
-        }
-
-        const unsubscribe = useRulesStore.subscribe(
-            state => {
-                if (state._hasHydrated) {
-                    unsubscribe();
-                    resolve();
-                }
-            }
-        );
-
-        setTimeout(() => {
-            unsubscribe();
-            resolve();
-        }, 5000);
-    });
-}

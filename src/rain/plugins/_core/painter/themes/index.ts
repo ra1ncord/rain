@@ -12,6 +12,7 @@ import { waitForColorsPrefHydration } from "./preferences";
 import { VendettaThemeManifest } from "./types";
 import { updateBunnyColor } from "./updater";
 import { fixStatusBar } from "./devices";
+import { createFileStorage } from "@api/storage";
 
 export interface VdThemeInfo {
     id: string;
@@ -30,31 +31,6 @@ interface ThemesStore {
     _hasHydrated: boolean;
     setHasHydrated: (state: boolean) => void;
 }
-
-const createFileStorage = (filePath: string) => {
-    return {
-        getItem: async (name: string): Promise<string | null> => {
-            try {
-                const exists = await fileExists(filePath);
-                if (!exists) return null;
-                return await readFile(filePath);
-            } catch (e) {
-                console.error(`Failed to read storage from '${filePath}'`, e);
-                return null;
-            }
-        },
-        setItem: async (name: string, value: string): Promise<void> => {
-            try {
-                await writeFile(filePath, value);
-            } catch (e) {
-                console.error(`Failed to write storage to '${filePath}'`, e);
-            }
-        },
-        removeItem: async (name: string): Promise<void> => {
-            // byebye.png
-        },
-    };
-};
 
 /**
  * @internal

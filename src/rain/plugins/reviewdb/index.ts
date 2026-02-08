@@ -4,8 +4,9 @@ import patchSimplifiedProfile from "./patches/patchSimplifiedProfile";
 import patchServer from "./patches/patchServer";
 import patchContextMenu from "./patches/patchContextMenu";
 import { getAdmins } from "./lib/api";
-import { waitForReviewDBHydration } from "./storage";
 import Settings from "./Settings";
+import { waitForHydration } from "@api/storage";
+import { useReviewDBSettings } from "./storage";
 
 let patches: (() => boolean)[] = [];
 export const admins: any[] = [];
@@ -20,7 +21,7 @@ export default definePlugin({
     id: "reviewdb",
     version: "v1.0.0",
     async start() {
-        await waitForReviewDBHydration();
+        await waitForHydration(useReviewDBSettings);
         patches.push(patchProfile());
         patches.push(patchSimplifiedProfile());
         patches.push(patchServer());

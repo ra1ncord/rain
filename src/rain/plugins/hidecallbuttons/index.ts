@@ -1,14 +1,12 @@
 import { definePlugin } from "@plugins";
-import {
-    hidecallbuttonsSettings,
-    waitForHideCallButtonsSettingsHydration,
-} from "./storage";
+import { hidecallbuttonsSettings } from "./storage";
 import { findAssetId } from "@api/assets";
 import { metro } from "@lib";
 import { cyrb64Hash } from "@lib/utils/cyrb64";
 import { findByName, findByProps } from "@metro";
 import { after, instead } from "@api/patcher";
 import settings from "./settings";
+import { waitForHydration } from "@api/storage";
 
 let patches: (() => boolean)[] = [];
 const find = (filter: (m: any) => boolean) => {
@@ -27,7 +25,7 @@ export default definePlugin({
     id: "hidecallbuttons",
     version: "v1.0.0",
     async start() {
-        await waitForHideCallButtonsSettingsHydration();
+        await waitForHydration(hidecallbuttonsSettings);
         let videoCallAsset = findAssetId("ic_video");
         let voiceCallAsset = findAssetId("ic_audio");
         const videoAsset = findAssetId("video");
