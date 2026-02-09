@@ -6,38 +6,6 @@ import {findByName, findByProps} from "@metro";
 const RowManager = findByName("RowManager");
 const {isBlocked, isIgnored} = findByProps("isBlocked", "isIgnored");
 
-function constructMessage(message: string, channel: { id: any; }) {
-    let msg = {
-        id: "",
-        type: 0,
-        content: "",
-        channel_id: channel.id,
-        author: {
-            id: "",
-            username: "",
-            avatar: "",
-            discriminator: "",
-            publicFlags: 0,
-            avatarDecoration: null,
-        },
-        attachments: [],
-        embeds: [],
-        mentions: [],
-        mention_roles: [],
-        pinned: false,
-        mention_everyone: false,
-        tts: false,
-        timestamp: "",
-        edited_timestamp: null,
-        flags: 0,
-        components: [],
-    };
-
-    msg.content = message;
-
-    return msg;
-}
-
 // User filter logic
 const isFilteredUser = (id: any) => {
     if (!id) return false;
