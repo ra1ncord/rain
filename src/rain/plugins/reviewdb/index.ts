@@ -13,7 +13,7 @@ export const admins: any[] = [];
 
 export default definePlugin({
     name: "ReviewDB",
-    description: "Disable the untrusted link popup for every link",
+    description: "Display and post reviews on user profiles.",
     author: [
         { name: "John", id: 780819226839220265n },
         { name: "maisy", id: 257109471589957632n },
