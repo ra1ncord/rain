@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { createFileStorage } from "@api/storage";
+import { createFileStorage, PluginStore } from "@api/storage";
 
 interface Settings {
 	blocked: boolean;
@@ -8,11 +8,7 @@ interface Settings {
 	removeReplies: boolean;
 }
 
-interface HideBlockedAndIgnoredMessagesSettingsStore extends Settings {
-	updateSettings: (settings: Partial<Settings>) => void;
-	_hasHydrated: boolean;
-	setHasHydrated: (state: boolean) => void;
-}
+type HideBlockedAndIgnoredMessagesSettingsStore = PluginStore<Settings>;
 
 export const useHideBlockedAndIgnoredMessagesSettings = create<HideBlockedAndIgnoredMessagesSettingsStore>()(
 	persist(

@@ -9,6 +9,6 @@ export default definePlugin({
     version: "v1.0.0",
     start() {
         patchCommands();
-        [require("./builtins/debug")].forEach(r => registerCommand(r.default()));
+        [require("./builtins/debug"), require("./builtins/plugins")].forEach(r => registerCommand(r.default()));
     }
 });

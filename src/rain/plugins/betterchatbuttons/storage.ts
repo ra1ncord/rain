@@ -1,5 +1,5 @@
 import { fileExists, readFile, writeFile } from "@api/native/fs";
-import { createFileStorage } from "@api/storage";
+import { createFileStorage, PluginStore } from "@api/storage";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
 
@@ -19,11 +19,7 @@ interface Settings {
     };
 }
 
-interface BetterChatButtonsSettingsStore extends Settings {
-    updateSettings: (settings: Partial<Settings>) => void;
-    _hasHydrated: boolean;
-    setHasHydrated: (state: boolean) => void;
-}
+type BetterChatButtonsSettingsStore = PluginStore<Settings>;
 
 export const useBetterChatButtonsSettings = create<BetterChatButtonsSettingsStore>()(
     persist(

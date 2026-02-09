@@ -1,4 +1,4 @@
-import { createFileStorage } from "@api/storage";
+import { createFileStorage, PluginStore } from "@api/storage";
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
@@ -7,11 +7,7 @@ interface Settings {
     useThemedSend: boolean;
 }
 
-interface ReviewDBSettingsStore extends Settings {
-    updateSettings: (settings: Partial<Settings>) => void;
-    _hasHydrated: boolean;
-    setHasHydrated: (state: boolean) => void;
-}
+type ReviewDBSettingsStore = PluginStore<Settings>;
 
 export const useReviewDBSettings = create<ReviewDBSettingsStore>()(
     persist(

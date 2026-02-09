@@ -1,5 +1,4 @@
-import { fileExists, readFile, writeFile } from "@api/native/fs";
-import { createFileStorage } from "@api/storage";
+import { createFileStorage, PluginStore } from "@api/storage";
 import { ReactNative } from "@metro/common";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
@@ -13,11 +12,7 @@ interface Settings {
     debugMode: boolean;
 }
 
-interface TapTapSettingsStore extends Settings {
-    updateSettings: (settings: Partial<Settings>) => void;
-    _hasHydrated: boolean;
-    setHasHydrated: (state: boolean) => void;
-}
+type TapTapSettingsStore = PluginStore<Settings>;
 
 export const useTapTapSettings = create<TapTapSettingsStore>()(
     persist(

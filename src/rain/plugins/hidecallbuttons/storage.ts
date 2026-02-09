@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { createFileStorage } from "@api/storage";
+import { createFileStorage, PluginStore } from "@api/storage";
 
 interface Settings {
     upHideVoiceButton: boolean;
@@ -10,11 +10,7 @@ interface Settings {
     hideVCVideoButton: boolean;
 }
 
-interface HideCallButtonsSettingsStore extends Settings {
-    updateSettings: (settings: Partial<Settings>) => void;
-    _hasHydrated: boolean;
-    setHasHydrated: (state: boolean) => void;
-}
+type HideCallButtonsSettingsStore = PluginStore<Settings>;
 
 export const useHideCallButtonsSettings =
     create<HideCallButtonsSettingsStore>()(
