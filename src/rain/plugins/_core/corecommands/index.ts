@@ -2,13 +2,14 @@ import { definePlugin } from "@plugins";
 import { registerCommand, patchCommands } from "@api/commands";
 
 export default definePlugin({
-    name: "Commands",
+    name: "CoreCommands",
     description: "Provides core commands",
     author: [{ name: "cocobo1", id: 767650984175992833n }],
+    // this is still the id as we automatically add core. to core plugins
     id: "commands",
     version: "v1.0.0",
     start() {
         patchCommands();
-        [require("./builtins/debug")].forEach(r => registerCommand(r.default()));
+        [require("./builtins/debug"), require("./builtins/plugins")].forEach(r => registerCommand(r.default()));
     }
 });

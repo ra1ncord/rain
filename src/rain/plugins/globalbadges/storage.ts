@@ -1,5 +1,5 @@
 import { fileExists, readFile, writeFile } from "@api/native/fs";
-import { createFileStorage } from "@api/storage";
+import { createFileStorage, PluginStore } from "@api/storage";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
 
@@ -9,11 +9,7 @@ interface Settings {
     customs: boolean;
 }
 
-interface CustomBadgesSettingsStore extends Settings {
-    updateSettings: (settings: Partial<Settings>) => void;
-    _hasHydrated: boolean;
-    setHasHydrated: (state: boolean) => void;
-}
+type CustomBadgesSettingsStore = PluginStore<Settings>;
 
 export const useCustomBadgesSettings = create<CustomBadgesSettingsStore>()(
     persist(

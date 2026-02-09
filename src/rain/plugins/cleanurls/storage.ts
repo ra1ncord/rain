@@ -1,5 +1,4 @@
-import { fileExists, readFile, writeFile } from "@api/native/fs";
-import { createFileStorage } from "@api/storage";
+import { createFileStorage, PluginStore } from "@api/storage";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
 
@@ -8,11 +7,7 @@ interface Settings {
     referrals: boolean;
 }
 
-interface CleanUrlsSettingsStore extends Settings {
-    updateSettings: (settings: Partial<Settings>) => void;
-    _hasHydrated: boolean;
-    setHasHydrated: (state: boolean) => void;
-}
+type CleanUrlsSettingsStore = PluginStore<Settings>;
 
 export const useCleanUrlsSettings = create<CleanUrlsSettingsStore>()(
     persist(

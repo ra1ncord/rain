@@ -1,17 +1,13 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { createFileStorage } from "@api/storage";
+import { createFileStorage, PluginStore } from "@api/storage";
 
 interface Settings {
 	transformEmoji: boolean;
 	transformSticker: boolean;
 }
 
-interface RealMojiSettingsStore extends Settings {
-	updateSettings: (settings: Partial<Settings>) => void;
-	_hasHydrated: boolean;
-	setHasHydrated: (state: boolean) => void;
-}
+type RealMojiSettingsStore = PluginStore<Settings>;
 
 export const useRealMojiSettings = create<RealMojiSettingsStore>()(
 	persist(

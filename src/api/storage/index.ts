@@ -76,3 +76,9 @@ export async function waitForHydration(usePluginSettings: any): Promise<void> {
         }, 5000);
     });
 }
+
+export type PluginStore<T> = T & {
+    updateSettings: (settings: Partial<T>) => void;
+    _hasHydrated: boolean;
+    setHasHydrated: (state: boolean) => void;
+};

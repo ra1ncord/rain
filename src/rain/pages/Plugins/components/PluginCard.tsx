@@ -8,7 +8,7 @@ import {
     TableSwitch,
     Text,
 } from "@metro/common/components";
-import { isCorePlugin } from "@plugins";
+import { isPluginCore } from "@plugins";
 import chroma from "chroma-js";
 import { createContext, useContext, useMemo } from "react";
 import { View } from "react-native";
@@ -137,7 +137,7 @@ export default function PluginCard({
 }: CardWrapper<UnifiedPluginModel>) {
     const [, forceUpdate] = React.useReducer(() => ({}), 0);
     const cardContextValue = useMemo(() => ({ plugin, result }), [plugin, result]);
-    const core = isCorePlugin(plugin.id);
+    const core = isPluginCore(plugin.id);
 
     return (
         <CardContext.Provider value={cardContextValue}>

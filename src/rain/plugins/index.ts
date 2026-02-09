@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
 
 import * as t from "./types";
-import { createFileStorage } from "@api/storage";
+import { createFileStorage, waitForHydration } from "@api/storage";
 
 export const pluginInstances = new Map<string, t.rainPlugin>();
 
@@ -113,31 +113,8 @@ export function findPluginById(id: string) {
     }
 }
 
-async function waitForHydration(): Promise<void> {
-    return new Promise(resolve => {
-        if (usePluginSettings.getState()._hasHydrated) {
-            resolve();
-            return;
-        }
-
-        const unsubscribe = usePluginSettings.subscribe(
-            state => {
-                if (state._hasHydrated) {
-                    unsubscribe();
-                    resolve();
-                }
-            }
-        );
-
-        setTimeout(() => {
-            unsubscribe();
-            resolve();
-        }, 5000);
-    });
-}
-
 export async function initPlugins() {
-    await waitForHydration();
+    await waitForHydration(usePluginSettings);
 
     const rainPlugins = await import("#rain-plugins");
 
@@ -154,7 +131,7 @@ export async function initPlugins() {
 }
 
 export async function initEagerPlugins() {
-    await waitForHydration();
+    await waitForHydration(usePluginSettings);
 
     const rainPlugins = await import("#rain-plugins");
 
@@ -180,14 +157,14 @@ export function definePlugin(
 export function isPluginEnabled(id: string) {
     const setting = usePluginSettings.getState().settings[id];
 
-    if (isCorePlugin(id)) {
+    if (isPluginCore(id)) {
         return setting?.enabled ?? true;
     }
 
     return setting?.enabled ?? false;
 }
 
-export function isCorePlugin(id: string) {
+export function isPluginCore(id: string) {
     if (id.startsWith("core")) {
         return true;
     }

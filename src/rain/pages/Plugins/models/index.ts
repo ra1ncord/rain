@@ -1,11 +1,4 @@
 import { developer } from "@plugins/types";
-import { ImageSourcePropType } from "react-native";
-
-interface Badge {
-    source: ImageSourcePropType;
-    color?: string;
-    onPress?: () => void;
-}
 
 export interface UnifiedPluginModel {
     id: string;
@@ -13,6 +6,7 @@ export interface UnifiedPluginModel {
     description?: string;
     authors?: developer[];
     isEnabled(): boolean;
+    isCore(): boolean;
     usePluginState?(): void;
     isInstalled?(): boolean;
     toggle(start: boolean): void;

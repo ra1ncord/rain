@@ -1,5 +1,6 @@
 import {
     getPluginSettingsComponent,
+    isPluginCore,
     isPluginEnabled,
     startPlugin,
     stopPlugin,
@@ -18,6 +19,7 @@ export default function unifyRainPlugin(
         description: manifest.description,
         authors: manifest.author,
         isEnabled: () => isPluginEnabled(manifest.id),
+        isCore: () => isPluginCore(manifest.id),
         toggle(start: boolean) {
             try {
                 start ? startPlugin(manifest.id) : stopPlugin(manifest.id);
