@@ -6,6 +6,7 @@ import React from "react";
 
 import BetterChatButtonsSettings from "./settings";
 import { useBetterChatButtonsSettings } from "./storage";
+import { logger } from "@lib/utils/logger";
 
 type Unpatch = () => void;
 
@@ -85,7 +86,12 @@ export default definePlugin({
         }
     },
     stop() {
-        for (const unpatch of unpatches) unpatch();
+        //todo: actually fix this instead of a try catch
+        try{
+            for (const unpatch of unpatches) unpatch();
+        } catch(error) {
+            logger.log(error)
+        }
         unpatches.length = 0;
     },
     settings: BetterChatButtonsSettings,

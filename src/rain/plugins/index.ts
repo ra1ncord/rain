@@ -3,6 +3,7 @@ import { createJSONStorage,persist } from "zustand/middleware";
 
 import * as t from "./types";
 import { createFileStorage, waitForHydration } from "@api/storage";
+import { logger } from "@lib/utils/logger";
 
 export const pluginInstances = new Map<string, t.rainPlugin>();
 
@@ -125,7 +126,11 @@ export async function initPlugins() {
 
     await Promise.allSettled([...pluginInstances.keys()].map(async id => {
         if (isPluginEnabled(id)) {
-            await startPlugin(id);
+            try {
+                await startPlugin(id);
+            } catch(error) {
+                logger.log("Failed to start ", id, " because of ", error)
+            }
         }
     }));
 }
@@ -141,7 +146,11 @@ export async function initEagerPlugins() {
 
     await Promise.allSettled([...pluginInstances.keys()].map(async id => {
         if (isPluginEnabled(id)) {
-            await startEagerPlugin(id);
+            try {
+                await startEagerPlugin(id);
+            } catch(error) {
+                logger.log("Failed to eagerStart ", id, " because of ", error)
+            }
         }
     }));
 }
