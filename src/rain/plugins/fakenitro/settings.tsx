@@ -54,7 +54,7 @@ export default () => {
                         }}
                     />
                 </TableRowGroup>
-                <TableRowGroup title="User Profile" titleStyleType="no_border">
+                <TableRowGroup title="Emojis" titleStyleType="no_border">
                     <TableSwitchRow
                         label="Use hyperlinks when sending fake emojis"
                         onValueChange={(v: boolean) => {

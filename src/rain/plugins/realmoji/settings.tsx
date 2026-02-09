@@ -15,7 +15,7 @@ export default () => {
                 style={{paddingVertical: 24, paddingHorizontal: 12}}
                 spacing={24}
             >
-                <TableRowGroup title="User Profile" titleStyleType="no_border">
+                <TableRowGroup title="Emojis" titleStyleType="no_border">
                     <TableSwitchRow
                         label="Transform fake emojis into real ones"
                         onValueChange={(v: boolean) => {
