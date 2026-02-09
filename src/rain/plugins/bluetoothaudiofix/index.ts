@@ -2,7 +2,6 @@ import { definePlugin } from "@plugins";
 import { ReactNative as RN } from "@metro/common";
 import { instead } from "@api/patcher";
 
-let onUnload: () => void;
 const patches: any[] = [];
 
 export default definePlugin({
@@ -15,7 +14,8 @@ export default definePlugin({
     id: "bluetoothaudiofix",
     version: "v1.0.0",
     start() {
-        onUnload = instead("setCommunicationModeOn", RN.TurboModuleRegistry.get("NativeAudioManagerModule") === null ? RN.TurboModuleRegistry.get("RTNAudioManager") : RN.TurboModuleRegistry.get("NativeAudioManagerModule"), () => {});
+        const onUnload = RN.TurboModuleRegistry.get("NativeAudioManagerModule") === null ? RN.TurboModuleRegistry.get("RTNAudioManager") : RN.TurboModuleRegistry.get("NativeAudioManagerModule");
+        patches.push(instead("setCommunicationModeOn", onUnload, () => {}));
     },
     stop() {
         for (const unpatch of patches) unpatch();
