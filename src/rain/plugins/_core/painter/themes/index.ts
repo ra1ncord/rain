@@ -5,24 +5,24 @@ import { safeFetch } from "@lib/utils";
 import { Platform } from "react-native";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
+import { useColorsPref } from "./preferences";
 
 import initColors from "./colors";
 import { applyAndroidAlphaKeys, normalizeToHex } from "./parser";
-import { waitForColorsPrefHydration } from "./preferences";
-import { VendettaThemeManifest } from "./types";
+import { ThemeManifest } from "./types";
 import { updateBunnyColor } from "./updater";
 import { fixStatusBar } from "./devices";
-import { createFileStorage } from "@api/storage";
+import { createFileStorage, waitForHydration } from "@api/storage";
 
-export interface VdThemeInfo {
+export interface ThemeInfo {
     id: string;
     selected: boolean;
-    data: VendettaThemeManifest;
+    data: ThemeManifest;
 }
 
 interface ThemesStore {
-    themes: Record<string, VdThemeInfo>;
-    setTheme: (id: string, theme: VdThemeInfo) => void;
+    themes: Record<string, ThemeInfo>;
+    setTheme: (id: string, theme: ThemeInfo) => void;
     removeTheme: (id: string) => Promise<boolean>;
     selectTheme: (id: string | null, write?: boolean) => Promise<void>;
     fetchTheme: (url: string, selected?: boolean) => Promise<void>;
@@ -35,7 +35,7 @@ interface ThemesStore {
 /**
  * @internal
  */
-export async function writeThemeToNative(theme: VdThemeInfo | {}) {
+export async function writeThemeToNative(theme: ThemeInfo | {}) {
     if (typeof theme !== "object") throw new Error("Theme must be an object");
 
     const themePath = getThemeFilePath() || "theme.json";
@@ -43,7 +43,7 @@ export async function writeThemeToNative(theme: VdThemeInfo | {}) {
 }
 
 // Process data for some compatiblity with native side
-function processData(data: VendettaThemeManifest) {
+function processData(data: ThemeManifest) {
     if (data.semanticColors) {
         const { semanticColors } = data;
 
@@ -91,7 +91,7 @@ export const useThemes = create<ThemesStore>()(
         (set, get) => ({
             themes: {},
             _hasHydrated: false,
-            setTheme: (id: string, theme: VdThemeInfo) => {
+            setTheme: (id: string, theme: ThemeInfo) => {
                 set(state => ({
                     themes: {
                         ...state.themes,
@@ -145,7 +145,7 @@ export const useThemes = create<ThemesStore>()(
 
                 if (!validateTheme(themeJSON)) throw new Error(`Invalid theme at ${url}`);
 
-                const themeInfo: VdThemeInfo = {
+                const themeInfo: ThemeInfo = {
                     id: url,
                     selected: selected,
                     data: processData(themeJSON),
@@ -182,11 +182,11 @@ export const useThemes = create<ThemesStore>()(
     )
 );
 
-export const themes = new Proxy({} as Record<string, VdThemeInfo>, {
+export const themes = new Proxy({} as Record<string, ThemeInfo>, {
     get(target, prop: string) {
         return useThemes.getState().themes[prop];
     },
-    set(target, prop: string, value: VdThemeInfo) {
+    set(target, prop: string, value: ThemeInfo) {
         useThemes.getState().setTheme(prop, value);
         return true;
     },
@@ -219,7 +219,7 @@ export async function installTheme(url: string) {
     return useThemes.getState().installTheme(url);
 }
 
-export async function selectTheme(theme: VdThemeInfo | null, write = true) {
+export async function selectTheme(theme: ThemeInfo | null, write = true) {
     return useThemes.getState().selectTheme(theme?.id ?? null, write);
 }
 
@@ -238,31 +238,8 @@ export function getCurrentTheme() {
 /**
  * @internal
  */
-export function getThemeFromLoader(): VdThemeInfo | null {
+export function getThemeFromLoader(): ThemeInfo | null {
     return getStoredTheme();
-}
-
-export async function waitForThemesHydration(): Promise<void> {
-    return new Promise(resolve => {
-        if (useThemes.getState()._hasHydrated) {
-            resolve();
-            return;
-        }
-
-        const unsubscribe = useThemes.subscribe(
-            state => {
-                if (state._hasHydrated) {
-                    unsubscribe();
-                    resolve();
-                }
-            }
-        );
-
-        setTimeout(() => {
-            unsubscribe();
-            resolve();
-        }, 5000);
-    });
 }
 
 /**
@@ -277,8 +254,8 @@ export async function initThemes() {
             writeFile("../vendetta_theme.json", "null");
         }
 
-        await waitForColorsPrefHydration();
-        await waitForThemesHydration();
+        await waitForHydration(useColorsPref());
+        await waitForHydration(useThemes());
 
         const currentTheme = getCurrentTheme();
         initColors(currentTheme?.data ?? null);

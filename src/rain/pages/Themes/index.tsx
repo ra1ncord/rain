@@ -8,13 +8,14 @@ import {
     TableRowIcon,
     TableSwitchRow,
 } from "@metro/common/components";
-import { installTheme, useThemes, VdThemeInfo } from "@plugins/_core/painter/themes";
+import { installTheme, useThemes, ThemeInfo } from "@plugins/_core/painter/themes";
 import { useColorsPref } from "@plugins/_core/painter/themes/preferences";
 import { Author } from "@plugins/_core/painter/themes/types";
 import AddonPage from "@rain/pages/Addon/AddonPage";
 import { View } from "react-native";
 
 import ThemeCard from "./ThemeCard";
+import { navigation } from "@metro/common";
 
 /**
  * Theme options have been changed from radio groups to individual switches
@@ -27,7 +28,7 @@ export default function Themes() {
     const safeMode = useSettings(state => state.safeMode);
 
     return (
-        <AddonPage<VdThemeInfo>
+        <AddonPage<ThemeInfo>
             title="Themes"
             searchKeywords={[
                 "data.name",
@@ -38,8 +39,17 @@ export default function Themes() {
                 "Name (A-Z)": (a, b) => a.data.name.localeCompare(b.data.name),
                 "Name (Z-A)": (a, b) => b.data.name.localeCompare(a.data.name),
             }}
+            installBrowserAction={{
+                label: "Install a theme from the browser",
+                onPress: () => {
+                    navigation.push("RAIN_CUSTOM_PAGE", {
+                        title: "Addon Browser",
+                        //render: () => <FontEditor />
+                    });
+                }
+            }}
             installAction={{
-                label: "Install a theme",
+                label: "Install a theme from URL",
                 fetchFn: installTheme,
             }}
             items={themesList}

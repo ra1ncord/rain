@@ -1,13 +1,14 @@
 import { findAssetId } from "@api/assets";
 import { useSettings } from "@api/settings";
 import { showConfirmationAlert } from "@api/ui/alerts";
+import { showSheet } from "@api/ui/sheets";
 import { showToast } from "@api/ui/toasts";
-import { clipboard } from "@metro/common";
-import { useThemes, VdThemeInfo } from "@plugins/_core/painter/themes";
+import { clipboard, navigation } from "@metro/common";
+import { useThemes, ThemeInfo } from "@plugins/_core/painter/themes";
 import AddonCard, { CardWrapper } from "@rain/pages/Addon/AddonCard";
 import * as React from "react";
 
-async function selectAndApply(value: boolean, theme: VdThemeInfo) {
+async function selectAndApply(value: boolean, theme: ThemeInfo) {
     try {
         await useThemes.getState().selectTheme(value ? theme.id : null);
     } catch (e: any) {
@@ -15,7 +16,7 @@ async function selectAndApply(value: boolean, theme: VdThemeInfo) {
     }
 }
 
-export default function ThemeCard({ item: theme }: CardWrapper<VdThemeInfo>) {
+export default function ThemeCard({ item: theme }: CardWrapper<ThemeInfo>) {
     const isSelected = useThemes(
         React.useCallback(
             state => state.themes[theme.id]?.selected ?? false,
@@ -42,44 +43,16 @@ export default function ThemeCard({ item: theme }: CardWrapper<VdThemeInfo>) {
                 selectAndApply(v, theme);
             }}
             overflowTitle={theme.data.name}
-            overflowActions={[
+            actions={[
                 {
-                    icon: "ic_sync_24px",
-                    label: "Refetch",
+                    icon: "CircleInformationIcon-primary",
                     onPress: () => {
-                        fetchTheme(theme.id, isSelected).then(() => {
-                            showToast("Theme refetched successfully", findAssetId("toast_image_saved"));
-                        }).catch(() => {
-                            showToast("Failed to refetch theme", findAssetId("Small"));
+                        const importPromise = import("./sheets/ThemeInfoActionSheet");
+                        showSheet("ThemeInfoActionSheet", importPromise, {
+                            theme,
+                            navigation,
                         });
                     },
-                },
-                {
-                    icon: "copy",
-                    label: "Copy URL",
-                    onPress: () => {
-                        clipboard.setString(theme.id);
-                        showToast.showCopyToClipboard();
-                    }
-                },
-                {
-                    icon: "ic_message_delete",
-                    label: "Delete",
-                    isDestructive: true,
-                    onPress: () => showConfirmationAlert({
-                        title: "Hold up",
-                        content: `Are you sure you want to delete ${theme.data.name}?`,
-                        confirmText: "Delete",
-                        cancelText: "Cancel",
-                        confirmColor: "red",
-                        onConfirm: () => {
-                            removeTheme(theme.id).then(wasSelected => {
-                                setRemoved(true);
-                            }).catch((e: Error) => {
-                                showToast(e.message, findAssetId("Small"));
-                            });
-                        }
-                    })
                 },
             ]}
         />

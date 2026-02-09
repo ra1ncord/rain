@@ -22,8 +22,17 @@ export default function Fonts() {
             }}
             items={Object.values(fonts)}
             CardComponent={FontCard}
+            installBrowserAction={{
+                label: "Install a font from the browser",
+                onPress: () => {
+                    navigation.push("RAIN_CUSTOM_PAGE", {
+                        title: "Addon Browser",
+                        render: () => <FontEditor />
+                    });
+                }
+            }}
             installAction={{
-                label: "Install a font",
+                label: "Install a font from URL",
                 onPress: () => {
                     navigation.push("RAIN_CUSTOM_PAGE", {
                         title: "Import Font",

@@ -32,15 +32,15 @@ const useStyles = createStyles({
     },
     headerLabel: {
         ...TextStyleSheet["heading-md/semibold"],
-        color: semanticColors.HEADER_PRIMARY,
+        color: "text-strong",
     },
     headerSubtitle: {
         ...TextStyleSheet["text-md/semibold"],
-        color: semanticColors.TEXT_MUTED,
+        color: "text-muted",
     },
     descriptionLabel: {
         ...TextStyleSheet["text-md/semibold"],
-        color: semanticColors.HEADER_PRIMARY,
+        color: "text-strong",
     },
     actions: {
         flexDirection: "row-reverse",

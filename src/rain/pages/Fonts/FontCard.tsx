@@ -119,7 +119,7 @@ function FontPreview({ font }: { font: FontDefinition; }) {
             </View>
         );
     } else {
-        // todo: maybe they still have skia?
+        // todo: fix ios fonts (they dont have skia either)
         return (
             <View style={{ width: "100%", height: 32 }}>
                 <View style={[styles.full, { justifyContent: "center", alignItems: "center" }]}>
