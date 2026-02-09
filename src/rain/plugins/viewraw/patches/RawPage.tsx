@@ -3,7 +3,7 @@ import { showToast } from "@api/ui/toasts"
 import { Codeblock } from "@api/ui/components"
 import { cleanMessage } from "./cleanmessage"
 import {findAssetId} from "@api/assets";
-import {Button, Stack, TableRow, TableRowGroup} from "@metro/common/components";
+import {Stack, TableRow, TableRowGroup} from "@metro/common/components";
 
 const { ScrollView } = ReactNative
 
