@@ -28,7 +28,6 @@ function getHighlightColor(): import("react-native").ColorValue {
 }
 
 function Title() {
-    const styles = usePluginCardStyles();
     const { plugin, result } = useCardContext();
 
     // could be empty if the plugin name is irrelevant!

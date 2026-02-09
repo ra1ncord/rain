@@ -21,7 +21,7 @@ export interface BunnyColorManifest extends BunnyManifest {
     }
 }
 
-export interface VendettaThemeManifest {
+export interface ThemeManifest {
     spec: 2;
     name: string;
     description?: string;
@@ -47,7 +47,7 @@ export interface InternalColorDefinition {
     background?: BackgroundDefinition;
 }
 
-export type ColorManifest = BunnyColorManifest | VendettaThemeManifest;
+export type ColorManifest = BunnyColorManifest | ThemeManifest;
 
 export type Author = { name: string, id?: `${bigint}`; };
 

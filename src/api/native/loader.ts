@@ -1,4 +1,4 @@
-import { VendettaThemeManifest } from "@rain/plugins/_core/painter/themes/types";
+import { ThemeManifest } from "@rain/plugins/_core/painter/themes/types";
 
 import { removeCacheFile } from "./fs";
 
@@ -22,10 +22,10 @@ export interface VendettaLoaderIdentity {
     };
 }
 
-export interface VdThemeInfo {
+export interface ThemeInfo {
     id: string;
     selected: boolean;
-    data: VendettaThemeManifest;
+    data: ThemeManifest;
 }
 
 export function isPyonLoader() {
@@ -141,7 +141,7 @@ export function getSysColors() {
     }
 }
 
-export function getStoredTheme(): VdThemeInfo | null {
+export function getStoredTheme(): ThemeInfo | null {
     if (isRainLoader()) {
         return rainLoaderIdentity.storedTheme;
     }

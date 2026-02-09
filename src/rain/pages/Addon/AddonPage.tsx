@@ -28,6 +28,12 @@ interface AddonPageProps<T extends object, I = any> {
     filterOptions?: Record<string, (item: T) => boolean>;
     defaultFilterKey?: string;
     resolveItem?: (value: I) => T | undefined;
+    installBrowserAction?: {
+        label?: string;
+        // Ignored when onPress is defined!
+        fetchFn?: (url: string) => Promise<void>;
+        onPress?: () => void;
+    };
     installAction?: {
         label?: string;
         // Ignored when onPress is defined!
@@ -161,13 +167,19 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
     }, [props.installAction]);
 
     if (results.length === 0 && !search) {
-        return <View style={{ gap: 32, flexGrow: 1, justifyContent: "center", alignItems: "center" }}>
+        return <View style={{ gap: 32, flexGrow: 1.5, justifyContent: "center", alignItems: "center" }}>
             <View style={{ gap: 8, alignItems: "center" }}>
                 <Image source={findAssetId("empty_quick_switcher")!} />
-                <Text variant="text-lg/semibold" color="text-normal">
+                <Text variant="text-lg/semibold" color="text-strong">
                     Oops! Nothing to see here… yet!
                 </Text>
             </View>
+            {props.installAction && <Button
+                size="lg"
+                icon={findAssetId("CompassIcon")}
+                text={props.installBrowserAction.label ?? "Install"}
+                onPress={onInstallPress}
+            />}
             {props.installAction && <Button
                 size="lg"
                 icon={findAssetId("DownloadIcon")}
