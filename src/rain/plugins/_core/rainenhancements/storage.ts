@@ -7,9 +7,9 @@ interface Settings {
 	transformSticker: boolean;
 }
 
-type RealMojiSettingsStore = PluginStore<Settings>;
+type RainEnhancementsSettingsStore = PluginStore<Settings>;
 
-export const useRealMojiSettings = create<RealMojiSettingsStore>()(
+export const useRainEnhancementsSettings = create<RainEnhancementsSettingsStore>()(
     persist(
         set => ({
             transformEmoji: true,
@@ -20,9 +20,9 @@ export const useRealMojiSettings = create<RealMojiSettingsStore>()(
             setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
         }),
         {
-            name: "realmoji-settings",
+            name: "rainenhancements-settings",
             storage: createJSONStorage(() =>
-                createFileStorage("plugins/realmoji.json"),
+                createFileStorage("plugins/rainenhancements.json"),
             ),
             onRehydrateStorage: () => state => {
                 state?.setHasHydrated(true);
@@ -31,12 +31,12 @@ export const useRealMojiSettings = create<RealMojiSettingsStore>()(
     ),
 );
 
-export const realmojiSettings = new Proxy({} as Settings, {
+export const rainenhancementsSettings = new Proxy({} as Settings, {
     get(target, prop: string) {
-        return useRealMojiSettings.getState()[prop as keyof Settings];
+        return useRainEnhancementsSettings.getState()[prop as keyof Settings];
     },
     set(target, prop: string, value: any) {
-        useRealMojiSettings
+        useRainEnhancementsSettings
             .getState()
             .updateSettings({ [prop]: value } as Partial<Settings>);
         return true;

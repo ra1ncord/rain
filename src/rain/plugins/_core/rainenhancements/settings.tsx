@@ -1,7 +1,7 @@
 import { findByProps } from "@metro";
 import { ScrollView } from "react-native";
 
-import { useRealMojiSettings } from "./storage";
+import { useRainEnhancementsSettings } from "./storage";
 
 const {
     TableSwitchRow,
@@ -10,7 +10,7 @@ const {
 const { Stack } = findByProps("Stack");
 
 export default () => {
-    const settings = useRealMojiSettings();
+    const settings = useRainEnhancementsSettings();
 
     return (
         <ScrollView style={{ flex: 1 }}>

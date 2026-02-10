@@ -1,29 +1,12 @@
 import { instead } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
 import { findByProps } from "@metro";
-import { definePlugin } from "@plugins";
-
-export default definePlugin({
-    name: "NoTrack",
-    description: "Disables discord telementry",
-    author: [{ name: "cocobo1", id: 767650984175992833n }],
-    id: "notrack",
-    version: "v1.0.0",
-    start() {
-        patches = [
-            patchNetwork(),
-            patchConsole(),
-            patchMiscellaneous(),
-            patchSentry(),
-        ].filter(Boolean);
-    }
-});
 
 // Type for functions that need to be cleaned up when plugin is disabled
 type PatchCleanupFn = () => void;
 
 // Store all active patches for cleanup
-let patches: PatchCleanupFn[] = [];
+const patches: PatchCleanupFn[] = [];
 
 // AnalyticsUtils and other tracking utilities
 const AnalyticsUtils = findByProps("AnalyticsActionHandlers");
@@ -77,7 +60,7 @@ const noop = (prop: string, parent: Record<string, any>): PatchCleanupFn => {
 };
 
 // Network tracking prevention
-function patchNetwork(): PatchCleanupFn {
+export function patchNetwork(): PatchCleanupFn {
     // Analytics and tracking endpoints to block
     const analyticsTest =
     /client-analytics\.braintreegateway\.com|discord\.com\/api\/v9\/(science|track)|app\.adjust\..*|.*\.ingest\.sentry\.io/;
@@ -107,7 +90,7 @@ function patchNetwork(): PatchCleanupFn {
 }
 
 // Console patching to remove Sentry wrappers
-function patchConsole(): PatchCleanupFn {
+export function patchConsole(): PatchCleanupFn {
   type ConsoleFunction = Function & { __sentry_original__?: Function };
   type ConsoleFunctions = Record<string, ConsoleFunction>;
 
@@ -138,7 +121,7 @@ function patchConsole(): PatchCleanupFn {
 }
 
 // Miscellaneous tracking functions
-function patchMiscellaneous(): PatchCleanupFn {
+export function patchMiscellaneous(): PatchCleanupFn {
     const miscPatches = [
     // Global analytics utilities
         AnalyticsUtils?.AnalyticsActionHandlers &&
@@ -163,7 +146,7 @@ function patchMiscellaneous(): PatchCleanupFn {
 }
 
 // Sentry error reporting prevention
-function patchSentry(): PatchCleanupFn {
+export function patchSentry(): PatchCleanupFn {
     const sentryPatches: PatchCleanupFn[] = [];
 
     // Add patches if Sentry components exist

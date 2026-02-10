@@ -1,7 +1,7 @@
 import { before } from "@api/patcher";
 import { findByName, findByStoreName } from "@metro";
 
-import { realmojiSettings } from "../storage";
+import { rainenhancementsSettings } from "../../storage";
 
 // heavily based off the godsent work of: https://github.com/Vendicated/Vencord/blob/575421f4d06fe6cda9c1cb3227060a20cd1c700f/src/plugins/fakeNitro/index.tsx
 
@@ -23,7 +23,7 @@ function makeStickerItem(id: string, format: number) {
 
 export default [
     before("generate", RowManager.prototype, ([data]) => {
-        if (data.rowType !== 1 || !realmojiSettings.transformSticker) return;
+        if (data.rowType !== 1 || !rainenhancementsSettings.transformSticker) return;
 
         const { content } = data.message;
         if (!content) return;

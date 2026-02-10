@@ -2,7 +2,7 @@ import { after, before } from "@api/patcher";
 import { findByName, findByStoreName } from "@metro";
 
 import { Embed, Message } from "../def";
-import { realmojiSettings } from "../storage";
+import { rainenhancementsSettings } from "../../storage";
 
 const { getCustomEmojiById } = findByStoreName("EmojiStore");
 const RowManager = findByName("RowManager");
@@ -10,7 +10,7 @@ const emojiRegex = /https:\/\/cdn.discordapp.com\/emojis\/(\d+)\.\w+/;
 
 export default [
     before("generate", RowManager.prototype, ([data]) => {
-        if (data.rowType !== 1 || !realmojiSettings.transformEmoji) return;
+        if (data.rowType !== 1 || !rainenhancementsSettings.transformEmoji) return;
 
         let content = data.message.content as string;
         if (!content?.length) return;
@@ -34,10 +34,10 @@ export default [
         }
 
         data.message.content = content;
-        data.__realmoji = true;
+        data.__rainenhancements = true;
     }),
     after("generate", RowManager.prototype, ([data], row) => {
-        if (data.rowType !== 1 || data.__realmoji !== true || !realmojiSettings.transformEmoji) return;
+        if (data.rowType !== 1 || data.__rainenhancements !== true || !rainenhancementsSettings.transformEmoji) return;
         const { content } = row.message as Message;
         if (!Array.isArray(content)) return;
 
@@ -57,7 +57,7 @@ export default [
             const url = `${match[0]}?size=128`;
             const emoji = getCustomEmojiById(match[1]);
             let emojiName = emoji?.name;
-            if (emojiName === undefined) emojiName = "<realmoji>";
+            if (emojiName === undefined) emojiName = "<rainenhancements>";
             if (e[1]?.startsWith("name")) {
                 emojiName = e[1].replace("name=", "");
             }
