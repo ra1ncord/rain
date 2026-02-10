@@ -1,37 +1,36 @@
-import { findByProps } from "@metro";
-import { ScrollView } from "react-native";
-
-import { realmojiSettings } from "./storage";
+import {findByProps} from "@metro";
+import {useRealMojiSettings} from "./storage"; 
+import {ScrollView} from "react-native";
 
 const {
     TableSwitchRow,
     TableRowGroup,
 } = findByProps("TableRow");
-const { Stack } = findByProps("Stack");
+const {Stack} = findByProps("Stack");
 
 export default () => {
+    const settings = useRealMojiSettings();
+
     return (
-        <ScrollView style={{ flex: 1 }}>
+        <ScrollView style={{flex: 1}}>
             <Stack
-                style={{ paddingVertical: 24, paddingHorizontal: 12 }}
+                style={{paddingVertical: 24, paddingHorizontal: 12}}
                 spacing={24}
             >
-                <TableRowGroup title="Emojis" titleStyleType="no_border">
+                <TableRowGroup title="Realmoji" titleStyleType="no_border">
                     <TableSwitchRow
                         label="Transform fake emojis into real ones"
                         onValueChange={(v: boolean) => {
-                            realmojiSettings.transformEmoji = v;
+                            settings.updateSettings({ transformEmoji: v });
                         }}
-                        value={realmojiSettings.transformEmoji}
+                        value={settings.transformEmoji ?? true}
                     />
-                </TableRowGroup>
-                <TableRowGroup title="Stickers" titleStyleType="no_border">
                     <TableSwitchRow
                         label="Transform fake stickers into real ones"
                         onValueChange={(v: boolean) => {
-                            realmojiSettings.transformSticker = v;
+                            settings.updateSettings({ transformSticker: v });
                         }}
-                        value={realmojiSettings.transformSticker}
+                        value={settings.transformSticker ?? true}
                     />
                 </TableRowGroup>
             </Stack>
