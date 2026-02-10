@@ -7,7 +7,7 @@ import { NavigationNative } from "@metro/common";
 import { ActionSheet, BottomSheetTitleHeader, Button, IconButton, Stack, TableRow, TableRowGroup, Text, TextInput } from "@metro/common/components";
 import { findByProps, findByPropsLazy } from "@metro/wrappers";
 import { FontDefinition, removeFont, saveFont, updateFont, useFonts, validateFont } from "@plugins/_core/painter/fonts";
-import React, { useMemo, useRef, useState, useReducer } from "react";
+import React, { useMemo, useReducer,useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 
 const actionSheet = findByPropsLazy("hideActionSheet");
@@ -136,7 +136,7 @@ function JsonFontImporter({ fonts, setName, setSource }: {
                     Object.keys(fonts).forEach(key => delete fonts[key]);
                     // Add new entries
                     Object.assign(fonts, json.main);
-                    
+
                     setName(json.name);
                     setSource(fontLink);
                 })()

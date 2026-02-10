@@ -9,13 +9,12 @@ import {
     Text,
 } from "@metro/common/components";
 import { isPluginCore } from "@plugins";
+import { CardWrapper } from "@rain/pages/Addon/AddonCard";
+import { UnifiedPluginModel } from "@rain/pages/Plugins/models";
+import { usePluginCardStyles } from "@rain/pages/Plugins/usePluginCardStyles";
 import chroma from "chroma-js";
 import { createContext, useContext, useMemo } from "react";
 import { View } from "react-native";
-
-import { CardWrapper } from "../../Addon/AddonCard";
-import { UnifiedPluginModel } from "../models";
-import { usePluginCardStyles } from "../usePluginCardStyles";
 
 const CardContext = createContext<{
   plugin: UnifiedPluginModel;

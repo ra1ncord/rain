@@ -1,14 +1,15 @@
-import { definePlugin } from "@plugins";
-import { hidecallbuttonsSettings } from "./storage";
 import { findAssetId } from "@api/assets";
+import { after, instead } from "@api/patcher";
+import { waitForHydration } from "@api/storage";
 import { metro } from "@lib";
 import { cyrb64Hash } from "@lib/utils/cyrb64";
-import { findByName, findByProps } from "@metro";
-import { after, instead } from "@api/patcher";
-import settings from "./settings";
-import { waitForHydration } from "@api/storage";
+import { findByName } from "@metro";
+import { definePlugin } from "@plugins";
 
-let patches: (() => boolean)[] = [];
+import settings from "./settings";
+import { hidecallbuttonsSettings } from "./storage";
+
+const patches: (() => boolean)[] = [];
 const find = (filter: (m: any) => boolean) => {
     return metro.findExports(
         metro.factories.createSimpleFilter(
@@ -47,7 +48,7 @@ export default definePlugin({
                 false,
             );
         const PrivateChannelButtons = find(
-            (x) => x?.type?.name == "PrivateChannelButtons",
+            x => x?.type?.name == "PrivateChannelButtons",
         );
         const VideoButton = findByName("VideoButton", false);
         // User Profile
@@ -108,7 +109,7 @@ export default definePlugin({
                 "default",
                 SimplifiedUserProfileContactButtons,
                 (_, component) => {
-                    let buttons = component?.props?.children;
+                    const buttons = component?.props?.children;
                     if (buttons === undefined) return;
 
                     if (hidecallbuttonsSettings.upHideVoiceButton)

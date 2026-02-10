@@ -1,9 +1,10 @@
-import { findByName } from "@metro";
-import ReviewCard from "../components/ReviewCard";
 import { instead } from "@api/patcher";
+import { findByName } from "@metro";
 import { React } from "@metro/common";
 
-let GuildActionSheetProgress = findByName("GuildActionSheetProgress", false);
+import ReviewCard from "../components/ReviewCard";
+
+const GuildActionSheetProgress = findByName("GuildActionSheetProgress", false);
 console.log(GuildActionSheetProgress);
 
 export default () =>

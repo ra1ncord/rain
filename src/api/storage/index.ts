@@ -57,7 +57,7 @@ export const createFlattenedFileStorage = <T>(filePath: string) => {
 };
 
 export async function waitForHydration(usePluginSettings: any): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         if (usePluginSettings.getState()._hasHydrated) {
             resolve();
             return;

@@ -1,4 +1,4 @@
-import { UnifiedPluginModel } from "../models";
+import { UnifiedPluginModel } from "@rain/pages/Plugins/models";
 
 export interface PluginInfoActionSheetProps {
     plugin: UnifiedPluginModel;

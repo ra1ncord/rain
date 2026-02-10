@@ -1,6 +1,5 @@
+import * as fs from "@api/native/fs";
 import { useEffect, useMemo, useState } from "react";
-
-import * as fs from "../native/fs";
 
 export enum CheckState {
     FALSE,

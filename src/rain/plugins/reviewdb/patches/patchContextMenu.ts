@@ -1,12 +1,13 @@
-import ReviewActionSheet from "../components/ReviewActionSheet";
-import { ActionSheet } from "../components/ActionSheet";
-import { findByProps } from "@metro";
 import { before } from "@api/patcher";
+import { findByProps } from "@metro";
 
-let ContextMenuPopout = findByProps("ContextMenuPopout");
+import { ActionSheet } from "../components/ActionSheet";
+import ReviewActionSheet from "../components/ReviewActionSheet";
+
+const ContextMenuPopout = findByProps("ContextMenuPopout");
 
 export default () =>
-    before("ContextMenuPopout", ContextMenuPopout, (args) => {
+    before("ContextMenuPopout", ContextMenuPopout, args => {
         const userId = args[0]?.menu?.key;
         if (
             userId !== undefined &&

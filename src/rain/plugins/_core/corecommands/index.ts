@@ -1,5 +1,5 @@
+import { patchCommands,registerCommand } from "@api/commands";
 import { definePlugin } from "@plugins";
-import { registerCommand, patchCommands } from "@api/commands";
 
 export default definePlugin({
     name: "CoreCommands",

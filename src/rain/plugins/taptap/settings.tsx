@@ -1,6 +1,6 @@
 import { useSettings } from "@api/settings";
 import { ReactNative } from "@metro/common";
-import { Stack, TableRow, TableRowGroup, TableSwitchRow, Text, TextInput } from "@metro/common/components";
+import { Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import React from "react";
 import { View } from "react-native";
 

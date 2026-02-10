@@ -1,7 +1,8 @@
-import { findByTypeName } from "@metro";
-import ReviewSection from "../components/ReviewSection";
 import { after } from "@api/patcher";
 import { findInReactTree } from "@lib/utils";
+import { findByTypeName } from "@metro";
+
+import ReviewSection from "../components/ReviewSection";
 
 let UserProfile = findByTypeName("UserProfile");
 if (UserProfile === undefined)
@@ -11,7 +12,7 @@ export default () =>
     after("type", UserProfile, (args, ret) => {
         const profileSections = findInReactTree(
             ret,
-            (r) =>
+            r =>
                 r?.type?.displayName === "View" &&
                 // UserProfileBio still exists even when the user has no bio. Yep.
                 r?.props?.children.findIndex(

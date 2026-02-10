@@ -1,10 +1,7 @@
-import { findAssetId } from "@api/assets";
 import { useSettings } from "@api/settings";
-import { showConfirmationAlert } from "@api/ui/alerts";
 import { showSheet } from "@api/ui/sheets";
-import { showToast } from "@api/ui/toasts";
-import { clipboard, navigation } from "@metro/common";
-import { useThemes, ThemeInfo } from "@plugins/_core/painter/themes";
+import { navigation } from "@metro/common";
+import { ThemeInfo,useThemes } from "@plugins/_core/painter/themes";
 import AddonCard, { CardWrapper } from "@rain/pages/Addon/AddonCard";
 import * as React from "react";
 

@@ -1,6 +1,7 @@
-import { ReactNative as RN } from "@metro/common";
-import { Badge } from "../def";
 import { showToast } from "@api/ui/toasts";
+import { ReactNative as RN } from "@metro/common";
+
+import { Badge } from "../def";
 
 interface ReviewBadgeProps {
     badge: Badge;

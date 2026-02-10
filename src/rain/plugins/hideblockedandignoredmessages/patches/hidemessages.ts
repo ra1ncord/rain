@@ -1,10 +1,11 @@
-import {FluxDispatcher} from "@metro/common";
-import {before} from "@api/patcher";
-import {hideblockedandignoredmessagesSettings as storage} from "../storage";
-import {findByName, findByProps} from "@metro";
+import { before } from "@api/patcher";
+import { findByName, findByProps } from "@metro";
+import { FluxDispatcher } from "@metro/common";
+
+import { hideblockedandignoredmessagesSettings as storage } from "../storage";
 
 const RowManager = findByName("RowManager");
-const {isBlocked, isIgnored} = findByProps("isBlocked", "isIgnored");
+const { isBlocked, isIgnored } = findByProps("isBlocked", "isIgnored");
 
 // User filter logic
 const isFilteredUser = (id: any) => {

@@ -1,6 +1,6 @@
+import { ApplicationCommand } from "@api/commands/types";
 import { getDebugInfo } from "@api/debug";
 import { messageUtil } from "@metro/common";
-import { ApplicationCommand } from "@api/commands/types";
 
 // todo: i18n
 export default () => <ApplicationCommand>{

@@ -42,10 +42,10 @@ export default function patchDefinitionAndResolver() {
             get: () => {
                 const ret = _colorRef.current?.raw[key];
                 if (ret) return ret;
-                
+
                 const fallback = RAW_FALLBACK_MAP[key];
                 if (fallback) return fallback;
-                
+
                 return origRawColor[key];
             }
         });

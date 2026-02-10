@@ -3,7 +3,7 @@ import { patchAssets } from "@api/assets/patches";
 import { useSettings } from "@api/settings";
 import { RainIcon } from "@assets";
 import { findByPropsLazy } from "@metro";
-import { definePlugin, isPluginEnabled, usePluginSettings } from "@plugins";
+import { definePlugin } from "@plugins";
 import { version } from "rain-build-info";
 import React from "react";
 import { lazy } from "react";

@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
 import { createFileStorage, PluginStore } from "@api/storage";
+import { create } from "zustand";
+import { createJSONStorage,persist } from "zustand/middleware";
 
 interface Settings {
     upHideVoiceButton: boolean;
@@ -15,15 +15,15 @@ type HideCallButtonsSettingsStore = PluginStore<Settings>;
 export const useHideCallButtonsSettings =
     create<HideCallButtonsSettingsStore>()(
         persist(
-            (set) => ({
+            set => ({
                 upHideVoiceButton: true,
                 upHideVideoButton: true,
                 dmHideCallButton: true,
                 dmHideVideoButton: true,
                 hideVCVideoButton: false,
                 _hasHydrated: false,
-                updateSettings: (newSettings) =>
-                    set((state) => ({ ...state, ...newSettings })),
+                updateSettings: newSettings =>
+                    set(state => ({ ...state, ...newSettings })),
                 setHasHydrated: (state: boolean) =>
                     set({ _hasHydrated: state }),
             }),
@@ -32,7 +32,7 @@ export const useHideCallButtonsSettings =
                 storage: createJSONStorage(() =>
                     createFileStorage("plugins/hidecallbuttons.json"),
                 ),
-                onRehydrateStorage: () => (state) => {
+                onRehydrateStorage: () => state => {
                     state?.setHasHydrated(true);
                 },
             },

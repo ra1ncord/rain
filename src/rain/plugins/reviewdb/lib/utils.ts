@@ -1,9 +1,10 @@
-import { APIResponse, Review } from "../def";
-import { admins } from "..";
-import { findByProps, findByStoreName } from "@metro";
-import { cyrb64Hash } from "@lib/utils/cyrb64";
-import { metro } from "@lib";
 import { semanticColors } from "@api/ui/components/color";
+import { metro } from "@lib";
+import { cyrb64Hash } from "@lib/utils/cyrb64";
+import { findByProps, findByStoreName } from "@metro";
+
+import { admins } from "..";
+import { APIResponse, Review } from "../def";
 
 export const find = (filter: (m: any) => boolean) => {
     return metro.findExports(
@@ -16,9 +17,9 @@ export const find = (filter: (m: any) => boolean) => {
 
 const { getCurrentUser } = findByStoreName("UserStore");
 const resolveSemanticColor: (theme: string, semanticColor: object) => string =
-    find((m) => m.default?.internal?.resolveSemanticColor)?.default.internal
+    find(m => m.default?.internal?.resolveSemanticColor)?.default.internal
         .resolveSemanticColor ??
-    find((m) => m.meta?.resolveSemanticColor)?.meta.resolveSemanticColor ??
+    find(m => m.meta?.resolveSemanticColor)?.meta.resolveSemanticColor ??
     (() => {});
 const { useThemeContext } = findByProps("useThemeContext");
 

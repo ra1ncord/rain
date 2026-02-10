@@ -1,9 +1,9 @@
 import { useSettings } from "@api/settings";
 import { NavigationNative } from "@metro/common";
-import { useFonts } from "@plugins/_core/painter/fonts";
-import { FontDefinition } from "@plugins/_core/painter/fonts";
+import { FontDefinition, useFonts } from "@plugins/_core/painter/fonts";
 import AddonPage from "@rain/pages/Addon/AddonPage";
 
+import FontBrowser from "../Browser/Fonts";
 import FontCard from "./FontCard";
 import FontEditor from "./FontEditor";
 
@@ -27,7 +27,7 @@ export default function Fonts() {
                 onPress: () => {
                     navigation.push("RAIN_CUSTOM_PAGE", {
                         title: "Addon Browser",
-                        render: () => <FontEditor />
+                        render: () => <FontBrowser />
                     });
                 }
             }}

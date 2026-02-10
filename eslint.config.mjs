@@ -18,6 +18,8 @@ export default [{
         parser: tsParser,
     },
 
+    files: ["src/**/*.{ts,tsx,js,jsx}"],
+
     rules: {
         "no-restricted-syntax": ["error", {
             selector: "AwaitExpression:not(:function *)",

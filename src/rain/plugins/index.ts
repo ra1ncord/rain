@@ -1,9 +1,9 @@
+import { createFileStorage, waitForHydration } from "@api/storage";
+import { logger } from "@lib/utils/logger";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
 
 import * as t from "./types";
-import { createFileStorage, waitForHydration } from "@api/storage";
-import { logger } from "@lib/utils/logger";
 
 export const pluginInstances = new Map<string, t.rainPlugin>();
 
@@ -129,7 +129,7 @@ export async function initPlugins() {
             try {
                 await startPlugin(id);
             } catch(error) {
-                logger.log("Failed to start ", id, " because of ", error)
+                logger.log("Failed to start ", id, " because of ", error);
             }
         }
     }));
@@ -149,7 +149,7 @@ export async function initEagerPlugins() {
             try {
                 await startEagerPlugin(id);
             } catch(error) {
-                logger.log("Failed to eagerStart ", id, " because of ", error)
+                logger.log("Failed to eagerStart ", id, " because of ", error);
             }
         }
     }));

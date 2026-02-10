@@ -1,6 +1,6 @@
 import { Review } from "../def";
 import { reviewdbSettings } from "../storage";
-import { BASE_URL, API_URL } from "./constants";
+import { API_URL,BASE_URL } from "./constants";
 import { jsonFetch } from "./utils";
 
 export const getReviews = async (userId: string): Promise<Review[]> =>

@@ -1,4 +1,3 @@
-import { semanticColors } from "@api/ui/components/color";
 import { hideSheet } from "@api/ui/sheets";
 import { ActionSheet, Card, IconButton, Text } from "@metro/common/components";
 import { ScrollView, View } from "react-native";

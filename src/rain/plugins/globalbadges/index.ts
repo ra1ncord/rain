@@ -58,9 +58,9 @@ export default definePlugin({
         patches.push(
             after("default", useBadgesModule, ([user], result) => {
                 if (!user) return;
-                const userId = user.userId;
+                const { userId } = user;
                 const cached = customBadgesCache.get(userId);
-            
+
                 if (!cached) {
                     if (!pendingRequests.has(userId)) {
                         pendingRequests.add(userId);
@@ -71,7 +71,7 @@ export default definePlugin({
                     }
                     return;
                 }
-            
+
                 Object.entries(cached).forEach(([key, value]: [string, any]) => {
                     const isModBadge = ["aliu", "bd", "enmity", "goosemod", "replugged", "vencord", "equicord"].includes(key);
                     const isCustomBadge = ["customBadgesArray", "reviewdb"].includes(key);

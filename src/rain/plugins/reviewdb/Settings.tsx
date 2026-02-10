@@ -1,7 +1,8 @@
-import { findByProps } from "@metro";
-import showAuthModal from "./lib/showAuthModal";
 import { findAssetId } from "@api/assets";
-import { reviewdbSettings, useReviewDBSettings } from "./storage";
+import { findByProps } from "@metro";
+
+import showAuthModal from "./lib/showAuthModal";
+import { useReviewDBSettings } from "./storage";
 
 const { TableRow, TableSwitchRow, TableRowGroup } = findByProps("TableRow");
 const { Stack } = findByProps("Stack");

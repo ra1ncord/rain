@@ -1,3 +1,4 @@
+import { waitForHydration } from "@api/storage";
 import { logger } from "@lib/utils/logger";
 import { definePlugin } from "@plugins";
 
@@ -5,7 +6,6 @@ import { setupPatches } from "./patcher";
 import { useRulesStore } from "./rulesStore";
 import CleanUrlsSettings from "./settings";
 import { useCleanUrlsSettings } from "./storage";
-import { waitForHydration } from "@api/storage";
 
 type Unpatch = () => void;
 

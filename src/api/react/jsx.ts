@@ -1,6 +1,5 @@
+import { after } from "@api/patcher";
 import { findByPropsLazy } from "@metro";
-
-import { after } from "../patcher";
 
 type Callback = (Component: any, ret: JSX.Element) => JSX.Element;
 const callbacks = new Map<string, Callback[]>();

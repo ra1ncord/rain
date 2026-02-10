@@ -3,9 +3,8 @@ import { findByNameLazy, findByProps } from "@metro";
 import { FluxUtils } from "@metro/common";
 import { Avatar, AvatarPile, Text } from "@metro/common/components";
 import { UserStore } from "@metro/common/stores";
+import { UnifiedPluginModel } from "@rain/pages/Plugins/models";
 import { View } from "react-native";
-
-import { UnifiedPluginModel } from "../models";
 
 const showUserProfileActionSheet = findByNameLazy("showUserProfileActionSheet");
 const { getUser: maybeFetchUser } = lazyDestructure(() => findByProps("getUser", "fetchProfile"));

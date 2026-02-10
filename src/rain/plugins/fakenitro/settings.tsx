@@ -1,7 +1,8 @@
-import {findByProps} from "@metro";
-import {fakenitroSettings} from "./storage";
-import {ReactNative as RN} from "@metro/common";
-import {ScrollView} from "react-native";
+import { findByProps } from "@metro";
+import { ReactNative as RN } from "@metro/common";
+import { ScrollView } from "react-native";
+
+import { fakenitroSettings } from "./storage";
 
 const {
     TableSwitchRow,
@@ -9,7 +10,7 @@ const {
     TableRadioRow,
     TableRowGroup,
 } = findByProps("TableRow");
-const {Stack} = findByProps("Stack");
+const { Stack } = findByProps("Stack");
 
 const sizeOptions = {
     Tiny: 16,
@@ -24,9 +25,9 @@ const previewUri = "https://cdn.discordapp.com/emojis/926602689213767680.webp";
 
 export default () => {
     return (
-        <ScrollView style={{flex: 1}}>
+        <ScrollView style={{ flex: 1 }}>
             <Stack
-                style={{paddingVertical: 24, paddingHorizontal: 12}}
+                style={{ paddingVertical: 24, paddingHorizontal: 12 }}
                 spacing={24}
             >
                 <TableRadioGroup

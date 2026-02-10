@@ -1,4 +1,4 @@
-import { clearFolder, downloadFile, fileExists, readFile, removeFile,writeFile } from "@api/native/fs";
+import { clearFolder, downloadFile, fileExists, removeFile,writeFile } from "@api/native/fs";
 import { createFileStorage, waitForHydration } from "@api/storage";
 import { safeFetch } from "@lib/utils";
 import { create } from "zustand";

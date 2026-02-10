@@ -1,10 +1,9 @@
 import { findAssetId } from "@api/assets";
-import { ReactNative } from "@metro/common";
 import { Stack, TableRadioGroup, TableRadioRow, TableRow,TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import React from "react";
+import { ScrollView } from "react-native";
 
 import { useBetterChatButtonsSettings } from "./storage";
-import { ScrollView } from "react-native";
 
 export default function BetterChatButtonsSettings() {
     const settings = useBetterChatButtonsSettings();

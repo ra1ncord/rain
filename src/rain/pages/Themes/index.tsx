@@ -1,5 +1,6 @@
 import { findAssetId } from "@api/assets";
 import { useSettings } from "@api/settings";
+import { NavigationNative } from "@metro/common";
 import {
     ActionSheet,
     BottomSheetTitleHeader,
@@ -8,14 +9,14 @@ import {
     TableRowIcon,
     TableSwitchRow,
 } from "@metro/common/components";
-import { installTheme, useThemes, ThemeInfo } from "@plugins/_core/painter/themes";
+import { installTheme, ThemeInfo,useThemes } from "@plugins/_core/painter/themes";
 import { useColorsPref } from "@plugins/_core/painter/themes/preferences";
 import { Author } from "@plugins/_core/painter/themes/types";
 import AddonPage from "@rain/pages/Addon/AddonPage";
+import ThemeBrowser from "@rain/pages/Browser/Themes";
 import { View } from "react-native";
 
 import ThemeCard from "./ThemeCard";
-import { navigation } from "@metro/common";
 
 /**
  * Theme options have been changed from radio groups to individual switches
@@ -26,6 +27,7 @@ export default function Themes() {
     const themesMap = useThemes(s => s.themes);
     const themesList = Object.values(themesMap);
     const safeMode = useSettings(state => state.safeMode);
+    const navigation = NavigationNative.useNavigation();
 
     return (
         <AddonPage<ThemeInfo>
@@ -44,7 +46,7 @@ export default function Themes() {
                 onPress: () => {
                     navigation.push("RAIN_CUSTOM_PAGE", {
                         title: "Addon Browser",
-                        //render: () => <FontEditor />
+                        render: () => <ThemeBrowser />
                     });
                 }
             }}

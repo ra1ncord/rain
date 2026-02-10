@@ -1,13 +1,14 @@
-import { ReactNative as RN } from "@metro/common";
-import { ViewProps } from "react-native";
-import { Review } from "../def";
-import { useThemedColor } from "../lib/utils";
-import showReviewActionSheet from "../lib/showReviewActionSheet";
-import ReviewUsername from "./ReviewUsername";
-import { createStyles } from "@api/ui/styles";
-import { Forms } from "@metro/common/components";
-import { findByProps } from "@metro";
 import { semanticColors } from "@api/ui/components/color";
+import { createStyles } from "@api/ui/styles";
+import { findByProps } from "@metro";
+import { ReactNative as RN } from "@metro/common";
+import { Forms } from "@metro/common/components";
+import { ViewProps } from "react-native";
+
+import { Review } from "../def";
+import showReviewActionSheet from "../lib/showReviewActionSheet";
+import { useThemedColor } from "../lib/utils";
+import ReviewUsername from "./ReviewUsername";
 
 interface ReviewRowProps {
     review: Review;
@@ -30,7 +31,7 @@ const { TableRowGroup } = findByProps("TableRow");
 
 export default ({ review, style }: ReviewRowProps) => {
     const styles = useStyles();
-    
+
     return (
         <TableRowGroup style={[style]}>
             <FormRow

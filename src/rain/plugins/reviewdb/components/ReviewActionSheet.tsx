@@ -1,6 +1,7 @@
 import { ReactNative as RN } from "@metro/common";
-import ReviewSection from "./ReviewSection";
+
 import { ActionSheet } from "./ActionSheet";
+import ReviewSection from "./ReviewSection";
 
 interface ReviewCardProps {
     userId: string;

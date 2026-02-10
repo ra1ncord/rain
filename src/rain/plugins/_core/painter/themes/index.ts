@@ -1,18 +1,18 @@
-import { fileExists, readFile, writeFile } from "@api/native/fs";
+import { writeFile } from "@api/native/fs";
 import { getStoredTheme, getThemeFilePath, isPyonLoader } from "@api/native/loader";
 import { useSettings } from "@api/settings";
+import { createFileStorage, waitForHydration } from "@api/storage";
 import { safeFetch } from "@lib/utils";
 import { Platform } from "react-native";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
-import { useColorsPref } from "./preferences";
 
 import initColors from "./colors";
+import { fixStatusBar } from "./devices";
 import { applyAndroidAlphaKeys, normalizeToHex } from "./parser";
+import { useColorsPref } from "./preferences";
 import { ThemeManifest } from "./types";
 import { updateBunnyColor } from "./updater";
-import { fixStatusBar } from "./devices";
-import { createFileStorage, waitForHydration } from "@api/storage";
 
 export interface ThemeInfo {
     id: string;

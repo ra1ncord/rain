@@ -1,4 +1,5 @@
 import { after, before } from "@api/patcher";
+import { logger } from "@lib/utils/logger";
 import { findByTypeDisplayName } from "@metro";
 import { ReactNative } from "@metro/common";
 import { definePlugin } from "@plugins";
@@ -6,7 +7,6 @@ import React from "react";
 
 import BetterChatButtonsSettings from "./settings";
 import { useBetterChatButtonsSettings } from "./storage";
-import { logger } from "@lib/utils/logger";
 
 type Unpatch = () => void;
 
@@ -86,11 +86,11 @@ export default definePlugin({
         }
     },
     stop() {
-        //todo: actually fix this instead of a try catch
+        // todo: actually fix this instead of a try catch
         try{
             for (const unpatch of unpatches) unpatch();
         } catch(error) {
-            logger.log(error)
+            logger.log(error);
         }
         unpatches.length = 0;
     },

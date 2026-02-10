@@ -1,13 +1,14 @@
 // Taken from https://github.com/nexpid/RevengePlugins/blob/main/src/stuff/components/ActionSheet.tsx
-import { ReactNative as RN } from "@metro/common";
 import { findByProps } from "@metro";
-import type { ImageSourcePropType, ViewProps } from "react-native";
+import { ReactNative as RN } from "@metro/common";
 import { omit } from "es-toolkit";
+import type { ViewProps } from "react-native";
+
 import { find } from "../lib/utils";
 
 const _ActionSheet =
     findByProps("ActionSheet")?.ActionSheet ??
-    find((x) => x.render?.name === "ActionSheet"); // thank you to @pylixonly for fixing this
+    find(x => x.render?.name === "ActionSheet"); // thank you to @pylixonly for fixing this
 
 const { ActionSheetCloseButton, BottomSheetTitleHeader } = findByProps(
     "ActionSheetCloseButton",
@@ -55,7 +56,7 @@ export const ActionSheet = ((props: ActionSheetProps) => {
 
 ActionSheet.open = (sheet, props) => {
     openLazy(
-        new Promise((res) => {
+        new Promise(res => {
             res({
                 default: sheet,
             });

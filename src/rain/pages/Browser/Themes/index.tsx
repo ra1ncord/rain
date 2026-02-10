@@ -1,0 +1,16 @@
+import AddonBrowser from "@rain/pages/Browser/AddonBrowser";
+import { installTheme, removeTheme,useThemes } from "@rain/plugins/_core/painter/themes";
+
+const cachedThemes = { data: null };
+
+export default () => (
+    <AddonBrowser
+        type="themes"
+        url="https://codeberg.org/raincord/OfficialAddons/raw/branch/main/Themes/themes.json"
+        useStore={useThemes}
+        installFn={installTheme}
+        removeFn={removeTheme}
+        identityKey="installUrl"
+        cache={cachedThemes}
+    />
+);

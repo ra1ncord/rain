@@ -1,8 +1,7 @@
-import { messageUtil } from "@metro/common";
 import { ApplicationCommand } from "@api/commands/types";
-import { isPluginEnabled, pluginInstances } from "@rain/plugins";
-import { UnifiedPluginModel } from "@rain/pages/Plugins/models";
+import { messageUtil } from "@metro/common";
 import unifyRainPlugin from "@rain/pages/Plugins/models/rain";
+import { pluginInstances } from "@rain/plugins";
 
 // todo: i18n
 export default () => <ApplicationCommand>{
@@ -10,7 +9,7 @@ export default () => <ApplicationCommand>{
     description: "Send your plugin info to the current channel",
     execute([ephemeral], ctx) {
         const rainPlugins = [...pluginInstances.values()];
-        let plugins = rainPlugins.map(plugin => unifyRainPlugin(plugin));
+        const plugins = rainPlugins.map(plugin => unifyRainPlugin(plugin));
         const enabled = plugins.filter(p => p.isEnabled() && !p.isCore()).map(p => p.name);
 
         const content = [

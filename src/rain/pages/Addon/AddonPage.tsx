@@ -126,6 +126,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
     const [sortFn, setSortFn] = React.useState<((a: T, b: T) => number) | null>(() => null);
     const [filterFn, setFilterFn] = React.useState<((item: T) => boolean) | null>(() => props.defaultFilterKey && props.filterOptions ? props.filterOptions[props.defaultFilterKey] : null);
     const { bottom: bottomInset } = useSafeAreaInsets();
+    const { right: rightInset } = useSafeAreaInsets();
     const navigation = NavigationNative.useNavigation();
 
     useEffect(() => {
@@ -166,6 +167,16 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
         }
     }, [props.installAction]);
 
+    const onInstallBrowserPress = useCallback(() => {
+        if (!props.installBrowserAction) return () => { };
+        const { label, onPress, fetchFn } = props.installBrowserAction;
+        if (fetchFn) {
+            openAlert("AddonInputAlert", <InputAlert label={label ?? "Install"} fetchFn={fetchFn} />);
+        } else {
+            onPress?.();
+        }
+    }, [props.installBrowserAction]);
+
     if (results.length === 0 && !search) {
         return <View style={{ gap: 32, flexGrow: 1.5, justifyContent: "center", alignItems: "center" }}>
             <View style={{ gap: 8, alignItems: "center" }}>
@@ -178,7 +189,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
                 size="lg"
                 icon={findAssetId("CompassIcon")}
                 text={props.installBrowserAction.label ?? "Install"}
-                onPress={onInstallPress}
+                onPress={onInstallBrowserPress}
             />}
             {props.installAction && <Button
                 size="lg"
@@ -254,8 +265,14 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
                 ListFooterComponent={props.ListFooterComponent}
                 renderItem={({ item }: any) => <CardComponent item={item.obj} result={item} />}
             />
+            {props.installBrowserAction && <FloatingActionButton
+                positionBottom={bottomInset + 8}
+                icon={findAssetId("CompassIcon")}
+                onPress={onInstallBrowserPress}
+            />}
             {props.installAction && <FloatingActionButton
                 positionBottom={bottomInset + 8}
+                positionRight={rightInset + 86}
                 icon={findAssetId("PlusLargeIcon")}
                 onPress={onInstallPress}
             />}

@@ -1,11 +1,12 @@
-import { definePlugin } from "@plugins";
 import { after, instead } from "@api/patcher";
+import { waitForHydration } from "@api/storage";
 import { logger } from "@lib/utils/logger";
-import { findByProps, findByStoreName } from "@metro/wrappers";
 import { ReactNative } from "@metro/common";
+import { findByProps, findByStoreName } from "@metro/wrappers";
+import { definePlugin } from "@plugins";
+
 import TapTapSettings from "./settings";
 import { taptapSettings, useTapTapSettings } from "./storage";
-import { waitForHydration } from "@api/storage";
 
 type Unpatch = () => void;
 
@@ -103,8 +104,8 @@ function patchHandlers(handlers: any) {
                     try {
                         const evt = args?.[0]?.nativeEvent;
                         if (!evt) return;
-                        const channelId = evt.channelId;
-                        const messageId = evt.messageId;
+                        const { channelId } = evt;
+                        const { messageId } = evt;
                         if (!channelId || !messageId) return;
 
                         const channel = ChannelStore?.getChannel?.(channelId);
@@ -154,7 +155,7 @@ function patchHandlers(handlers: any) {
                     if (!evt) return orig.apply(handlers, args);
 
                     const ChatInput = ChatInputRef?.refs?.[0]?.current;
-                    const messageId = evt.messageId;
+                    const { messageId } = evt;
                     const channelId = ChatInput?.props?.channel?.id;
                     if (!channelId) return orig.apply(handlers, args);
 
@@ -180,12 +181,12 @@ function patchHandlers(handlers: any) {
         }
 
         if (handlers.handleTapMessage) {
-            const un = after("handleTapMessage", handlers, (args) => {
+            const un = after("handleTapMessage", handlers, args => {
                 try {
                     const nativeEvent = args?.[0]?.nativeEvent;
                     if (!nativeEvent) return;
-                    const channelId = nativeEvent.channelId;
-                    const messageId = nativeEvent.messageId;
+                    const { channelId } = nativeEvent;
+                    const { messageId } = nativeEvent;
                     if (!channelId || !messageId) return;
 
                     const channel = ChannelStore?.getChannel?.(channelId);
@@ -267,7 +268,7 @@ function patchHandlers(handlers: any) {
 
         unpatchHandlers = () => {
             try {
-                patches.forEach((u) => {
+                patches.forEach(u => {
                     try {
                         u?.();
                     } catch {}
@@ -343,7 +344,7 @@ function resolveRuntimeModules() {
     ChatInputRef = findByProps("insertText");
     getChatInputRef = findByProps("getChatInputRef").getChatInputRef;
 
-    let mhModule = findByProps("MessagesHandlers");
+    const mhModule = findByProps("MessagesHandlers");
     MessagesHandlers = mhModule?.MessagesHandlers ?? null;
 }
 
@@ -382,7 +383,7 @@ export default definePlugin({
             clearTimeout(timeoutTap);
             timeoutTap = null;
         }
-        patches.forEach((u) => {
+        patches.forEach(u => {
             try {
                 u?.();
             } catch {}

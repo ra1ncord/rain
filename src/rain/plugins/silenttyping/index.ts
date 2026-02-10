@@ -1,6 +1,6 @@
-import { definePlugin } from "@plugins";
 import { instead } from "@api/patcher";
 import { findByProps } from "@metro/wrappers";
+import { definePlugin } from "@plugins";
 
 const Typing = findByProps("startTyping", "stopTyping");
 const patches: (() => void)[] = [];

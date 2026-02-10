@@ -1,15 +1,16 @@
 import { after, instead } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
 import { commands as commandsModule, messageUtil } from "@metro/common";
-import { ApplicationCommand, ApplicationCommandInputType, ApplicationCommandType, RainApplicationCommand } from "./types"
 
-let commands: ApplicationCommand[] = []
+import { ApplicationCommand, ApplicationCommandInputType, ApplicationCommandType, RainApplicationCommand } from "./types";
+
+let commands: ApplicationCommand[] = [];
 const patches = new Set<() => void>();
 
 export function patchCommands() {
     const unpatchGetBuiltInCommands = after("getBuiltInCommands", commandsModule, (args, res) => {
         const commandType = args[0];
-        
+
         return res.concat(
             commands.filter(c => {
                 if (Array.isArray(commandType)) {
@@ -21,7 +22,7 @@ export function patchCommands() {
             })
         );
     });
-    
+
     patches.add(unpatchGetBuiltInCommands);
 }
 

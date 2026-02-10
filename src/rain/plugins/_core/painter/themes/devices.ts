@@ -1,7 +1,8 @@
-import { StatusBar, TextInput, Keyboard } from "react-native";
+import { StatusBar } from "react-native";
+
 import { _colorRef } from "./updater";
 
-//todo: fix ios keyboard + think of a better name for this file
+// todo: fix ios keyboard + think of a better name for this file
 
 function getBarColor() {
     if (_colorRef.current!.reference === "darker") {
@@ -12,7 +13,7 @@ function getBarColor() {
 }
 
 export function fixStatusBar() {
-    setInterval(() => { 
-        StatusBar.setBarStyle(getBarColor(), true); 
-    }, 200)
+    setInterval(() => {
+        StatusBar.setBarStyle(getBarColor(), true);
+    }, 200);
 }

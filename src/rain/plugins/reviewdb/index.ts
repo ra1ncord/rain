@@ -1,14 +1,15 @@
-import { definePlugin } from "@plugins";
-import patchProfile from "./patches/patchProfile";
-import patchSimplifiedProfile from "./patches/patchSimplifiedProfile";
-import patchServer from "./patches/patchServer";
-import patchContextMenu from "./patches/patchContextMenu";
-import { getAdmins } from "./lib/api";
-import Settings from "./Settings";
 import { waitForHydration } from "@api/storage";
+import { definePlugin } from "@plugins";
+
+import { getAdmins } from "./lib/api";
+import patchContextMenu from "./patches/patchContextMenu";
+import patchProfile from "./patches/patchProfile";
+import patchServer from "./patches/patchServer";
+import patchSimplifiedProfile from "./patches/patchSimplifiedProfile";
+import Settings from "./Settings";
 import { useReviewDBSettings } from "./storage";
 
-let patches: (() => boolean)[] = [];
+const patches: (() => boolean)[] = [];
 export const admins: any[] = [];
 
 export default definePlugin({
@@ -27,7 +28,7 @@ export default definePlugin({
         patches.push(patchServer());
         patches.push(patchContextMenu());
 
-        getAdmins().then((i) => admins.push(...i));
+        getAdmins().then(i => admins.push(...i));
     },
     stop() {
         for (const unpatch of patches) unpatch();

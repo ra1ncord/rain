@@ -1,12 +1,13 @@
-import { ReactNative as RN } from "@metro/common";
-import { Review } from "../def";
-import { getReviews } from "../lib/api";
-import ReviewRow from "./ReviewRow";
-import ReviewInput from "./ReviewInput";
-import { findByName, findByProps, findByStoreName } from "@metro";
-import { createStyles } from "@api/ui/styles";
 import { ErrorBoundary } from "@api/ui/components";
 import { semanticColors } from "@api/ui/components/color";
+import { createStyles } from "@api/ui/styles";
+import { findByName, findByProps, findByStoreName } from "@metro";
+import { ReactNative as RN } from "@metro/common";
+
+import { Review } from "../def";
+import { getReviews } from "../lib/api";
+import ReviewInput from "./ReviewInput";
+import ReviewRow from "./ReviewRow";
 
 const { getCurrentUser } = findByStoreName("UserStore");
 const UserProfileCard = findByName("UserProfileCard");
@@ -21,17 +22,17 @@ const { getDisplayProfile } = findByProps("getDisplayProfile");
 export default function ReviewSection({ userId }: ReviewSectionProps) {
     const [reviews, setReviews] = React.useState<Review[]>([]);
     const fetchReviews = () => {
-        getReviews(userId).then((i) => setReviews(i));
+        getReviews(userId).then(i => setReviews(i));
     };
-    
+
     React.useEffect(fetchReviews, []);
-    
+
     const hasExistingReview =
-        reviews.filter((i) => i.sender.discordID === getCurrentUser()?.id)
+        reviews.filter(i => i.sender.discordID === getCurrentUser()?.id)
             .length !== 0;
-    
+
     const themeColors = getDisplayProfile?.(userId)?.themeColors;
-    
+
     const useStyles = createStyles({
         avatar: {
             height: 36,
@@ -42,7 +43,7 @@ export default function ReviewSection({ userId }: ReviewSectionProps) {
             backgroundColor:
                 themeColors === undefined
                     ? semanticColors.CARD_PRIMARY_BG
-                    : `#00000073`,
+                    : "#00000073",
             borderRadius: 16,
             padding: 8,
         },
@@ -50,12 +51,12 @@ export default function ReviewSection({ userId }: ReviewSectionProps) {
             backgroundColor:
                 themeColors === undefined
                     ? semanticColors.CARD_SECONDARY_BG
-                    : `#00000083`,
+                    : "#00000083",
         },
     });
-    
+
     const styles = useStyles();
-    
+
     return (
         <ErrorBoundary>
             <RN.View style={[styles.card]}>

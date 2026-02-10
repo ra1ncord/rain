@@ -1,6 +1,6 @@
 import { createFileStorage, PluginStore } from "@api/storage";
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { createJSONStorage,persist } from "zustand/middleware";
 
 interface Settings {
     authToken: string;
@@ -11,12 +11,12 @@ type ReviewDBSettingsStore = PluginStore<Settings>;
 
 export const useReviewDBSettings = create<ReviewDBSettingsStore>()(
     persist(
-        (set) => ({
+        set => ({
             authToken: "",
             useThemedSend: true,
             _hasHydrated: false,
-            updateSettings: (newSettings) =>
-                set((state) => ({ ...state, ...newSettings })),
+            updateSettings: newSettings =>
+                set(state => ({ ...state, ...newSettings })),
             setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
         }),
         {
@@ -24,7 +24,7 @@ export const useReviewDBSettings = create<ReviewDBSettingsStore>()(
             storage: createJSONStorage(() =>
                 createFileStorage("plugins/reviewdb.json"),
             ),
-            onRehydrateStorage: () => (state) => {
+            onRehydrateStorage: () => state => {
                 state?.setHasHydrated(true);
             },
         },

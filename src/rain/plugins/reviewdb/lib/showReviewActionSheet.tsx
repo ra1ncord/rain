@@ -1,12 +1,13 @@
+import { findAssetId } from "@api/assets";
+import { showConfirmationAlert } from "@api/ui/alerts";
+import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro";
+import { clipboard } from "@metro/common";
+
 import { Review } from "../def";
+import { useReviewDBSettings } from "../storage";
 import { deleteReview, reportReview } from "./api";
 import { canDeleteReview } from "./utils";
-import { clipboard } from "@metro/common";
-import { findAssetId } from "@api/assets";
-import { showToast } from "@api/ui/toasts";
-import { showConfirmationAlert } from "@api/ui/alerts";
-import { useReviewDBSettings } from "../storage";
 const { hideActionSheet } = findByProps("openLazy", "hideActionSheet");
 const { showSimpleActionSheet } = findByProps("showSimpleActionSheet");
 
@@ -34,45 +35,45 @@ export default (review: Review) =>
             },
             ...(useReviewDBSettings().authToken && review.type !== 3
                 ? [
-                      ...(canDeleteReview(review)
-                          ? [
-                                {
-                                    label: "Delete Review",
-                                    isDestructive: true,
-                                    onPress: () =>
-                                        showConfirmationAlert({
-                                            title: "Delete Review",
-                                            content:
+                    ...(canDeleteReview(review)
+                        ? [
+                            {
+                                label: "Delete Review",
+                                isDestructive: true,
+                                onPress: () =>
+                                    showConfirmationAlert({
+                                        title: "Delete Review",
+                                        content:
                                                 "Are you sure you want to delete this review?",
-                                            confirmText: "Yes",
-                                            cancelText: "No",
-                                            // @ts-ignore
-                                            confirmColor: "red",
-                                            onConfirm: () =>
-                                                deleteReview(
-                                                    review.sender.discordID,
-                                                    review.id,
-                                                ),
-                                        }),
-                                },
-                            ]
-                          : []),
-                      {
-                          label: "Report Review",
-                          isDestructive: true,
-                          onPress: () =>
-                              showConfirmationAlert({
-                                  title: "Report Review",
-                                  content:
+                                        confirmText: "Yes",
+                                        cancelText: "No",
+                                        // @ts-ignore
+                                        confirmColor: "red",
+                                        onConfirm: () =>
+                                            deleteReview(
+                                                review.sender.discordID,
+                                                review.id,
+                                            ),
+                                    }),
+                            },
+                        ]
+                        : []),
+                    {
+                        label: "Report Review",
+                        isDestructive: true,
+                        onPress: () =>
+                            showConfirmationAlert({
+                                title: "Report Review",
+                                content:
                                       "Are you sure you want to report this review?",
-                                  confirmText: "Yes",
-                                  cancelText: "No",
-                                  // @ts-ignore
-                                  confirmColor: "red",
-                                  onConfirm: () => reportReview(review.id),
-                              }),
-                      },
-                  ]
+                                confirmText: "Yes",
+                                cancelText: "No",
+                                // @ts-ignore
+                                confirmColor: "red",
+                                onConfirm: () => reportReview(review.id),
+                            }),
+                    },
+                ]
                 : []),
         ],
     });

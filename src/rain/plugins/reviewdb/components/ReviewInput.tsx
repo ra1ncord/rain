@@ -1,13 +1,14 @@
-import { constants, ReactNative as RN } from "@metro/common";
-import { addReview } from "../lib/api";
-import { useThemedColor } from "../lib/utils";
-import { TextInput, Button } from "../lib/redesign";
-import { createStyles } from "@api/ui/styles";
-import { useReviewDBSettings } from "../storage";
-import { rawColors, semanticColors } from "@api/ui/components/color";
 import { findAssetId } from "@api/assets";
+import { rawColors, semanticColors } from "@api/ui/components/color";
+import { createStyles } from "@api/ui/styles";
 import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro";
+import { constants, ReactNative as RN } from "@metro/common";
+
+import { addReview } from "../lib/api";
+import { Button,TextInput } from "../lib/redesign";
+import { useThemedColor } from "../lib/utils";
+import { useReviewDBSettings } from "../storage";
 
 interface ReviewInputProps {
     userId: string;
@@ -102,7 +103,7 @@ export default function ReviewInput({
                     disabled={disableButton}
                     onPress={() => {
                         addReview(userId, reviewText)
-                            .then((res) => {
+                            .then(res => {
                                 setReviewText("");
                                 refetch();
                                 showToast(res.message, findAssetId("Check"));
@@ -145,7 +146,7 @@ export default function ReviewInput({
                 disabled={disableButton}
                 onPress={() => {
                     addReview(userId, reviewText)
-                        .then((res) => {
+                        .then(res => {
                             setReviewText("");
                             refetch();
                             showToast(res.message, findAssetId("Check"));
