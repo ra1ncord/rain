@@ -50,13 +50,13 @@ function AddonCard({ item, identityKey, installFn, removeFn, isInstalled }: Card
     const [isBusy, setIsBusy] = React.useState(false);
 
     const handleAction = async () => {
-        setIsBusy(true);
         try {
             const id = item[identityKey];
             if (isInstalled) {
                 await removeFn(id);
                 showToast(`Removed ${item.name}`, findAssetId("TrashIcon"));
             } else {
+                setIsBusy(true);
                 await installFn(item.installUrl);
                 showToast(`Installed ${item.name}`, findAssetId("CheckIcon"));
             }
