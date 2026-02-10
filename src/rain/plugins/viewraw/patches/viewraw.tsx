@@ -16,7 +16,8 @@ const Navigator =
     findByName("Navigator") ?? findByProps("Navigator")?.Navigator;
 const { FormRow, FormIcon } = Forms;
 
-const unpatch = [before("openLazy", LazyActionSheet, ([component, key, msg]) => {
+export default () => [
+    before("openLazy", LazyActionSheet, ([component, key, msg]) => {
     const message = msg?.message;
     if (key !== "MessageLongPressActionSheet" || !message) return;
     component.then((instance: any) => {
@@ -104,5 +105,3 @@ const unpatch = [before("openLazy", LazyActionSheet, ([component, key, msg]) => 
         });
     });
 })];
-
-export default unpatch;

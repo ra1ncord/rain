@@ -10,7 +10,7 @@ export default definePlugin({
     id: "viewraw",
     version: "v1.0.0",
     start() {
-        patches.push(...viewraw);
+        patches.push(...viewraw());
     },
     stop() {
         for (const unpatch of patches) unpatch();
