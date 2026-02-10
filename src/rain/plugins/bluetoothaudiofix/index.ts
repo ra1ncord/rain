@@ -1,6 +1,6 @@
-import { definePlugin } from "@plugins";
-import { ReactNative as RN } from "@metro/common";
 import { instead } from "@api/patcher";
+import { ReactNative as RN } from "@metro/common";
+import { definePlugin } from "@plugins";
 
 const patches: any[] = [];
 
@@ -20,4 +20,4 @@ export default definePlugin({
     stop() {
         for (const unpatch of patches) unpatch();
     },
-})
+});
