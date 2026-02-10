@@ -18,7 +18,6 @@ export function unload() {
     for (const d of _disposer) if (typeof d === "function") d();
     // @ts-expect-error
     delete window.rain;
-    delete window.bunny;
 }
 
 /**

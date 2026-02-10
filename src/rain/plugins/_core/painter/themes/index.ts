@@ -10,7 +10,7 @@ import initColors from "./colors";
 import { applyAndroidAlphaKeys, normalizeToHex } from "./parser";
 import { waitForColorsPrefHydration } from "./preferences";
 import { ThemeManifest } from "./types";
-import { updateBunnyColor } from "./updater";
+import { updateColor } from "./updater";
 import { fixStatusBar } from "./devices";
 import { createFileStorage } from "@api/storage";
 
@@ -127,10 +127,10 @@ export const useThemes = create<ThemesStore>()(
                 });
 
                 if (theme == null && write) {
-                    updateBunnyColor(null, { update: true });
+                    updateColor(null, { update: true });
                     return await writeThemeToNative({});
                 } else if (theme) {
-                    updateBunnyColor(theme.data, { update: true });
+                    updateColor(theme.data, { update: true });
                     return await writeThemeToNative(theme);
                 }
             },
@@ -155,7 +155,7 @@ export const useThemes = create<ThemesStore>()(
 
                 if (selected) {
                     writeThemeToNative(themeInfo);
-                    updateBunnyColor(themeInfo.data, { update: true });
+                    updateColor(themeInfo.data, { update: true });
                 }
             },
             installTheme: async (url: string) => {
@@ -284,7 +284,7 @@ export async function initThemes() {
         initColors(currentTheme?.data ?? null);
 
         if (currentTheme) {
-            updateBunnyColor(currentTheme.data, { update: true });
+            updateColor(currentTheme.data, { update: true });
         }
 
         updateThemes().catch(e => console.error("Failed to update themes", e));

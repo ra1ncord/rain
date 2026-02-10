@@ -3,14 +3,14 @@ import { createFileStorage } from "@api/storage";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
 
-interface BunnyColorPreferencesStorage {
+interface RainColorPreferencesStorage {
     selected: string | null;
     type?: "dark" | "light" | null;
     customBackground: "hidden" | null;
     per?: Record<string, { autoUpdate?: string; } | undefined>;
 }
 
-interface ColorsPrefStore extends BunnyColorPreferencesStorage {
+interface ColorsPrefStore extends RainColorPreferencesStorage {
     setType: (type: "dark" | "light" | null | undefined) => void;
     setCustomBackground: (background: "hidden" | null) => void;
     setSelected: (selected: string | null) => void;
@@ -39,9 +39,9 @@ export const useColorsPref = create<ColorsPrefStore>()(
     )
 );
 
-export const colorsPref = new Proxy({} as BunnyColorPreferencesStorage, {
+export const colorsPref = new Proxy({} as RainColorPreferencesStorage, {
     get(target, prop: string) {
-        return useColorsPref.getState()[prop as keyof BunnyColorPreferencesStorage];
+        return useColorsPref.getState()[prop as keyof RainColorPreferencesStorage];
     },
     set(target, prop: string, value: any) {
         const state = useColorsPref.getState();

@@ -10,7 +10,7 @@ interface BackgroundDefinition {
     opacity?: number;
 }
 
-export interface BunnyColorManifest extends BunnyManifest {
+export interface RainColorManifest extends RainManifest {
     type: "color";
     spec: 3;
     main: {
@@ -47,11 +47,11 @@ export interface InternalColorDefinition {
     background?: BackgroundDefinition;
 }
 
-export type ColorManifest = BunnyColorManifest | ThemeManifest;
+export type ColorManifest = RainColorManifest | ThemeManifest;
 
 export type Author = { name: string, id?: `${bigint}`; };
 
-export interface BunnyManifest {
+export interface RainManifest {
     readonly id: string;
     readonly spec: number;
     readonly version: string;

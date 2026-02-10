@@ -8,7 +8,7 @@ import {
     ViewProps,
 } from "react-native";
 
-const { bunny } = window as any;
+const { rain } = window as any;
 const NotFound = (prop: string, isFunction?: boolean) => () => {
     const trigger = () => {
         showToast(`${prop} not found! Search for PNF in Debug Logs!`);
