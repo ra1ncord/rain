@@ -149,7 +149,7 @@ export default function Developer() {
                                                 customLoadUrl: { ...loaderConfig.customLoadUrl, url: v }
                                             })
                                         }
-                                        placeholder="http://localhost:4040/kettu.js"
+                                        placeholder="http://localhost:4040/rain.js"
                                         label={"Strings.PUPU_URL"}
                                     />
                                 } />
