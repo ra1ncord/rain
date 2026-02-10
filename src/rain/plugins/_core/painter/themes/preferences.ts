@@ -1,3 +1,4 @@
+import { fileExists, readFile, writeFile } from "@api/native/fs";
 import { createFileStorage } from "@api/storage";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
@@ -50,3 +51,26 @@ export const colorsPref = new Proxy({} as BunnyColorPreferencesStorage, {
         return true;
     }
 });
+
+export async function waitForColorsPrefHydration(): Promise<void> {
+    return new Promise(resolve => {
+        if (useColorsPref.getState()._hasHydrated) {
+            resolve();
+            return;
+        }
+
+        const unsubscribe = useColorsPref.subscribe(
+            state => {
+                if (state._hasHydrated) {
+                    unsubscribe();
+                    resolve();
+                }
+            }
+        );
+
+        setTimeout(() => {
+            unsubscribe();
+            resolve();
+        }, 5000);
+    });
+}

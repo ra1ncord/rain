@@ -1,28 +1,28 @@
-import { writeFile } from "@api/native/fs";
+import { fileExists, readFile, writeFile } from "@api/native/fs";
 import { getStoredTheme, getThemeFilePath, isPyonLoader } from "@api/native/loader";
 import { useSettings } from "@api/settings";
-import { createFileStorage, waitForHydration } from "@api/storage";
 import { safeFetch } from "@lib/utils";
 import { Platform } from "react-native";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
 
 import initColors from "./colors";
-import { fixStatusBar } from "./devices";
 import { applyAndroidAlphaKeys, normalizeToHex } from "./parser";
-import { useColorsPref } from "./preferences";
+import { waitForColorsPrefHydration } from "./preferences";
 import { ThemeManifest } from "./types";
 import { updateBunnyColor } from "./updater";
+import { fixStatusBar } from "./devices";
+import { createFileStorage } from "@api/storage";
 
-export interface ThemeInfo {
+export interface VdThemeInfo {
     id: string;
     selected: boolean;
     data: ThemeManifest;
 }
 
 interface ThemesStore {
-    themes: Record<string, ThemeInfo>;
-    setTheme: (id: string, theme: ThemeInfo) => void;
+    themes: Record<string, VdThemeInfo>;
+    setTheme: (id: string, theme: VdThemeInfo) => void;
     removeTheme: (id: string) => Promise<boolean>;
     selectTheme: (id: string | null, write?: boolean) => Promise<void>;
     fetchTheme: (url: string, selected?: boolean) => Promise<void>;
@@ -35,7 +35,7 @@ interface ThemesStore {
 /**
  * @internal
  */
-export async function writeThemeToNative(theme: ThemeInfo | {}) {
+export async function writeThemeToNative(theme: VdThemeInfo | {}) {
     if (typeof theme !== "object") throw new Error("Theme must be an object");
 
     const themePath = getThemeFilePath() || "theme.json";
@@ -91,7 +91,7 @@ export const useThemes = create<ThemesStore>()(
         (set, get) => ({
             themes: {},
             _hasHydrated: false,
-            setTheme: (id: string, theme: ThemeInfo) => {
+            setTheme: (id: string, theme: VdThemeInfo) => {
                 set(state => ({
                     themes: {
                         ...state.themes,
@@ -145,7 +145,7 @@ export const useThemes = create<ThemesStore>()(
 
                 if (!validateTheme(themeJSON)) throw new Error(`Invalid theme at ${url}`);
 
-                const themeInfo: ThemeInfo = {
+                const themeInfo: VdThemeInfo = {
                     id: url,
                     selected: selected,
                     data: processData(themeJSON),
@@ -182,11 +182,11 @@ export const useThemes = create<ThemesStore>()(
     )
 );
 
-export const themes = new Proxy({} as Record<string, ThemeInfo>, {
+export const themes = new Proxy({} as Record<string, VdThemeInfo>, {
     get(target, prop: string) {
         return useThemes.getState().themes[prop];
     },
-    set(target, prop: string, value: ThemeInfo) {
+    set(target, prop: string, value: VdThemeInfo) {
         useThemes.getState().setTheme(prop, value);
         return true;
     },
@@ -219,7 +219,7 @@ export async function installTheme(url: string) {
     return useThemes.getState().installTheme(url);
 }
 
-export async function selectTheme(theme: ThemeInfo | null, write = true) {
+export async function selectTheme(theme: VdThemeInfo | null, write = true) {
     return useThemes.getState().selectTheme(theme?.id ?? null, write);
 }
 
@@ -238,8 +238,31 @@ export function getCurrentTheme() {
 /**
  * @internal
  */
-export function getThemeFromLoader(): ThemeInfo | null {
+export function getThemeFromLoader(): VdThemeInfo | null {
     return getStoredTheme();
+}
+
+export async function waitForThemesHydration(): Promise<void> {
+    return new Promise(resolve => {
+        if (useThemes.getState()._hasHydrated) {
+            resolve();
+            return;
+        }
+
+        const unsubscribe = useThemes.subscribe(
+            state => {
+                if (state._hasHydrated) {
+                    unsubscribe();
+                    resolve();
+                }
+            }
+        );
+
+        setTimeout(() => {
+            unsubscribe();
+            resolve();
+        }, 5000);
+    });
 }
 
 /**
@@ -254,8 +277,8 @@ export async function initThemes() {
             writeFile("../vendetta_theme.json", "null");
         }
 
-        await waitForHydration(useColorsPref());
-        await waitForHydration(useThemes());
+        await waitForColorsPrefHydration();
+        await waitForThemesHydration();
 
         const currentTheme = getCurrentTheme();
         initColors(currentTheme?.data ?? null);
