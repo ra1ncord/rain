@@ -1,18 +1,18 @@
-import { fileExists, readFile, writeFile } from "@api/native/fs";
+import { writeFile } from "@api/native/fs";
 import { getStoredTheme, getThemeFilePath, isPyonLoader } from "@api/native/loader";
 import { useSettings } from "@api/settings";
+import { createFileStorage } from "@api/storage";
 import { safeFetch } from "@lib/utils";
 import { Platform } from "react-native";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
 
 import initColors from "./colors";
+import { fixStatusBar } from "./devices";
 import { applyAndroidAlphaKeys, normalizeToHex } from "./parser";
 import { waitForColorsPrefHydration } from "./preferences";
 import { ThemeManifest } from "./types";
 import { updateColor } from "./updater";
-import { fixStatusBar } from "./devices";
-import { createFileStorage } from "@api/storage";
 
 export interface VdThemeInfo {
     id: string;

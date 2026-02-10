@@ -1,4 +1,3 @@
-import { fileExists, readFile, writeFile } from "@api/native/fs";
 import { createFileStorage } from "@api/storage";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";

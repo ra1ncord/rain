@@ -46,10 +46,8 @@ export const usePluginSettings = create<PluginSettingsStore>()(
 );
 
 export const pluginSettings = new Proxy({} as t.PluginSettingsStorage, {
-    get(target, prop: string) {
-        return usePluginSettings.getState().settings[prop];
-    },
-    set(target, prop: string, value: { enabled: boolean }) {
+    get: (_, prop: string) => usePluginSettings.getState().settings[prop],
+    set: (_, prop: string, value: { enabled: boolean }) => {
         usePluginSettings.getState().updatePluginSetting(prop, value.enabled);
         return true;
     }
@@ -59,39 +57,21 @@ function assert<T>(condition: T, id: string, attempt: string): asserts condition
     if (!condition) throw new Error(`[${id}] Attempted to ${attempt}`);
 }
 
-export async function startPlugin(id: string, {} = {}) {
-    let pluginInstance: t.rainPlugin;
-    pluginInstance = pluginInstances.get(id)!;
-
-    if (!pluginInstance) {
-        throw new Error(`Plugin ${id} not found`);
-    }
+async function runPluginLifecycle(id: string, method: "start" | "eagerStart") {
+    const instance = pluginInstances.get(id);
+    assert(instance, id, `run ${method} on unknown plugin`);
 
     try {
-        pluginInstance.start?.();
+        await instance[method]?.();
         usePluginSettings.getState().updatePluginSetting(id, true);
     } catch (error) {
-        alert(`[${id}] Failed to start:` + error);
+        method === "start" ? alert(`[${id}] Failed: ${error}`) : console.error(`[${id}] Failed:`, error);
         throw error;
     }
 }
 
-export async function startEagerPlugin(id: string, {} = {}) {
-    let pluginInstance: t.rainPlugin;
-    pluginInstance = pluginInstances.get(id)!;
-
-    if (!pluginInstance) {
-        throw new Error(`Plugin ${id} not found`);
-    }
-
-    try {
-        pluginInstance.eagerStart?.();
-        usePluginSettings.getState().updatePluginSetting(id, true);
-    } catch (error) {
-        console.error(`[${id}] Failed to eager start:`, error);
-        throw error;
-    }
-}
+export const startPlugin = (id: string) => runPluginLifecycle(id, "start");
+export const startEagerPlugin = (id: string) => runPluginLifecycle(id, "eagerStart");
 
 export function stopPlugin(id: string) {
     const instance = pluginInstances.get(id);
@@ -106,54 +86,32 @@ export function stopPlugin(id: string) {
     }
 }
 
-export function findPluginById(id: string) {
-    if (pluginInstances.has(id)) {
-        return true;
-    } else {
-        return false;
-    }
-}
+export const findPluginById = (id: string) => pluginInstances.has(id);
 
-export async function initPlugins() {
+async function loadAndInitialize(method: "start" | "eagerStart") {
     await waitForHydration(usePluginSettings);
+    const { default: rainPlugins } = await import("#rain-plugins");
 
-    const rainPlugins = await import("#rain-plugins");
-
-    for (const [id, plugin] of Object.entries(rainPlugins.default)) {
-        pluginInstances.set(id, plugin);
-        plugin.id = id;
+    for (const [id, plugin] of Object.entries(rainPlugins)) {
+        pluginInstances.set(id, plugin as t.rainPlugin);
+        if (method === "start") (plugin as t.rainPlugin).id = id;
     }
 
-    await Promise.allSettled([...pluginInstances.keys()].map(async id => {
-        if (isPluginEnabled(id)) {
+    const tasks = Array.from(pluginInstances.keys())
+        .filter(isPluginEnabled)
+        .map(async id => {
             try {
-                await startPlugin(id);
-            } catch(error) {
-                logger.log("Failed to start ", id, " because of ", error);
+                method === "start" ? await startPlugin(id) : await startEagerPlugin(id);
+            } catch (error) {
+                logger.log(`Failed to ${method} ${id}:`, error);
             }
-        }
-    }));
+        });
+
+    await Promise.allSettled(tasks);
 }
 
-export async function initEagerPlugins() {
-    await waitForHydration(usePluginSettings);
-
-    const rainPlugins = await import("#rain-plugins");
-
-    for (const [id, plugin] of Object.entries(rainPlugins.default)) {
-        pluginInstances.set(id, plugin);
-    }
-
-    await Promise.allSettled([...pluginInstances.keys()].map(async id => {
-        if (isPluginEnabled(id)) {
-            try {
-                await startEagerPlugin(id);
-            } catch(error) {
-                logger.log("Failed to eagerStart ", id, " because of ", error);
-            }
-        }
-    }));
-}
+export const initPlugins = () => loadAndInitialize("start");
+export const initEagerPlugins = () => loadAndInitialize("eagerStart");
 
 export function definePlugin(
     instance: t.rainPlugin,
@@ -165,24 +123,11 @@ export function definePlugin(
 
 export function isPluginEnabled(id: string) {
     const setting = usePluginSettings.getState().settings[id];
-
-    if (isPluginCore(id)) {
-        return setting?.enabled ?? true;
-    }
-
-    return setting?.enabled ?? false;
+    return setting?.enabled ?? isPluginCore(id);
 }
 
-export function isPluginCore(id: string) {
-    if (id.startsWith("core")) {
-        return true;
-    }
-    return false;
-}
+export const isPluginCore = (id: string) => id.startsWith("core");
 
-export function getPluginSettingsComponent(id: string): React.ComponentType<any> | null {
-    const instance = pluginInstances.get(id);
-    if (!instance) return null;
-    if (instance.settings) return instance.settings;
-    return null;
+export function getPluginSettingsComponent(id: string) {
+    return pluginInstances.get(id)?.settings || null;
 }
