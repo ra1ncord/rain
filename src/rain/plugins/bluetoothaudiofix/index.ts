@@ -6,7 +6,7 @@ import { Platform } from "react-native";
 const patches: any[] = [];
 
 export default definePlugin({
-    name: "Bluetooth Audio Fix",
+    name: "BluetoothAudioFix",
     description: "Prevents Discord from enabling handsfree mode while in a call",
     author: [
         { name: "Narwhal", id: 455429792871874581n },
