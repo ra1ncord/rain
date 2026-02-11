@@ -1,7 +1,4 @@
-import { instead } from "@api/patcher";
-import { ReactNative as RN } from "@metro/common";
 import { definePlugin } from "@plugins";
-import { Platform } from "react-native";
 
 import { patchConsole, patchMiscellaneous, patchNetwork, patchSentry } from "./notrack";
 import transformEmoji from "./realmoji/patches/transformEmoji";

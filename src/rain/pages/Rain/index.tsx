@@ -1,6 +1,8 @@
 import { findAssetId } from "@api/assets";
 import { getDebugInfo } from "@api/debug";
+import { BundleUpdaterManager } from "@api/native/modules";
 import { useSettings } from "@api/settings";
+import { openAlert } from "@api/ui/alerts";
 import { CodebergIcon, KofiIcon,RainIcon } from "@assets";
 import { CODEBERG, DEVELOPERS,DISCORD_SERVER, GITHUB, KOFI } from "@lib/info";
 import { NavigationNative } from "@metro/common";
@@ -8,8 +10,6 @@ import { AlertActionButton, AlertActions, AlertModal, Stack, TableRow, TableRowG
 import { Linking, ScrollView } from "react-native";
 
 import About from "./About";
-import { openAlert } from "@api/ui/alerts";
-import { BundleUpdaterManager } from "@api/native/modules";
 
 export default function General() {
     const debugInfo = getDebugInfo();
