@@ -29,7 +29,7 @@ if (typeof window.__r === "undefined") {
     }
 
     const deferredCalls: Array<DeferredQueue> = [];
-    const unpatches: Array<() => void> = [];
+    const unpatches = new Set<() => void>();
 
     const deferMethodExecution = (
         object: any,
@@ -49,7 +49,7 @@ if (typeof window.__r === "undefined") {
             return original.apply(this, args);
         });
 
-        unpatches.push(restore);
+        unpatches.add(restore);
     };
 
     const resumeDeferred = () => {
@@ -93,8 +93,8 @@ if (typeof window.__r === "undefined") {
         const startDiscord = async () => {
             await initializeRain();
 
-            for (const unpatch of unpatches) unpatch();
-            unpatches.length = 0;
+            unpatches.forEach(fn => fn());
+            unpatches.clear();
 
             originalRequire(0);
             resumeDeferred();
