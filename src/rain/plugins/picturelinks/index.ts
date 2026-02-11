@@ -1,5 +1,5 @@
 import { definePlugin } from "@plugins";
-import picturelinks from "@plugins/picturelinks/patches/picturelinks"
+import { unpatchAvatar, unpatchBanner} from "@plugins/picturelinks/patches/picturelinks"
 
 const patches: any[] = []
 
@@ -10,7 +10,8 @@ export default definePlugin({
     id: "picturelinks",
     version: "v1.0.0",
     start() {
-        patches.push(picturelinks)
+        patches.push(unpatchAvatar());
+        patches.push(unpatchBanner());
     },
     stop() {
         console.log("patch value:", patches);

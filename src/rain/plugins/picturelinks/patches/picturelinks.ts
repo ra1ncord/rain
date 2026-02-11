@@ -10,12 +10,12 @@ const { hideActionSheet } = findByProps("hideActionSheet");
 const { getChannelId } = findByStoreName("SelectedChannelStore");
 const { getGuildId } = findByStoreName("SelectedGuildStore");
 
-function getImageSize(uri: string): Promise<{width: number, height: number}> {
+function getImageSize(uri: string): Promise<{ width: number, height: number; }> {
     return new Promise((resolve, reject) => {
         ReactNative.Image.getSize(
-        uri,
-        (width, height) => resolve({width, height}),
-        (error) => reject(error)
+            uri,
+            (width, height) => resolve({ width, height }),
+            (error) => reject(error)
         );
     });
 }
@@ -44,41 +44,43 @@ async function openModal(src: string, event: any) {
     });
 }
 
-const unpatchAvatar = () => after("default", HeaderAvatar, ([{ user, style, guildId }], res) => {
-    var ext = "png";
-    if (typeof user.guildMemberAvatars?.[guildId] === "string") {
-        if (user.guildMemberAvatars?.[guildId].includes("a_")) { ext = "gif"; }
-    }
-    const guildSpecific = user.guildMemberAvatars?.[guildId] && `https://cdn.discordapp.com/guilds/${guildId}/users/${user.id}/avatars/${user.guildMemberAvatars[guildId]}.${ext}?size=4096`;
-    const image = user?.getAvatarURL?.(false, 4096, true);
-    if (!image) return res;
+export function unpatchAvatar() {
+    return after("default", HeaderAvatar, ([{ user, style, guildId }], res) => {
+        var ext = "png";
+        if (typeof user.guildMemberAvatars?.[guildId] === "string") {
+            if (user.guildMemberAvatars?.[guildId].includes("a_")) { ext = "gif"; }
+        }
+        const guildSpecific = user.guildMemberAvatars?.[guildId] && `https://cdn.discordapp.com/guilds/${guildId}/users/${user.id}/avatars/${user.guildMemberAvatars[guildId]}.${ext}?size=4096`;
+        const image = user?.getAvatarURL?.(false, 4096, true);
+        if (!image) return res;
 
-    const url =
-        typeof image === "number"
-            ? `https://cdn.discordapp.com/embed/avatars/${Number(BigInt(user.id) >> 22n) % 6}.png`
-            : image?.replace(".webp", ".png");
+        const url =
+            typeof image === "number"
+                ? `https://cdn.discordapp.com/embed/avatars/${Number(BigInt(user.id) >> 22n) % 6}.png`
+                : image?.replace(".webp", ".png");
 
-    delete res.props.style;
-    console.log("Avatar patched");
+        delete res.props.style;
 
-    return React.createElement(
-        Pressable,
-        {
-            onPress: ({ nativeEvent }: any ) => openModal(url, nativeEvent),
-            onLongPress: ({ nativeEvent }: any) => guildSpecific && openMediaModal(guildSpecific, nativeEvent),
-            style
-        },
-        res
-    )
+        return React.createElement(
+            Pressable,
+            {
+                onPress: ({ nativeEvent }: any) => openModal(url, nativeEvent),
+                onLongPress: ({ nativeEvent }: any) => guildSpecific && openMediaModal(guildSpecific, nativeEvent),
+                style
+            },
+            res
+        );
 
-});
+    });
+}
 
-const unpatchBanner = () => after("default", ProfileBanner, ([{ bannerSource }], res) => {
-    if (typeof bannerSource?.uri !== "string" || !res) return res;
+export function unpatchBanner() {
+    return after("default", ProfileBanner, ([{ bannerSource }], res) => {
+        if (typeof bannerSource?.uri !== "string" || !res) return res;
 
-    const url = bannerSource.uri
-        .replace(/(?:\?size=\d{3,4})?$/, "?size=4096")
-        .replace(".webp", ".png");
+        const url = bannerSource.uri
+            .replace(/(?:\?size=\d{3,4})?$/, "?size=4096")
+            .replace(".webp", ".png");
 
         return React.createElement(
             Pressable,
@@ -86,8 +88,9 @@ const unpatchBanner = () => after("default", ProfileBanner, ([{ bannerSource }],
                 onPress: ({ nativeEvent }: any) => openModal(url, nativeEvent),
             },
             res
-        )
-});
+        );
+    });
+}
 
 //var unpatchGuildIcon
 
@@ -121,9 +124,3 @@ const unpatchBanner = () => after("default", ProfileBanner, ([{ bannerSource }],
 //        );
 //    });
 //}
-
-export default [
-    unpatchAvatar,
-    unpatchBanner
-//    unpatchGuildIcon();
-]
