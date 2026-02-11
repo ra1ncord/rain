@@ -3,18 +3,18 @@ import { createFileStorage, waitForHydration } from "@api/storage";
 import { showToast } from "@api/ui/toasts";
 import { logger } from "@lib/utils/logger";
 import { create } from "zustand";
-import { createJSONStorage,persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 import * as t from "./types";
 
 export const pluginInstances = new Map<string, t.rainPlugin>();
 
 interface PluginSettingsStore {
-    settings: t.PluginSettingsStorage;
-    _hasHydrated: boolean;
-    updatePluginSetting: (id: string, enabled: boolean) => void;
-    getPluginSetting: (id: string) => { enabled: boolean } | undefined;
-    setHasHydrated: (state: boolean) => void;
+  settings: t.PluginSettingsStorage;
+  _hasHydrated: boolean;
+  updatePluginSetting: (id: string, enabled: boolean) => void;
+  getPluginSetting: (id: string) => { enabled: boolean } | undefined;
+  setHasHydrated: (state: boolean) => void;
 }
 
 export const usePluginSettings = create<PluginSettingsStore>()(
@@ -26,23 +26,19 @@ export const usePluginSettings = create<PluginSettingsStore>()(
                 set(state => ({
                     settings: {
                         ...state.settings,
-                        [id]: { enabled }
-                    }
+                        [id]: { enabled },
+                    },
                 }));
             },
-            getPluginSetting: (id: string) => {
-                return get().settings[id];
-            },
-            setHasHydrated: (state: boolean) => {
-                set({ _hasHydrated: state });
-            }
+            getPluginSetting: (id: string) => get().settings[id],
+            setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
         }),
         {
             name: "plugin-settings",
             storage: createJSONStorage(() => createFileStorage("plugins/settings.json")),
             onRehydrateStorage: () => state => {
                 state?.setHasHydrated(true);
-            }
+            },
         }
     )
 );
@@ -52,20 +48,20 @@ export const pluginSettings = new Proxy({} as t.PluginSettingsStorage, {
     set: (_, prop: string, value: { enabled: boolean }) => {
         usePluginSettings.getState().updatePluginSetting(prop, value.enabled);
         return true;
-    }
+    },
 });
 
 function assert<T>(condition: T, id: string, attempt: string): asserts condition {
     if (!condition) throw new Error(`[${id}] Attempted to ${attempt}`);
 }
 
-async function runPluginLifecycle(id: string, method: "start" | "eagerStart") {
+async function runPluginLifecycle(id: string, method: "start" | "eagerStart"): Promise<void> {
     const instance = pluginInstances.get(id);
     assert(instance, id, `run ${method} on unknown plugin`);
 
     const settings = useSettings.getState();
     if (settings.safeMode && !isPluginCore(id)) {
-        usePluginSettings.getState().updatePluginSetting(id, true);
+        logger.log(`[${id}] Skipped in safe mode`);
         return;
     }
 
@@ -73,20 +69,21 @@ async function runPluginLifecycle(id: string, method: "start" | "eagerStart") {
         await instance[method]?.();
         usePluginSettings.getState().updatePluginSetting(id, true);
     } catch (error) {
-        method === "start" ? showToast(`[${id}] Failed: ${error}`) : console.error(`[${id}] Failed:`, error);
+        const errorMsg = `[${id}] Failed: ${error}`;
+        method === "start" ? showToast(errorMsg) : console.error(errorMsg, error);
         throw error;
     }
 }
 
-export const startPlugin = (id: string) => runPluginLifecycle(id, "start");
-export const startEagerPlugin = (id: string) => runPluginLifecycle(id, "eagerStart");
+export const startPlugin = (id: string): Promise<void> => runPluginLifecycle(id, "start");
+export const startEagerPlugin = (id: string): Promise<void> => runPluginLifecycle(id, "eagerStart");
 
-export function stopPlugin(id: string) {
+export async function stopPlugin(id: string): Promise<void> {
     const instance = pluginInstances.get(id);
     assert(instance, id, "stop a non-started plugin");
 
     try {
-        instance.stop?.();
+        await instance.stop?.();
         usePluginSettings.getState().updatePluginSetting(id, false);
     } catch (error) {
         console.error(`[${id}] Failed to stop:`, error);
@@ -94,23 +91,31 @@ export function stopPlugin(id: string) {
     }
 }
 
-export const findPluginById = (id: string) => pluginInstances.has(id);
+export const findPluginById = (id: string): boolean => pluginInstances.has(id);
 
-async function loadAndInitialize(method: "start" | "eagerStart") {
+export const isPluginCore = (id: string): boolean => id.startsWith("core");
+
+export function isPluginEnabled(id: string): boolean {
+    const setting = usePluginSettings.getState().settings[id];
+    return setting?.enabled ?? isPluginCore(id);
+}
+
+async function loadAndInitialize(method: "start" | "eagerStart"): Promise<void> {
     await waitForHydration(usePluginSettings);
-    const settings = useSettings.getState();
+
     const { default: rainPlugins } = await import("#rain-plugins");
 
     for (const [id, plugin] of Object.entries(rainPlugins)) {
-        pluginInstances.set(id, plugin as t.rainPlugin);
-        if (method === "start") (plugin as t.rainPlugin).id = id;
+        const instance = plugin as t.rainPlugin;
+        instance.id = id;
+        pluginInstances.set(id, instance);
     }
 
     const tasks = Array.from(pluginInstances.keys())
-        .filter(id => isPluginEnabled(id))
+        .filter(isPluginEnabled)
         .map(async id => {
             try {
-                method === "start" ? await startPlugin(id) : await startEagerPlugin(id);
+                await (method === "start" ? startPlugin(id) : startEagerPlugin(id));
             } catch (error) {
                 logger.log(`Failed to ${method} ${id}:`, error);
             }
@@ -119,24 +124,15 @@ async function loadAndInitialize(method: "start" | "eagerStart") {
     await Promise.allSettled(tasks);
 }
 
-export const initPlugins = () => loadAndInitialize("start");
-export const initEagerPlugins = () => loadAndInitialize("eagerStart");
+export const initPlugins = (): Promise<void> => loadAndInitialize("start");
+export const initEagerPlugins = (): Promise<void> => loadAndInitialize("eagerStart");
 
-export function definePlugin(
-    instance: t.rainPlugin,
-): t.rainPlugin {
+export function definePlugin(instance: t.rainPlugin): t.rainPlugin {
     // @ts-expect-error
     instance[Symbol.for("rain.plugin")] = true;
     return instance;
 }
 
-export function isPluginEnabled(id: string) {
-    const setting = usePluginSettings.getState().settings[id];
-    return setting?.enabled ?? isPluginCore(id);
-}
-
-export const isPluginCore = (id: string) => id.startsWith("core");
-
-export function getPluginSettingsComponent(id: string) {
+export function getPluginSettingsComponent(id: string): (() => JSX.Element) | null {
     return pluginInstances.get(id)?.settings || null;
 }
