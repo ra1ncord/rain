@@ -14,15 +14,15 @@ import { waitForColorsPrefHydration } from "./preferences";
 import { ThemeManifest } from "./types";
 import { updateColor } from "./updater";
 
-export interface VdThemeInfo {
+export interface ThemeInfo {
     id: string;
     selected: boolean;
     data: ThemeManifest;
 }
 
 interface ThemesStore {
-    themes: Record<string, VdThemeInfo>;
-    setTheme: (id: string, theme: VdThemeInfo) => void;
+    themes: Record<string, ThemeInfo>;
+    setTheme: (id: string, theme: ThemeInfo) => void;
     removeTheme: (id: string) => Promise<boolean>;
     selectTheme: (id: string | null, write?: boolean) => Promise<void>;
     fetchTheme: (url: string, selected?: boolean) => Promise<void>;
@@ -35,7 +35,7 @@ interface ThemesStore {
 /**
  * @internal
  */
-export async function writeThemeToNative(theme: VdThemeInfo | {}) {
+export async function writeThemeToNative(theme: ThemeInfo | {}) {
     if (typeof theme !== "object") throw new Error("Theme must be an object");
 
     const themePath = getThemeFilePath() || "theme.json";
@@ -91,7 +91,7 @@ export const useThemes = create<ThemesStore>()(
         (set, get) => ({
             themes: {},
             _hasHydrated: false,
-            setTheme: (id: string, theme: VdThemeInfo) => {
+            setTheme: (id: string, theme: ThemeInfo) => {
                 set(state => ({
                     themes: {
                         ...state.themes,
@@ -145,7 +145,7 @@ export const useThemes = create<ThemesStore>()(
 
                 if (!validateTheme(themeJSON)) throw new Error(`Invalid theme at ${url}`);
 
-                const themeInfo: VdThemeInfo = {
+                const themeInfo: ThemeInfo = {
                     id: url,
                     selected: selected,
                     data: processData(themeJSON),
@@ -182,11 +182,11 @@ export const useThemes = create<ThemesStore>()(
     )
 );
 
-export const themes = new Proxy({} as Record<string, VdThemeInfo>, {
+export const themes = new Proxy({} as Record<string, ThemeInfo>, {
     get(target, prop: string) {
         return useThemes.getState().themes[prop];
     },
-    set(target, prop: string, value: VdThemeInfo) {
+    set(target, prop: string, value: ThemeInfo) {
         useThemes.getState().setTheme(prop, value);
         return true;
     },
@@ -219,7 +219,7 @@ export async function installTheme(url: string) {
     return useThemes.getState().installTheme(url);
 }
 
-export async function selectTheme(theme: VdThemeInfo | null, write = true) {
+export async function selectTheme(theme: ThemeInfo | null, write = true) {
     return useThemes.getState().selectTheme(theme?.id ?? null, write);
 }
 
@@ -238,7 +238,7 @@ export function getCurrentTheme() {
 /**
  * @internal
  */
-export function getThemeFromLoader(): VdThemeInfo | null {
+export function getThemeFromLoader(): ThemeInfo | null {
     return getStoredTheme();
 }
 
@@ -270,7 +270,7 @@ export async function waitForThemesHydration(): Promise<void> {
  */
 export async function initThemes() {
     const settings = useSettings.getState();
-    if (settings.safeMode?.enabled) return;
+    if (settings.safeMode) return;
 
     try {
         if (isPyonLoader()) {

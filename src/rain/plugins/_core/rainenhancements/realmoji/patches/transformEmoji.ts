@@ -1,8 +1,8 @@
 import { after, before } from "@api/patcher";
 import { findByName, findByStoreName } from "@metro";
 
-import { Embed, Message } from "../def";
 import { rainenhancementsSettings } from "../../storage";
+import { Embed, Message } from "../def";
 
 const { getCustomEmojiById } = findByStoreName("EmojiStore");
 const RowManager = findByName("RowManager");

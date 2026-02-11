@@ -1,4 +1,6 @@
+import { useSettings } from "@api/settings";
 import { createFileStorage, waitForHydration } from "@api/storage";
+import { showToast } from "@api/ui/toasts";
 import { logger } from "@lib/utils/logger";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
@@ -61,11 +63,17 @@ async function runPluginLifecycle(id: string, method: "start" | "eagerStart") {
     const instance = pluginInstances.get(id);
     assert(instance, id, `run ${method} on unknown plugin`);
 
+    const settings = useSettings.getState();
+    if (settings.safeMode && !isPluginCore(id)) {
+        usePluginSettings.getState().updatePluginSetting(id, true);
+        return;
+    }
+
     try {
         await instance[method]?.();
         usePluginSettings.getState().updatePluginSetting(id, true);
     } catch (error) {
-        method === "start" ? alert(`[${id}] Failed: ${error}`) : console.error(`[${id}] Failed:`, error);
+        method === "start" ? showToast(`[${id}] Failed: ${error}`) : console.error(`[${id}] Failed:`, error);
         throw error;
     }
 }
@@ -90,6 +98,7 @@ export const findPluginById = (id: string) => pluginInstances.has(id);
 
 async function loadAndInitialize(method: "start" | "eagerStart") {
     await waitForHydration(usePluginSettings);
+    const settings = useSettings.getState();
     const { default: rainPlugins } = await import("#rain-plugins");
 
     for (const [id, plugin] of Object.entries(rainPlugins)) {
@@ -98,7 +107,7 @@ async function loadAndInitialize(method: "start" | "eagerStart") {
     }
 
     const tasks = Array.from(pluginInstances.keys())
-        .filter(isPluginEnabled)
+        .filter(id => isPluginEnabled(id))
         .map(async id => {
             try {
                 method === "start" ? await startPlugin(id) : await startEagerPlugin(id);

@@ -10,10 +10,7 @@ export interface Settings {
   developerSettings: boolean;
   autoDebugger: boolean;
   autoDevTools: boolean;
-  safeMode?: {
-    enabled: boolean;
-    currentThemeId?: string;
-  };
+  safeMode?: boolean
 }
 
 export interface LoaderConfig {
@@ -36,6 +33,7 @@ export const useSettings = create<SettingsStore>()(
             developerSettings: false,
             autoDebugger: false,
             autoDevTools: false,
+            safeMode: false,
             updateSettings: newSettings => set(state => ({ ...state, ...newSettings })),
         }),
         {
@@ -66,5 +64,5 @@ export const useLoaderConfig = create<LoaderConfigStore>()(
     )
 );
 
-export const settings = useSettings.getState();
-export const loaderConfig = useLoaderConfig.getState();
+export const settings = () => useSettings.getState();
+export const loaderConfig = () => useLoaderConfig.getState();
