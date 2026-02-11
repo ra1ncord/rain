@@ -13,7 +13,7 @@ let patches: any[] = [];
 export default definePlugin({
     name: "RainEnhancements",
     description: "Combines many plugins into one to improve your experience",
-    author: [{ name: "cocobo1", id: 767650984175992833n }, { name: "j", id: 1356632712861192242n }, { name: "rico040", id: 619474349845643275n }, { name: "Narwhal", id: 455429792871874581n }, { name: "redstonekasi", id: 265064055490871297n }],
+    author: [{ name: "cocobo1", id: 767650984175992833n }, { name: "j", id: 1356632712861192242n }, { name: "rico040", id: 619474349845643275n }, { name: "redstonekasi", id: 265064055490871297n }],
     id: "rainenhancements",
     version: "v1.0.0",
     start() {
@@ -24,12 +24,6 @@ export default definePlugin({
             patchMiscellaneous(),
             patchSentry(),
         ].filter(Boolean);
-
-        // BluetoothAudioFix
-        if (Platform.OS != "ios") {
-            const onUnload = RN.TurboModuleRegistry.get("NativeAudioManagerModule") === null ? RN.TurboModuleRegistry.get("RTNAudioManager") : RN.TurboModuleRegistry.get("NativeAudioManagerModule");
-            patches.push(instead("setCommunicationModeOn", onUnload, () => {}));
-        }
 
         // Realmoji
         patches.push(...transformEmoji);
