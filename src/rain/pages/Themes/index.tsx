@@ -4,7 +4,6 @@ import { NavigationNative } from "@metro/common";
 import {
     ActionSheet,
     BottomSheetTitleHeader,
-    Button,
     TableRowGroup,
     TableRowIcon,
     TableSwitchRow,
@@ -56,20 +55,7 @@ export default function Themes() {
             }}
             items={themesList}
             safeModeHint={{
-                message: safeMode?.currentThemeId
-                    ? "A theme is currently applied in safe mode"
-                    : "Themes are disabled in safe mode",
-                footer: safeMode?.currentThemeId && (
-                    <Button
-                        size="small"
-                        text="Disable Theme"
-                        onPress={() => {
-                            delete safeMode.currentThemeId;
-                            useSettings.getState().updateSettings({ safeMode });
-                        }}
-                        style={{ marginTop: 8 }}
-                    />
-                ),
+                message: "Themes are disabled in safe mode",
             }}
             CardComponent={ThemeCard}
             OptionsActionSheetComponent={() => {

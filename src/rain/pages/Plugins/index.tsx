@@ -38,6 +38,7 @@ function PluginPage(props: PluginPageProps) {
                 "Hide Core Plugins": p => !p.id.startsWith("core"),
                 "Show Core Plugins": () => true,
             }}
+            safeModeHint={{ message: "You are in safemode, plugins are not running but can still be toggled" }}
             defaultFilterKey="Hide Core Plugins"
             items={items}
             {...props}

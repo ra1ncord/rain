@@ -1,5 +1,5 @@
 import { findAssetId } from "@api/assets";
-import { settings } from "@api/settings";
+import { useSettings } from "@api/settings";
 import { dismissAlert, openAlert } from "@api/ui/alerts";
 import { ErrorBoundary, Search } from "@api/ui/components";
 import { showSheet } from "@api/ui/sheets";
@@ -122,6 +122,7 @@ function InputAlert(props: { label: string, fetchFn: (url: string) => Promise<vo
 }
 
 export default function AddonPage<T extends object>({ CardComponent, ...props }: AddonPageProps<T>) {
+    const settings = useSettings();
     const [search, setSearch] = React.useState("");
     const [sortFn, setSortFn] = React.useState<((a: T, b: T) => number) | null>(() => null);
     const [filterFn, setFilterFn] = React.useState<((item: T) => boolean) | null>(() => props.defaultFilterKey && props.filterOptions ? props.filterOptions[props.defaultFilterKey] : null);
@@ -188,6 +189,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
             {props.installAction && <Button
                 size="lg"
                 icon={findAssetId("CompassIcon")}
+                // @ts-expect-error
                 text={props.installBrowserAction.label ?? "Install"}
                 onPress={onInstallBrowserPress}
             />}
@@ -217,7 +219,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
 
     const headerElement = (
         <View style={{ paddingBottom: 8 }}>
-            {settings.safeMode?.enabled && <View style={{ marginBottom: 10 }}>
+            {settings.safeMode && <View style={{ marginBottom: 10 }}>
                 <HelpMessage messageType={0}>
                     {props.safeModeHint?.message}
                 </HelpMessage>

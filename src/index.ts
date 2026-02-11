@@ -1,4 +1,4 @@
-import { initEagerPlugins,initPlugins } from "@plugins/index";
+import { initEagerPlugins, initPlugins } from "@plugins/index";
 
 import { patchLogHook } from "./api/debug";
 import { injectFluxInterceptor } from "./api/flux";

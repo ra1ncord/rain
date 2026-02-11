@@ -4,16 +4,18 @@ import { useSettings } from "@api/settings";
 import { CodebergIcon, KofiIcon,RainIcon } from "@assets";
 import { CODEBERG, DEVELOPERS,DISCORD_SERVER, GITHUB, KOFI } from "@lib/info";
 import { NavigationNative } from "@metro/common";
-import { Stack, TableRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
+import { AlertActionButton, AlertActions, AlertModal, Stack, TableRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import { Linking, ScrollView } from "react-native";
 
 import About from "./About";
+import { openAlert } from "@api/ui/alerts";
+import { BundleUpdaterManager } from "@api/native/modules";
 
 export default function General() {
     const debugInfo = getDebugInfo();
     const navigation = NavigationNative.useNavigation();
 
-    const { developerSettings, updateSettings } = useSettings();
+    const { developerSettings, safeMode, updateSettings } = useSettings();
 
     return (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 38 }}>
@@ -37,6 +39,40 @@ export default function General() {
                             title: "About",
                             render: () => <About />,
                         })}
+                    />
+                </TableRowGroup>
+                <TableRowGroup title={"Settings"}>
+                    <TableSwitchRow
+                        label={"Safe Mode"}
+                        icon={<TableRow.Icon source={findAssetId("ShieldIcon")!} />}
+                        // @ts-expect-error
+                        value={safeMode}
+                        onValueChange={(v: boolean) => {
+                            updateSettings({ safeMode: v });
+                            openAlert(
+                                "rain-reload-safe-mode",
+                                <AlertModal
+                                    title="Reload now?"
+                                    content={"You must reload for this to take effect, in safe mode all plugins/themes are disabled"}
+                                    actions={<AlertActions>
+                                        <AlertActionButton
+                                            text="Reload Now"
+                                            variant="destructive"
+                                            onPress={() => BundleUpdaterManager.reload()}
+                                        />
+                                        <AlertActionButton text="Later" variant="secondary" />
+                                    </AlertActions>}
+                                />
+                            );
+                        }}
+                    />
+                    <TableSwitchRow
+                        label={"Developer Settings"}
+                        icon={<TableRow.Icon source={findAssetId("WrenchIcon")!} />}
+                        value={developerSettings}
+                        onValueChange={(v: boolean) => {
+                            updateSettings({ developerSettings: v });
+                        }}
                     />
                 </TableRowGroup>
                 <TableRowGroup title={"Rain Links"}>
@@ -69,16 +105,6 @@ export default function General() {
                         label={"Developers"}
                         icon={<TableRow.Icon source={findAssetId("CircleInformationIcon-primary")!} />}
                         onPress={() => Linking.openURL(DEVELOPERS)}
-                    />
-                </TableRowGroup>
-                <TableRowGroup title={"Settings"}>
-                    <TableSwitchRow
-                        label={"Developer Settings"}
-                        icon={<TableRow.Icon source={findAssetId("WrenchIcon")!} />}
-                        value={developerSettings}
-                        onValueChange={(v: boolean) => {
-                            updateSettings({ developerSettings: v });
-                        }}
                     />
                 </TableRowGroup>
             </Stack>
