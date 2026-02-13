@@ -254,7 +254,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
             <FlashList
                 data={results}
                 extraData={search}
-                estimatedItemSize={136}
+                estimatedItemSize={36}
                 ListHeaderComponent={headerElement}
                 ListEmptyComponent={() => <View style={{ gap: 12, padding: 12, alignItems: "center" }}>
                     <Image source={findAssetId("devices_not_found")!} />
