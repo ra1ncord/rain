@@ -48,7 +48,7 @@ export default definePlugin({
                 false,
             );
         const PrivateChannelButtons = find(
-            x => x?.type?.name == "PrivateChannelButtons",
+            x => x?.type?.name === "PrivateChannelButtons",
         );
         const VideoButton = findByName("VideoButton", false);
         // User Profile

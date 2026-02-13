@@ -15,7 +15,7 @@ function extractUnusableEmojis(messageString: string, size: number) {
         // Fetch required info about the emoji
         const emoji = getCustomEmojiById(emojiString[2]);
         // Check emoji usability
-        if (emoji.guildId != getGuildId() || emoji.animated) {
+        if (emoji.guildId !== getGuildId() || emoji.animated) {
             // Remove emote from original msg
             messageString = messageString.replace(emojiString[0], "");
             const url =

@@ -10,7 +10,7 @@ export function onLoad() {
         let imageCount = 0;
         const urls = [];
         for (const embed of message.embeds) {
-            if (embed.type == "image" || embed.type == "gifv") {
+            if (embed.type === "image" || embed.type === "gifv") {
                 imageCount++;
                 urls.push(embed.url);
             }
@@ -37,7 +37,7 @@ export function onLoad() {
             }
         }
 
-        if (message.content.length == 0 && imageCount > 0) {
+        if (message.content.length === 0 && imageCount > 0) {
             message.content.push(...linkContent);
         }
     });

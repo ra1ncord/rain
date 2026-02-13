@@ -5,7 +5,7 @@ import { Platform, type PlatformConstants, StyleSheet } from "react-native";
 
 import { findAssetId } from "./assets";
 import { getLoaderName, getLoaderVersion, getReactDevToolsProp, isReactDevToolsPreloaded } from "./native/loader";
-import { BundleUpdaterManager, NativeClientInfoModule, NativeDeviceModule } from "./native/modules";
+import { NativeClientInfoModule, NativeDeviceModule } from "./native/modules";
 import { after } from "./patcher";
 import { settings } from "./settings";
 
@@ -25,14 +25,6 @@ export interface RNConstants extends PlatformConstants {
     interfaceIdiom: string;
     osVersion: string;
     systemName: string;
-}
-
-/**
- * @internal
- */
-export async function toggleSafeMode() {
-    settings.safeMode = { ...settings.safeMode, enabled: !settings.safeMode?.enabled };
-    setTimeout(BundleUpdaterManager.reload, 400);
 }
 
 let socket: WebSocket | undefined;

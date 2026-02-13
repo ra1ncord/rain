@@ -57,7 +57,7 @@ export default function About() {
             version: debugInfo.device.manufacturer,
             icon: "WrenchIcon"
         },
-        ...(Platform.OS != "ios" ? [{
+        ...(Platform.OS !== "ios" ? [{
             label: "Brand",
             version: debugInfo.device.brand,
             icon: "MagicWandIcon"
@@ -68,7 +68,7 @@ export default function About() {
             icon: "MobilePhoneIcon"
         },
         {
-            ...(Platform.OS == "ios" ? [{
+            ...(Platform.OS === "ios" ? [{
                 label: "Model ID",
                 version: debugInfo.device.codename,
                 icon: "TagIcon"
