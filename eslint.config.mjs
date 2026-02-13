@@ -1,8 +1,8 @@
 import { defineConfig } from "@eslint/config-helpers";
+import tsParser from "@typescript-eslint/parser";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import unusedImports from "eslint-plugin-unused-imports";
 import globals from "globals";
-import tsParser from "@typescript-eslint/parser";
 
 export default defineConfig([
     {
@@ -33,15 +33,21 @@ export default defineConfig([
             }],
             "eqeqeq": ["error", "always", { null: "ignore" }],
             "quotes": ["error", "double", { avoidEscape: true }],
+            "jsx-quotes": ["error", "prefer-double"],
             "indent": ["error", 4, { SwitchCase: 1 }],
             "semi": ["error", "always"],
+            "semi-style": ["error", "last"],
+            "no-trailing-spaces": "error",
+            "no-multi-spaces": "error",
+            "eol-last": ["error", "always"],
+            "prefer-const": "error",
+            "yoda": "error",
+            "spaced-comment": ["error", "always", { markers: ["!"] }],
+            "object-curly-spacing": ["error", "always"],
+
             "simple-import-sort/imports": "error",
             "simple-import-sort/exports": "error",
             "unused-imports/no-unused-imports": "error",
-            "unused-imports/no-unused-vars": ["warn", { 
-                "vars": "all", "varsIgnorePattern": "^_", 
-                "args": "after-used", "argsIgnorePattern": "^_" 
-            }],
         },
     }
 ]);

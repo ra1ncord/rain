@@ -5,9 +5,6 @@ import { findByProps } from "@metro";
 // Type for functions that need to be cleaned up when plugin is disabled
 type PatchCleanupFn = () => void;
 
-// Store all active patches for cleanup
-const patches: PatchCleanupFn[] = [];
-
 // AnalyticsUtils and other tracking utilities
 const AnalyticsUtils = findByProps("AnalyticsActionHandlers");
 const SuperPropUtils = findByProps("encodeProperties", "track");
