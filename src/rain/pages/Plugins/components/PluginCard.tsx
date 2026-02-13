@@ -141,12 +141,13 @@ export default function PluginCard({
         <CardContext.Provider value={cardContextValue}>
             <Card>
                 <Stack spacing={16}>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                        <View style={{ flexShrink: 1 }}>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                        <View style={{ flex: 1, marginRight: 8 }}> 
                             <Title />
                             <Authors />
                         </View>
-                        <View>
+
+                        <View style={{ flexShrink: 0, minWidth: 100, alignItems: 'flex-end' }}>
                             <Stack spacing={12} direction="horizontal">
                                 <Actions />
                                 <View style={core ? { opacity: 0.5 } : undefined}>
