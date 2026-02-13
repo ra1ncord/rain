@@ -1,5 +1,5 @@
-import "../global.d.ts"; // eslint-disable-line import-alias/import-alias
-import "../modules.d.ts"; // eslint-disable-line import-alias/import-alias
+import "../global.d.ts";
+import "../modules.d.ts";
 
 export * as utils from "./utils";
 export * as api from "@api/index.js";

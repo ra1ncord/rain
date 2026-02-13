@@ -26,7 +26,7 @@ export function wrapOnPress(
     return async () => {
         if (onPress) return void onPress();
 
-        const Component = await renderPromise!!().then(m => m.default);
+        const Component = await renderPromise!().then(m => m.default);
 
         if (typeof screenOptions === "string") {
             screenOptions = { title: screenOptions };

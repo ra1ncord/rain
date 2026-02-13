@@ -18,7 +18,7 @@ async function initializeRain() {
 
 if (typeof window.__r === "undefined") {
     // Used for storing the current require function for the global.__r getter defined below
-    var _requireFunc: any;
+    let _requireFunc: any;
 
     // Calls from the native side are deferred until the index.ts(x) is loaded
     interface DeferredQueue {

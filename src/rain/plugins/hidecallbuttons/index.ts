@@ -71,12 +71,12 @@ export default definePlugin({
                         buttons = buttons?.props?.children;
                     if (buttons === undefined) return;
 
-                    for (var idx in buttons) {
-                        var button = buttons[idx];
+                    for (const idx in buttons) {
+                        const button = buttons[idx];
                         if (button?.props?.children !== undefined) {
-                            var buttonContainer = button?.props?.children;
-                            for (var idx2 in buttonContainer) {
-                                var btn = buttonContainer[idx2];
+                            const buttonContainer = button?.props?.children;
+                            for (const idx2 in buttonContainer) {
+                                const btn = buttonContainer[idx2];
                                 if (
                                     (btn?.props?.icon === voiceCallAsset &&
                                         hidecallbuttonsSettings.upHideVoiceButton) ||
@@ -155,8 +155,8 @@ export default definePlugin({
 
                 if (buttons === undefined) return;
 
-                for (var idx in buttons) {
-                    var button = buttons[idx];
+                for (const idx in buttons) {
+                    const button = buttons[idx];
                     if (
                         (button?.props?.source === callAsset &&
                             hidecallbuttonsSettings.dmHideCallButton) ||

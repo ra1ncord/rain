@@ -1,5 +1,3 @@
-/* eslint-disable func-call-spacing */
-
 type ExemptedEntries = Record<symbol | string, unknown>;
 
 interface LazyOptions<E extends ExemptedEntries> {
