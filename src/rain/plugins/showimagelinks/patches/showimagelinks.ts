@@ -1,5 +1,5 @@
-import { findByName } from "@metro";
 import { after } from "@api/patcher";
+import { findByName } from "@metro";
 
 const RowManager = findByName("RowManager");
 
@@ -41,4 +41,4 @@ export function onLoad() {
             message.content.push(...linkContent);
         }
     });
-};
+}

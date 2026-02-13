@@ -1,5 +1,5 @@
-import { findByProps, findByName, findByStoreName } from "@metro";
 import { after } from "@api/patcher";
+import { findByName, findByProps, findByStoreName } from "@metro";
 import { ReactNative } from "@metro/common";
 
 const { Pressable } = findByProps("Button", "Text", "View");
@@ -15,7 +15,7 @@ function getImageSize(uri: string): Promise<{ width: number, height: number; }> 
         ReactNative.Image.getSize(
             uri,
             (width, height) => resolve({ width, height }),
-            (error) => reject(error)
+            error => reject(error)
         );
     });
 }
@@ -92,23 +92,23 @@ export function unpatchBanner() {
     });
 }
 
-//var unpatchGuildIcon
+// var unpatchGuildIcon
 
-//if (typeof findByName("GuildIcon").prototype.render !== "undefined") {
+// if (typeof findByName("GuildIcon").prototype.render !== "undefined") {
 //    // Compatibility patch with older versions
 //    const GuildIcon = findByName("GuildIcon");
 //    unpatchGuildIcon = after("render", GuildIcon.prototype, function (_, res) {
 //        if (this.props?.size !== "XLARGE") return;
 //        const url = this.props?.guild?.getIconURL?.(4096);
 //        if (!url) return res;
-//      
+//
 //        return (
 //            <Pressable onPress={({ nativeEvent }) => openModal(url, nativeEvent)}>
 //                {res}
 //            </Pressable>
 //        );
 //    });
-//} else {
+// } else {
 //    // Patch for newer versions
 //    const GuildIcon = findByName("GuildIcon", false);
 //    unpatchGuildIcon = after("default", GuildIcon, ([{ size, guild }], res) => {
@@ -116,11 +116,11 @@ export function unpatchBanner() {
 //        var ext = "png"
 //        if (guild?.icon.includes('a_')) { ext = "gif"; }
 //        const url = `https://cdn.discordapp.com/icons/${guild?.id}/${guild?.icon}.${ext}?size=4096`
-//    
+//
 //        return (
 //            <Pressable onPress={({ nativeEvent }) => openModal(url, nativeEvent)}>
 //                {res}
 //            </Pressable>
 //        );
 //    });
-//}
+// }
