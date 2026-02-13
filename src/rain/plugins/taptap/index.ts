@@ -355,7 +355,7 @@ export default definePlugin({
     id: "taptap",
     version: "v1.0.0",
     async start() {
-        await waitForHydration(useTapTapSettings);
+        waitForHydration(useTapTapSettings);
 
         resolveRuntimeModules();
 

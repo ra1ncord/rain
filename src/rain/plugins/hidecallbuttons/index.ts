@@ -26,7 +26,7 @@ export default definePlugin({
     id: "hidecallbuttons",
     version: "v1.0.0",
     async start() {
-        await waitForHydration(useHideCallButtonsSettings);
+        waitForHydration(useHideCallButtonsSettings);
         let videoCallAsset = findAssetId("ic_video");
         let voiceCallAsset = findAssetId("ic_audio");
         const videoAsset = findAssetId("video");

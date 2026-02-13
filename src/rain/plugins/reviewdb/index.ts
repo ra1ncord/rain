@@ -22,7 +22,7 @@ export default definePlugin({
     id: "reviewdb",
     version: "v1.0.0",
     async start() {
-        await waitForHydration(useReviewDBSettings);
+        waitForHydration(useReviewDBSettings);
         patches.push(patchProfile());
         patches.push(patchSimplifiedProfile());
         patches.push(patchServer());
