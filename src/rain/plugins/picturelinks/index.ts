@@ -14,7 +14,6 @@ export default definePlugin({
         patches.push(unpatchBanner());
     },
     stop() {
-        console.log("patch value:", patches);
         for (const unpatch of patches) unpatch()
             
     },
