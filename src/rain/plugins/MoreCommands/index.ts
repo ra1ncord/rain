@@ -1,31 +1,18 @@
 import { definePlugin } from "@plugins";
 import { patchCommands, registerCommand } from "@api/commands";
 import { storage } from "./storage";
-import {
-  catFactCommand,
-  dogFactCommand,
-  uselessFactCommand,
-} from "./src/commands/facts";
+import { catFactCommand, dogFactCommand, uselessFactCommand } from "./src/commands/facts";
 import { pluginListCommand, themeListCommand } from "./src/commands/lists";
 import { petPetCommand } from "./src/commands/petpet";
 import { konoSelfCommand, konoSendCommand } from "./src/commands/konochan";
 import { firstMessageCommand } from "./src/commands/firstmessage";
 import { sysinfoCommand } from "./src/commands/sysinfo";
-import {
-  spotifyTrackCommand,
-  spotifyAlbumCommand,
-  spotifyArtistsCommand,
-  spotifyCoverCommand,
-} from "./src/commands/spotify";
+import { spotifyTrackCommand, spotifyAlbumCommand, spotifyArtistsCommand, spotifyCoverCommand } from "./src/commands/spotify";
 import { garyCommand } from "./src/commands/gary";
 import { lovefemboysCommand } from "./src/commands/lovefemboys";
 import { ipCommand } from "./src/commands/ip";
 import { nekoslifeCommand } from "./src/commands/nekoslife";
-import {
-  friendInviteCreateCommand,
-  friendInviteViewCommand,
-  friendInviteRevokeCommand,
-} from "./src/commands/friendinvites";
+import { friendInviteCreateCommand, friendInviteViewCommand, friendInviteRevokeCommand } from "./src/commands/friendinvites";
 import settings from "./settings/settings";
 
 const commandMap = {
