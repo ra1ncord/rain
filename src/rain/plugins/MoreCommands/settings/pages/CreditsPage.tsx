@@ -96,8 +96,8 @@ export default function CreditsPage() {
                 <RN.Image
                   source={{ uri: credit.avatar }}
                   style={{
-                    width: 32,
-                    height: 32,
+                    width: 48,
+                    height: 48,
                     borderRadius: 8,
                     resizeMode: "cover",
                   }}
