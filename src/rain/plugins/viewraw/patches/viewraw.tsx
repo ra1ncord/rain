@@ -6,6 +6,7 @@ import { React } from "@metro/common";
 import { Forms } from "@metro/common/components";
 
 import RawPage from "./RawPage";
+import { logger } from "@lib/utils/logger";
 
 const LazyActionSheet = findByProps("openLazy", "hideActionSheet");
 const Navigation = findByProps("push", "pushLazy", "pop");
@@ -100,7 +101,7 @@ export default () => [
 
                     middleGroup.props.children.push(viewRawButton);
                 } else {
-                    console.log("[ViewRaw] Error: Could not find ActionSheet");
+                    logger.log("[ViewRaw] Error: Could not find ActionSheet");
                 }
             });
         });

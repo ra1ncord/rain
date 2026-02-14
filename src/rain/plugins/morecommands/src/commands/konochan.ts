@@ -1,6 +1,7 @@
 import { findByProps } from "@metro";
 import { showConfirmationAlert } from "@api/ui/alerts";
 import { storage } from "../../storage";
+import { logger } from "@lib/utils/logger";
 
 const MessageActions = findByProps("sendMessage");
 const messageUtil = findByProps(
@@ -79,7 +80,7 @@ export const konoSelfCommand = {
 
       // Check if channel is NSFW for NSFW content (unless bypass is enabled)
       const bypassEnabled = storage.hiddenSettings?.konochanBypassNsfw || false;
-      console.log(
+      logger.log(
         `[KonoSelf] NSFW: ${isNSFW}, Channel NSFW: ${ctx.channel.nsfw}, Bypass: ${bypassEnabled}`,
       );
 
@@ -130,7 +131,7 @@ export const konoSendCommand = {
 
       // Check if channel is NSFW for NSFW content (unless bypass is enabled)
       const bypassEnabled = storage.hiddenSettings?.konochanBypassNsfw || false;
-      console.log(
+      logger.log(
         `[KonoSend] NSFW: ${isNSFW}, Channel NSFW: ${ctx.channel.nsfw}, Bypass: ${bypassEnabled}`,
       );
 

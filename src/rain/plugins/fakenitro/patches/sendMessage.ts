@@ -3,6 +3,7 @@ import { findByProps, findByStoreName } from "@metro";
 
 import { fakenitroSettings } from "../storage";
 import { buildStickerURL,modifyIfNeeded } from "../utils";
+import { logger } from "@lib/utils/logger";
 
 const messageModule = findByProps("sendMessage", "receiveMessage");
 const uploadModule = findByProps("uploadLocalFiles");
@@ -20,7 +21,7 @@ const patches = [
         // dont care if we got nitro
         if (getCurrentUser?.().premiumType !== null) return origFunc(...args);
         const sticker = getStickerById(args[1]);
-        console.log(sticker);
+        logger.log(sticker);
         // dont care if its a discord sticker
         if (sticker.format_type === 3 || sticker.pack_id !== undefined) return origFunc(...args);
         const channel = ChannelStore.getChannel(args[0])?.guild_id;
