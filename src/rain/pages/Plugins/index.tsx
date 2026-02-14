@@ -30,7 +30,7 @@ function PluginPage(props: PluginPageProps) {
             ]}
             sortOptions={{
                 "Name (A-Z)": (a, b) => a.name.localeCompare(b.name),
-                "Name (Z-A)": (a, b) => b.name.localeCompare(b.name),
+                "Name (Z-A)": (a, b) => b.name.localeCompare(a.name),
                 "Enabled": (a, b) => Number(b.isEnabled()) - Number(a.isEnabled()),
                 "Disabled": (a, b) => Number(a.isEnabled()) - Number(b.isEnabled()),
             }}
