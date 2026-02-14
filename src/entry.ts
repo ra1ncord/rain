@@ -1,5 +1,5 @@
 import type { Metro } from "@metro/types";
-const { instead } = require("spitroast");
+const { instead } = require("sublimation");
 
 // @ts-ignore - window is defined later in the bundle, so we assign it early
 globalThis.window = globalThis;
