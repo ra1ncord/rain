@@ -9,7 +9,7 @@ import Text from "./Text";
 
 export default function Header() {
   const [clickCounter, setClickCounter] = React.useState(0);
-  const [clickTimeout, setClickTimeout] = React.useState<NodeJS.Timeout | null>(
+  const [clickTimeout,] = React.useState<NodeJS.Timeout | null>(
     null,
   );
   const [avatarUrl, setAvatarUrl] = React.useState<string | null>(null);
@@ -118,11 +118,6 @@ export default function Header() {
     if (clickTimeout) {
       clearTimeout(clickTimeout);
     }
-
-    const newTimeout = setTimeout(() => {
-      setClickCounter(0);
-    }, 1000);
-    setClickTimeout(newTimeout);
 
     const newCounter = clickCounter + 1;
     setClickCounter(newCounter);
