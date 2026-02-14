@@ -3,7 +3,7 @@ import { Metro } from "@metro/types";
 
 import { ModuleFlags, ModulesMapInternal } from "./enums";
 
-const { before, instead } = require("spitroast");
+const { before, instead } = require("sublimation");
 
 export const metroModules: Metro.ModuleList = window.modules;
 const metroRequire = (id: string | number) => window.__r(+id);

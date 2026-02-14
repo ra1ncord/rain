@@ -6,7 +6,7 @@
         "strict": true,
         "paths": {
             // Just to discourage from consuming the module directly
-            "spitroast": ["./shims/emptyModule"],
+            "sublimation": ["./shims/emptyModule"],
 
             "@rain/*": ["./src/rain/*"],
             "@lib": ["./src/lib"],

@@ -2,7 +2,7 @@ const {
     after: _after,
     before: _before,
     instead: _instead
-} = require("spitroast");
+} = require("sublimation");
 
 /** @internal */
 export const _patcherDelaySymbol = Symbol.for("rain.api.patcher.delay");

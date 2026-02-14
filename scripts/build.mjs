@@ -57,7 +57,7 @@ const config = {
     legalComments: "none",
     alias: {
         "!rain-deps-shim!": "./shims/depsModule.ts",
-        "spitroast": "./node_modules/spitroast",
+        "sublimation": "./node_modules/sublimation",
         "react/jsx-runtime": "./shims/jsxRuntime"
     },
     plugins: [
