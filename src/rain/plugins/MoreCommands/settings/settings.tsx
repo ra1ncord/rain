@@ -3,7 +3,6 @@ import { NavigationNative } from "@metro/common";
 import { semanticColors } from "@api/ui/components/color";
 import { findAssetId } from "@api/assets";
 import { Stack, TableRow, TableRowGroup } from "@metro/common/components";
-import { showConfirmationAlert } from "@api/ui/alerts";
 import { ScrollView } from "react-native";
 import { useMoreCommandsSettings } from "../storage";
 import Header from "./components/Header";
@@ -32,22 +31,6 @@ export default function Settings() {
   }, [navigation]);
 
   const garySource = storage.garySettings.imageSource;
-
-  React.useEffect(() => {
-    return () => {
-      if (storage.pendingRestart) {
-        storage.setPendingRestart(false);
-        showConfirmationAlert({
-          title: "Restart Required",
-          content:
-            "You have made changes to commands. Please restart Discord to apply these changes.",
-          confirmText: "Okay",
-          cancelText: void 0,
-          onConfirm: () => {},
-        });
-      }
-    };
-  }, [storage.pendingRestart]);
 
   const getGarySourceDisplay = (source: string) => {
     switch (source) {
