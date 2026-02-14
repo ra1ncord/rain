@@ -14,7 +14,6 @@ import { ipCommand } from "./src/commands/ip";
 import { nekoslifeCommand } from "./src/commands/nekoslife";
 import { friendInviteCreateCommand, friendInviteViewCommand, friendInviteRevokeCommand } from "./src/commands/friendinvites";
 import settings from "./settings/settings";
-import { logger } from "@lib/utils/logger";
 
 const commandMap = {
   catfact: catFactCommand,
@@ -49,7 +48,6 @@ export default definePlugin({
   id: "morecommands",
   version: "v1.0.0",
   start() {
-    logger.log("[Commands Plugin] Loading...");
 
     // Patch commands to allow registering custom commands
     patchCommands();
@@ -59,7 +57,6 @@ export default definePlugin({
       if (storage.enabledCommands[key]) {
         try {
           commands.push(registerCommand(command as any));
-          logger.log(`[Commands Plugin] Registered command: ${key}`);
         } catch (error) {
           console.error(
             `[Commands Plugin] Failed to register command ${key}:`,
@@ -70,7 +67,6 @@ export default definePlugin({
     }
   },
   stop() {
-    logger.log("[Commands Plugin] Unloading...");
 
     // Unregister commands
     commands.forEach((unregister) => {

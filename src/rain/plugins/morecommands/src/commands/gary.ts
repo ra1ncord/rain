@@ -1,7 +1,6 @@
 import { findByProps } from "@metro";
 import { storage } from "../../storage";
 import { getGaryUrl } from "../utils/api";
-import { logger } from "@lib/utils/logger";
 
 const MessageActions = findByProps("sendMessage");
 
@@ -19,17 +18,14 @@ export const garyCommand = {
             }
 
             const source = storage.garySettings.imageSource || "gary";
-            logger.log(`[Gary Command] Using image source: ${source}`);
 
             const imageUrl = await getGaryUrl(source);
 
             if (!imageUrl) {
-                logger.log("[Gary Command] No image URL received");
                 // Silent fail
                 return null;
             }
 
-            logger.log(`[Gary Command] Sending image: ${imageUrl}`);
             const fixNonce = Date.now().toString();
             MessageActions.sendMessage(ctx.channel.id, { content: imageUrl }, void 0, {
                 nonce: fixNonce,

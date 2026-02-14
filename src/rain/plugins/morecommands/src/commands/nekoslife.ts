@@ -1,7 +1,6 @@
 import { findByProps } from "@metro";
 import { showToast } from "@api/ui/toasts";
 import { findAssetId } from "@api/assets";
-import { logger } from "@lib/utils/logger";
 
 const MessageActions = findByProps("sendMessage");
 const messageUtil = findByProps("sendBotMessage", "sendMessage", "receiveMessage");
@@ -91,15 +90,12 @@ export const nekoslifeCommand = {
     ],
     execute: async (args: any, ctx: any) => {
         try {
-            logger.log("[NekosLife] Command executed with args:", args);
 
             // Parse arguments
             const categoryInput = args.find((arg: any) => arg.name === "category")?.value;
             const limitInput = args.find((arg: any) => arg.name === "limit")?.value;
             const shouldSend = args.find((arg: any) => arg.name === "send")?.value || false;
             const isEphemeral = args.find((arg: any) => arg.name === "ephemeral")?.value || false;
-
-            logger.log("[NekosLife] Parsed values:", { categoryInput, limitInput, shouldSend, isEphemeral });
 
             if (!categoryInput || typeof categoryInput !== "string") {
                 const errorMsg = "❌ Category is required! Examples: neko, waifu, cuddle, kiss";
@@ -144,8 +140,6 @@ export const nekoslifeCommand = {
                 limit = Math.max(1, Math.min(5, limit)); // Clamp between 1-5
             }
 
-            logger.log("[NekosLife] Processing SFW request:", { category, limit, shouldSend, isEphemeral });
-
             // Show loading toast
             if (!isEphemeral) {
                 showToast(`Fetching ${limit} SFW image(s) from nekos.life...`, findAssetId("DownloadIcon"));
@@ -171,7 +165,6 @@ export const nekoslifeCommand = {
             const content = urls.join("\n");
 
             if (isEphemeral) {
-                logger.log("[NekosLife] Sending ephemeral response");
                 return {
                     type: 4,
                     data: {
@@ -180,12 +173,10 @@ export const nekoslifeCommand = {
                     },
                 };
             } else if (shouldSend) {
-                logger.log("[NekosLife] Sending to chat");
                 const fixNonce = Date.now().toString();
                 MessageActions.sendMessage(ctx.channel.id, { content }, void 0, { nonce: fixNonce });
                 return null;
             } else {
-                logger.log("[NekosLife] Sending as bot message");
                 messageUtil.sendBotMessage(ctx.channel.id, content);
                 return null;
             }
