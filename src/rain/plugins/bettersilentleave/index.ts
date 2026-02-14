@@ -19,11 +19,12 @@ export default definePlugin({
     start() {
         patches.push(
             after("render", ActionSheet, (args, res) => {
-                const dangerGroup: ReactElement<any> = findInReactTree(res, x => x?.props?.variant === "danger" || x?.key === "gdm-destructive");
+                const dangerGroup: ReactElement<any> = findInReactTree(res, x => x?.key === "gdm-destructive");
                 if (!dangerGroup) return res;
 
                 const children: Array<any> = React.Children.toArray(dangerGroup.props.children);
                 const leaveRow = dangerGroup.props.children.find((c: any) => c?.props?.variant === "danger");
+                console.log(leaveRow);
                 const leaveIcon = leaveRow?.props?.icon?.props?.IconComponent;
 
                 const props = args[0];
