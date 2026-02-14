@@ -167,11 +167,11 @@ export default function Header() {
       </RN.View>
 
       <RN.View style={styles.textContainer}>
-        <Text variant="display-sm" color="TEXT_DEFAULT" align="center">
+        <Text variant="display-md" color="TEXT_DEFAULT" align="center">
           More Commands
         </Text>
         <Text
-          variant="text-sm/bold"
+          variant="text-md/bold"
           color="TEXT_MUTED"
           align="center"
           style={{ marginTop: 4 }}
