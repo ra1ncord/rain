@@ -43,7 +43,7 @@ const commandMap = {
 let commands: Array<() => void> = [];
 
 export default definePlugin({
-  name: "morecommands",
+  name: "MoreCommands",
   description: "Additional commands for Discord",
   author: [{ name: "kmmiio99o", id: 879393496627306587n }],
   id: "morecommands",
