@@ -4,6 +4,8 @@ import { NavigationNative } from "@metro/common";
 import {
     ActionSheet,
     BottomSheetTitleHeader,
+    TableRadioGroup,
+    TableRadioRow,
     TableRowGroup,
     TableRowIcon,
     TableSwitchRow,
@@ -16,11 +18,6 @@ import ThemeBrowser from "@rain/pages/Browser/Themes";
 import { View } from "react-native";
 
 import ThemeCard from "./ThemeCard";
-
-/**
- * Theme options have been changed from radio groups to individual switches
- * for better UX. Each option can now be toggled independently.
- */
 
 export default function Themes() {
     const themesMap = useThemes(s => s.themes);
@@ -65,49 +62,34 @@ export default function Themes() {
                     <ActionSheet>
                         <BottomSheetTitleHeader title="Options" />
                         <View style={{ paddingVertical: 20, gap: 12 }}>
-                            <TableRowGroup title="Override Theme Type">
-                                <TableSwitchRow
+                            <TableRadioGroup
+                                title="Override Theme Type"
+                                value={type ?? "auto"}
+                                onChange={(value: string) => setType(value === "auto" ? undefined : value as "dark" | "light")}
+                            >
+                                <TableRadioRow
                                     label="Auto"
+                                    value="auto"
                                     icon={<TableRowIcon source={findAssetId("RobotIcon")} />}
-                                    value={!type}
-                                    onValueChange={(enabled: boolean) => {
-                                        if (enabled) setType(undefined);
-                                        else setType("dark");
-                                    }}
                                 />
-                                <TableSwitchRow
+                                <TableRadioRow
                                     label="Dark"
+                                    value="dark"
                                     icon={<TableRowIcon source={findAssetId("ThemeDarkIcon")} />}
-                                    value={type === "dark"}
-                                    onValueChange={(enabled: boolean) => {
-                                        setType(enabled ? "dark" : undefined);
-                                    }}
                                 />
-                                <TableSwitchRow
+                                <TableRadioRow
                                     label="Light"
+                                    value="light"
                                     icon={<TableRowIcon source={findAssetId("ThemeLightIcon")} />}
-                                    value={type === "light"}
-                                    onValueChange={(enabled: boolean) => {
-                                        setType(enabled ? "light" : undefined);
-                                    }}
                                 />
-                            </TableRowGroup>
+                            </TableRadioGroup>
                             <TableRowGroup title="Chat Background">
                                 <TableSwitchRow
                                     label="Show Background"
+                                    subLabel="Shows or hides the theme's background image in chat"
                                     icon={<TableRowIcon source={findAssetId("ImageIcon")} />}
                                     value={!customBackground}
-                                    onValueChange={(enabled: boolean) => {
-                                        setCustomBackground(enabled ? null : "hidden");
-                                    }}
-                                />
-                                <TableSwitchRow
-                                    label="Hide Background"
-                                    icon={<TableRowIcon source={findAssetId("DenyIcon")} />}
-                                    value={customBackground === "hidden"}
-                                    onValueChange={(enabled: boolean) => {
-                                        setCustomBackground(enabled ? "hidden" : null);
-                                    }}
+                                    onValueChange={() => setCustomBackground(customBackground ? null : "hidden")}
                                 />
                             </TableRowGroup>
                         </View>

@@ -16,7 +16,8 @@ import { Image, ScrollView, View } from "react-native";
 
 import { CardWrapper } from "./AddonCard";
 
-const { showSimpleActionSheet, hideActionSheet } = lazyDestructure(() => findByProps("showSimpleActionSheet"));
+const { showSimpleActionSheet } = lazyDestructure(() => findByProps("showSimpleActionSheet"));
+const { hideActionSheet } = findByProps("hideActionSheet");
 
 type SearchKeywords<T> = Array<string | ((obj: T & {}) => string)>;
 

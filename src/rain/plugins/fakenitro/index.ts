@@ -2,9 +2,9 @@ import { definePlugin } from "@plugins";
 
 import appIcons from "./patches/appIcons";
 import nitroChecks from "./patches/nitroChecks";
+import nitroThemes from "./patches/nitroThemes";
 import sendMessage from "./patches/sendMessage";
 import settings from "./settings";
-import nitroThemes from "./patches/nitroThemes";
 
 const patches: any[] = [];
 

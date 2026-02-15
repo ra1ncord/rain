@@ -1,4 +1,3 @@
-import { settings } from "@api/settings";
 import { findByProps, findByPropsLazy, findByStoreNameLazy } from "@metro";
 
 import { parseColorManifest } from "./parser";

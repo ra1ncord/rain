@@ -232,14 +232,14 @@ const badgeGroups = {
         }
         return badges;
     },
-    //raincord: (value: CustomBadges["raincord"]) => {
+    // raincord: (value: CustomBadges["raincord"]) => {
     //    if (!Array.isArray(value)) return [];
     //    return value.map(badge => ({
     //        type: badge.label,
     //        label: badge.label,
     //        uri: badge.url,
     //    }));
-    //},
+    // },
     reviewdb: (value: CustomBadges["reviewdb"]) => {
         if (!Array.isArray(value)) return [];
         return value.map(badge => ({

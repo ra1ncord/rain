@@ -31,11 +31,10 @@ const useStyles = createStyles({
         alignItems: "center"
     },
     headerLabel: {
-        ...TextStyleSheet["heading-md/semibold"],
-        color: "text-strong",
+        ...TextStyleSheet["heading-lg/semibold"],
     },
     headerSubtitle: {
-        ...TextStyleSheet["text-md/semibold"],
+        ...TextStyleSheet["text-sm/semibold"],
         color: "text-muted",
     },
     descriptionLabel: {
@@ -86,6 +85,11 @@ interface CardProps {
     actions?: Action[];
     overflowTitle?: string;
     overflowActions?: OverflowAction[];
+    headerLabelStyle?: object;
+    headerSublabelStyle?: object;
+    headerLabelVariant?: string;
+    headerSublabelVariant?: string;
+    headerSublabelColor?: string;
 }
 
 export default function AddonCard(props: CardProps) {
@@ -96,9 +100,9 @@ export default function AddonCard(props: CardProps) {
             <Stack spacing={16}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                     <View style={styles.headerLeading}>
-                        <Text style={styles.headerLabel}>{props.headerLabel}</Text>
+                        <Text variant={props.headerLabelVariant} style={{ ...styles.headerLabel, ...props.headerLabelStyle }}>{props.headerLabel}</Text>
                         {props.headerSublabel && (
-                            <Text style={styles.headerSubtitle}>{props.headerSublabel}</Text>
+                            <Text variant={props.headerSublabelVariant} color={props.headerSublabelColor} style={{ ...styles.headerSubtitle, ...props.headerSublabelStyle }}>{props.headerSublabel}</Text>
                         )}
                     </View>
                     <View style={[styles.headerTrailing, { marginLeft: "auto" }]}>
