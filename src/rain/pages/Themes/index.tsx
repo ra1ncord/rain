@@ -59,57 +59,57 @@ export default function Themes() {
             OptionsActionSheetComponent={() => {
                 const { type, customBackground, setType, setCustomBackground } = useColorsPref();
 
-                return (
-<ActionSheet>
-            <BottomSheetTitleHeader title="Options" />
-            <View style={{ paddingVertical: 20, gap: 12 }}>
-                <TableRadioGroup
-                    title="Override Theme Type"
-                    value={type ?? "auto"}
-                    onChange={(value: string) => {
-                        const newType = value === "auto" ? undefined : (value as "dark" | "light");
-                        setType(newType);
-
-                        const currentTheme = getCurrentTheme();
-                        if (currentTheme?.data) {
-                            updateColor(currentTheme.data, { update: true });
-                        }
-                    }}
-                >
-                    <TableRadioRow
-                        label="Auto"
-                        value="auto"
-                        icon={<TableRowIcon source={findAssetId("RobotIcon")} />}
-                    />
-                    <TableRadioRow
-                        label="Dark"
-                        value="dark"
-                        icon={<TableRowIcon source={findAssetId("ThemeDarkIcon")} />}
-                    />
-                    <TableRadioRow
-                        label="Light"
-                        value="light"
-                        icon={<TableRowIcon source={findAssetId("ThemeLightIcon")} />}
-                    />
-                </TableRadioGroup>
-                <TableRowGroup title="Chat Background">
-                    <TableSwitchRow
-                        label="Show Background"
-                        subLabel="Shows or hides the theme's background image in chat"
-                        icon={<TableRowIcon source={findAssetId("ImageIcon")} />}
-                        value={!customBackground}
-                        onValueChange={() => {
-                            setCustomBackground(customBackground ? null : "hidden");
-                            
-                            const currentTheme = getCurrentTheme();
-                            if (currentTheme?.data) {
-                                updateColor(currentTheme.data, { update: true });
-                            }
-                        }}
-                    />
-                </TableRowGroup>
-            </View>
-        </ActionSheet>
+            return (
+                <ActionSheet>
+                    <BottomSheetTitleHeader title="Options" />
+                        <View style={{ paddingVertical: 20, gap: 12 }}>
+                            <TableRadioGroup
+                                title="Override Theme Type"
+                                value={type ?? "auto"}
+                                onChange={(value: string) => {
+                                    const newType = value === "auto" ? undefined : (value as "dark" | "light");
+                                    setType(newType);
+                                
+                                    const currentTheme = getCurrentTheme();
+                                    if (currentTheme?.data) {
+                                        updateColor(currentTheme.data, { update: true });
+                                    }
+                                }}
+                            >
+                                <TableRadioRow
+                                    label="Auto"
+                                    value="auto"
+                                    icon={<TableRowIcon source={findAssetId("RobotIcon")} />}
+                                />
+                                <TableRadioRow
+                                    label="Dark"
+                                    value="dark"
+                                    icon={<TableRowIcon source={findAssetId("ThemeDarkIcon")} />}
+                                />
+                                <TableRadioRow
+                                    label="Light"
+                                    value="light"
+                                    icon={<TableRowIcon source={findAssetId("ThemeLightIcon")} />}
+                                />
+                            </TableRadioGroup>
+                            <TableRowGroup title="Chat Background">
+                                <TableSwitchRow
+                                    label="Show Background"
+                                    subLabel="Shows or hides the theme's background image in chat"
+                                    icon={<TableRowIcon source={findAssetId("ImageIcon")} />}
+                                    value={!customBackground}
+                                    onValueChange={() => {
+                                        setCustomBackground(customBackground ? null : "hidden");
+                                        
+                                        const currentTheme = getCurrentTheme();
+                                        if (currentTheme?.data) {
+                                            updateColor(currentTheme.data, { update: true });
+                                        }
+                                    }}
+                                />
+                            </TableRowGroup>
+                        </View>
+                    </ActionSheet>
                 );
             }}
         />
