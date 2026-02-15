@@ -10,7 +10,8 @@ export interface Settings {
   developerSettings: boolean;
   autoDebugger: boolean;
   autoDevTools: boolean;
-  safeMode?: boolean
+  safeMode?: boolean;
+  settingsPosition: string;
 }
 
 export interface LoaderConfig {
@@ -34,6 +35,7 @@ export const useSettings = create<SettingsStore>()(
             autoDebugger: false,
             autoDevTools: false,
             safeMode: false,
+            settingsPosition: "TOP",
             updateSettings: newSettings => set(state => ({ ...state, ...newSettings })),
         }),
         {
