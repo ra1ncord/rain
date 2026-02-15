@@ -188,6 +188,7 @@ export default function AddonBrowser({ type, url, useStore, installFn, removeFn,
                             placeholder={`Search ${type}...`}
                             onChangeText={setSearchQuery}
                             style={{ flex: 1 }}
+                            isRound={true}
                         />
                         <IconButton
                             size="md"
