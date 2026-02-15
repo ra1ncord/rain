@@ -1,3 +1,4 @@
+import { semanticColors } from "@api/ui/components/color";
 import { hideSheet } from "@api/ui/sheets";
 import { ActionSheet, Card, IconButton, Text } from "@metro/common/components";
 import { ScrollView, View } from "react-native";
@@ -49,10 +50,9 @@ export default function PluginInfoActionSheet({
                 <Card>
                     <Text
                         variant="text-md/semibold"
-                        color="text-primary"
                         style={{
                             marginBottom: 4,
-                            color: "text-strong",
+                            color: semanticColors.MOBILE_TEXT_HEADING_PRIMARY,
                         }}
                     >
             Description
