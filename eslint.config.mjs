@@ -31,6 +31,15 @@ export default defineConfig([
                 selector: "AwaitExpression:not(:function *)",
                 message: "Hermes does not support top-level await, and SWC cannot transform it.",
             }],
+            // This should probably be used
+            //"no-restricted-imports": ["error", {
+            //    "patterns": [
+            //        {
+            //            "group": ["../**"],
+            //            "message": "Relative imports are not allowed"
+            //        }
+            //    ]
+            //}],
             "eqeqeq": ["error", "always", { null: "ignore" }],
             "quotes": ["error", "double", { avoidEscape: true }],
             "jsx-quotes": ["error", "prefer-double"],

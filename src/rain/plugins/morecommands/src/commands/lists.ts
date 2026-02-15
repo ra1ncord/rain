@@ -1,8 +1,9 @@
-import { findByProps, findByStoreName } from "@metro";
-import { themes } from "@plugins/_core/painter/themes";
-import { pluginInstances } from "@plugins";
-import { storage } from "../../storage";
 import { showConfirmationAlert } from "@api/ui/alerts";
+import { findByProps, findByStoreName } from "@metro";
+import { pluginInstances } from "@plugins";
+import { themes } from "@plugins/_core/painter/themes";
+
+import { storage } from "../../storage";
 
 // Define constants directly since ../consts doesn't exist
 const ALERT = {
@@ -59,7 +60,7 @@ const isSLMPluginInstalled = (installedPlugins: Map<string, any>) =>
 
 const isSLMPluginEnabled = (installedPlugins: Map<string, any>) =>
     Array.from(installedPlugins.values())
-        .find((plugin) => plugin.id == SPLIT_LARGE_MESSAGES_PLUGIN)
+        .find((plugin) => plugin.id === SPLIT_LARGE_MESSAGES_PLUGIN)
         ?.enabled;
 
 const getArgumentValue = (args: any[]): any | false =>

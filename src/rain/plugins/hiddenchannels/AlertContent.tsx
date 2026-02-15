@@ -1,9 +1,9 @@
-import { constants, clipboard } from "@metro/common";
-import { findByPropsLazy } from "@metro/wrappers";
-import { semanticColors } from "@api/ui/components/color";
 import { findAssetId } from "@api/assets";
+import { semanticColors } from "@api/ui/components/color";
 import { showToast } from "@api/ui/toasts";
+import { clipboard,constants } from "@metro/common";
 import { ReactNative as RN } from "@metro/common";
+import { findByPropsLazy } from "@metro/wrappers";
 
 const moment = findByPropsLazy("isMoment");
 const { Text } = RN;
@@ -12,26 +12,26 @@ const MessageStyles = {
     container: {
         flex: 1,
         padding: 16,
-        alignItems: 'center' as const,
-        justifyContent: 'center' as const,
+        alignItems: "center" as const,
+        justifyContent: "center" as const,
     },
     title: {
         fontFamily: constants.Fonts.PRIMARY_SEMIBOLD,
         fontSize: 24,
-        textAlign: 'left' as const,
+        textAlign: "left" as const,
         color: semanticColors.HEADER_PRIMARY,
         paddingVertical: 25
     },
     text: {
         flex: 1,
-        flexDirection: 'row' as const,
+        flexDirection: "row" as const,
         fontSize: 16,
-        textAlign: 'justify' as const,
+        textAlign: "justify" as const,
         color: semanticColors.HEADER_PRIMARY,
     },
     dateContainer: {
         height: 16,
-        alignSelf: 'baseline' as const
+        alignSelf: "baseline" as const
     },
     bold: {
         fontFamily: constants.Fonts.PRIMARY_SEMIBOLD,

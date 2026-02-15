@@ -29,7 +29,7 @@ export const DeepLLangs = {
     "Turkish": "TR",
     "Ukrainian": "UK",
     "Chinese-Simplified": "ZH"
-} as const
+} as const;
 
 export const DeepLLangsReverse: Record<string, string> = Object.fromEntries(
     Object.entries(DeepLLangs).map(([key, value]) => [value, key])

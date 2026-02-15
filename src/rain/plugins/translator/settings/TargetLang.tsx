@@ -1,20 +1,21 @@
-import { React } from "@metro/common"
-import { ReactNative } from "@metro/common"
-import { Stack, TableRadioGroup, TableRadioRow } from "@metro/common/components"
-import { Search } from "@api/ui/components"
-import { useTranslatorSettings } from "../storage"
-import { DeepLLangs, GTranslateLangs } from "../lang"
+import { Search } from "@api/ui/components";
+import { React } from "@metro/common";
+import { ReactNative } from "@metro/common";
+import { Stack, TableRadioGroup, TableRadioRow } from "@metro/common/components";
 
-const { ScrollView } = ReactNative
+import { DeepLLangs, GTranslateLangs } from "../lang";
+import { useTranslatorSettings } from "../storage";
+
+const { ScrollView } = ReactNative;
 
 export default function TargetLang() {
-    const settings = useTranslatorSettings()
-    const [query, setQuery] = React.useState("")
+    const settings = useTranslatorSettings();
+    const [query, setQuery] = React.useState("");
 
-    const langs = settings.translator == 0 ? DeepLLangs : GTranslateLangs
+    const langs = settings.translator === 0 ? DeepLLangs : GTranslateLangs;
     const filteredLangs = Object.entries(langs).filter(([key]) =>
         key.toLowerCase().includes(query.toLowerCase())
-    )
+    );
 
     return (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 38 }}>
@@ -29,7 +30,7 @@ export default function TargetLang() {
                     title="Select Language"
                     value={settings.target_lang?.toLowerCase() ?? "en"}
                     onChange={(value: string) => {
-                        settings.updateSettings({ target_lang: value })
+                        settings.updateSettings({ target_lang: value });
                     }}
                 >
                     {filteredLangs.map(([key, value]) => (
@@ -43,5 +44,5 @@ export default function TargetLang() {
                 </TableRadioGroup>
             </Stack>
         </ScrollView>
-    )
+    );
 }

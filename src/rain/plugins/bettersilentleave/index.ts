@@ -1,10 +1,10 @@
 import { after } from "@api/patcher";
-import { showToast } from "@api/ui/toasts";
-import { definePlugin } from "@plugins";
-import { ActionSheet, ActionSheetRow } from "@metro/common/components";
 import { showConfirmationAlert } from "@api/ui/alerts";
+import { showToast } from "@api/ui/toasts";
 import { findInReactTree } from "@lib/utils";
 import { findByProps } from "@metro";
+import { ActionSheet, ActionSheetRow } from "@metro/common/components";
+import { definePlugin } from "@plugins";
 import { ReactElement } from "react";
 
 const patches: (() => void)[] = [];

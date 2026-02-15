@@ -1,5 +1,6 @@
-import { findByProps } from "@metro";
 import { showToast } from "@api/ui/toasts";
+import { findByProps } from "@metro";
+
 import { storage } from "../../storage";
 import { catFact, dogFact, uselessFact } from "../utils/api";
 

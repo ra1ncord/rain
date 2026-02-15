@@ -1,6 +1,7 @@
-import { findByProps } from "@metro";
-import { storage } from "../../storage";
 import { showConfirmationAlert } from "@api/ui/alerts";
+import { findByProps } from "@metro";
+
+import { storage } from "../../storage";
 
 const MessageActions = findByProps("sendMessage", "receiveMessage");
 const Channels = findByProps("getLastSelectedChannelId");
@@ -95,7 +96,7 @@ export const lovefemboysCommand = {
                 });
 
                 if (!shouldProceed) {
-                  return null;
+                    return null;
                 }
             }
 

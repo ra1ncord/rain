@@ -1,18 +1,18 @@
-import { findAssetId } from "@api/assets"
-import { findByProps } from "@metro"
-import { ReactNative, NavigationNative, url } from "@metro/common"
-import { Stack, TableRowGroup, TableCheckboxRow, TableRow } from "@metro/common/components"
-import { useTranslatorSettings } from "../storage"
+import { findAssetId } from "@api/assets";
+import { findByProps } from "@metro";
+import { NavigationNative, ReactNative } from "@metro/common";
+import { Stack, TableCheckboxRow, TableRow,TableRowGroup } from "@metro/common/components";
 
-import TargetLang from "./TargetLang"
+import { useTranslatorSettings } from "../storage";
+import TargetLang from "./TargetLang";
 
-const { ScrollView, Text } = ReactNative
-const { showSimpleActionSheet } = findByProps("showSimpleActionSheet")
-const { hideActionSheet } = findByProps("openLazy", "hideActionSheet")
+const { ScrollView, Text } = ReactNative;
+const { showSimpleActionSheet } = findByProps("showSimpleActionSheet");
+const { hideActionSheet } = findByProps("openLazy", "hideActionSheet");
 
 export default function Settings() {
-    const navigation = NavigationNative.useNavigation()
-    const settings = useTranslatorSettings()
+    const navigation = NavigationNative.useNavigation();
+    const settings = useTranslatorSettings();
 
     const showTranslatorSheet = () => {
         showSimpleActionSheet({
@@ -24,20 +24,20 @@ export default function Settings() {
                 {
                     label: "DeepL",
                     onPress: () => {
-                        settings.updateSettings({ translator: 0 })
-                        hideActionSheet()
+                        settings.updateSettings({ translator: 0 });
+                        hideActionSheet();
                     }
                 },
                 {
                     label: "Google Translate",
                     onPress: () => {
-                        settings.updateSettings({ translator: 1 })
-                        hideActionSheet()
+                        settings.updateSettings({ translator: 1 });
+                        hideActionSheet();
                     }
                 }
             ]
-        })
-    }
+        });
+    };
 
     return (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 38 }}>
@@ -70,5 +70,5 @@ export default function Settings() {
                 </TableRowGroup>
             </Stack>
         </ScrollView>
-    )
+    );
 }
