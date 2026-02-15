@@ -48,7 +48,7 @@ export default function TitleComponent({ plugin }: { plugin: UnifiedPluginModel;
                 >
                     {users.map(a => <Avatar size="xxsmall" user={a} />)}
                 </AvatarPile>}
-                <Text variant="text-md/medium">
+                <Text variant="text-md/medium" style={{ marginTop: -4 }}>
                     {authorTextNode}
                 </Text>
             </View>}
