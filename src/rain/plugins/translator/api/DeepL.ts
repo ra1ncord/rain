@@ -1,4 +1,4 @@
-import { DeepLResponse } from "../type"
+import { DeepLResponse } from "../storage"
 
 // TODO: Change API link when it'll be down
 const API_URL = "https://deeplx.mingming.dev/translate"

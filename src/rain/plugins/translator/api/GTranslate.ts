@@ -1,5 +1,5 @@
 // "inspired" by https://github.com/Vendicated/Vencord/blob/main/src/plugins/translate/utils.ts
-import { GTranslateResponse } from "../type"
+import { GTranslateResponse } from "../storage"
 
 const translate = async (text: string, source_lang: string = "auto", target_lang: string, original: boolean = false) => {
     try {
@@ -16,6 +16,8 @@ const translate = async (text: string, source_lang: string = "auto", target_lang
         });
 
         const data: GTranslateResponse = await (await fetch(API_URL)).json()
+
+        if (!data.sentences) return { source_lang, text: "" }
 
         return { 
             source_lang, 

@@ -2,6 +2,20 @@ import { createFileStorage, PluginStore } from "@api/storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
+export interface DeepLResponse {
+    alternatives?: string[]
+    code?: number
+    message?: string
+    data?: string
+    id?: number
+}
+export interface GTranslateResponse {
+    src?: string;
+    sentences?: {
+        trans: string;
+    }[];
+}
+
 interface Settings {
     source_lang?: string;
     target_lang?: string;
