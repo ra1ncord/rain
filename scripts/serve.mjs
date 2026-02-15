@@ -15,7 +15,8 @@ export async function serve(options) {
     const hbcVersion = await getHermesBytecodeVersion();
 
     const server = http.createServer(async (req, res) => {
-        const { pathname } = url.parse(req.url || "", true);
+        const parsedUrl = new URL(req.url || "", `http://${req.headers.host}`);
+        const pathname = parsedUrl.pathname;
 
         if (pathname?.endsWith(".js") || pathname?.endsWith(".hbc")) {
             try {
