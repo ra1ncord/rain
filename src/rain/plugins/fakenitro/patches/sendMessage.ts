@@ -1,9 +1,9 @@
 import { before,instead } from "@api/patcher";
+import { logger } from "@lib/utils/logger";
 import { findByProps, findByStoreName } from "@metro";
 
 import { fakenitroSettings } from "../storage";
 import { buildStickerURL,modifyIfNeeded } from "../utils";
-import { logger } from "@lib/utils/logger";
 
 const messageModule = findByProps("sendMessage", "receiveMessage");
 const uploadModule = findByProps("uploadLocalFiles");

@@ -1,8 +1,8 @@
-import { Stack, TableRowGroup, TableSwitchRow, TableRowIcon } from "@metro/common/components"
-import { findAssetId } from "@api/assets"
-import { ScrollView } from "react-native"
+import { findAssetId } from "@api/assets";
+import { Stack, TableRowGroup, TableRowIcon,TableSwitchRow } from "@metro/common/components";
+import { ScrollView } from "react-native";
 
-import { useQuickDeleteSettings } from "./storage"
+import { useQuickDeleteSettings } from "./storage";
 
 const settings = [
     {
@@ -17,11 +17,11 @@ const settings = [
         icon: "EmbedIcon",
         value: "autoConfirmEmbed",
     },
-]
+];
 
 export default function QuickDeleteSettings() {
-    const store = useQuickDeleteSettings()
-    const { autoConfirmMessage, autoConfirmEmbed } = store
+    const store = useQuickDeleteSettings();
+    const { autoConfirmMessage, autoConfirmEmbed } = store;
 
     return (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 38 }}>
@@ -42,5 +42,5 @@ export default function QuickDeleteSettings() {
                 </TableRowGroup>
             </Stack>
         </ScrollView>
-    )
+    );
 }

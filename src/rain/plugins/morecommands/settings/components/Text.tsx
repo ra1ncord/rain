@@ -3,34 +3,34 @@ Stolen from https://github.com/nexpid/RevengePlugins/blob/main/src/stuff/compone
 
 Thanks to Nexpid honestly :D
 */
+import { resolveSemanticColor,semanticColors } from "@api/ui/components/color";
+import { TextStyleSheet } from "@api/ui/styles";
+import type { TextStyles } from "@api/ui/types";
 import { findByProps } from "@metro";
 import { React, ReactNative as RN } from "@metro/common";
-import { semanticColors, resolveSemanticColor } from "@api/ui/components/color";
-import { TextStyleSheet } from "@api/ui/styles";
 import type { TextProps } from "react-native";
-import type { TextStyles } from "@api/ui/types";
 
 export function TrailingText({ children }: React.PropsWithChildren<object>) {
-	return (
-		<Text variant="text-md/medium" color="TEXT_MUTED">
-			{children}
-		</Text>
-	);
+    return (
+        <Text variant="text-md/medium" color="TEXT_MUTED">
+            {children}
+        </Text>
+    );
 }
 
 const { useThemeContext } = findByProps("useThemeContext");
 
 export default function Text({
-	variant,
-	lineClamp,
-	color,
-	align,
-	style,
-	onPress,
-	getChildren,
-	children,
-	liveUpdate,
-	ellipsis,
+    variant,
+    lineClamp,
+    color,
+    align,
+    style,
+    onPress,
+    getChildren,
+    children,
+    liveUpdate,
+    ellipsis,
 }: React.PropsWithChildren<{
 	variant?: TextStyles;
 	color?: string;
@@ -43,41 +43,41 @@ export default function Text({
 	onPress?: TextProps["onPress"];
 	ellipsis?: TextProps["ellipsizeMode"];
 }>) {
-	const themeContext = useThemeContext();
-	const [_, forceUpdate] = React.useReducer(x => ~x, 0);
+    const themeContext = useThemeContext();
+    const [_, forceUpdate] = React.useReducer(x => ~x, 0);
 
-	React.useEffect(() => {
-		if (!liveUpdate) return;
-		const nextSecond = () => Date.now() - new Date().setMilliseconds(1000);
+    React.useEffect(() => {
+        if (!liveUpdate) return;
+        const nextSecond = () => Date.now() - new Date().setMilliseconds(1000);
 
-		let timeout = setTimeout(function update() {
-			forceUpdate();
-			timeout = setTimeout(update, nextSecond());
-		}, nextSecond());
+        let timeout = setTimeout(function update() {
+            forceUpdate();
+            timeout = setTimeout(update, nextSecond());
+        }, nextSecond());
 
-		return () => clearTimeout(timeout);
-	}, []);
+        return () => clearTimeout(timeout);
+    }, []);
 
-	return (
-		<RN.Text
-			style={[
-				variant && TextStyleSheet[variant],
-				color
-					? {
-						color: resolveSemanticColor(
-							semanticColors[color],
-							themeContext?.theme,
-						),
-					}
-					: {},
-				align && { textAlign: align },
-				style ?? {},
-			]}
-			numberOfLines={lineClamp}
-			onPress={onPress}
-			ellipsizeMode={ellipsis}
-		>
-			{getChildren?.() ?? children}
-		</RN.Text>
-	);
+    return (
+        <RN.Text
+            style={[
+                variant && TextStyleSheet[variant],
+                color
+                    ? {
+                        color: resolveSemanticColor(
+                            semanticColors[color],
+                            themeContext?.theme,
+                        ),
+                    }
+                    : {},
+                align && { textAlign: align },
+                style ?? {},
+            ]}
+            numberOfLines={lineClamp}
+            onPress={onPress}
+            ellipsizeMode={ellipsis}
+        >
+            {getChildren?.() ?? children}
+        </RN.Text>
+    );
 }

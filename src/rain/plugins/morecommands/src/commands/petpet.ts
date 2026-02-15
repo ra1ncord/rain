@@ -1,4 +1,5 @@
 import { findByProps, findByStoreName } from "@metro";
+
 import { getPetPetData } from "../utils/api";
 
 const UserStore = findByStoreName("UserStore");
