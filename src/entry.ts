@@ -100,7 +100,7 @@ if (typeof window.__r === "undefined") {
             resumeDeferred();
 
             const { initPlugins } = require(".");
-            initPlugins();
+            setTimeout(() => initPlugins(), 0);
         };
 
         startDiscord();
