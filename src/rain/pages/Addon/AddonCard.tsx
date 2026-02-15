@@ -100,9 +100,9 @@ export default function AddonCard(props: CardProps) {
             <Stack spacing={16}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                     <View style={styles.headerLeading}>
-                        <Text variant={props.headerLabelVariant} style={{...styles.headerLabel, ...props.headerLabelStyle}}>{props.headerLabel}</Text>
+                        <Text variant={props.headerLabelVariant} style={{ ...styles.headerLabel, ...props.headerLabelStyle }}>{props.headerLabel}</Text>
                         {props.headerSublabel && (
-                            <Text variant={props.headerSublabelVariant} color={props.headerSublabelColor} style={{...styles.headerSubtitle, ...props.headerSublabelStyle}}>{props.headerSublabel}</Text>
+                            <Text variant={props.headerSublabelVariant} color={props.headerSublabelColor} style={{ ...styles.headerSubtitle, ...props.headerSublabelStyle }}>{props.headerSublabel}</Text>
                         )}
                     </View>
                     <View style={[styles.headerTrailing, { marginLeft: "auto" }]}>

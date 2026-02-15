@@ -14,22 +14,22 @@ export default definePlugin({
     name: "Translator",
     description: "Translate messages using DeepL or Google Translate",
     author: [
-      {
-        name: "Acquite",
-        id: 581573474296791211n
-      },
-      {
-        name: "sapphire",
-        id: 757982547861962752n
-      },
-      {
-        name: "Rico",
-        id: 619474349845643275n
-      },
-      {
-        name: "chrysoljq",
-        id: 791663810594603028n
-      }
+        {
+            name: "Acquite",
+            id: 581573474296791211n
+        },
+        {
+            name: "sapphire",
+            id: 757982547861962752n
+        },
+        {
+            name: "Rico",
+            id: 619474349845643275n
+        },
+        {
+            name: "chrysoljq",
+            id: 791663810594603028n
+        }
     ],
     id: "translator",
     version: "v1.0.0",

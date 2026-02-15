@@ -1,8 +1,8 @@
-import { after, instead } from "@api/patcher";
-import { findByProps, findByStoreName } from "@metro";
+import { instead } from "@api/patcher";
+import { findByProps } from "@metro";
 
-const AppearanceSettings = findByProps("setShouldSyncAppearanceSettings")
-const canUse = findByProps("canUseClientThemes")
+const AppearanceSettings = findByProps("setShouldSyncAppearanceSettings");
+const canUse = findByProps("canUseClientThemes");
 
 export default [
     instead("setShouldSyncAppearanceSettings", AppearanceSettings, () => false),

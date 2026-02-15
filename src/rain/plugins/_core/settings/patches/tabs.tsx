@@ -68,7 +68,7 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
             if (!isMainSettingsPage) return ret;
 
             let insertIndex: number;
-            
+
             if (currentPosition === "TOP") {
                 insertIndex = 0;
             } else {
