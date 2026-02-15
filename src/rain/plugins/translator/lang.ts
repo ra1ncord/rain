@@ -36,7 +36,6 @@ export const DeepLLangsReverse: Record<string, string> = Object.fromEntries(
 );
 
 export const GTranslateLangs = {
-    // "auto": "Detect language",
     "Afrikaans": "af",
     "Albanian": "sq",
     "Amharic": "am",
@@ -173,10 +172,12 @@ export const GTranslateLangs = {
 } as const;
 
 export const GTranslateLangsReverse: Record<string, string> = Object.fromEntries(
-    Object.entries(GTranslateLangs).map(([key, value]) => [value, key])
+    Object.entries(GTranslateLangs as Record<string, string>).map(([key, value]) => [value, key])
 );
 
 export function getLangName(code: string, translator: number): string {
     const langs = translator === 0 ? DeepLLangsReverse : GTranslateLangsReverse;
-    return langs[code.toUpperCase()] ?? code;
+    const lookupCode = translator === 0 ? code.toUpperCase() : code.toLowerCase();
+    const result = langs[lookupCode];
+    return result || code;
 }
