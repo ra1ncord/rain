@@ -4,6 +4,7 @@ import appIcons from "./patches/appIcons";
 import nitroChecks from "./patches/nitroChecks";
 import sendMessage from "./patches/sendMessage";
 import settings from "./settings";
+import nitroThemes from "./patches/nitroThemes";
 
 const patches: any[] = [];
 
@@ -17,6 +18,7 @@ export default definePlugin({
         patches.push(...nitroChecks);
         patches.push(...sendMessage);
         patches.push(...appIcons);
+        patches.push(...nitroThemes);
     },
     stop() {
         for (const unpatch of patches) unpatch();
