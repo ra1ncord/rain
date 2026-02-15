@@ -12,7 +12,7 @@ const FormDivider = findByPropsLazy("DIVIDER_COLORS");
 let _inc = 1;
 
 interface InternalColorRef {
-    key: `bn-theme-${string}`;
+    key: `rain-theme-${string}`;
     current: InternalColorDefinition | null;
     readonly origRaw: Record<string, string>;
     lastSetDiscordTheme: string;
@@ -21,7 +21,7 @@ interface InternalColorRef {
 /** @internal */
 export const _colorRef: InternalColorRef = {
     current: null,
-    key: `bn-theme-${_inc}`,
+    key: `rain-theme-${_inc}`,
     origRaw: origRawColor,
     lastSetDiscordTheme: "darker"
 };
@@ -31,8 +31,8 @@ export function updateColor(colorManifest: ColorManifest | null, { update = true
     const internalDef = colorManifest ? parseColorManifest(colorManifest) : null;
     const ref = Object.assign(_colorRef, {
         current: internalDef,
-        key: `bn-theme-${++_inc}`,
-        lastSetDiscordTheme: !ThemeStore.theme.startsWith("bn-theme-")
+        key: `rain-theme-${++_inc}`,
+        lastSetDiscordTheme: !ThemeStore.theme.startsWith("rain-theme-")
             ? ThemeStore.theme
             : _colorRef.lastSetDiscordTheme
     });

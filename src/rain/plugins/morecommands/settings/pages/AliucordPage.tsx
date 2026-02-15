@@ -20,7 +20,7 @@ export default function AliucordPage() {
                         subLabel="Get your current IP address"
                         icon={<TableRow.Icon source={findAssetId("GlobeEarthIcon")} />}
                         value={storage.enabledCommands.ip}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ ip: v });
                             storage.setPendingRestart(true);
                         }}
@@ -33,7 +33,7 @@ export default function AliucordPage() {
                         subLabel="Get images/gifs from nekos.life"
                         icon={<TableRow.Icon source={findAssetId("ImageIcon")} />}
                         value={storage.enabledCommands.nekoslife}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ nekoslife: v });
                             storage.setPendingRestart(true);
                         }}

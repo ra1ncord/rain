@@ -60,12 +60,12 @@ const isSLMPluginInstalled = (installedPlugins: Map<string, any>) =>
 
 const isSLMPluginEnabled = (installedPlugins: Map<string, any>) =>
     Array.from(installedPlugins.values())
-        .find((plugin) => plugin.id === SPLIT_LARGE_MESSAGES_PLUGIN)
+        .find(plugin => plugin.id === SPLIT_LARGE_MESSAGES_PLUGIN)
         ?.enabled;
 
 const getArgumentValue = (args: any[]): any | false =>
     args
-        .find((arg) => arg.name === ARGS.DETAILED)
+        .find(arg => arg.name === ARGS.DETAILED)
         ?.value ?? false;
 
 // Fixed addonAuthors function to handle malformed authors

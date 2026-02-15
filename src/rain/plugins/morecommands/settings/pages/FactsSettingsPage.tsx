@@ -17,7 +17,7 @@ export default function FactsSettingsPage() {
                         subLabel="Send facts as a reply to the command message"
                         icon={<TableRow.Icon source={findAssetId("ArrowAngleLeftUpIcon")} />}
                         value={storage.factSettings.sendAsReply}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateFactSettings({ sendAsReply: v });
                         }}
                     />
@@ -26,7 +26,7 @@ export default function FactsSettingsPage() {
                         subLabel="Include the source of facts when available"
                         icon={<TableRow.Icon source={findAssetId("LinkIcon")} />}
                         value={storage.factSettings.includeCitation}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateFactSettings({ includeCitation: v });
                         }}
                     />
@@ -38,7 +38,7 @@ export default function FactsSettingsPage() {
                         subLabel="Get random cat facts"
                         icon={<TableRow.Icon source={findAssetId("BookCheckIcon")} />}
                         value={storage.enabledCommands.catfact}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ catfact: v });
                             storage.setPendingRestart(true);
                         }}
@@ -48,7 +48,7 @@ export default function FactsSettingsPage() {
                         subLabel="Get random dog facts"
                         icon={<TableRow.Icon source={findAssetId("BookCheckIcon")} />}
                         value={storage.enabledCommands.dogfact}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ dogfact: v });
                             storage.setPendingRestart(true);
                         }}
@@ -58,7 +58,7 @@ export default function FactsSettingsPage() {
                         subLabel="Get random useless facts"
                         icon={<TableRow.Icon source={findAssetId("BookCheckIcon")} />}
                         value={storage.enabledCommands.useless}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ useless: v });
                             storage.setPendingRestart(true);
                         }}

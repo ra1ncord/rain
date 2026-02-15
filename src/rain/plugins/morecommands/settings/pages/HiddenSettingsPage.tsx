@@ -24,7 +24,7 @@ export default function HiddenSettingsPage() {
                     subLabel="Get random femboy images from r/femboys (NSFW content available)"
                     icon={<TableRow.Icon source={findAssetId("HeartIcon")} />}
                     value={storage.enabledCommands.lovefemboys}
-                    onValueChange={(v) => {
+                    onValueChange={v => {
                         storage.updateEnabledCommands({ lovefemboys: v });
                         storage.setPendingRestart(true);
                     }}
@@ -37,7 +37,7 @@ export default function HiddenSettingsPage() {
                     subLabel="Allow NSFW KonoChan content in non-NSFW channels (USE WITH CAUTION)"
                     icon={<TableRow.Icon source={findAssetId("ShieldIcon")} />}
                     value={storage.hiddenSettings.konochanBypassNsfw}
-                    onValueChange={(v) => {
+                    onValueChange={v => {
                         if (v) {
                             showConfirmationAlert({
                                 title: "NSFW Bypass Warning",
@@ -63,7 +63,7 @@ export default function HiddenSettingsPage() {
                     subLabel="Keep this section visible even when navigating away"
                     icon={<TableRow.Icon source={findAssetId("EyeIcon")} />}
                     value={storage.hiddenSettings.visible}
-                    onValueChange={(v) => {
+                    onValueChange={v => {
                         storage.hiddenSettings.visible = v;
                     }}
                 />

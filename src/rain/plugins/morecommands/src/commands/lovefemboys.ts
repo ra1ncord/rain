@@ -83,7 +83,7 @@ export const lovefemboysCommand = {
 
             // Show NSFW warning popup only when nsfw option is selected
             if (nsfw) {
-                const shouldProceed = await new Promise((resolve) => {
+                const shouldProceed = await new Promise(resolve => {
                     showConfirmationAlert({
                         title: "⚠️ NSFW Content Warning",
                         content:
@@ -102,7 +102,7 @@ export const lovefemboysCommand = {
 
             let response = await fetch(
                 `https://www.reddit.com/r/femboy/${sort}.json?limit=100`,
-            ).then((res) => res.json());
+            ).then(res => res.json());
 
             if (!ctx.channel.nsfw_ && nsfw && storage.nsfwwarn && !(silent ?? true)) {
                 sendReply(
@@ -116,7 +116,7 @@ export const lovefemboysCommand = {
             if (nsfw) {
                 response = await fetch(
                     `https://www.reddit.com/r/femboys/${sort}.json?limit=100`,
-                ).then((res) => res.json());
+                ).then(res => res.json());
             }
 
             response =
@@ -125,7 +125,7 @@ export const lovefemboysCommand = {
         ]?.data;
             const author = await fetch(
                 `https://www.reddit.com/u/${response?.author}/about.json`,
-            ).then((res) => res.json());
+            ).then(res => res.json());
 
             if (silent ?? true) {
                 sendReply(ctx.channel.id, "", [

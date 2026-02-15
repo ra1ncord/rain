@@ -17,7 +17,7 @@ export default function ImageSettingsPage() {
                         subLabel="Create pet-pet GIF of a user"
                         icon={<TableRow.Icon source={findAssetId("HandRequestSpeakIcon")} />}
                         value={storage.enabledCommands.petpet}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ petpet: v });
                             storage.setPendingRestart(true);
                         }}
@@ -30,7 +30,7 @@ export default function ImageSettingsPage() {
                         subLabel="Get random image from KonoChan (private)"
                         icon={<TableRow.Icon source={findAssetId("EyeIcon")} />}
                         value={storage.enabledCommands.konoself}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ konoself: v });
                             storage.setPendingRestart(true);
                         }}
@@ -40,7 +40,7 @@ export default function ImageSettingsPage() {
                         subLabel="Send random image from KonoChan to channel"
                         icon={<TableRow.Icon source={findAssetId("ImageIcon")} />}
                         value={storage.enabledCommands.konosend}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ konosend: v });
                             storage.setPendingRestart(true);
                         }}

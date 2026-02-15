@@ -88,7 +88,7 @@ const createFileStorage = (filePath: string) => {
 
 export const useMoreCommandsSettings = create<MoreCommandsStore>()(
     persist(
-        (set) => ({
+        set => ({
             factSettings: {
                 sendAsReply: true,
                 includeCitation: false,
@@ -144,24 +144,24 @@ export const useMoreCommandsSettings = create<MoreCommandsStore>()(
             pluginListAlwaysDetailed: false,
             themeListAlwaysDetailed: false,
             _hasHydrated: false,
-            updateFactSettings: (newSettings) =>
-                set((state) => ({
+            updateFactSettings: newSettings =>
+                set(state => ({
                     factSettings: { ...state.factSettings, ...newSettings },
                 })),
-            updateListSettings: (newSettings) =>
-                set((state) => ({
+            updateListSettings: newSettings =>
+                set(state => ({
                     listSettings: { ...state.listSettings, ...newSettings },
                 })),
-            updateGarySettings: (newSettings) =>
-                set((state) => ({
+            updateGarySettings: newSettings =>
+                set(state => ({
                     garySettings: { ...state.garySettings, ...newSettings },
                 })),
-            updateEnabledCommands: (newCommands) =>
-                set((state) => ({
+            updateEnabledCommands: newCommands =>
+                set(state => ({
                     enabledCommands: { ...state.enabledCommands, ...newCommands } as EnabledCommands,
                 })),
-            updateHiddenSettings: (newSettings) =>
-                set((state) => ({
+            updateHiddenSettings: newSettings =>
+                set(state => ({
                     hiddenSettings: { ...state.hiddenSettings, ...newSettings },
                 })),
             setPluginListAlwaysDetailed: (enabled: boolean) => set({ pluginListAlwaysDetailed: enabled }),
@@ -174,7 +174,7 @@ export const useMoreCommandsSettings = create<MoreCommandsStore>()(
             storage: createJSONStorage(() =>
                 createFileStorage("plugins/morecommands.json"),
             ),
-            onRehydrateStorage: () => (state) => {
+            onRehydrateStorage: () => state => {
                 state?.setHasHydrated(true);
             },
         },
@@ -182,13 +182,13 @@ export const useMoreCommandsSettings = create<MoreCommandsStore>()(
 );
 
 export async function waitForMoreCommandsSettingsHydration(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         if (useMoreCommandsSettings.getState()._hasHydrated) {
             resolve();
             return;
         }
 
-        const unsubscribe = useMoreCommandsSettings.subscribe((state) => {
+        const unsubscribe = useMoreCommandsSettings.subscribe(state => {
             if (state._hasHydrated) {
                 unsubscribe();
                 resolve();

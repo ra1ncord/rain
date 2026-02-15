@@ -22,7 +22,7 @@ export default function GaryAPIPage() {
                     subLabel="Send random Gary images to channel"
                     icon={<TableRow.Icon source={findAssetId("AttachmentIcon")} />}
                     value={storage.enabledCommands.gary}
-                    onValueChange={(v) => {
+                    onValueChange={v => {
                         storage.updateEnabledCommands({ gary: v });
                         storage.setPendingRestart(true);
                     }}

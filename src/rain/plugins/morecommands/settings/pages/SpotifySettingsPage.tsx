@@ -18,7 +18,7 @@ export default function SpotifySettingsPage() {
                         subLabel="Share your current Spotify track"
                         icon={<TableRow.Icon source={findAssetId("SpotifyNeutralIcon")} />}
                         value={storage.enabledCommands.spotifyTrack}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ spotifyTrack: v });
                             storage.setPendingRestart(true);
                         }}
@@ -28,7 +28,7 @@ export default function SpotifySettingsPage() {
                         subLabel="Share your current track's album"
                         icon={<TableRow.Icon source={findAssetId("SpotifyNeutralIcon")} />}
                         value={storage.enabledCommands.spotifyAlbum}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ spotifyAlbum: v });
                             storage.setPendingRestart(true);
                         }}
@@ -38,7 +38,7 @@ export default function SpotifySettingsPage() {
                         subLabel="Share your current track's artists"
                         icon={<TableRow.Icon source={findAssetId("SpotifyNeutralIcon")} />}
                         value={storage.enabledCommands.spotifyArtists}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ spotifyArtists: v });
                             storage.setPendingRestart(true);
                         }}
@@ -48,7 +48,7 @@ export default function SpotifySettingsPage() {
                         subLabel="Share your current track's cover"
                         icon={<TableRow.Icon source={findAssetId("SpotifyNeutralIcon")} />}
                         value={storage.enabledCommands.spotifyCover}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ spotifyCover: v });
                             storage.setPendingRestart(true);
                         }}

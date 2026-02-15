@@ -38,7 +38,7 @@ const fetchImage = async (isNSFW: boolean): Promise<string | null> => {
 };
 
 const showNSFWWarning = (): Promise<boolean> => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         showConfirmationAlert({
             title: "NSFW Content Warning",
             content: "NSFW content can only be sent in NSFW channels!",

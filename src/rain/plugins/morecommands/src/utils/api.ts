@@ -7,9 +7,9 @@ export const uselessFact = async () => {
     );
     const resp = await response.json();
     return {
-        text: resp["text"],
-        source: resp["source"],
-        language: resp["language"],
+        text: resp.text,
+        source: resp.source,
+        language: resp.language,
     };
 };
 
@@ -17,7 +17,7 @@ export const dogFact = async () => {
     const response = await fetch("https://dogapi.dog/api/v2/facts?limit=1");
     const resp = await response.json();
     return {
-        text: resp["data"]["0"]["attributes"]["body"],
+        text: resp.data["0"].attributes.body,
     };
 };
 
@@ -25,8 +25,8 @@ export const catFact = async () => {
     const response = await fetch("https://catfact.ninja/fact");
     const resp = await response.json();
     return {
-        text: resp["fact"],
-        length: resp["length"],
+        text: resp.fact,
+        length: resp.length,
     };
 };
 

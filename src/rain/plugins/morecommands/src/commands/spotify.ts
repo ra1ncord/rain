@@ -7,7 +7,7 @@ const SpotifyStore = findByStoreName("SpotifyStore");
 
 // Individual command functions
 async function spotifyTrackExecute(args: any[], ctx: any) {
-    if (!storage.enabledCommands?.spotifyTrack) return null;;
+    if (!storage.enabledCommands?.spotifyTrack) return null;
     return handleSpotifyCommand(ctx, (track: any) =>
         `https://open.spotify.com/track/${track.id}`
     );

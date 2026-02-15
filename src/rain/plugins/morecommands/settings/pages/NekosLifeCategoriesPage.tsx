@@ -36,7 +36,7 @@ export default function NekosLifeCategoriesPage() {
                 </Text>
 
                 <TableRowGroup title="SFW Categories">
-                    {sfwCategories.map((category) => (
+                    {sfwCategories.map(category => (
                         <TableRow
                             key={category.value}
                             label={category.name}

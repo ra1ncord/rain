@@ -27,6 +27,16 @@ export default defineConfig([
             "unused-imports": unusedImports,
         },
         rules: {
+            "no-mixed-spaces-and-tabs": "error",
+            "space-in-parens": ["error", "never"],
+            "func-call-spacing": ["error", "never"],
+            "no-whitespace-before-property": "error",
+            "block-spacing": ["error", "always"],
+            "arrow-parens": ["error", "as-needed"],
+            "no-extra-semi": "error",
+            "dot-notation": "error",
+            "no-useless-escape": "error",
+            "no-duplicate-imports": "error",
             "no-restricted-syntax": ["error", {
                 selector: "AwaitExpression:not(:function *)",
                 message: "Hermes does not support top-level await, and SWC cannot transform it.",
@@ -53,7 +63,6 @@ export default defineConfig([
             "yoda": "error",
             "spaced-comment": ["error", "always", { markers: ["!"] }],
             "object-curly-spacing": ["error", "always"],
-
             "simple-import-sort/imports": "error",
             "simple-import-sort/exports": "error",
             "unused-imports/no-unused-imports": "error",

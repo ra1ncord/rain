@@ -67,7 +67,7 @@ export default definePlugin({
     stop() {
 
         // Unregister commands
-        commands.forEach((unregister) => {
+        commands.forEach(unregister => {
             try {
                 unregister();
             } catch (error) {

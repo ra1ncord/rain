@@ -163,14 +163,14 @@ function executeSysinfoCommand(args: any[], ctx: any) {
         const output = ["__System Information__\n"];
         const data = generateSystemInfo();
 
-        Object.keys(data).forEach((option) => {
+        Object.keys(data).forEach(option => {
             const permit = (storage as any)[option.toLowerCase()];
             const slasharg = args.find((i: any) => i.name === option.toLowerCase());
             const slashval = slasharg?.value ?? permit;
 
             if ((slashval || permit) && !(permit && !slashval)) {
                 output.push(`[**${option}**]`);
-                Object.keys(data[option as keyof typeof data]).forEach((subOption) => {
+                Object.keys(data[option as keyof typeof data]).forEach(subOption => {
                     output.push(
                         `> ${subOption}: ${(data[option as keyof typeof data] as any)[subOption]}`,
                     );
@@ -178,8 +178,8 @@ function executeSysinfoCommand(args: any[], ctx: any) {
             }
         });
 
-        const epermit = storage["ephemeral"];
-        const ephemeral = args.find((i) => i.name === "ephemeral")?.value ?? epermit;
+        const epermit = storage.ephemeral;
+        const ephemeral = args.find(i => i.name === "ephemeral")?.value ?? epermit;
 
         if ((ephemeral || epermit) && !(epermit && !ephemeral)) {
             messageUtil.sendBotMessage(ctx.channel.id, output.join("\n"));
@@ -215,7 +215,7 @@ export const sysinfoCommand = {
             type: 5,
             required: false,
         },
-        ...categories.slice(0, -1).map((cat) => ({
+        ...categories.slice(0, -1).map(cat => ({
             name: cat,
             displayName: cat,
             description: `Display the ${cat} section. Set default in settings.`,

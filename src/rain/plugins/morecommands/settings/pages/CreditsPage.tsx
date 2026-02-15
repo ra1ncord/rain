@@ -88,7 +88,7 @@ export default function CreditsPage() {
                 </Text>
 
                 <TableRowGroup title="Plugin Authors">
-                    {credits.map((credit) => (
+                    {credits.map(credit => (
                         <TableRow
                             key={credit.github}
                             label={credit.command}

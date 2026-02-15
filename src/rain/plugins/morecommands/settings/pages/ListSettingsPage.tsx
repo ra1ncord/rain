@@ -17,7 +17,7 @@ export default function ListSettingsPage() {
                         subLabel="Always use detailed mode when listing plugins"
                         icon={<TableRow.Icon source={findAssetId("PuzzlePieceIcon")} />}
                         value={storage.listSettings.pluginListAlwaysDetailed}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateListSettings({ pluginListAlwaysDetailed: v });
                         }}
                     />
@@ -26,7 +26,7 @@ export default function ListSettingsPage() {
                         subLabel="Always use detailed mode when listing themes"
                         icon={<TableRow.Icon source={findAssetId("PaintPaletteIcon")} />}
                         value={storage.listSettings.themeListAlwaysDetailed}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateListSettings({ themeListAlwaysDetailed: v });
                         }}
                     />
@@ -38,7 +38,7 @@ export default function ListSettingsPage() {
                         subLabel="List all installed plugins"
                         icon={<TableRow.Icon source={findAssetId("PuzzlePieceIcon")} />}
                         value={storage.enabledCommands.pluginList}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ pluginList: v });
                             storage.setPendingRestart(true);
                         }}
@@ -48,7 +48,7 @@ export default function ListSettingsPage() {
                         subLabel="List all installed themes"
                         icon={<TableRow.Icon source={findAssetId("PaintPaletteIcon")} />}
                         value={storage.enabledCommands.themeList}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ themeList: v });
                             storage.setPendingRestart(true);
                         }}

@@ -17,7 +17,7 @@ export default function OtherSettingsPage() {
                         subLabel="Get the first message in a channel"
                         icon={<TableRow.Icon source={findAssetId("ChatIcon")} />}
                         value={storage.enabledCommands.firstmessage}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ firstmessage: v });
                             storage.setPendingRestart(true);
                         }}
@@ -30,7 +30,7 @@ export default function OtherSettingsPage() {
                         subLabel="Display system information"
                         icon={<TableRow.Icon source={findAssetId("SettingsIcon")} />}
                         value={storage.enabledCommands.sysinfo}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ sysinfo: v });
                             storage.setPendingRestart(true);
                         }}
@@ -43,7 +43,7 @@ export default function OtherSettingsPage() {
                         subLabel="Generate a friend invite link"
                         icon={<TableRow.Icon source={findAssetId("UserPlusIcon")} />}
                         value={storage.enabledCommands.friendInviteCreate}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ friendInviteCreate: v });
                             storage.setPendingRestart(true);
                         }}
@@ -53,7 +53,7 @@ export default function OtherSettingsPage() {
                         subLabel="View your current friend invites"
                         icon={<TableRow.Icon source={findAssetId("UserCheckIcon")} />}
                         value={storage.enabledCommands.friendInviteView}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ friendInviteView: v });
                             storage.setPendingRestart(true);
                         }}
@@ -63,7 +63,7 @@ export default function OtherSettingsPage() {
                         subLabel="Revoke all your friend invites"
                         icon={<TableRow.Icon source={findAssetId("UserMinusIcon")} />}
                         value={storage.enabledCommands.friendInviteRevoke}
-                        onValueChange={(v) => {
+                        onValueChange={v => {
                             storage.updateEnabledCommands({ friendInviteRevoke: v });
                             storage.setPendingRestart(true);
                         }}
