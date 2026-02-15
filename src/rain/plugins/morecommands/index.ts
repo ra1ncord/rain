@@ -1,5 +1,5 @@
 import { definePlugin } from "@plugins";
-import { patchCommands, registerCommand } from "@api/commands";
+import { registerCommand } from "@api/commands";
 import { storage } from "./storage";
 import { catFactCommand, dogFactCommand, uselessFactCommand } from "./src/commands/facts";
 import { pluginListCommand, themeListCommand } from "./src/commands/lists";
@@ -48,9 +48,6 @@ export default definePlugin({
   id: "morecommands",
   version: "v1.0.0",
   start() {
-
-    // Patch commands to allow registering custom commands
-    patchCommands();
 
     // Register commands
     for (const [key, command] of Object.entries(commandMap)) {
