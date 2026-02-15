@@ -33,6 +33,9 @@ export default function ThemeCard({ item: theme }: CardWrapper<ThemeInfo>) {
         <AddonCard
             headerLabel={theme.data.name}
             headerSublabel={authors ? `by ${authors.map(i => i.name).join(", ")}` : ""}
+            headerLabelVariant="heading-lg/semibold"
+            headerSublabelVariant="text-sm/semibold"
+            headerSublabelColor="text-muted"
             descriptionLabel={theme.data.description ?? "No description."}
             toggleType={!safeModeEnabled ? "radio" : undefined}
             toggleValue={() => isSelected}
