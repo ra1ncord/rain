@@ -23,7 +23,7 @@ export default function PluginInfoActionSheet({
 
     return (
         <ActionSheet>
-            <ScrollView contentContainerStyle={{ gap: 12, marginBottom: 12 }}>
+            <ScrollView contentContainerStyle={{ gap: 0, marginBottom: 12 }}>
                 <View
                     style={{
                         flexDirection: "row",
@@ -42,7 +42,7 @@ export default function PluginInfoActionSheet({
                         justifyContent: "center",
                         alignItems: "center",
                         flexWrap: "wrap",
-                        gap: 22,
+                        gap: 0,
                         paddingHorizontal: 4,
                     }}
                 >
