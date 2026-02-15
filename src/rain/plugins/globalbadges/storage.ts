@@ -13,7 +13,7 @@ type CustomBadgesSettingsStore = PluginStore<Settings>;
 export const useCustomBadgesSettings = create<CustomBadgesSettingsStore>()(
     persist(
         set => ({
-            left: false,
+            left: true,
             mods: false,
             customs: false,
             _hasHydrated: false,
