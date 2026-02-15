@@ -37,7 +37,7 @@ export default definePlugin({
     id: "quickdelete",
     version: "v1.0.0",
     async start() {
-        await waitForHydration(useQuickDeleteSettings)
+        waitForHydration(useQuickDeleteSettings)
 
         const { intl, t: intlMap } = findByProps('intl')
 
