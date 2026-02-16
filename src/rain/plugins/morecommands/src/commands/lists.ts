@@ -1,11 +1,10 @@
 import { showConfirmationAlert } from "@api/ui/alerts";
 import { findByProps, findByStoreName } from "@metro";
-import { pluginInstances } from "@plugins";
+import { pluginInstances, usePluginSettings, isPluginEnabled } from "@plugins";
 import { themes } from "@plugins/_core/painter/themes";
 
 import { storage } from "../../storage";
 
-// Define constants directly since ../consts doesn't exist
 const ALERT = {
     CONTENT: "This list is over 2000 characters. Send anyway?",
     CONFIRM: "Send",
@@ -18,9 +17,9 @@ const ARGS = {
 
 const EMPTY = "";
 
+// TODO: when split large messages plugin will be implemented, fix usage of this
 const FAILED_TO_SEND_LIST = {
-    SLM_NOT_INSTALLED: "This list is over 2000 characters. Install the Split Large Messages plugin to send it.",
-    SLM_NOT_ENABLED: "This list is over 2000 characters. Enable the Split Large Messages plugin to send it."
+    SLM_NOT_INSTALLED: "This list is over 2000 characters. Enable the Split Large Messages plugin to send it.",
 };
 
 const JOINERS = {
@@ -68,9 +67,7 @@ const getArgumentValue = (args: any[]): any | false =>
         .find(arg => arg.name === ARGS.DETAILED)
         ?.value ?? false;
 
-// Fixed addonAuthors function to handle malformed authors
 const addonAuthors = (authors: any) => {
-    // Handle cases where authors might be undefined, null, not an array, or contain invalid objects
     if (!authors) return "Unknown";
     if (!Array.isArray(authors)) return "Unknown";
     if (authors.length === 0) return "Unknown";
@@ -148,8 +145,6 @@ export async function themeList(args: any[], ctx: any) {
 
         if (isListTooLong && !isSLMPluginInstalled(pluginInstances))
             Clyde.sendBotMessage(channelID, FAILED_TO_SEND_LIST.SLM_NOT_INSTALLED);
-        else if (isListTooLong && !isSLMPluginEnabled(pluginInstances))
-            Clyde.sendBotMessage(channelID, FAILED_TO_SEND_LIST.SLM_NOT_ENABLED);
         else {
             if (getListLength(themeList) > 2000)
                 return showConfirmationAlert({
@@ -180,17 +175,15 @@ export async function pluginList(args: any[], ctx: any) {
             return null;
         }
 
-        const pluginList = baseListHeader("Plugin", Object.keys(pluginInstances).length);
+        const pluginList = baseListHeader("Plugin", pluginInstances.size);
 
-        for (const plugin of Object.values(pluginInstances)) {
+        for (const [id, plugin] of pluginInstances) {
             if (!plugin || typeof plugin !== "object") continue;
 
-            const { enabled, manifest, id } = plugin;
-
-            // Safe destructuring with fallbacks
-            const name = manifest?.name || "Unknown Plugin";
-            const description = manifest?.description || "No description";
-            const authors = manifest?.authors;
+            const enabled = isPluginEnabled(id);
+            const name = plugin.name || "Unknown Plugin";
+            const description = plugin.description || "No description";
+            const authors = plugin.author;
 
             if (detailed || alwaysDetailed)
                 pluginList.push(
@@ -198,7 +191,6 @@ export async function pluginList(args: any[], ctx: any) {
                     `> **Status**: ${enabled ? STATUS.ENABLED : STATUS.DISABLED}`,
                     `> **Description**: ${description}`,
                     `> **Authors**: ${addonAuthors(authors)}`,
-                    `> **[Install!](${id || "unknown"})**`,
                     EMPTY
                 );
             else
@@ -209,8 +201,6 @@ export async function pluginList(args: any[], ctx: any) {
 
         if (isListTooLong && !isSLMPluginInstalled(pluginInstances))
             Clyde.sendBotMessage(channelID, FAILED_TO_SEND_LIST.SLM_NOT_INSTALLED);
-        else if (isListTooLong && !isSLMPluginEnabled(pluginInstances))
-            Clyde.sendBotMessage(channelID, FAILED_TO_SEND_LIST.SLM_NOT_ENABLED);
         else {
             if (getListLength(pluginList) > 2000)
                 return showConfirmationAlert({
