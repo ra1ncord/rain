@@ -1,5 +1,5 @@
 import { definePlugin } from "@plugins";
-import hidemessages from "@plugins/hideblockedandignoredmessages/patches/hidemessages";
+import getPatches from "./patches/hidemessages";
 
 import settings from "./settings";
 
@@ -12,10 +12,11 @@ export default definePlugin({
     id: "hideblockedandignoredmessages",
     version: "v1.0.0",
     start() {
-        patches.push(...hidemessages);
+        patches.push(...getPatches());
     },
     stop() {
         for (const unpatch of patches) unpatch();
+        patches.length = 0;
     },
     settings: settings,
 });

@@ -26,32 +26,34 @@ const filterReplies = (msg: { author: { id: any; }; referenced_message: { author
     return false;
 };
 
-export default [
-    before("dispatch", FluxDispatcher, ([event]) => {
-        if (event.type === "LOAD_MESSAGES_SUCCESS") {
-            event.messages = event.messages.filter(
-                (msg: any) => !filterReplies(msg)
-            );
-        }
+export default function getPatches() {
+    return [
+        before("dispatch", FluxDispatcher, ([event]) => {
+            if (event.type === "LOAD_MESSAGES_SUCCESS") {
+                event.messages = event.messages.filter(
+                    (msg: any) => !filterReplies(msg)
+                );
+            }
 
-        if (event.type === "MESSAGE_CREATE" || event.type === "MESSAGE_UPDATE") {
-            if (filterReplies(event.message)) {
-                event.channelId = "0"; // Drop it
+            if (event.type === "MESSAGE_CREATE" || event.type === "MESSAGE_UPDATE") {
+                if (filterReplies(event.message)) {
+                    event.channelId = "0"; // Drop it
+                }
             }
-        }
-    }),
-    before("generate", RowManager.prototype, ([data]) => {
-        if (filterReplies(data.message)) {
-            data.renderContentOnly = true;
-            data.message.content = null;
-            data.message.reactions = [];
-            data.message.canShowComponents = false;
-            if (data.rowType === 2) {
-                data.roleStyle = "";
-                data.text = "[Filtered message. Check plugin settings.]";
-                data.revealed = false;
-                data.content = [];
+        }),
+        before("generate", RowManager.prototype, ([data]) => {
+            if (filterReplies(data.message)) {
+                data.renderContentOnly = true;
+                data.message.content = null;
+                data.message.reactions = [];
+                data.message.canShowComponents = false;
+                if (data.rowType === 2) {
+                    data.roleStyle = "";
+                    data.text = "[Filtered message. Check plugin settings.]";
+                    data.revealed = false;
+                    data.content = [];
+                }
             }
-        }
-    })
-];
+        })
+    ];
+}
