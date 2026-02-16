@@ -13,7 +13,7 @@ import { nekoslifeCommand } from "./src/commands/nekoslife";
 import { petPetCommand } from "./src/commands/petpet";
 import { spotifyAlbumCommand, spotifyArtistsCommand, spotifyCoverCommand,spotifyTrackCommand } from "./src/commands/spotify";
 import { sysinfoCommand } from "./src/commands/sysinfo";
-import { storage } from "./storage";
+import { useMoreCommandsSettings, waitForMoreCommandsSettingsHydration } from "./storage";
 
 const commandMap = {
     catfact: catFactCommand,
@@ -45,11 +45,14 @@ export default definePlugin({
     author: [{ name: "kmmiio99o", id: 879393496627306587n }],
     id: "morecommands",
     version: "v1.0.0",
-    start() {
+    async start() {
+        waitForMoreCommandsSettingsHydration();
+
+        const enabledCommands = useMoreCommandsSettings.getState().enabledCommands;
 
         // Register commands
         for (const [key, command] of Object.entries(commandMap)) {
-            if (storage.enabledCommands[key]) {
+            if (enabledCommands[key]) {
                 try {
                     commands.push(registerCommand(command as any));
                 } catch (error) {
