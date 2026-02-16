@@ -18,6 +18,7 @@ import ThemeBrowser from "@rain/pages/Browser/Themes";
 import { updateColor } from "@rain/plugins/_core/painter/themes/updater";
 import { View } from "react-native";
 
+import { Strings } from "@i18n";
 import ThemeCard from "./ThemeCard";
 
 export default function Themes() {
@@ -28,32 +29,32 @@ export default function Themes() {
 
     return (
         <AddonPage<ThemeInfo>
-            title="Themes"
+            title={Strings.THEMES}
             searchKeywords={[
                 "data.name",
                 "data.description",
                 p => p.data.authors?.map((a: Author) => a.name).join(", ") ?? "",
             ]}
             sortOptions={{
-                "Name (A-Z)": (a, b) => a.data.name.localeCompare(b.data.name),
-                "Name (Z-A)": (a, b) => b.data.name.localeCompare(a.data.name),
+                [Strings.SORT_NAME_AZ]: (a, b) => a.data.name.localeCompare(b.data.name),
+                [Strings.SORT_NAME_ZA]: (a, b) => b.data.name.localeCompare(a.data.name),
             }}
             installBrowserAction={{
-                label: "Install a theme from the browser",
+                label: Strings.INSTALL_FROM_BROWSER,
                 onPress: () => {
                     navigation.push("RAIN_CUSTOM_PAGE", {
-                        title: "Addon Browser",
+                        title: Strings.ADDON_BROWSER,
                         render: () => <ThemeBrowser />
                     });
                 }
             }}
             installAction={{
-                label: "Install a theme from URL",
+                label: Strings.INSTALL_FROM_URL,
                 fetchFn: installTheme,
             }}
             items={themesList}
             safeModeHint={{
-                message: "Themes are disabled in safe mode",
+                message: Strings.THEMES_DISABLED_IN_SAFE_MODE,
             }}
             CardComponent={ThemeCard}
             OptionsActionSheetComponent={() => {
@@ -61,10 +62,10 @@ export default function Themes() {
 
                 return (
                     <ActionSheet>
-                        <BottomSheetTitleHeader title="Options" />
+                        <BottomSheetTitleHeader title={Strings.OPTIONS} />
                         <View style={{ paddingVertical: 20, gap: 12 }}>
                             <TableRadioGroup
-                                title="Override Theme Type"
+                                title={Strings.OVERRIDE_THEME_TYPE}
                                 value={type ?? "auto"}
                                 onChange={(value: string) => {
                                     const newType = value === "auto" ? undefined : (value as "dark" | "light");
@@ -77,25 +78,25 @@ export default function Themes() {
                                 }}
                             >
                                 <TableRadioRow
-                                    label="Auto"
+                                    label={Strings.AUTO}
                                     value="auto"
                                     icon={<TableRowIcon source={findAssetId("RobotIcon")} />}
                                 />
                                 <TableRadioRow
-                                    label="Dark"
+                                    label={Strings.DARK}
                                     value="dark"
                                     icon={<TableRowIcon source={findAssetId("ThemeDarkIcon")} />}
                                 />
                                 <TableRadioRow
-                                    label="Light"
+                                    label={Strings.LIGHT}
                                     value="light"
                                     icon={<TableRowIcon source={findAssetId("ThemeLightIcon")} />}
                                 />
                             </TableRadioGroup>
-                            <TableRowGroup title="Chat Background">
+                            <TableRowGroup title={Strings.CHAT_BACKGROUND}>
                                 <TableSwitchRow
-                                    label="Show Background"
-                                    subLabel="Shows or hides the theme's background image in chat"
+                                    label={Strings.SHOW_BACKGROUND}
+                                    subLabel={Strings.SHOW_BACKGROUND_DESC}
                                     icon={<TableRowIcon source={findAssetId("ImageIcon")} />}
                                     value={!customBackground}
                                     onValueChange={() => {
