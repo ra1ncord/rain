@@ -2,6 +2,7 @@ import { useSettings } from "@api/settings";
 import { NavigationNative } from "@metro/common";
 import { FontDefinition, useFonts } from "@plugins/_core/painter/fonts";
 import AddonPage from "@rain/pages/Addon/AddonPage";
+import { Strings } from "@i18n";
 
 import FontBrowser from "../Browser/Fonts";
 import FontCard from "./FontCard";
@@ -14,28 +15,28 @@ export default function Fonts() {
 
     return (
         <AddonPage<FontDefinition>
-            title={"Fonts"}
+            title={Strings.FONTS}
             searchKeywords={["name", "description"]}
             sortOptions={{
-                "Name (A-Z)": (a, b) => a.name.localeCompare(b.name),
-                "Name (Z-A)": (a, b) => b.name.localeCompare(a.name)
+                [Strings.SORT_NAME_AZ]: (a, b) => a.name.localeCompare(b.name),
+                [Strings.SORT_NAME_ZA]: (a, b) => b.name.localeCompare(a.name)
             }}
             items={Object.values(fonts)}
             CardComponent={FontCard}
-            installBrowserAction={{
-                label: "Install a font from the browser",
+installBrowserAction={{
+                label: Strings.IMPORT_FROM_BROWSER,
                 onPress: () => {
                     navigation.push("RAIN_CUSTOM_PAGE", {
-                        title: "Addon Browser",
+                        title: Strings.ADDON_BROWSER,
                         render: () => <FontBrowser />
                     });
                 }
             }}
             installAction={{
-                label: "Install a font from URL",
+                label: Strings.IMPORT_FROM_URL,
                 onPress: () => {
                     navigation.push("RAIN_CUSTOM_PAGE", {
-                        title: "Import Font",
+                        title: Strings.IMPORT_FONT,
                         render: () => <FontEditor />
                     });
                 }

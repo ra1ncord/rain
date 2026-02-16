@@ -151,7 +151,7 @@ export default function Developer() {
                                             })
                                         }
                                         placeholder="http://localhost:4040/rain.js"
-                                        label={Strings.PUPU_URL}
+                                        label={Strings.RAIN_URL}
                                     />
                                 } />
                             )}
@@ -172,7 +172,7 @@ export default function Developer() {
                                 },
                                 options: [
                                     // @ts-expect-error this needs to be an error so it crashes duh
-                                    { label: Strings.PUPU, onPress: () => navigation.push("PUPU_CUSTOM_PAGE", { render: () => <undefined /> }) },
+                                    { label: Strings.RAIN, onPress: () => navigation.push("PUPU_CUSTOM_PAGE", { render: () => <undefined /> }) },
                                     { label: Strings.DISCORD, isDestructive: true, onPress: () => navigation.push("PUPU_CUSTOM_PAGE", { noErrorBoundary: true }) },
                                 ],
                             })}
