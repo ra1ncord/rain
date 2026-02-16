@@ -9,12 +9,10 @@ import { useMoreCommandsSettings } from "../storage";
 import Header from "./components/Header";
 import AliucordPage from "./pages/AliucordPage";
 import CreditsPage from "./pages/CreditsPage";
-// Import all pages directly
 import FactsSettingsPage from "./pages/FactsSettingsPage";
 import GaryAPIPage from "./pages/GaryAPIPage";
 import HiddenSettingsPage from "./pages/HiddenSettingsPage";
 import ImageSettingsPage from "./pages/ImageSettingsPage";
-import ListSettingsPage from "./pages/ListSettingsPage";
 import OtherSettingsPage from "./pages/OtherSettingsPage";
 import SpotifySettingsPage from "./pages/SpotifySettingsPage";
 
@@ -57,18 +55,6 @@ export default function Settings() {
                             navigation.push("RAIN_CUSTOM_PAGE", {
                                 title: "Facts Commands",
                                 render: FactsSettingsPage,
-                            })
-                        }
-                    />
-                    <TableRow
-                        label="List Commands"
-                        subLabel="Plugin lists and theme lists"
-                        icon={<TableRow.Icon source={findAssetId("ListViewIcon")} />}
-                        arrow
-                        onPress={() =>
-                            navigation.push("RAIN_CUSTOM_PAGE", {
-                                title: "List Commands",
-                                render: ListSettingsPage,
                             })
                         }
                     />
