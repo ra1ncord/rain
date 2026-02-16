@@ -9,6 +9,7 @@ import { NavigationNative } from "@metro/common";
 import { AlertActionButton, AlertActions, AlertModal, Stack, TableRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import { Linking, ScrollView } from "react-native";
 
+import { Strings } from "@i18n";
 import About from "./About";
 
 export default function General() {
@@ -20,30 +21,30 @@ export default function General() {
     return (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 38 }}>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
-                <TableRowGroup title={"Info"}>
+                <TableRowGroup title={Strings.INFO}>
                     <TableRow
-                        label={"Rain"}
+                        label={Strings.RAIN}
                         icon={<TableRow.Icon source={{ uri: RainIcon }} />}
                         trailing={<TableRow.TrailingText text={debugInfo.rain.version} />}
                     />
                     <TableRow
-                        label={"Discord"}
+                        label={Strings.DISCORD}
                         icon={<TableRow.Icon source={findAssetId("Discord")!} />}
                         trailing={<TableRow.TrailingText text={`${debugInfo.discord.version} (${debugInfo.discord.build})`} />}
                     />
                     <TableRow
                         arrow
-                        label={"About"}
+                        label={Strings.ABOUT}
                         icon={<TableRow.Icon source={findAssetId("CircleInformationIcon-primary")!} />}
                         onPress={() => navigation.push("RAIN_CUSTOM_PAGE", {
-                            title: "About",
+                            title: Strings.ABOUT,
                             render: () => <About />,
                         })}
                     />
                 </TableRowGroup>
-                <TableRowGroup title={"Settings"}>
+                <TableRowGroup title={Strings.SETTINGS}>
                     <TableSwitchRow
-                        label={"Safe Mode"}
+                        label={Strings.SAFE_MODE}
                         icon={<TableRow.Icon source={findAssetId("ShieldIcon")!} />}
                         // @ts-expect-error
                         value={safeMode}
@@ -67,7 +68,7 @@ export default function General() {
                         }}
                     />
                     <TableSwitchRow
-                        label={"Developer Settings"}
+                        label={Strings.DEVELOPER_SETTINGS}
                         icon={<TableRow.Icon source={findAssetId("WrenchIcon")!} />}
                         value={developerSettings}
                         onValueChange={(v: boolean) => {
@@ -75,34 +76,34 @@ export default function General() {
                         }}
                     />
                 </TableRowGroup>
-                <TableRowGroup title={"Rain Links"}>
+                <TableRowGroup title={Strings.RAIN_LINKS}>
                     <TableRow
                         arrow={true}
-                        label={"Discord Server"}
+                        label={Strings.DISCORD_SERVER}
                         icon={<TableRow.Icon source={findAssetId("Discord")!} />}
                         onPress={() => Linking.openURL(DISCORD_SERVER)}
                     />
                     <TableRow
                         arrow={true}
-                        label={"Codeberg"}
+                        label={Strings.CODEBERG}
                         icon={<TableRow.Icon source={{ uri: CodebergIcon }} />}
                         onPress={() => Linking.openURL(CODEBERG)}
                     />
                     <TableRow
                         arrow={true}
-                        label={"GitHub"}
+                        label={Strings.GITHUB}
                         icon={<TableRow.Icon source={findAssetId("img_account_sync_github_white")!} />}
                         onPress={() => Linking.openURL(GITHUB)}
                     />
                     <TableRow
                         arrow={true}
-                        label={"Kofi"}
+                        label={Strings.KOFI}
                         icon={<TableRow.Icon source={{ uri: KofiIcon }} />}
                         onPress={() => Linking.openURL(KOFI)}
                     />
                     <TableRow
                         arrow={true}
-                        label={"Developers"}
+                        label={Strings.DEVELOPERS}
                         icon={<TableRow.Icon source={findAssetId("CircleInformationIcon-primary")!} />}
                         onPress={() => Linking.openURL(DEVELOPERS)}
                     />
