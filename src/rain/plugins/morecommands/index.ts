@@ -8,7 +8,6 @@ import { friendInviteCreateCommand, friendInviteRevokeCommand,friendInviteViewCo
 import { garyCommand } from "./src/commands/gary";
 import { ipCommand } from "./src/commands/ip";
 import { konoSelfCommand, konoSendCommand } from "./src/commands/konochan";
-import { pluginListCommand, themeListCommand } from "./src/commands/lists";
 import { lovefemboysCommand } from "./src/commands/lovefemboys";
 import { nekoslifeCommand } from "./src/commands/nekoslife";
 import { petPetCommand } from "./src/commands/petpet";
@@ -21,8 +20,6 @@ const commandMap = {
     dogfact: dogFactCommand,
     useless: uselessFactCommand,
     petpet: petPetCommand,
-    pluginList: pluginListCommand,
-    themeList: themeListCommand,
     konoself: konoSelfCommand,
     konosend: konoSendCommand,
     firstmessage: firstMessageCommand,

@@ -7,11 +7,6 @@ interface FactSettings {
   includeCitation: boolean;
 }
 
-interface ListSettings {
-  pluginListAlwaysDetailed: boolean;
-  themeListAlwaysDetailed: boolean;
-}
-
 interface GarySettings {
   imageSource: string;
 }
@@ -28,9 +23,6 @@ interface EnabledCommands {
 
 interface MoreCommandsSettings {
   factSettings: FactSettings;
-  listSettings: ListSettings;
-  pluginListAlwaysDetailed: boolean;
-  themeListAlwaysDetailed: boolean;
   garySettings: GarySettings;
   enabledCommands: EnabledCommands;
   hiddenSettings: HiddenSettings;
@@ -50,12 +42,9 @@ interface MoreCommandsSettings {
 
 interface MoreCommandsStore extends MoreCommandsSettings {
   updateFactSettings: (settings: Partial<FactSettings>) => void;
-  updateListSettings: (settings: Partial<ListSettings>) => void;
   updateGarySettings: (settings: Partial<GarySettings>) => void;
   updateEnabledCommands: (commands: Partial<EnabledCommands>) => void;
   updateHiddenSettings: (settings: Partial<HiddenSettings>) => void;
-  setPluginListAlwaysDetailed: (enabled: boolean) => void;
-  setThemeListAlwaysDetailed: (enabled: boolean) => void;
   setPendingRestart: (pending: boolean) => void;
   _hasHydrated: boolean;
   setHasHydrated: (state: boolean) => void;
@@ -93,10 +82,6 @@ export const useMoreCommandsSettings = create<MoreCommandsStore>()(
                 sendAsReply: true,
                 includeCitation: false,
             },
-            listSettings: {
-                pluginListAlwaysDetailed: false,
-                themeListAlwaysDetailed: false,
-            },
             garySettings: {
                 imageSource: "gary",
             },
@@ -105,8 +90,6 @@ export const useMoreCommandsSettings = create<MoreCommandsStore>()(
                 dogfact: true,
                 useless: true,
                 petpet: true,
-                pluginList: true,
-                themeList: true,
                 konoself: true,
                 konosend: true,
                 firstmessage: true,
@@ -140,19 +123,12 @@ export const useMoreCommandsSettings = create<MoreCommandsStore>()(
             // Lovefemboys settings
             sortdefs: true,
             nsfwwarn: true,
-            // Additional list settings for backward compatibility
-            pluginListAlwaysDetailed: false,
-            themeListAlwaysDetailed: false,
             _hasHydrated: false,
-            updateFactSettings: newSettings =>
+            updateFactSettings: (newSettings: Partial<FactSettings>) =>
                 set(state => ({
                     factSettings: { ...state.factSettings, ...newSettings },
                 })),
-            updateListSettings: newSettings =>
-                set(state => ({
-                    listSettings: { ...state.listSettings, ...newSettings },
-                })),
-            updateGarySettings: newSettings =>
+            updateGarySettings: (newSettings: Partial<GarySettings>) =>
                 set(state => ({
                     garySettings: { ...state.garySettings, ...newSettings },
                 })),
@@ -160,12 +136,10 @@ export const useMoreCommandsSettings = create<MoreCommandsStore>()(
                 set(state => ({
                     enabledCommands: { ...state.enabledCommands, ...newCommands } as EnabledCommands,
                 })),
-            updateHiddenSettings: newSettings =>
+            updateHiddenSettings: (newSettings: Partial<HiddenSettings>) =>
                 set(state => ({
                     hiddenSettings: { ...state.hiddenSettings, ...newSettings },
                 })),
-            setPluginListAlwaysDetailed: (enabled: boolean) => set({ pluginListAlwaysDetailed: enabled }),
-            setThemeListAlwaysDetailed: (enabled: boolean) => set({ themeListAlwaysDetailed: enabled }),
             setPendingRestart: (pending: boolean) => set({ pendingRestart: pending }),
             setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
         }),
@@ -211,18 +185,12 @@ export const storage = new Proxy({} as MoreCommandsSettings, {
         const state = useMoreCommandsSettings.getState();
         if (prop === "factSettings") {
             state.updateFactSettings(value);
-        } else if (prop === "listSettings") {
-            state.updateListSettings(value);
         } else if (prop === "garySettings") {
             state.updateGarySettings(value);
         } else if (prop === "enabledCommands") {
             state.updateEnabledCommands(value);
         } else if (prop === "hiddenSettings") {
             state.updateHiddenSettings(value);
-        } else if (prop === "pluginListAlwaysDetailed") {
-            state.setPluginListAlwaysDetailed(value);
-        } else if (prop === "themeListAlwaysDetailed") {
-            state.setThemeListAlwaysDetailed(value);
         }
         return true;
     },

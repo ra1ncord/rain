@@ -15,10 +15,10 @@ import { useColorsPref } from "@plugins/_core/painter/themes/preferences";
 import { Author } from "@plugins/_core/painter/themes/types";
 import AddonPage from "@rain/pages/Addon/AddonPage";
 import ThemeBrowser from "@rain/pages/Browser/Themes";
+import { updateColor } from "@rain/plugins/_core/painter/themes/updater";
 import { View } from "react-native";
 
 import ThemeCard from "./ThemeCard";
-import { updateColor } from "@rain/plugins/_core/painter/themes/updater";
 
 export default function Themes() {
     const themesMap = useThemes(s => s.themes);
@@ -59,9 +59,9 @@ export default function Themes() {
             OptionsActionSheetComponent={() => {
                 const { type, customBackground, setType, setCustomBackground } = useColorsPref();
 
-            return (
-                <ActionSheet>
-                    <BottomSheetTitleHeader title="Options" />
+                return (
+                    <ActionSheet>
+                        <BottomSheetTitleHeader title="Options" />
                         <View style={{ paddingVertical: 20, gap: 12 }}>
                             <TableRadioGroup
                                 title="Override Theme Type"
@@ -69,7 +69,7 @@ export default function Themes() {
                                 onChange={(value: string) => {
                                     const newType = value === "auto" ? undefined : (value as "dark" | "light");
                                     setType(newType);
-                                
+
                                     const currentTheme = getCurrentTheme();
                                     if (currentTheme?.data) {
                                         updateColor(currentTheme.data, { update: true });
@@ -100,7 +100,7 @@ export default function Themes() {
                                     value={!customBackground}
                                     onValueChange={() => {
                                         setCustomBackground(customBackground ? null : "hidden");
-                                        
+
                                         const currentTheme = getCurrentTheme();
                                         if (currentTheme?.data) {
                                             updateColor(currentTheme.data, { update: true });
