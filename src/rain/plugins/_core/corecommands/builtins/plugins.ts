@@ -13,9 +13,8 @@ export default () => <ApplicationCommand>{
         const enabled = plugins.filter(p => p.isEnabled() && !p.isCore()).map(p => p.name);
 
         const content = [
-            "Rain Plugins: ",
             ...(enabled.length > 0 ? [
-                `Enabled (${enabled.length}):`,
+                `Enabled Plugins (${enabled.length}):`,
                 "> " + enabled.join(", "),
             ] : []),
             ...(enabled.length < 1 ? [
