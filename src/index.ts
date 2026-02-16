@@ -1,4 +1,5 @@
 import { initEagerPlugins, initPlugins } from "@plugins/index";
+import { initFetchI18nStrings } from "@i18n";
 
 import { patchLogHook } from "./api/debug";
 import { injectFluxInterceptor } from "./api/flux";
@@ -10,7 +11,8 @@ export default async () => {
         patchLogHook(),
         patchJsx(),
         injectFluxInterceptor(),
-        window.rain = lib
+        window.rain = lib,
+        initFetchI18nStrings(),
     ]);
 
     const core = await Promise.all([

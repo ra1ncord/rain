@@ -19,7 +19,9 @@
             "@plugins": ["./src/rain/plugins"],
             "@plugins/*": ["./src/rain/plugins/*"],
             "@api": ["./src/api"],
-            "@api/*": ["./src/api/*"]
+            "@api/*": ["./src/api/*"],
+            "@i18n": ["./src/rain/i18n"],
+            "@i18n/*": ["./src/rain/i18n/*"]
         },
         "module": "esnext",
         "moduleResolution": "bundler",
