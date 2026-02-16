@@ -1,7 +1,7 @@
 import { TextStyles, ThemeColors } from "@api/ui/types";
 import { Nullish } from "@lib/utils/types";
 import { Falsey } from "lodash";
-import { FC, MutableRefObject, PropsWithoutRef, ReactNode, RefObject } from "react";
+import { FC, JSX, MutableRefObject, PropsWithoutRef, ReactNode, RefObject } from "react";
 import type * as RN from "react-native";
 import { ImageSourcePropType, PressableProps } from "react-native";
 import { SharedValue } from "react-native-reanimated";
