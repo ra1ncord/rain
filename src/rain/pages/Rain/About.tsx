@@ -11,7 +11,7 @@ export default function About() {
 
     const versions = [
         {
-            label: Strings.RAIN,
+            label: "Rain",
             version: debugInfo.rain.version,
             icon: { uri: RainIcon },
         },

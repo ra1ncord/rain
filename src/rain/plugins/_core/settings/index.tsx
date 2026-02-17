@@ -4,6 +4,7 @@ import { useSettings } from "@api/settings";
 import { RainIcon } from "@assets";
 import { findByPropsLazy } from "@metro";
 import { definePlugin } from "@plugins";
+import { Strings } from "@rain/i18n";
 import { version } from "rain-build-info";
 import React from "react";
 import { lazy } from "react";
@@ -40,25 +41,25 @@ function initSettings() {
             },
             {
                 key: "RAIN_PLUGINS",
-                title: () => "Plugins",
+                title: () => Strings.PLUGINS,
                 icon: findAssetId("PuzzlePieceIcon"),
                 render: () => import("@rain/pages/Plugins"),
             },
             {
                 key: "RAIN_THEMES",
-                title: () => "Themes",
+                title: () => Strings.THEMES,
                 icon: findAssetId("PaintPaletteIcon"),
                 render: () => import("@rain/pages/Themes"),
             },
             {
                 key: "RAIN_FONTS",
-                title: () => "Fonts",
+                title: () => Strings.FONTS,
                 icon: findAssetId("LettersIcon"),
                 render: () => import("@rain/pages/Fonts"),
             },
             {
                 key: "RAIN_DEVELOPER",
-                title: () => "Developer",
+                title: () => Strings.DEVELOPER,
                 icon: findAssetId("WrenchIcon"),
                 render: () => import("@rain/pages/Developer"),
                 usePredicate: () => {

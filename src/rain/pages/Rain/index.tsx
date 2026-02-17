@@ -23,7 +23,7 @@ export default function General() {
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
                 <TableRowGroup title={Strings.INFO}>
                     <TableRow
-                        label={Strings.RAIN}
+                        label="Rain"
                         icon={<TableRow.Icon source={{ uri: RainIcon }} />}
                         trailing={<TableRow.TrailingText text={debugInfo.rain.version} />}
                     />
