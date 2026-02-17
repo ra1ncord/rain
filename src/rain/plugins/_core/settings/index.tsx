@@ -87,8 +87,13 @@ export const registeredSections = {} as {
 };
 
 export function registerSection(section: { name: string; items: RowConfig[]; }) {
-    registeredSections[section.name] = section.items;
-    return () => delete registeredSections[section.name];
+    const existing = registeredSections[section.name] || [];
+    registeredSections[section.name] = [...existing, ...section.items];
+    return () => {
+        registeredSections[section.name] = registeredSections[section.name]?.filter(
+            item => !section.items.some(newItem => newItem.key === item.key)
+        ) || [];
+    };
 }
 
 /**
