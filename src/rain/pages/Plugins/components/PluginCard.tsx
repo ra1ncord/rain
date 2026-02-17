@@ -14,7 +14,7 @@ import { UnifiedPluginModel } from "@rain/pages/Plugins/models";
 import { usePluginCardStyles } from "@rain/pages/Plugins/usePluginCardStyles";
 import { Strings } from "@i18n";
 import chroma from "chroma-js";
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 import { View } from "react-native";
 
 const CardContext = createContext<{
@@ -134,9 +134,19 @@ export default function PluginCard({
     result,
     item: plugin,
 }: CardWrapper<UnifiedPluginModel>) {
-    const [, forceUpdate] = React.useReducer(() => ({}), 0);
+    const [toggling, setToggling] = useState(false);
     const cardContextValue = useMemo(() => ({ plugin, result }), [plugin, result]);
     const core = isPluginCore(plugin.id);
+
+    const handleToggle = async (v: boolean) => {
+        if (core || toggling) return;
+        setToggling(true);
+        try {
+            await plugin.toggle(v);
+        } finally {
+            setToggling(false);
+        }
+    };
 
     return (
         <CardContext.Provider value={cardContextValue}>
@@ -153,14 +163,9 @@ export default function PluginCard({
                                 <Actions />
                                 <View style={core ? { opacity: 0.5 } : undefined}>
                                     <TableSwitch
-                                        value={core ? true : plugin.isEnabled()}
-                                        disabled={core}
-                                        onValueChange={(v: boolean) => {
-                                            if (!core) {
-                                                plugin.toggle(v);
-                                                forceUpdate();
-                                            }
-                                        }}
+                                        value={core ? true : (toggling ? !plugin.isEnabled() : plugin.isEnabled())}
+                                        disabled={core || toggling}
+                                        onValueChange={handleToggle}
                                     />
                                 </View>
                             </Stack>
