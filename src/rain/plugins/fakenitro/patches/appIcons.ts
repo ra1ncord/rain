@@ -30,41 +30,43 @@ function ensureIconName(icon: any) {
     return icon;
 }
 
-export default [
-    after("getOfficialAlternateIcons", iconConstants, (_, ret) => {
-        return ret.map((icon: any) => {
-            icon = ensureIconName(icon);
-            return { ...icon, isPremium: false };
-        });
-    }),
+export default function getPatches() {
+    return [
+        after("getOfficialAlternateIcons", iconConstants, (_, ret) => {
+            return ret.map((icon: any) => {
+                icon = ensureIconName(icon);
+                return { ...icon, isPremium: false };
+            });
+        }),
 
-    after("getLimitedAlternateIcons", iconConstants, (_, ret) => {
-        return ret.map((icon: any) => {
-            icon = ensureIconName(icon);
-            return { ...icon, isPremium: false };
-        });
-    }),
+        after("getLimitedAlternateIcons", iconConstants, (_, ret) => {
+            return ret.map((icon: any) => {
+                icon = ensureIconName(icon);
+                return { ...icon, isPremium: false };
+            });
+        }),
 
-    after("getIcons", iconConstants, (_, ret) => {
-        return ret.map((icon: any) => {
-            icon = ensureIconName(icon);
-            return { ...icon, isPremium: false };
-        });
-    }),
+        after("getIcons", iconConstants, (_, ret) => {
+            return ret.map((icon: any) => {
+                icon = ensureIconName(icon);
+                return { ...icon, isPremium: false };
+            });
+        }),
 
-    after("getIconById", iconConstants, (_, ret) => {
-        if (ret) {
-            ret = ensureIconName(ret);
-            ret.isPremium = false;
-        }
-        return ret;
-    }),
+        after("getIconById", iconConstants, (_, ret) => {
+            if (ret) {
+                ret = ensureIconName(ret);
+                ret.isPremium = false;
+            }
+            return ret;
+        }),
 
-    after("getDefaultIcon", iconConstants, (_, ret) => {
-        if (ret) {
-            ret = ensureIconName(ret);
-            ret.isPremium = false;
-        }
-        return ret;
-    }),
-];
+        after("getDefaultIcon", iconConstants, (_, ret) => {
+            if (ret) {
+                ret = ensureIconName(ret);
+                ret.isPremium = false;
+            }
+            return ret;
+        }),
+    ];
+}

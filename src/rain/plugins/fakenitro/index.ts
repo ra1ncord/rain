@@ -1,9 +1,9 @@
 import { definePlugin } from "@plugins";
 
-import appIcons from "./patches/appIcons";
-import nitroChecks from "./patches/nitroChecks";
-import nitroThemes from "./patches/nitroThemes";
-import sendMessage from "./patches/sendMessage";
+import getAppIcons from "./patches/appIcons";
+import getNitroChecks from "./patches/nitroChecks";
+import getNitroThemes from "./patches/nitroThemes";
+import getSendMessage from "./patches/sendMessage";
 import settings from "./settings";
 
 const patches: any[] = [];
@@ -15,13 +15,14 @@ export default definePlugin({
     id: "fakenitro",
     version: "v1.1.0",
     start() {
-        patches.push(...nitroChecks);
-        patches.push(...sendMessage);
-        patches.push(...appIcons);
-        patches.push(...nitroThemes);
+        patches.push(...getNitroChecks());
+        patches.push(...getSendMessage());
+        patches.push(...getAppIcons());
+        patches.push(...getNitroThemes());
     },
     stop() {
         for (const unpatch of patches) unpatch();
+        patches.length = 0;
     },
     settings: settings,
 });

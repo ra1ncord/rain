@@ -1,6 +1,6 @@
 import { definePlugin } from "@plugins";
-import getPatches from "./patches/hidemessages";
 
+import getPatches from "./patches/hidemessages";
 import settings from "./settings";
 
 const patches: any[] = [];
