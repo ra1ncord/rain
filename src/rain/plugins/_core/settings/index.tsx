@@ -69,7 +69,7 @@ function initSettings() {
             },
             {
                 key: "RAIN_ASSET_BROWSER",
-                title: () => "Asset Browser",
+                title: () => Strings.ASSET_BROWSER,
                 icon: findAssetId("ImageIcon"),
                 render: () => import("@plugins/assetsbrowser/AssetBrowser"),
                 usePredicate: () => {
