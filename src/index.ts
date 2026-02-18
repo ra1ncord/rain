@@ -12,11 +12,11 @@ export default async () => {
         patchJsx(),
         injectFluxInterceptor(),
         window.rain = lib,
-        initFetchI18nStrings(),
     ]);
 
     const core = await Promise.all([
         initEagerPlugins(),
+        initFetchI18nStrings(),
     ]);
 
     critical.forEach(f => { if (f !== undefined) lib.unload.push(f); });
