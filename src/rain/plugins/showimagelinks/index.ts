@@ -5,7 +5,7 @@ import { onLoad } from "./patches/showimagelinks";
 const patches: any[] = [];
 
 export default definePlugin({
-    name: "Show Image Links",
+    name: "ShowImageLinks",
     description: "Shows image links if the message is just a linked image.",
     author: [ { name: "Cynosphere", id: 150745989836308480n } ],
     id: "showimagelinks",

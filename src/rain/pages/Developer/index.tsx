@@ -14,6 +14,8 @@ import { findByProps } from "@metro/wrappers";
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 
+import AssetBrowser from "./AssetBrowser";
+
 const RDT_EMBED_LINK = "https://codeberg.org/raincord/raindevtools/raw/branch/dev/dist/index.bundle";
 
 const useStyles = createStyles({
@@ -161,7 +163,13 @@ export default function Developer() {
                     <TableRowGroup title={Strings.OTHER}>
                         <TableRow
                             arrow
-                            label={Strings.ERROR_BOUNDARY_TOOLS_LABEL}
+                            label={"ASSET_BROWSER"}
+                            icon={<TableRow.Icon source={findAssetId("ImageIcon")} />}
+                            onPress={() => navigation.push("RAIN_CUSTOM_PAGE", { render: () => <AssetBrowser /> })}
+                          />
+                        <TableRow
+                            arrow
+                            label={"Strings.ERROR_BOUNDARY_TOOLS_LABEL"}
                             icon={<TableRow.Icon source={findAssetId("ic_warning_24px")} />}
                             onPress={() => showSimpleActionSheet({
                                 key: "ErrorBoundaryTools",
@@ -172,8 +180,8 @@ export default function Developer() {
                                 },
                                 options: [
                                     // @ts-expect-error this needs to be an error so it crashes duh
-                                    { label: Strings.RAIN, onPress: () => navigation.push("PUPU_CUSTOM_PAGE", { render: () => <undefined /> }) },
-                                    { label: Strings.DISCORD, isDestructive: true, onPress: () => navigation.push("PUPU_CUSTOM_PAGE", { noErrorBoundary: true }) },
+                                    { label: "Strings.PUPU", onPress: () => navigation.push("RAIN_CUSTOM_PAGE", { render: () => <undefined /> }) },
+                                    { label: "Discord", isDestructive: true, onPress: () => navigation.push("RAIN_CUSTOM_PAGE", { noErrorBoundary: true }) },
                                 ],
                             })}
                         />
