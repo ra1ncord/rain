@@ -3,7 +3,7 @@ import { patchAssets } from "@api/assets/patches";
 import { useSettings } from "@api/settings";
 import { RainIcon } from "@assets";
 import { findByPropsLazy } from "@metro";
-import { definePlugin } from "@plugins";
+import { definePlugin, isPluginEnabled, usePluginSettings } from "@plugins";
 import { version } from "rain-build-info";
 import React from "react";
 import { lazy } from "react";
@@ -65,6 +65,16 @@ function initSettings() {
                     const developerSettings = useSettings(state => state.developerSettings);
                     return developerSettings ?? false;
                 },
+            },
+            {
+                key: "RAIN_ASSET_BROWSER",
+                title: () => "Asset Browser",
+                icon: findAssetId("ImageIcon"),
+                render: () => import("@plugins/assetsbrowser/AssetBrowser"),
+                usePredicate: () => {
+                    const enabled = usePluginSettings((state) => state.settings["assetsbrowser"]?.enabled);
+                    return enabled;
+                }
             },
         ]
     });
