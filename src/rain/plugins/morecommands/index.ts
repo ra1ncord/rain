@@ -46,7 +46,7 @@ export default definePlugin({
     id: "morecommands",
     version: "v1.0.0",
     async start() {
-        waitForMoreCommandsSettingsHydration();
+        await waitForMoreCommandsSettingsHydration();
 
         const enabledCommands = useMoreCommandsSettings.getState().enabledCommands;
 

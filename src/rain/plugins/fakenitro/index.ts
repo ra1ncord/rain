@@ -5,6 +5,7 @@ import getNitroChecks from "./patches/nitroChecks";
 import getNitroThemes from "./patches/nitroThemes";
 import getSendMessage from "./patches/sendMessage";
 import getRemoveGetNitroButton from "./patches/removeGetNitroButton";
+import getHidePaymentItems from "./patches/hidePaymentItems";
 import settings from "./settings";
 
 const patches: any[] = [];
@@ -21,6 +22,7 @@ export default definePlugin({
         patches.push(...getAppIcons());
         patches.push(...getNitroThemes());
         patches.push(...getRemoveGetNitroButton());
+        patches.push(...getHidePaymentItems());
     },
     stop() {
         for (const unpatch of patches) unpatch();

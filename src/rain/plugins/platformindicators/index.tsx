@@ -19,10 +19,10 @@ type Unpatch = () => void;
 const unpatches: Unpatch[] = [];
 
 export default definePlugin({
-    name: "PlatformIndicator",
-    description: "Shows platform indicators (desktop, mobile, web) on users",
+    name: "PlatformIndicators",
+    description: "Shows platform indicators on users",
     author: [{ name: "MSMA", id: 307215253811363843n }, { name: "kmmiio99o", id: 879393496627306587n }],
-    id: "platformindicator",
+    id: "platformindicators",
     version: "v1.0.0",
     async start() {
         waitForHydration(usePlatformIndicatorSettings);
