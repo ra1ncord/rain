@@ -4,7 +4,7 @@ import { unpatchAvatar, unpatchBanner } from "@plugins/picturelinks/patches/pict
 const patches: any[] = [];
 
 export default definePlugin({
-    name: "Picture Links",
+    name: "PictureLinks",
     description: "Allows you to click on profile pictures and banners.",
     author: [{ name: "redstonekasi" , id: 265064055490871297n }, { name: "Rico040", id: 619474349845643275n } ],
     id: "picturelinks",
