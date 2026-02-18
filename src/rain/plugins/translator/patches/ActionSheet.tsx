@@ -1,11 +1,10 @@
 import { findAssetId } from "@api/assets";
-import { after,before } from "@api/patcher";
+import { after, before } from "@api/patcher";
 import { semanticColors } from "@api/ui/components/color";
 import { showToast } from "@api/ui/toasts";
 import { findInReactTree } from "@lib/utils";
 import { logger } from "@lib/utils/logger";
-import { FluxDispatcher, i18n,React, ReactNative } from "@metro/common";
-import { Forms } from "@metro/common/components";
+import { FluxDispatcher, React, ReactNative } from "@metro/common";
 import { findByProps, findByStoreName } from "@metro/wrappers";
 
 import { DeepL, GTranslate } from "../api";
@@ -13,7 +12,6 @@ import { getLangName } from "../lang";
 import { settings } from "../storage";
 
 const LazyActionSheet = findByProps("openLazy", "hideActionSheet");
-const ActionSheetRow = findByProps("ActionSheetRow")?.ActionSheetRow ?? Forms?.FormRow; // no icon if legacy
 const MessageStore = findByStoreName("MessageStore");
 const ChannelStore = findByStoreName("ChannelStore");
 const separator = "\n";
@@ -33,12 +31,24 @@ export default () => before("openLazy", LazyActionSheet, ([component, key, msg])
     if (key !== "MessageLongPressActionSheet" || !message) return;
     component.then((instance: any) => {
         const unpatch = after("default", instance, (_, component) => {
-            React.useEffect(() => () => { unpatch(); }, []);
+            React.useEffect(() => {
+                return () => {
+                    unpatch();
+                };
+            }, []);
 
-            // this thing is not backward compatible
-            const buttons = findInReactTree(component, x => x?.[0]?.type?.name === "ActionSheetRow");
-            if (!buttons) return;
-            const position = Math.max(buttons.findIndex((x: any) => x.props.message === i18n.Messages.MARK_UNREAD), 0);
+            const actionSheetContainer = findInReactTree(
+                component,
+                x => Array.isArray(x) && x[0]?.type?.name === "ActionSheetRowGroup",
+            );
+
+            if (!actionSheetContainer || !actionSheetContainer[1]) {
+                logger.log("[Translator] Error: Could not find ActionSheet");
+                return;
+            }
+
+            const middleGroup = actionSheetContainer[1];
+            const ActionSheetRow = middleGroup.props.children[0].type;
 
             const originalMessage = MessageStore.getMessage(
                 message.channel_id,
@@ -48,7 +58,7 @@ export default () => before("openLazy", LazyActionSheet, ([component, key, msg])
 
             const messageId = originalMessage?.id ?? message.id;
             const messageContent = originalMessage?.content ?? message.content;
-            const existingCachedObject = cachedData.find((o: any) => Object.keys(o)[0] === messageId, "cache object");
+            const existingCachedObject = cachedData.find((o: any) => Object.keys(o)[0] === messageId);
 
             const translateType = existingCachedObject ? "Revert" : "Translate";
             const icon = translateType === "Translate" ? findAssetId("LanguageIcon") : findAssetId("ic_highlight");
@@ -102,37 +112,53 @@ export default () => before("openLazy", LazyActionSheet, ([component, key, msg])
                             content: finalContent,
                         },
                         log_edit: false,
-                        otherPluginBypass: true // antied
+                        otherPluginBypass: true
                     });
 
                     isTranslated
                         ? cachedData.unshift({ [messageId]: messageContent })
-                        : cachedData = cachedData.filter((e: any) => e !== existingCachedObject, "cached data override");
+                        : cachedData = cachedData.filter((e: any) => e !== existingCachedObject);
                 } catch (e) {
                     showToast("Failed to translate message. Please check Debug Logs for more info.", findAssetId("Small"));
                     logger.error(e);
                 }
             };
 
-
-            buttons.splice(position, 0, (
+            const translateButton = (
                 <ActionSheetRow
                     label={`${translateType} Message`}
-                    icon={
-                        <ActionSheetRow.Icon
-                            source={icon}
-                            IconComponent={() => (
+                    icon={{
+                        $$typeof: middleGroup.props.children[0].props.icon.$$typeof,
+                        type: middleGroup.props.children[0].props.icon.type,
+                        key: null,
+                        ref: null,
+                        props: {
+                            IconComponent: () => (
                                 <ReactNative.Image
                                     resizeMode="cover"
                                     style={styles.iconComponent}
                                     source={icon}
                                 />
-                            )}
-                        />
-                    }
+                            ),
+                        },
+                    }}
                     onPress={translate}
+                    key="translate-message"
                 />
-            ));
+            );
+
+            if (middleGroup.props.children.some((c: any) => c?.props?.label?.includes("Translate"))) return;
+
+            const copyIndex = middleGroup.props.children.findIndex((child: any) =>
+                child?.props?.label?.toUpperCase?.()?.includes("COPY") ||
+                child?.props?.message?.toUpperCase?.()?.includes("COPY")
+            );
+
+            if (copyIndex !== -1) {
+                middleGroup.props.children.splice(copyIndex, 0, translateButton);
+            } else {
+                middleGroup.props.children.push(translateButton);
+            }
         });
     });
 });
