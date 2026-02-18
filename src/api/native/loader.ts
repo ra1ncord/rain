@@ -1,7 +1,5 @@
 import { ThemeManifest } from "@rain/plugins/_core/painter/themes/types";
 
-import { removeCacheFile } from "./fs";
-
 // @ts-ignore
 const pyonLoaderIdentity = globalThis.__PYON_LOADER__;
 
@@ -39,7 +37,8 @@ export function isRainLoader() {
 export function getLoaderIdentity() {
     if (isPyonLoader()) {
         return pyonLoaderIdentity;
-    } else if (isRainLoader()) {
+    }
+    if (isRainLoader()) {
         return rainLoaderIdentity;
     }
 
@@ -70,17 +69,6 @@ export function isLoaderConfigSupported() {
     return false;
 }
 
-export function isThemeSupported() {
-    if (isRainLoader()) {
-        return rainLoaderIdentity.hasThemeSupport;
-    }
-    if (isPyonLoader()) {
-        return pyonLoaderIdentity.hasThemeSupport;
-    }
-
-    return false;
-}
-
 export function getThemeFilePath() {
     if (isRainLoader()) {
         return "raincord/current-theme.json";
@@ -93,14 +81,7 @@ export function getThemeFilePath() {
 }
 
 export function isReactDevToolsPreloaded() {
-    if (isPyonLoader()) {
-        return Boolean(window.__REACT_DEVTOOLS__);
-    }
-    if (isRainLoader()) {
-        return Boolean(window.__REACT_DEVTOOLS__);
-    }
-
-    return false;
+    return Boolean(window.__REACT_DEVTOOLS__);
 }
 
 export function getReactDevToolsProp(): string | null {
@@ -154,9 +135,4 @@ export function getStoredTheme(): ThemeInfo | null {
 
 export function getLoaderConfigPath() {
     return "loader.json";
-}
-
-export async function clearBundle() {
-    // TODO: This should be not be hardcoded, maybe put in loader.json?
-    return void await removeCacheFile("bundle.js");
 }
