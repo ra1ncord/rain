@@ -14,8 +14,8 @@ import { patchTabsUI } from "./patches/tabs";
 import settings from "./settings";
 
 export default definePlugin({
-    name: "Settings",
-    description: "injects the settings menu",
+    name: Strings.PLUGIN__CORE_SETTINGS,
+    description: Strings.PLUGIN__CORE_SETTINGS_DESC,
     author: [{ name: "cocobo1", id: 767650984175992833n }],
     id: "settings",
     version: "v1.0.0",
