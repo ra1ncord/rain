@@ -7,8 +7,8 @@ const patches: (() => void)[] = [];
 
 export default definePlugin({
     name: "LetItRain",
-    description: "rain tomorrow",
-    author: [{ name: "LampDelivery", id: 650805815623680030n }],
+    description: "Keep the rain effect on with customizable settings (amount, size, transparency).",
+    author: [{ name: "Rain Community", id: 0n }],
     id: "letitrain",
     version: "v1.0.0",
     

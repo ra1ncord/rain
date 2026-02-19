@@ -1,7 +1,7 @@
 import { Stack } from "@metro/common/components";
 import { useLetItRainSettings } from "./storage";
 import { View, Text, StyleSheet } from "react-native";
-import { SettingsTextInput } from "@api/ui/components";
+import SettingsTextInput from "@api/ui/components/SettingsTextInput";
 
 export default function LetItRainSettings() {
     const { settings, updateSetting } = useLetItRainSettings();
