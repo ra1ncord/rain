@@ -12,10 +12,6 @@ export interface Settings {
   autoDevTools: boolean;
   safeMode?: boolean;
   settingsPosition: string;
-  pluginCard: {
-    showInfoButton: boolean;
-    openOnPress: boolean;
-  };
   assetBrowser: {
     enabledFilters: Record<string, boolean>;
   };
@@ -45,10 +41,6 @@ export const useSettings = create<SettingsStore>()(
             autoDevTools: false,
             safeMode: false,
             settingsPosition: "TOP",
-            pluginCard: {
-                showInfoButton: false,
-                openOnPress: true,
-            },
             assetBrowser: {
                 enabledFilters: {
                     png: true,
