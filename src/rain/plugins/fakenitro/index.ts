@@ -1,11 +1,11 @@
 import { definePlugin } from "@plugins";
 
 import getAppIcons from "./patches/appIcons";
+import getHidePaymentItems from "./patches/hidePaymentItems";
 import getNitroChecks from "./patches/nitroChecks";
 import getNitroThemes from "./patches/nitroThemes";
-import getSendMessage from "./patches/sendMessage";
 import getRemoveGetNitroButton from "./patches/removeGetNitroButton";
-import getHidePaymentItems from "./patches/hidePaymentItems";
+import getSendMessage from "./patches/sendMessage";
 import settings from "./settings";
 
 const patches: any[] = [];

@@ -1,5 +1,6 @@
 import { TextInput as MetroTextInput } from "@metro/common/components";
 import { View, ViewStyle } from "react-native";
+
 import ErrorBoundary from "./ErrorBoundary";
 
 export interface SettingsTextInputProps {

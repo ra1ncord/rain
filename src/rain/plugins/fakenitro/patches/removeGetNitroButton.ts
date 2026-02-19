@@ -1,7 +1,6 @@
-import { before, after } from "@api/patcher";
-import { findByProps } from "@metro";
-import { React } from "@metro/common";
+import { after,before } from "@api/patcher";
 import findInReactTree from "@lib/utils/findInReactTree";
+import { findByProps } from "@metro";
 
 function patchSheet(funcName: string, sheetModule: any, once: boolean) {
     const unpatch = after(funcName, sheetModule, (args: any[], res: any) => {

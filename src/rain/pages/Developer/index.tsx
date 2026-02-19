@@ -165,7 +165,7 @@ export default function Developer() {
                             label={"ASSET_BROWSER"}
                             icon={<TableRow.Icon source={findAssetId("ImageIcon")} />}
                             onPress={() => navigation.push("RAIN_CUSTOM_PAGE", { render: () => <AssetBrowser /> })}
-                          />
+                        />
                         <TableRow
                             arrow
                             label={"Strings.ERROR_BOUNDARY_TOOLS_LABEL"}

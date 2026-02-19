@@ -1,13 +1,14 @@
-import { definePlugin } from "@plugins";
 import { before } from "@api/patcher";
-import { findByProps, findByStoreName } from "@metro";
 import { showToast } from "@api/ui/toasts";
 import findInReactTree from "@lib/utils/findInReactTree";
+import { findByProps, findByStoreName } from "@metro";
+import { definePlugin } from "@plugins";
+
 import Settings from "./settings";
 import type { MessageLoggerSettings } from "./storage";
 
 let MessageStore: any;
-let deleteable: string[] = [];
+const deleteable: string[] = [];
 let patches: Array<() => void> = [];
 
 function patchMessageDeleteHandler(storage: MessageLoggerSettings) {
@@ -56,16 +57,16 @@ function patchUserProfileContextMenu(storage: MessageLoggerSettings) {
     if (!ScrollView) return () => {};
     return before("render", ScrollView.View, (args: any[]) => {
         try {
-            let a = findInReactTree(args, (r: any) => r.key === ".$UserProfileOverflow");
+            const a = findInReactTree(args, (r: any) => r.key === ".$UserProfileOverflow");
             if (!a || !a.props || a.props.sheetKey !== "UserProfileOverflow") return;
             const props = a.props.content.props;
             const addLabel = "Add to ignored users list";
             const removeLabel = "Remove from ignored users list";
             if (props.options.some((option: any) => [addLabel, removeLabel].includes(option?.label))) return;
             const focusedUserId = Object.keys(a._owner.stateNode._keyChildMapping)
-                .find((str) => a._owner.stateNode._keyChildMapping[str] && str.match(/(?<=\\$UserProfile)\\d+/))
+                .find(str => a._owner.stateNode._keyChildMapping[str] && str.match(/(?<=\\$UserProfile)\\d+/))
                 ?.slice?.(".$UserProfile".length);
-            let optionPosition = props.options.findLastIndex((option: any) => option.isDestructive);
+            const optionPosition = props.options.findLastIndex((option: any) => option.isDestructive);
             if (typeof focusedUserId === "string") {
                 if (!storage.ignore.users.includes(focusedUserId)) {
                     props.options.splice(optionPosition + 1, 0, {
