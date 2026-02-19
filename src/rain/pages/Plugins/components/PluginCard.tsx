@@ -1,5 +1,6 @@
 import { findAssetId } from "@api/assets";
 import { showSheet } from "@api/ui/sheets";
+import { useSettings } from "@api/settings";
 import { NavigationNative, tokens } from "@metro/common";
 import {
     Card,
@@ -14,7 +15,7 @@ import { UnifiedPluginModel } from "@rain/pages/Plugins/models";
 import { usePluginCardStyles } from "@rain/pages/Plugins/usePluginCardStyles";
 import chroma from "chroma-js";
 import { createContext, useContext, useMemo, useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 
 const CardContext = createContext<{
   plugin: UnifiedPluginModel;
@@ -98,6 +99,7 @@ function Description() {
 const Actions = () => {
     const { plugin } = useCardContext();
     const navigation = NavigationNative.useNavigation();
+    const { pluginCard } = useSettings(s => s);
 
     return (
         <View style={{ flexDirection: "row", gap: 6 }}>
@@ -113,18 +115,20 @@ const Actions = () => {
                     })
                 }
             />
-            <IconButton
-                size="sm"
-                variant="secondary"
-                icon={findAssetId("CircleInformationIcon-primary")}
-                onPress={() =>
-                    void showSheet(
-                        "PluginInfoActionSheet",
-                        plugin.resolveSheetComponent(),
-                        { plugin, navigation },
-                    )
-                }
-            />
+            {pluginCard?.showInfoButton && (
+                <IconButton
+                    size="sm"
+                    variant="secondary"
+                    icon={findAssetId("CircleInformationIcon-primary")}
+                    onPress={() =>
+                        void showSheet(
+                            "PluginInfoActionSheet",
+                            plugin.resolveSheetComponent(),
+                            { plugin, navigation },
+                        )
+                    }
+                />
+            )}
         </View>
     );
 };
@@ -147,32 +151,49 @@ export default function PluginCard({
         }
     };
 
+    const navigation = NavigationNative.useNavigation();
+    const { pluginCard } = useSettings(s => s);
+    const openOnPress = pluginCard?.openOnPress;
+
     return (
         <CardContext.Provider value={cardContextValue}>
-            <Card>
-                <Stack spacing={16}>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                        <View style={{ flex: 1, marginRight: 8 }}>
-                            <Title />
-                            <Authors />
-                        </View>
+            <Pressable
+                style={({ pressed }) => openOnPress && pressed ? [{ opacity: 0.75 }] : []}
+                onPress={openOnPress
+                    ? () =>
+                        void showSheet(
+                            "PluginInfoActionSheet",
+                            plugin.resolveSheetComponent(),
+                            { plugin, navigation },
+                        )
+                    : undefined
+                }
+            >
+                <Card>
+                    <Stack spacing={16}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                            <View style={{ flex: 1, marginRight: 8 }}>
+                                <Title />
+                                <Authors />
+                            </View>
 
-                        <View style={{ flexShrink: 0, minWidth: 100, alignItems: "flex-end" }}>
-                            <Stack spacing={12} direction="horizontal">
-                                <Actions />
-                                <View style={core ? { opacity: 0.5 } : undefined}>
-                                    <TableSwitch
-                                        value={core ? true : (toggling ? !plugin.isEnabled() : plugin.isEnabled())}
-                                        disabled={core || toggling}
-                                        onValueChange={handleToggle}
-                                    />
-                                </View>
-                            </Stack>
+                            <View style={{ flexShrink: 0, minWidth: 100, alignItems: "flex-end" }}>
+                                <Stack spacing={12} direction="horizontal">
+                                    <Actions />
+                                    <View style={core ? { opacity: 0.5 } : undefined}>
+                                        <TableSwitch
+                                            value={core ? true : (toggling ? !plugin.isEnabled() : plugin.isEnabled())}
+                                            disabled={core || toggling}
+                                            onValueChange={handleToggle}
+                                        />
+                                    </View>
+                                </Stack>
+                            </View>
                         </View>
-                    </View>
-                    <Description />
-                </Stack>
-            </Card>
+                        <Description />
+                    </Stack>
+                </Card>
+            </Pressable>
         </CardContext.Provider>
     );
 }

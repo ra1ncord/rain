@@ -14,8 +14,13 @@ const SETTINGS_POSITIONS = [
     { key: "APPEARANCE", label: "Above Support Settings" },
 ];
 
+const INFO_OPTIONS = [
+    { key: "PRESS", label: "Open Info on Card Press" },
+    { key: "BUTTON", label: "Show Plugin Info Button" },
+];
+
 export default function SettingsPage() {
-    const { settingsPosition, updateSettings } = useSettings();
+    const { settingsPosition, pluginCard, updateSettings } = useSettings();
 
     return (
         <ScrollView style={{ flex: 1 }}>
@@ -31,6 +36,26 @@ export default function SettingsPage() {
                             key={pos.key}
                             label={pos.label}
                             value={pos.key}
+                        />
+                    ))}
+                </TableRadioGroup>
+
+                <TableRadioGroup
+                    title="Plugin Card Info"
+                    value={pluginCard?.showInfoButton ? "BUTTON" : pluginCard?.openOnPress ? "PRESS" : "NONE"}
+                    onChange={(value: string) => updateSettings({
+                        pluginCard: {
+                            ...pluginCard,
+                            showInfoButton: value === "BUTTON",
+                            openOnPress: value === "PRESS"
+                        }
+                    })}
+                >
+                    {INFO_OPTIONS.map(opt => (
+                        <TableRadioRow
+                            key={opt.key}
+                            label={opt.label}
+                            value={opt.key}
                         />
                     ))}
                 </TableRadioGroup>
