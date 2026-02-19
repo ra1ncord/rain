@@ -2,24 +2,19 @@ import { semanticColors } from "@api/ui/components/color";
 import { hideSheet } from "@api/ui/sheets";
 import { ActionSheet, Card, IconButton, Text } from "@metro/common/components";
 import { ScrollView, View } from "react-native";
+import { useSettings } from "@api/settings";
+import { findAssetId } from "@api/assets";
 
 import { PluginInfoActionSheetProps } from "./common";
 import TitleComponent from "./TitleComponent";
-
-function PluginInfoIconButton(props) {
-    const { onPress } = props;
-    props.onPress &&= () => {
-        hideSheet("PluginInfoActionSheet");
-        onPress?.();
-    };
-    return <IconButton {...props} />;
-}
 
 export default function PluginInfoActionSheet({
     plugin,
     navigation,
 }: PluginInfoActionSheetProps) {
     plugin.usePluginState?.();
+    const { pinnedPlugins, togglePinnedPlugin } = useSettings();
+    const isPinned = pinnedPlugins?.includes(plugin.id);
 
     return (
         <ActionSheet>
@@ -30,23 +25,29 @@ export default function PluginInfoActionSheet({
                         alignItems: "center",
                         gap: 8,
                         paddingVertical: 24,
+                        paddingHorizontal: 16,
                         justifyContent: "space-between",
                         width: "100%",
                     }}
                 >
-                    <TitleComponent plugin={plugin} />
+                    <View style={{ flex: 1 }}>
+                        <TitleComponent plugin={plugin} />
+                    </View>
+                    
+                    <IconButton
+                        size="sm"
+                        variant="secondary"
+                        icon={findAssetId(isPinned ? "TrashIcon" : "PinIcon")}
+                        style={{
+                            borderRadius: 100,
+                            backgroundColor: isPinned ? semanticColors.BACKGROUND_MODIFIER_ACCENT : "transparent",
+                        }}
+                        onPress={() => {
+                            togglePinnedPlugin(plugin.id);
+                        }}
+                    />
                 </View>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        flexWrap: "wrap",
-                        gap: 0,
-                        paddingHorizontal: 4,
-                    }}
-                >
-                </View>
+
                 <Card>
                     <Text
                         variant="text-md/semibold"
@@ -55,7 +56,7 @@ export default function PluginInfoActionSheet({
                             color: semanticColors.MOBILE_TEXT_HEADING_PRIMARY,
                         }}
                     >
-            Description
+                        Description
                     </Text>
                     <Text variant="text-md/medium">{plugin.description}</Text>
                 </Card>

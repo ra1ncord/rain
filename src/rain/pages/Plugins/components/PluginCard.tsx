@@ -99,10 +99,21 @@ function Description() {
 const Actions = () => {
     const { plugin } = useCardContext();
     const navigation = NavigationNative.useNavigation();
-    const { pluginCard } = useSettings(s => s);
+    const { pluginCard, pinnedPlugins, togglePinnedPlugin } = useSettings(s => s);
+    const isPinned = pinnedPlugins?.includes(plugin.id);
 
     return (
         <View style={{ flexDirection: "row", gap: 6 }}>
+            {isPinned && (
+                <IconButton
+                    size="sm"
+                    variant="secondary"
+                    icon={findAssetId("PinIcon")}
+                    onPress={() => {
+                        togglePinnedPlugin(plugin.id);
+                    }}
+                />
+            )}
             <IconButton
                 size="sm"
                 variant="secondary"
