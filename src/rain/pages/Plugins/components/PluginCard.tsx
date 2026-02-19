@@ -15,6 +15,7 @@ import { usePluginCardStyles } from "@rain/pages/Plugins/usePluginCardStyles";
 import chroma from "chroma-js";
 import { createContext, useContext, useMemo, useState } from "react";
 import { View } from "react-native";
+import { useSettings } from "@api/settings";
 
 const CardContext = createContext<{
   plugin: UnifiedPluginModel;
@@ -98,9 +99,21 @@ function Description() {
 const Actions = () => {
     const { plugin } = useCardContext();
     const navigation = NavigationNative.useNavigation();
+    const { pinnedPlugins, togglePinnedPlugin } = useSettings();
+    const isPinned = pinnedPlugins?.includes(plugin.id);
 
     return (
         <View style={{ flexDirection: "row", gap: 6 }}>
+            {isPinned && (
+                <IconButton
+                    size="sm"
+                    variant="secondary"
+                    icon={findAssetId("PinIcon")}
+                    onPress={() => {
+                        togglePinnedPlugin(plugin.id);
+                    }}
+                />
+            )}
             <IconButton
                 size="sm"
                 variant="secondary"
