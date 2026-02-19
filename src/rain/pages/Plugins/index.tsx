@@ -3,7 +3,7 @@ import { pluginInstances } from "@plugins";
 import { developer } from "@plugins/types";
 import AddonPage from "@rain/pages/Addon/AddonPage";
 import { Strings } from "@i18n";
-import { ComponentProps } from "react";
+import { ComponentProps, useMemo } from "react";
 
 import PluginCard from "./components/PluginCard";
 import { UnifiedPluginModel } from "./models";
@@ -15,7 +15,18 @@ interface PluginPageProps
 }
 
 function PluginPage(props: PluginPageProps) {
-    const items = props.useItems();
+    const items = props.useItems() as UnifiedPluginModel[];
+    const { pinnedPlugins } = useSettings();
+
+    // Reorder items so pinned ones are at the top
+    const reorderedItems = useMemo(() => {
+        if (!pinnedPlugins || pinnedPlugins.length === 0) return items;
+
+        const pinned = items.filter(p => pinnedPlugins.includes(p.id));
+        const unpinned = items.filter(p => !pinnedPlugins.includes(p.id));
+
+        return [...pinned, ...unpinned];
+    }, [items, pinnedPlugins]);
 
     return (
         <AddonPage<UnifiedPluginModel>
@@ -41,7 +52,7 @@ function PluginPage(props: PluginPageProps) {
             }}
             safeModeHint={{ message: Strings.HINT_SAFE_MODE }}
             defaultFilterKey={Strings.HIDE_CORE}
-            items={items}
+            items={reorderedItems}
             {...props}
         />
     );

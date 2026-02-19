@@ -12,9 +12,14 @@ export interface Settings {
   autoDevTools: boolean;
   safeMode?: boolean;
   settingsPosition: string;
+  pluginCard: {
+    showInfoButton: boolean;
+    openOnPress: boolean;
+  };
   assetBrowser: {
     enabledFilters: Record<string, boolean>;
   };
+  pinnedPlugins: string[]; // Added pinnedPlugins
 }
 
 export interface LoaderConfig {
@@ -27,6 +32,7 @@ export interface LoaderConfig {
 
 interface SettingsStore extends Settings {
   updateSettings: (settings: Partial<Settings>) => void;
+  togglePinnedPlugin: (id: string) => void; // Added togglePinnedPlugin
 }
 
 export const useSettings = create<SettingsStore>()(
@@ -39,6 +45,10 @@ export const useSettings = create<SettingsStore>()(
             autoDevTools: false,
             safeMode: false,
             settingsPosition: "TOP",
+            pluginCard: {
+                showInfoButton: false,
+                openOnPress: true,
+            },
             assetBrowser: {
                 enabledFilters: {
                     png: true,
@@ -51,7 +61,16 @@ export const useSettings = create<SettingsStore>()(
                     lottie: false,
                 }
             },
+            pinnedPlugins: [], // Initialize empty
             updateSettings: newSettings => set(state => ({ ...state, ...newSettings })),
+            togglePinnedPlugin: id => set(state => {
+                const pinned = state.pinnedPlugins || [];
+                if (pinned.includes(id)) {
+                    return { pinnedPlugins: pinned.filter(p => p !== id) };
+                } else {
+                    return { pinnedPlugins: [...pinned, id] };
+                }
+            }),
         }),
         {
             name: "rain-settings",
