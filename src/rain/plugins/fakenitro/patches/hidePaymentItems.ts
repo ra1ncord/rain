@@ -2,12 +2,12 @@ import { after } from "@api/patcher";
 import { findByPropsLazy } from "@metro/wrappers";
 
 const ITEMS_TO_REMOVE = [
-  'COLLECTIBLES_SHOP',
-  'PREMIUM',
-  'PREMIUM_GUILD_BOOSTING',
-  'PREMIUM_GIFTING',
-  'GUILD_ROLE_SUBSCRIPTIONS',
-  'PREMIUM_RESTORE_SUBSCRIPTION'
+    "COLLECTIBLES_SHOP",
+    "PREMIUM",
+    "PREMIUM_GUILD_BOOSTING",
+    "PREMIUM_GIFTING",
+    "GUILD_ROLE_SUBSCRIPTIONS",
+    "PREMIUM_RESTORE_SUBSCRIPTION"
 ];
 
 export default function getHidePaymentItems() {

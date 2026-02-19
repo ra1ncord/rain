@@ -1,9 +1,8 @@
+import { findAssetId } from "@api/assets";
+import { useSettings } from "@api/settings";
 import { semanticColors } from "@api/ui/components/color";
-import { hideSheet } from "@api/ui/sheets";
 import { ActionSheet, Card, IconButton, Text } from "@metro/common/components";
 import { ScrollView, View } from "react-native";
-import { useSettings } from "@api/settings";
-import { findAssetId } from "@api/assets";
 
 import { PluginInfoActionSheetProps } from "./common";
 import TitleComponent from "./TitleComponent";
@@ -33,7 +32,7 @@ export default function PluginInfoActionSheet({
                     <View style={{ flex: 1 }}>
                         <TitleComponent plugin={plugin} />
                     </View>
-                    
+
                     <IconButton
                         size="sm"
                         variant="secondary"

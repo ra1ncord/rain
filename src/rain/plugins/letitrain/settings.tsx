@@ -1,7 +1,8 @@
-import { Stack } from "@metro/common/components";
-import { useLetItRainSettings } from "./storage";
-import { View, Text, StyleSheet } from "react-native";
 import SettingsTextInput from "@api/ui/components/SettingsTextInput";
+import { Stack } from "@metro/common/components";
+import { StyleSheet,Text, View } from "react-native";
+
+import { useLetItRainSettings } from "./storage";
 
 export default function LetItRainSettings() {
     const { settings, updateSetting } = useLetItRainSettings();
@@ -13,7 +14,7 @@ export default function LetItRainSettings() {
                 <SettingsTextInput
                     placeholder="50"
                     value={settings.amount.toString()}
-                    onChange={(val) => updateSetting("amount", parseInt(val) || 0)}
+                    onChange={val => updateSetting("amount", parseInt(val) || 0)}
                 />
             </View>
 
@@ -22,7 +23,7 @@ export default function LetItRainSettings() {
                 <SettingsTextInput
                     placeholder="1"
                     value={settings.size.toString()}
-                    onChange={(val) => updateSetting("size", parseFloat(val) || 1)}
+                    onChange={val => updateSetting("size", parseFloat(val) || 1)}
                 />
             </View>
 
@@ -31,7 +32,7 @@ export default function LetItRainSettings() {
                 <SettingsTextInput
                     placeholder="0.8"
                     value={settings.transparency.toString()}
-                    onChange={(val) => updateSetting("transparency", parseFloat(val) || 0.8)}
+                    onChange={val => updateSetting("transparency", parseFloat(val) || 0.8)}
                 />
             </View>
 
@@ -40,7 +41,7 @@ export default function LetItRainSettings() {
                 <SettingsTextInput
                     placeholder="1"
                     value={settings.speed.toString()}
-                    onChange={(val) => updateSetting("speed", parseFloat(val) || 1)}
+                    onChange={val => updateSetting("speed", parseFloat(val) || 1)}
                 />
             </View>
         </Stack>

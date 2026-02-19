@@ -1,11 +1,11 @@
-import { showToast } from "@api/ui/toasts";
-import { before } from "@api/patcher";
 import { findAssetId } from "@api/assets";
+import { before } from "@api/patcher";
+import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
 
-import { useActionSheetFinderSettings } from "./storage";
 import settings from "./settings";
+import { useActionSheetFinderSettings } from "./storage";
 
 const LazyActionSheet = findByProps("openLazy", "hideActionSheet");
 

@@ -1,7 +1,8 @@
-import { UserStore } from "@metro/common/stores";
-import { definePlugin } from "@plugins";
 import { after } from "@api/patcher";
+import { UserStore } from "@metro/common/stores";
 import { findByName, findByStoreName } from "@metro/wrappers";
+import { definePlugin } from "@plugins";
+
 import { useProfileColorStore } from "./storage";
 function patchUseProfileTheme() {
     const funcParent = findByName("useProfileTheme", false);
