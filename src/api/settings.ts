@@ -12,6 +12,9 @@ export interface Settings {
   autoDevTools: boolean;
   safeMode?: boolean;
   settingsPosition: string;
+  assetBrowser: {
+    enabledFilters: Record<string, boolean>;
+  };
 }
 
 export interface LoaderConfig {
@@ -36,6 +39,18 @@ export const useSettings = create<SettingsStore>()(
             autoDevTools: false,
             safeMode: false,
             settingsPosition: "TOP",
+            assetBrowser: {
+                enabledFilters: {
+                    png: true,
+                    jpg: true,
+                    jpeg: true,
+                    svg: true,
+                    gif: true,
+                    json: false,
+                    jsona: false,
+                    lottie: false,
+                }
+            },
             updateSettings: newSettings => set(state => ({ ...state, ...newSettings })),
         }),
         {
@@ -68,3 +83,15 @@ export const useLoaderConfig = create<LoaderConfigStore>()(
 
 export const settings = () => useSettings.getState();
 export const loaderConfig = () => useLoaderConfig.getState();
+
+export const useAssetBrowserSettings = () => {
+    const settings = useSettings(state => state.assetBrowser);
+    const updateSettings = useSettings(state => state.updateSettings);
+
+    return {
+        enabledFilters: settings.enabledFilters,
+        updateSettings: (newSettings: { enabledFilters?: Record<string, boolean> }) => {
+            updateSettings({ assetBrowser: { ...settings, ...newSettings } });
+        }
+    };
+};
