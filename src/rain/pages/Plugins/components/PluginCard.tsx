@@ -193,7 +193,7 @@ export default function PluginCard({
                                     <Actions />
                                     <View style={core ? { opacity: 0.5 } : undefined}>
                                         <TableSwitch
-                                            value={core ? true : (toggling ? !plugin.isEnabled() : plugin.isEnabled())}
+                                            value={core ? true : plugin.isEnabled()}
                                             disabled={core || toggling}
                                             onValueChange={handleToggle}
                                         />

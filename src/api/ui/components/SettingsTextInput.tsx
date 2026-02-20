@@ -12,6 +12,7 @@ export interface SettingsTextInputProps {
     isClearable?: boolean;
     autoCapitalize?: "none" | "sentences" | "words" | "characters";
     autoCorrect?: boolean;
+    leadingText?: string;
 }
 
 export default function SettingsTextInput({
@@ -19,6 +20,7 @@ export default function SettingsTextInput({
     onChange,
     placeholder,
     style,
+    leadingText,
     size = "md",
     isClearable = true,
     autoCapitalize = "none",
@@ -35,6 +37,7 @@ export default function SettingsTextInput({
                     isClearable={isClearable}
                     autoCapitalize={autoCapitalize}
                     autoCorrect={autoCorrect}
+                    leadingText={leadingText}
                 />
             </View>
         </ErrorBoundary>
