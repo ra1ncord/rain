@@ -1,15 +1,16 @@
-import { Linking } from "react-native";
 import { findAssetId } from "@api/assets";
 import { showToast } from "@api/ui/toasts";
+import { Linking } from "react-native";
+
+import { useMultiScrobblerSettings } from "../../../storage";
+import { serviceFactory, setStorage } from "../Settings";
 import {
     ScrollView,
     Stack,
-    TableRowGroup,
     TableRow,
+    TableRowGroup,
     TextInput,
 } from "./components/TableComponents";
-import { serviceFactory, setStorage } from "../Settings";
-import { useMultiScrobblerSettings } from "../../../storage";
 
 export default function ListenBrainzSettingsPage() {
     const settings = useMultiScrobblerSettings();

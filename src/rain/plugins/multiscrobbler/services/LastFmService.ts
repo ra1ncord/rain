@@ -1,7 +1,8 @@
 import { logger } from "@lib/utils/logger";
+
+import Constants from "../constants";
 import { Track } from "../defs";
 import { currentSettings } from "../storage";
-import Constants from "../constants";
 import { BaseService } from "./BaseService";
 
 interface LastFMResponse {
@@ -140,7 +141,7 @@ export class LastFmService extends BaseService {
 
                 return this.processTrack(lastTrack, isNowPlaying, trackTimestamp, duration, endTime);
             })
-            .catch((error) => {
+            .catch(error => {
                 this.logError("Failed to fetch latest scrobble:", error);
                 throw error;
             });

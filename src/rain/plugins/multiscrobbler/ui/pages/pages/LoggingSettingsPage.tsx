@@ -1,12 +1,12 @@
+import { useMultiScrobblerSettings } from "../../../storage";
+import { setStorage } from "../Settings";
 import {
     ScrollView,
     Stack,
-    TableRowGroup,
     TableRow,
+    TableRowGroup,
     TableSwitchRow,
 } from "./components/TableComponents";
-import { setStorage } from "../Settings";
-import { useMultiScrobblerSettings } from "../../../storage";
 
 export default function LoggingSettingsPage() {
     const settings = useMultiScrobblerSettings();

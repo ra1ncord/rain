@@ -48,11 +48,11 @@ type MultiScrobblerStore = PluginStore<MultiScrobblerSettings>;
 
 export const useMultiScrobblerSettings = create<MultiScrobblerStore>()(
     persist(
-        (set) => ({
+        set => ({
             ...DEFAULT_SETTINGS,
             _hasHydrated: false,
             updateSettings: (newSettings: Partial<MultiScrobblerSettings>) =>
-                set((state) => ({ ...state, ...newSettings })),
+                set(state => ({ ...state, ...newSettings })),
             setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
         }),
         {
@@ -60,7 +60,7 @@ export const useMultiScrobblerSettings = create<MultiScrobblerStore>()(
             storage: createJSONStorage(() =>
                 createFileStorage("plugins/multiscrobbler.json"),
             ),
-            onRehydrateStorage: () => (state) => {
+            onRehydrateStorage: () => state => {
                 state?.setHasHydrated(true);
             },
         },

@@ -1,11 +1,11 @@
 import { logger } from "@lib/utils/logger";
 import { FluxDispatcher } from "@metro/common";
 
-import { pluginState } from "../storage";
-import { Activity } from "../defs";
 import Constants from "../constants";
+import { Activity } from "../defs";
 import { stop } from "../manager";
 import { AssetManager } from "../modules";
+import { pluginState } from "../storage";
 
 /** Clears the user's activity */
 export function clearActivity() {

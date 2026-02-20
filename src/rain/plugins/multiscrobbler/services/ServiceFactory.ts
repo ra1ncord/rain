@@ -1,4 +1,5 @@
 import { logger } from "@lib/utils/logger";
+
 import { ServiceClient, ServiceType } from "../defs";
 import { currentSettings } from "../storage";
 import { LastFmService } from "./LastFmService";

@@ -1,13 +1,13 @@
+import { useMultiScrobblerSettings } from "../../../storage";
+import { setStorage } from "../Settings";
+import RPCPreview from "./components/RPCPreview";
 import {
     ScrollView,
     Stack,
-    TableRowGroup,
     TableCheckboxRow,
     TableRow,
+    TableRowGroup,
 } from "./components/TableComponents";
-import { setStorage } from "../Settings";
-import RPCPreview from "./components/RPCPreview";
-import { useMultiScrobblerSettings } from "../../../storage";
 
 export default function RPCCustomizationSettingsPage() {
     const settings = useMultiScrobblerSettings();

@@ -1,24 +1,25 @@
-import { React, ReactNative as RN } from "@metro/common";
 import { findAssetId } from "@api/assets";
 import { showToast } from "@api/ui/toasts";
+import { React, ReactNative as RN } from "@metro/common";
+
+import { SelfPresenceStore } from "../../../modules";
+import { useMultiScrobblerSettings } from "../../../storage";
+import { clearActivity } from "../../../utils/activity";
+import { setStorage } from "../Settings";
 import {
     ScrollView,
     Stack,
-    TableRowGroup,
     TableRow,
+    TableRowGroup,
     TextInput,
 } from "./components/TableComponents";
-import { setStorage } from "../Settings";
-import { useMultiScrobblerSettings } from "../../../storage";
-import { SelfPresenceStore } from "../../../modules";
-import { clearActivity } from "../../../utils/activity";
 
 export default function IgnoreListSettingsPage() {
     const settings = useMultiScrobblerSettings();
     const [newAppName, setNewAppName] = React.useState("");
 
     const checkAndClearIfIgnored = () => {
-        const ignoredActivity = SelfPresenceStore.findActivity((act) => {
+        const ignoredActivity = SelfPresenceStore.findActivity(act => {
             if (!act.name) return false;
             return settings.ignoreList.some((ignoredApp: string) =>
                 act.name.toLowerCase().includes(ignoredApp.toLowerCase()),

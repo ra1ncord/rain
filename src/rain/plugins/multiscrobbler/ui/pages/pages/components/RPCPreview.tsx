@@ -1,5 +1,6 @@
-import { React, ReactNative as RN } from "@metro/common";
 import { logger } from "@lib/utils/logger";
+import { React, ReactNative as RN } from "@metro/common";
+
 import { useMultiScrobblerSettings } from "../../../../storage";
 
 export default function RPCPreview() {
@@ -22,7 +23,7 @@ export default function RPCPreview() {
     const parseArtists = (artistData: any): string[] => {
         if (!artistData) return ["Unknown Artist"];
         if (Array.isArray(artistData)) {
-            return artistData.filter((a) => a && typeof a === "string");
+            return artistData.filter(a => a && typeof a === "string");
         }
         if (artistData["#text"]) {
             const artistText = artistData["#text"];

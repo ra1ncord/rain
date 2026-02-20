@@ -1,13 +1,13 @@
+import Constants from "../../../constants";
+import { useMultiScrobblerSettings } from "../../../storage";
+import { setStorage } from "../Settings";
 import {
     ScrollView,
     Stack,
-    TableRowGroup,
     TableRow,
+    TableRowGroup,
     TextInput,
 } from "./components/TableComponents";
-import Constants from "../../../constants";
-import { setStorage } from "../Settings";
-import { useMultiScrobblerSettings } from "../../../storage";
 
 export default function DisplaySettingsPage() {
     const settings = useMultiScrobblerSettings();

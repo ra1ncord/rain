@@ -1,23 +1,22 @@
 import { NavigationNative } from "@metro/common";
-import {
-    Stack,
-    TableRowGroup,
-    TableRow,
-    TableRadioRow,
-    TableRadioGroup,
-    ScrollView,
-} from "./pages/components/TableComponents";
 
+import { ServiceType } from "../../defs";
+import { multiScrobblerSettings,useMultiScrobblerSettings } from "../../storage";
+import {
+    ScrollView,
+    Stack,
+    TableRadioGroup,
+    TableRadioRow,
+    TableRow,
+    TableRowGroup,
+} from "./pages/components/TableComponents";
+import DisplaySettingsPage from "./pages/DisplaySettingsPage";
+import IgnoreListSettingsPage from "./pages/IgnoreListSettingsPage";
 import LastFmSettingsPage from "./pages/LastFmSettingsPage";
 import LibreFmSettingsPage from "./pages/LibreFmSettingsPage";
 import ListenBrainzSettingsPage from "./pages/ListenBrainzSettingsPage";
-import DisplaySettingsPage from "./pages/DisplaySettingsPage";
-import RPCCustomizationSettingsPage from "./pages/RPCCustomizationSettingsPage";
-import IgnoreListSettingsPage from "./pages/IgnoreListSettingsPage";
 import LoggingSettingsPage from "./pages/LoggingSettingsPage";
-
-import { ServiceType } from "../../defs";
-import { useMultiScrobblerSettings, multiScrobblerSettings } from "../../storage";
+import RPCCustomizationSettingsPage from "./pages/RPCCustomizationSettingsPage";
 
 export const getStorage = (k: string, fallback?: any) =>
     (multiScrobblerSettings as any)[k] ?? fallback;
@@ -83,7 +82,7 @@ class ServiceFactory {
         const headers: Record<string, string> = {
             "Content-Type": "application/json",
         };
-        if (token) headers["Authorization"] = `Token ${token}`;
+        if (token) headers.Authorization = `Token ${token}`;
         return fetch(
             `https://api.listenbrainz.org/1/user/${username}/listen-count`,
             { headers },
@@ -137,7 +136,7 @@ export default function Settings() {
                         onValueChange={(value: string) => setStorage("service", value as ServiceType)}
                     >
                         {(["lastfm", "librefm", "listenbrainz"] as ServiceType[]).map(
-                            (service) => (
+                            service => (
                                 <TableRadioRow
                                     key={service}
                                     label={serviceFactory.getServiceDisplayName(service)}

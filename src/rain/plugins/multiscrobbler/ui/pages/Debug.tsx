@@ -1,11 +1,12 @@
-import { React } from "@metro/common";
 import { findByProps } from "@metro";
-import { ScrollView, Text } from "react-native";
+import { React } from "@metro/common";
 import { useEffect } from "react";
+import { ScrollView, Text } from "react-native";
+
 import {
-    useDebugInfo,
-    logComponentMount,
     logComponentError,
+    logComponentMount,
+    useDebugInfo,
 } from "../../utils/debug";
 
 const { FormText } = findByProps("FormText");
