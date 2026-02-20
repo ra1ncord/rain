@@ -22,6 +22,7 @@ export interface MultiScrobblerSettings {
     showAlbumInTooltip: boolean;
     showDurationInTooltip: boolean;
     ignoreList: string[];
+    lastTrackUrl: string | undefined;
 }
 
 export const DEFAULT_SETTINGS: MultiScrobblerSettings = {
@@ -42,6 +43,7 @@ export const DEFAULT_SETTINGS: MultiScrobblerSettings = {
     showAlbumInTooltip: true,
     showDurationInTooltip: true,
     ignoreList: [],
+    lastTrackUrl: undefined,
 };
 
 type MultiScrobblerStore = PluginStore<MultiScrobblerSettings>;
@@ -90,12 +92,10 @@ export const pluginState = {
     pluginStopped: false,
     lastActivity: undefined,
     updateInterval: undefined,
-    lastTrackUrl: undefined,
 } as {
     pluginStopped: boolean;
     lastActivity?: any;
     updateInterval?: NodeJS.Timeout;
-    lastTrackUrl?: string;
 };
 
 export const debugInfo = {

@@ -115,7 +115,7 @@ class PluginManager {
                 return;
             }
 
-            if (pluginState.lastTrackUrl === lastTrack.url) {
+            if (currentSettings.lastTrackUrl === lastTrack.url) {
                 logVerbose("Track unchanged; skipping Discord RPC update");
                 logVerbose("Track hasn't changed");
                 recordSuccessfulUpdate();
@@ -261,7 +261,7 @@ class PluginManager {
             setDebugInfo("lastActivity", activity);
 
             sendRequest(activity);
-            pluginState.lastTrackUrl = lastTrack.url;
+            currentSettings.lastTrackUrl = lastTrack.url;
             this.currentActivity = activity;
             pluginState.lastActivity = activity;
             this.consecutiveFailures = 0;
@@ -282,7 +282,7 @@ class PluginManager {
                 setDebugInfo("lastUpdateError", {
                     message: (error as Error).message,
                     service: currentSettings.service,
-                    lastTrackUrl: pluginState.lastTrackUrl,
+                    lastTrackUrl: currentSettings.lastTrackUrl,
                 });
             } catch (e) {
                 logVerbose("Failed to set debug info for last update error:", e);
@@ -377,7 +377,7 @@ class PluginManager {
                     .then(currentTrack => {
                         if (currentTrack) {
                             // what should it do? Not update the RPC if track already is playing
-                            if (pluginState.lastTrackUrl && pluginState.lastTrackUrl === currentTrack.url) {
+                            if (currentSettings.lastTrackUrl && currentSettings.lastTrackUrl === currentTrack.url) {
                                 logger.verbose("Track unchanged from previous session; skipping immediate update");
                                 return;
                             }
@@ -443,7 +443,7 @@ class PluginManager {
             serviceFactory.clearCache();
 
             // Reset track state when switching services
-            pluginState.lastTrackUrl = undefined;
+            currentSettings.lastTrackUrl = undefined;
             this.currentActivity = undefined;
             this.lastUpdateTime = 0;
 
@@ -465,7 +465,7 @@ class PluginManager {
             service: serviceName,
             consecutiveFailures: this.consecutiveFailures,
             isReconnecting: this.isReconnecting,
-            lastTrackUrl: pluginState.lastTrackUrl,
+            lastTrackUrl: currentSettings.lastTrackUrl,
             updateInterval: this.updateTimer ? "Active" : "Inactive",
         };
     }

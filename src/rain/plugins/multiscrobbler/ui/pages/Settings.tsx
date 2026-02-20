@@ -1,4 +1,5 @@
 import { NavigationNative } from "@metro/common";
+
 import { ServiceType } from "../../defs";
 import { multiScrobblerSettings, useMultiScrobblerSettings } from "../../storage";
 import {
@@ -125,22 +126,22 @@ export default function Settings() {
     return (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 10 }}>
             <Stack spacing={8}>
-              <TableRadioGroup
-                  title="Active Service"
-                  value={currentService}
-                  onChange={handleServiceChange}
-              >
-                  {(["lastfm", "librefm", "listenbrainz"] as ServiceType[]).map(
-                      service => (
-                          <TableRadioRow
-                              key={service}
-                              label={serviceFactory.getServiceDisplayName(service)}
-                              subLabel={getCredentialStatus(service)}
-                              value={service}
-                          />
-                      ),
-                  )}
-              </TableRadioGroup>
+                <TableRadioGroup
+                    title="Active Service"
+                    value={currentService}
+                    onChange={handleServiceChange}
+                >
+                    {(["lastfm", "librefm", "listenbrainz"] as ServiceType[]).map(
+                        service => (
+                            <TableRadioRow
+                                key={service}
+                                label={serviceFactory.getServiceDisplayName(service)}
+                                subLabel={getCredentialStatus(service)}
+                                value={service}
+                            />
+                        ),
+                    )}
+                </TableRadioGroup>
 
                 <TableRowGroup title="Service Configuration">
                     <TableRow
