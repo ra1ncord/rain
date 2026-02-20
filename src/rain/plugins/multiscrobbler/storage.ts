@@ -34,7 +34,7 @@ export const DEFAULT_SETTINGS: MultiScrobblerSettings = {
     showLargeText: true,
     ignoreYouTubeMusic: false,
     verboseLogging: false,
-    service: undefined as ServiceType | undefined,
+    service: "lastfm" as ServiceType | undefined,
     librefmUsername: "",
     librefmApiKey: "",
     listenbrainzUsername: "",
