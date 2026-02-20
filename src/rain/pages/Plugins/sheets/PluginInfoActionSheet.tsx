@@ -21,7 +21,7 @@ export default function PluginInfoActionSheet({
                 <View
                     style={{
                         flexDirection: "row",
-                        alignItems: "center",
+                        alignItems: "flex-start",
                         gap: 8,
                         paddingVertical: 24,
                         paddingHorizontal: 16,
@@ -33,18 +33,20 @@ export default function PluginInfoActionSheet({
                         <TitleComponent plugin={plugin} />
                     </View>
 
-                    <IconButton
-                        size="sm"
-                        variant="secondary"
-                        icon={findAssetId(isPinned ? "TrashIcon" : "PinIcon")}
-                        style={{
-                            borderRadius: 100,
-                            backgroundColor: isPinned ? semanticColors.BACKGROUND_MODIFIER_ACCENT : "transparent",
-                        }}
-                        onPress={() => {
-                            togglePinnedPlugin(plugin.id);
-                        }}
-                    />
+                    <View style={{ paddingBottom: 4 }}>
+                        <IconButton
+                            size="sm"
+                            variant="secondary"
+                            icon={findAssetId(isPinned ? "TrashIcon" : "PinIcon")}
+                            style={{
+                                borderRadius: 100,
+                                backgroundColor: isPinned ? semanticColors.BACKGROUND_MODIFIER_ACCENT : "transparent",
+                            }}
+                            onPress={() => {
+                                togglePinnedPlugin(plugin.id);
+                            }}
+                        />
+                    </View>
                 </View>
 
                 <Card>
