@@ -3,15 +3,19 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 export interface MessageLoggerSettings {
-    ignore: {
-        users: string[];
-        channels: string[];
-        bots: boolean;
-        self: boolean;
+    deleted: {
+        enabled: boolean;
+        showTimestamps: boolean;
+        use12Hour: boolean;
+        showOnlyTimestamp: boolean;
     };
-    timestamps: boolean;
-    ew: boolean;
-    onlyTimestamps: boolean;
+    edited: {
+        enabled: boolean;
+        showSeparator: boolean;
+    };
+    filters: {
+        ignoreBots: boolean;
+    };
     databaseLogging: boolean;
 }
 
@@ -20,18 +24,22 @@ type MessageLoggerSettingsStore = PluginStore<MessageLoggerSettings>;
 export const useMessageLoggerSettings = create<MessageLoggerSettingsStore>()(
     persist(
         set => ({
-            ignore: {
-                users: [],
-                channels: [],
-                bots: false,
-                self: false,
+            deleted: {
+                enabled: true,
+                showTimestamps: false,
+                use12Hour: false,
+                showOnlyTimestamp: false,
             },
-            timestamps: false,
-            ew: false,
-            onlyTimestamps: false,
+            edited: {
+                enabled: true,
+                showSeparator: true,
+            },
+            filters: {
+                ignoreBots: false,
+            },
             databaseLogging: false,
             _hasHydrated: false,
-            updateSettings: newSettings => set(state => ({ ...state, ...newSettings })),
+            updateSettings: (newSettings: Partial<MessageLoggerSettings>) => set(state => ({ ...state, ...newSettings })),
             setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
         }),
         {
