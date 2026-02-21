@@ -1,8 +1,8 @@
-import { logger } from "@lib/utils/logger";
 import { instead } from "@api/patcher";
-import { findByProps, findByStoreName } from "@metro";
-import { safeFetch } from "@lib/utils";
 import { showToast } from "@api/ui/toasts";
+import { safeFetch } from "@lib/utils";
+import { logger } from "@lib/utils/logger";
+import { findByProps, findByStoreName } from "@metro";
 
 import type { DataFile } from "../types";
 

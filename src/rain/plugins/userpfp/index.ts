@@ -1,9 +1,9 @@
-import { logger } from "@lib/utils/logger";
 import { showToast } from "@api/ui/toasts";
+import { logger } from "@lib/utils/logger";
 import { definePlugin } from "@plugins";
 
-import patcher, { setPluginEnabled, fetchData } from "./stuff/patcher";
 import Settings from "./settings";
+import patcher, { fetchData,setPluginEnabled } from "./stuff/patcher";
 
 export { fetchData };
 

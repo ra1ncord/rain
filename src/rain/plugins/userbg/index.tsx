@@ -1,8 +1,7 @@
-import { logger } from "@lib/utils/logger";
-import { findByProps } from "@metro";
 import { after } from "@api/patcher";
 import { safeFetch } from "@lib/utils";
-import { showToast } from "@api/ui/toasts";
+import { logger } from "@lib/utils/logger";
+import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
 
 import Settings from "./settings";
@@ -38,7 +37,7 @@ export default definePlugin({
     start() {
         pluginEnabled = true;
         fetchData();
-        
+
         unpatch = after("getUserBannerURL", getUserBannerURL, ([user]) => {
             if (!pluginEnabled || !data?.users) return;
             const { endpoint, bucket, prefix, users } = data;
