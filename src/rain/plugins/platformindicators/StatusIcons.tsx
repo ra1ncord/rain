@@ -22,7 +22,7 @@ function queryPresenceStoreWithCache(){
         },5000);
     }
 
-    if(!statusCache || statusCacheHits == 0){
+    if(!statusCache || statusCacheHits === 0){
         statusCache = PresenceStore.getState();
     }
 
@@ -38,7 +38,7 @@ function getUserStatuses(userId: string): Record<string, string> | undefined {
         currentUserId = UserStore.getCurrentUser()?.id;
     }
 
-    if(userId == currentUserId){
+    if(userId === currentUserId){
         const sessions = SessionsStore.getSessions() as Record<string, { clientInfo: { client: string }, status: string }>;
         statuses = Object.values(sessions).reduce<Record<string, string>>((acc, curr) => {
             if (curr.clientInfo.client !== "unknown")

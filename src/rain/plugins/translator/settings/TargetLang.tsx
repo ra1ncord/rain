@@ -1,6 +1,5 @@
 import { Search } from "@api/ui/components";
-import { React } from "@metro/common";
-import { ReactNative } from "@metro/common";
+import { React, ReactNative } from "@metro/common";
 import { Stack, TableRadioGroup, TableRadioRow } from "@metro/common/components";
 
 import { DeepLLangs, GTranslateLangs } from "../lang";

@@ -5,8 +5,7 @@ import { RainIcon } from "@assets";
 import { findByPropsLazy } from "@metro";
 import { definePlugin } from "@plugins";
 import { version } from "rain-build-info";
-import React from "react";
-import { lazy } from "react";
+import React, { lazy } from "react";
 import type { ImageURISource } from "react-native";
 
 import { patchTabsUI } from "./patches/tabs";
