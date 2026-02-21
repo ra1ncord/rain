@@ -13,9 +13,6 @@ interface PluginPageProps
   useItems: () => unknown[];
 }
 
-// Plugins that should only be visible in developer mode
-const DEV_ONLY_PLUGINS = ["actionsheetfinder"];
-
 
 function PluginPage(props: PluginPageProps) {
     const items = props.useItems() as UnifiedPluginModel[];
@@ -24,18 +21,18 @@ function PluginPage(props: PluginPageProps) {
     // Reorder items so pinned ones are at the top
     const reorderedItems = useMemo(() => {
         // Filter out dev-only plugins if developer mode is off
-	        const filtered = items.filter(p => {
-	            if (DEV_ONLY_PLUGINS.includes(p.id) && !developerSettings) {
-	                return false;
-	            }
-	            return true;
-	        });
+        const filtered = items.filter(p => {
+            if (p.devOnly && !developerSettings) {
+                return false;
+            }
+            return true;
+        });
 
-	        // Reorder items so pinned ones are at the top
-	        if (!pinnedPlugins || pinnedPlugins.length === 0) return filtered;
+        // Reorder items so pinned ones are at the top
+        if (!pinnedPlugins || pinnedPlugins.length === 0) return filtered;
 
         const pinned = filtered.filter(p => pinnedPlugins.includes(p.id));
-		    const unpinned = filtered.filter(p => !pinnedPlugins.includes(p.id));
+        const unpinned = filtered.filter(p => !pinnedPlugins.includes(p.id));
 
         return [...pinned, ...unpinned];
     }, [items, pinnedPlugins, developerSettings]);

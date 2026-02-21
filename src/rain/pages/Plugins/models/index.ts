@@ -12,4 +12,5 @@ export interface UnifiedPluginModel {
     toggle(start: boolean): void;
     resolveSheetComponent(): Promise<{ default: React.ComponentType<any>; }>;
     getPluginSettingsComponent?(): React.ComponentType<any> | null | undefined;
+    devOnly?: boolean;
 }
