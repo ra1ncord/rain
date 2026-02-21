@@ -88,7 +88,7 @@ async function validateAndInitialize() {
 }
 
 export default definePlugin({
-    name: "Multi-Scrobbler",
+    name: "MultiScrobbler",
     description: "Show off your music status from Last.fm, Libre.fm, or ListenBrainz on your Discord profile.",
     author: [{ name: "kmmiio99o", id: 879393496627306587n }],
     id: "multiscrobbler",
