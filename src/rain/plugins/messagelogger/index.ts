@@ -64,9 +64,11 @@ function patchMessageDeleteHandler() {
             if (!UserStore) UserStore = findByStoreName("UserStore");
             if (!MessageStore) MessageStore = findByStoreName("MessageStore");
 
-            const currentUserId = UserStore?.getCurrentUser()?.id;
+            if (!UserStore || !MessageStore) return args;
+
+            const currentUserId = UserStore.getCurrentUser?.()?.id;
             const { id, channelId } = event;
-            const message = MessageStore.getMessage(channelId, id);
+            const message = MessageStore.getMessage?.(channelId, id);
 
             if (!message) return args;
 
@@ -81,7 +83,7 @@ function patchMessageDeleteHandler() {
             if (storage.ignore.bots && isBot(message.author)) return args;
 
             // 2. User Blacklist Filter
-            if (storage.ignore.users.includes(authorId)) return args;
+            if (storage.ignore.users?.includes(authorId)) return args;
 
             // 3. Ignore Self Logic
             // If the toggle is ON AND (it's your message OR you deleted it manually)
@@ -127,6 +129,7 @@ function patchMessageDeleteHandler() {
             setTimeout(() => {
                 FluxDispatcher.dispatch({
                     type: "MESSAGE_UPDATE",
+                    otherPluginBypass: true,
                     message: {
                         ...message,
                         flags: (message.flags || 0) | 8192,
@@ -154,14 +157,14 @@ function patchRowManager() {
             if (!msg) return args;
 
             const storage = useMessageLoggerSettings.getState();
-            const currentUserId = findByProps("getCurrentUser")?.getCurrentUser()?.id;
+            const currentUserId = findByProps("getCurrentUser")?.getCurrentUser?.()?.id;
 
             const isDeleted = msg.was_deleted || msg.deleted || (typeof msg.flags === "number" && (msg.flags & 8192)) || msg.type === 6 || deleteable.includes(msg.id);
 
             if (isDeleted) {
                 if (storage.ignore.bots && isBot(msg.author)) return args;
                 if (storage.ignore.self && msg.author?.id === currentUserId) return args;
-                if (storage.ignore.users.includes(msg.author?.id)) return args;
+                if (storage.ignore.users?.includes(msg.author?.id)) return args;
 
                 msg.style = {
                     backgroundColor: "rgba(240, 71, 71, 0.1)",
@@ -200,13 +203,22 @@ export default definePlugin({
         patches.push(before("dispatch", FluxDispatcher, (args: any[]) => {
             const event = args[0];
             if (!event || event.type !== "MESSAGE_UPDATE" || !event.message) return;
-            const storage = useMessageLoggerSettings.getState();
-            const message = event.message;
-            if (message.content && message.id) {
-                const prevMessage = MessageStore.getMessage(message.channel_id || message.channelId, message.id);
+            if (event.otherPluginBypass) return;
+
+            try {
+                const message = event.message;
+                if (!message?.content || !message?.id) return;
+
+                const prevMessage = MessageStore?.getMessage?.(message.channel_id || message.channelId, message.id);
                 if (prevMessage && prevMessage.content && prevMessage.content !== message.content) {
-                    message.content = prevMessage.content + "\n\n" + EDIT_HISTORY_SEPARATOR + "\n\n" + message.content;
+                    // Make a copy instead of mutating directly
+                    event.message = {
+                        ...message,
+                        content: prevMessage.content + "\n\n" + EDIT_HISTORY_SEPARATOR + "\n\n" + message.content
+                    };
                 }
+            } catch (e) {
+                console.error("[MessageLogger] MESSAGE_UPDATE Error:", e);
             }
         }));
 
