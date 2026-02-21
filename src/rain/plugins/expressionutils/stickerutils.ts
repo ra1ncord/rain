@@ -31,7 +31,7 @@ export function patchStickerActionSheet() {
             const url = `https://discord.com/stickers/${sticker.id}.png`;
             const favoritedStickers = UserSettingsProtoStore.frecencyWithoutFetchingLatest?.favoriteStickers?.stickerIds as Array<string>;
             const isFavorited = !!favoritedStickers?.find((s: string) => s === sticker.id);
-            const settings = require("./storage").useExpressionUtilsSettings();
+            const settings = require("./storage").useExpressionUtilsSettings.getState();
             const buttons = [
                 // Favorites toggle first (only if enabled)
                 settings.showFavoriteButton && {
