@@ -7,10 +7,12 @@ export interface MessageLoggerSettings {
         users: string[];
         channels: string[];
         bots: boolean;
+        self: boolean;
     };
     timestamps: boolean;
     ew: boolean;
     onlyTimestamps: boolean;
+    databaseLogging: boolean;
 }
 
 type MessageLoggerSettingsStore = PluginStore<MessageLoggerSettings>;
@@ -22,10 +24,12 @@ export const useMessageLoggerSettings = create<MessageLoggerSettingsStore>()(
                 users: [],
                 channels: [],
                 bots: false,
+                self: false,
             },
             timestamps: false,
             ew: false,
             onlyTimestamps: false,
+            databaseLogging: false,
             _hasHydrated: false,
             updateSettings: newSettings => set(state => ({ ...state, ...newSettings })),
             setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
