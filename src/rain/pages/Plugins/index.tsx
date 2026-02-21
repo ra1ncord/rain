@@ -55,6 +55,7 @@ function PluginPage(props: PluginPageProps) {
                 "Enabled": (a, b) => Number(b.isEnabled()) - Number(a.isEnabled()),
                 "Disabled": (a, b) => Number(a.isEnabled()) - Number(b.isEnabled()),
             }}
+            defaultSortKey="Name (A-Z)"
             filterOptions={{
                 "Hide Core Plugins": p => !p.id.startsWith("core"),
                 "Show Core Plugins": () => true,
