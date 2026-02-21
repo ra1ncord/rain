@@ -1,0 +1,35 @@
+import { logger } from "@lib/utils/logger";
+import { showToast } from "@api/ui/toasts";
+import { definePlugin } from "@plugins";
+
+import patcher, { setPluginEnabled, fetchData } from "./stuff/patcher";
+import Settings from "./settings";
+
+export { fetchData };
+
+let unpatch: (() => void) | undefined;
+
+export default definePlugin({
+    name: "UserPFP",
+    description: "https://userpfp.github.io/UserPFP/#using-userpfp",
+    author: [{ name: "nexpid", id: 853550207039832084n }],
+    id: "userpfp",
+    version: "v1.0.0",
+    settings: Settings,
+    start() {
+        setPluginEnabled(true);
+        try {
+            unpatch = patcher();
+        } catch (e) {
+            logger.error("patch error", e);
+            showToast("Failed to start UserPFP plugin");
+        }
+    },
+    stop() {
+        setPluginEnabled(false);
+        if (unpatch) {
+            unpatch();
+            unpatch = undefined;
+        }
+    },
+});
