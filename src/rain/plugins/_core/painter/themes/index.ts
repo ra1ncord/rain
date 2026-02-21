@@ -279,6 +279,7 @@ export async function initThemes() {
 
         await waitForColorsPrefHydration();
         await waitForThemesHydration();
+        await getCurrentTheme();
 
         const currentTheme = getCurrentTheme();
         initColors(currentTheme?.data ?? null);
