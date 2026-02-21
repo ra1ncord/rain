@@ -1,5 +1,4 @@
 import { instead } from "@api/patcher";
-import { showToast } from "@api/ui/toasts";
 import { safeFetch } from "@lib/utils";
 import { logger } from "@lib/utils/logger";
 import { findByProps, findByStoreName } from "@metro";
@@ -41,9 +40,6 @@ export default () => {
     const patches: (() => void)[] = [];
 
     fetchData();
-    if (!data) {
-        showToast("Failed to load UserPFP data");
-    }
 
     const avatarStuff = findByProps("getUserAvatarURL", "getUserAvatarSource");
     const UserStore = findByStoreName("UserStore");
