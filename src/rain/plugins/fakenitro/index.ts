@@ -13,7 +13,7 @@ const patches: any[] = [];
 export default definePlugin({
     name: "FakeNitro",
     description: "Gives you Client-Side Nitro",
-    author: [{ name: "John", id: 780819226839220265n }],
+    author: [{ name: "John", id: 780819226839220265n }, { name: "cocobo1", id: 767650984175992833n }, { name: "kmmiio99o", id: 879393496627306587n }, { name: "LampDelivery", id: 650805815623680030n }],
     id: "fakenitro",
     version: "1.1.0",
     start() {
