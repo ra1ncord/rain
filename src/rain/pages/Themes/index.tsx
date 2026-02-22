@@ -1,5 +1,6 @@
 import { findAssetId } from "@api/assets";
 import { useSettings } from "@api/settings";
+import { Strings } from "@i18n";
 import { NavigationNative } from "@metro/common";
 import {
     ActionSheet,
@@ -18,7 +19,6 @@ import ThemeBrowser from "@rain/pages/Browser/Themes";
 import { updateColor } from "@rain/plugins/_core/painter/themes/updater";
 import { View } from "react-native";
 
-import { Strings } from "@i18n";
 import ThemeCard from "./ThemeCard";
 
 export default function Themes() {

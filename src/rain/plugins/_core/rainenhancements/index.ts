@@ -1,11 +1,11 @@
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 import { patchConsole, patchMiscellaneous, patchNetwork, patchSentry } from "./notrack";
 import transformEmoji from "./realmoji/patches/transformEmoji";
 import transformSticker from "./realmoji/patches/transformSticker";
 import settings from "./settings";
-import { Strings } from "@rain/i18n";
-import {Developers} from "@rain/Developers";
 
 let patches: any[] = [];
 

@@ -1,10 +1,10 @@
-import { findByProps } from "@metro";
 import { instead } from "@api/patcher";
+import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import Settings from "./Settings";
 import { quickDeleteSettings } from "./storage";
-import {Developers} from "@rain/Developers";
 
 const { intl, t: intlMap } = findByProps("intl");
 
@@ -59,10 +59,10 @@ export default definePlugin({
 
             if (
                 !popup?.onConfirm ||
-                typeof popup.onConfirm !== 'function' ||
-                (typeof title !== 'string' && typeof body !== 'string')
-            ) {;
-                return fn(...args)
+                typeof popup.onConfirm !== "function" ||
+                (typeof title !== "string" && typeof body !== "string")
+            ) {
+                return fn(...args);
             }
 
             const shouldConfirm = (type: "message" | "embed") => {

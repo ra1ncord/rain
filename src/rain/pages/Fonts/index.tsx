@@ -1,8 +1,8 @@
 import { useSettings } from "@api/settings";
+import { Strings } from "@i18n";
 import { NavigationNative } from "@metro/common";
 import { FontDefinition, useFonts } from "@plugins/_core/painter/fonts";
 import AddonPage from "@rain/pages/Addon/AddonPage";
-import { Strings } from "@i18n";
 
 import FontBrowser from "../Browser/Fonts";
 import FontCard from "./FontCard";
@@ -23,7 +23,7 @@ export default function Fonts() {
             }}
             items={Object.values(fonts)}
             CardComponent={FontCard}
-installBrowserAction={{
+            installBrowserAction={{
                 label: Strings.IMPORT_FROM_BROWSER,
                 onPress: () => {
                     navigation.push("RAIN_CUSTOM_PAGE", {

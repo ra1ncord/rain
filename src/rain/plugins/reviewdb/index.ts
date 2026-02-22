@@ -1,5 +1,6 @@
 import { waitForHydration } from "@api/storage";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import { getAdmins } from "./lib/api";
 import patchContextMenu from "./patches/patchContextMenu";
@@ -8,7 +9,6 @@ import patchServer from "./patches/patchServer";
 import patchSimplifiedProfile from "./patches/patchSimplifiedProfile";
 import Settings from "./Settings";
 import { useReviewDBSettings } from "./storage";
-import {Developers} from "@rain/Developers";
 
 const patches: (() => boolean)[] = [];
 export const admins: any[] = [];

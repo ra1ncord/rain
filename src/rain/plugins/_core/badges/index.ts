@@ -2,9 +2,9 @@ import { after } from "@api/patcher";
 import { onJsxCreate } from "@api/react/jsx";
 import { findByNameLazy } from "@metro";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 import { Strings } from "@rain/i18n";
 import { useEffect, useState } from "react";
-import { Developers } from "@rain/Developers";
 
 interface Badge {
     label: string;

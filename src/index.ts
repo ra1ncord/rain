@@ -1,5 +1,5 @@
-import { initEagerPlugins, initPlugins } from "@plugins/index";
 import { initFetchI18nStrings } from "@i18n";
+import { initEagerPlugins, initPlugins } from "@plugins/index";
 
 import { patchLogHook } from "./api/debug";
 import { injectFluxInterceptor } from "./api/flux";

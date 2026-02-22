@@ -2,14 +2,13 @@ import { findAssetId } from "@api/assets";
 import { Search } from "@api/ui/components";
 import { hideSheet, showSheet } from "@api/ui/sheets";
 import { showToast } from "@api/ui/toasts";
+import { formatString,Strings } from "@i18n";
 import { lazyDestructure } from "@lib/utils/lazy";
 import safeFetch from "@lib/utils/safeFetch";
 import { findByProps } from "@metro";
 import { clipboard,NavigationNative, React } from "@metro/common";
 import { ActionSheet, Button, Card, FlashList, IconButton, Stack, TableRow, TableRowGroup,Text } from "@metro/common/components";
 import { View } from "react-native";
-
-import { Strings, formatString } from "@i18n";
 
 const { showSimpleActionSheet } = lazyDestructure(() => findByProps("showSimpleActionSheet"));
 const { hideActionSheet } = findByProps("hideActionSheet");
@@ -204,7 +203,7 @@ export default function AddonBrowser({ type, url, useStore, installFn, removeFn,
                             onPress={() => showSimpleActionSheet({
                                 key: "SortOptions",
                                 header: { title: Strings.SORT_BY, onClose: () => hideActionSheet("SortOptions") },
-                                options: Object.values(Sort).map((value) => ({
+                                options: Object.values(Sort).map(value => ({
                                     label: SortLabels[value],
                                     onPress: () => setSort(value)
                                 }))

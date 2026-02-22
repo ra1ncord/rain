@@ -3,10 +3,10 @@ import { before } from "@api/patcher";
 import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import settings from "./settings";
 import { useActionSheetFinderSettings } from "./storage";
-import {Developers} from "@rain/Developers";
 
 const LazyActionSheet = findByProps("openLazy", "hideActionSheet");
 

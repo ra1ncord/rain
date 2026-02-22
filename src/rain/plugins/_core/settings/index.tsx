@@ -4,14 +4,14 @@ import { useSettings } from "@api/settings";
 import { RainIcon } from "@assets";
 import { findByPropsLazy } from "@metro";
 import { definePlugin } from "@plugins";
-import { version } from "rain-build-info";
+import { Developers } from "@rain/Developers";
 import { Strings } from "@rain/i18n";
+import { version } from "rain-build-info";
 import React, { lazy } from "react";
 import type { ImageURISource } from "react-native";
 
 import { patchTabsUI } from "./patches/tabs";
 import settings from "./settings";
-import {Developers} from "@rain/Developers";
 
 export default definePlugin({
     name: Strings.PLUGIN__CORE_SETTINGS,

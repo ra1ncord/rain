@@ -13,7 +13,7 @@ export interface ExpressionUtilsSettings {
 type ExpressionUtilsStore = PluginStore<ExpressionUtilsSettings>;
 export const useExpressionUtilsSettings = create<ExpressionUtilsStore>()(
     persist<ExpressionUtilsStore>(
-        (set) => ({
+        set => ({
             showCloneButton: true,
             showFavoriteButton: true,
             showDownloadButton: true,
@@ -29,7 +29,7 @@ export const useExpressionUtilsSettings = create<ExpressionUtilsStore>()(
             storage: createJSONStorage(() =>
                 createFileStorage("plugins/expressionutils.json"),
             ),
-            onRehydrateStorage: () => (state) => {
+            onRehydrateStorage: () => state => {
                 if (state && typeof state === "object" && "setHasHydrated" in state && typeof state.setHasHydrated === "function") {
                     state.setHasHydrated(true);
                 }

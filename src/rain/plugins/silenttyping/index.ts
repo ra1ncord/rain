@@ -1,7 +1,7 @@
 import { instead } from "@api/patcher";
 import { findByProps } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
-import {Developers} from "@rain/Developers";
+import { Developers } from "@rain/Developers";
 
 const Typing = findByProps("startTyping", "stopTyping");
 const patches: (() => void)[] = [];

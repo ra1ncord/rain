@@ -5,10 +5,10 @@ import { metro } from "@lib";
 import { cyrb64Hash } from "@lib/utils/cyrb64";
 import { findByName } from "@metro";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import settings from "./settings";
 import { hidecallbuttonsSettings, useHideCallButtonsSettings } from "./storage";
-import {Developers} from "@rain/Developers";
 
 const patches: (() => boolean)[] = [];
 const find = (filter: (m: any) => boolean) => {

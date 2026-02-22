@@ -1,4 +1,5 @@
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import getAppIcons from "./patches/appIcons";
 import getHidePaymentItems from "./patches/hidePaymentItems";
@@ -7,7 +8,6 @@ import getNitroThemes from "./patches/nitroThemes";
 import getRemoveGetNitroButton from "./patches/removeGetNitroButton";
 import getSendMessage from "./patches/sendMessage";
 import settings from "./settings";
-import {Developers} from "@rain/Developers";
 
 const patches: any[] = [];
 

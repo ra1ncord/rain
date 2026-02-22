@@ -2,7 +2,7 @@ import { patcher } from "@api";
 import { findByProps, findByStoreName } from "@metro";
 import { UserStore } from "@metro/common/stores";
 import { definePlugin } from "@plugins";
-import {Developers} from "@rain/Developers";
+import { Developers } from "@rain/Developers";
 
 let unpatchIsStaffEnv;
 let unpatchDevStoreProps;

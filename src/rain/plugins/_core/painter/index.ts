@@ -1,10 +1,10 @@
 import { settings } from "@api/settings";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 import { initFonts } from "./fonts";
 import { initThemes } from "./themes";
-import { Strings } from "@rain/i18n";
-import {Developers} from "@rain/Developers";
 
 export default definePlugin({
     name: Strings.PLUGIN__CORE_PAINTER,

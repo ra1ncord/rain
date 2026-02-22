@@ -3,10 +3,10 @@ import { createFileStorage } from "@api/storage";
 import { showToast } from "@api/ui/toasts";
 import { findByName, findByProps, findByStoreName } from "@metro";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import Settings from "./settings";
 import { useMessageLoggerSettings } from "./storage";
-import {Developers} from "@rain/Developers";
 
 let patches: Array<() => void> = [];
 const selfDeletedMessages = new Set<string>();

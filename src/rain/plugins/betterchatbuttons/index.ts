@@ -3,11 +3,11 @@ import { logger } from "@lib/utils/logger";
 import { findByTypeDisplayName } from "@metro";
 import { ReactNative } from "@metro/common";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 import React from "react";
 
 import BetterChatButtonsSettings from "./settings";
 import { useBetterChatButtonsSettings } from "./storage";
-import {Developers} from "@rain/Developers";
 
 type Unpatch = () => void;
 

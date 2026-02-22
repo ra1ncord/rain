@@ -104,8 +104,9 @@ function patchUserProfileEditForm() {
     });
 }
 
+import { Developers } from "@rain/Developers";
+
 import Settings from "./settings";
-import {Developers} from "@rain/Developers";
 
 export default definePlugin({
     name: "FakeProfileColors",

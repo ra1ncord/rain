@@ -1,7 +1,7 @@
 import { patchCommands,registerCommand } from "@api/commands";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 import { Strings } from "@rain/i18n";
-import {Developers} from "@rain/Developers";
 
 export default definePlugin({
     name: Strings.PLUGIN__CORE_COMMANDS,

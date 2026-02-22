@@ -2,13 +2,13 @@ import { waitForHydration } from "@api/storage";
 import { logger } from "@lib/utils/logger";
 import { FluxDispatcher } from "@metro/common";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import { initialize, stop } from "./manager";
 import { UserStore } from "./modules";
 import { serviceFactory } from "./services/ServiceFactory";
 import { currentSettings, pluginState, useMultiScrobblerSettings } from "./storage";
 import Settings from "./ui/pages/Settings";
-import {Developers} from "@rain/Developers";
 
 export { currentSettings,pluginState };
 

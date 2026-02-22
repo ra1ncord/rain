@@ -1,8 +1,8 @@
 import { useSettings } from "@api/settings";
+import { Strings } from "@i18n";
 import { pluginInstances } from "@plugins";
 import { developer } from "@plugins/types";
 import AddonPage from "@rain/pages/Addon/AddonPage";
-import { Strings } from "@i18n";
 import { ComponentProps, useMemo } from "react";
 
 import PluginCard from "./components/PluginCard";

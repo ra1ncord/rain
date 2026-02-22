@@ -5,12 +5,12 @@ import { findInReactTree } from "@lib/utils";
 import { findByName,findByProps, findByTypeName, findByTypeNameAll } from "@metro";
 import { ReactNative } from "@metro/common";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import PresenceUpdatedContainer from "./PresenceUpdatedContainer";
 import Settings from "./settings";
 import StatusIcons from "./StatusIcons";
 import { platformIndicatorSettings,usePlatformIndicatorSettings } from "./storage";
-import {Developers} from "@rain/Developers";
 
 const { View, Text } = ReactNative;
 

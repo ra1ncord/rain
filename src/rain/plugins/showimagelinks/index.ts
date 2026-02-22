@@ -1,7 +1,7 @@
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import { onLoad } from "./patches/showimagelinks";
-import {Developers} from "@rain/Developers";
 
 const patches: any[] = [];
 

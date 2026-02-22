@@ -1,11 +1,11 @@
 import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import patchMessageEmojiActionSheet from "./patchMessageEmojiActionSheet";
 import ExpressionUtilsSettings from "./settings";
 import { patchStickerActionSheet } from "./stickerutils";
-import {Developers} from "@rain/Developers";
 
 type Unpatch = () => void;
 

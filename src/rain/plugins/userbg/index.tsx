@@ -3,9 +3,9 @@ import { safeFetch } from "@lib/utils";
 import { logger } from "@lib/utils/logger";
 import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import Settings from "./settings";
-import {Developers} from "@rain/Developers";
 
 interface userBGData {
     endpoint: string;

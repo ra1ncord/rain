@@ -1,10 +1,10 @@
 import { showToast } from "@api/ui/toasts";
-import { findByProps } from "@metro";
 import { clipboard, ReactNative } from "@metro/common";
 import { Button } from "@metro/common/components";
-import { showAddToServerActionSheet } from "../sheets/AddToServerActionSheet";
+
 import { downloadMediaAsset, LazyActionSheet } from "../../modules";
 import { useExpressionUtilsSettings } from "../../storage";
+import { showAddToServerActionSheet } from "../sheets/AddToServerActionSheet";
 
 
 export default function StealButtons({ emoji }: { emoji: any }) {

@@ -1,7 +1,7 @@
 import { after } from "@api/patcher";
 import { findByStoreName } from "@metro";
 import { definePlugin } from "@plugins";
-import {Developers} from "@rain/Developers";
+import { Developers } from "@rain/Developers";
 
 const MaskedLink = findByStoreName("MaskedLinkStore");
 const patches: (() => boolean)[] = [];

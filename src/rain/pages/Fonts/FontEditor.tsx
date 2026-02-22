@@ -1,13 +1,13 @@
 import { findAssetId } from "@api/assets";
 import { ErrorBoundary } from "@api/ui/components";
 import { Observable } from "@gullerya/object-observer";
+import { Strings } from "@i18n";
 import { safeFetch } from "@lib/utils";
 import { lazyDestructure } from "@lib/utils/lazy";
 import { NavigationNative } from "@metro/common";
 import { ActionSheet, BottomSheetTitleHeader, Button, IconButton, Stack, TableRow, TableRowGroup, Text, TextInput } from "@metro/common/components";
 import { findByProps, findByPropsLazy } from "@metro/wrappers";
 import { FontDefinition, removeFont, saveFont, updateFont, useFonts, validateFont } from "@plugins/_core/painter/fonts";
-import { Strings } from "@i18n";
 import React, { useMemo, useReducer,useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 

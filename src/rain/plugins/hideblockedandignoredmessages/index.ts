@@ -1,8 +1,8 @@
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import getPatches from "./patches/hidemessages";
 import settings from "./settings";
-import {Developers} from "@rain/Developers";
 
 const patches: any[] = [];
 

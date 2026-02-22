@@ -3,13 +3,13 @@ import { readFile } from "@api/native/fs";
 import { BundleUpdaterManager } from "@api/native/modules";
 import { showConfirmationAlert } from "@api/ui/alerts";
 import { createStyles, TextStyleSheet } from "@api/ui/styles";
+import { Strings } from "@i18n";
 import { lazyDestructure } from "@lib/utils/lazy";
 import { findByProps } from "@metro";
 import { NavigationNative, tokens } from "@metro/common";
 import { Button, Card, IconButton, Stack, Text } from "@metro/common/components";
 import { FontDefinition, selectFont, useFonts } from "@plugins/_core/painter/fonts";
 import { CardWrapper } from "@rain/pages/Addon/AddonCard";
-import { Strings } from "@i18n";
 import { useEffect, useMemo, useState } from "react";
 import { PixelRatio, Platform,View } from "react-native";
 

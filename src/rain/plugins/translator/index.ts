@@ -1,9 +1,9 @@
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import patchActionSheet from "./patches/ActionSheet";
 import Settings from "./settings/index";
 import { settings } from "./storage";
-import {Developers} from "@rain/Developers";
 
 settings.target_lang ??= "en";
 settings.translator ??= 1;

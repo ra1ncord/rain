@@ -4,10 +4,10 @@ import { logger } from "@lib/utils/logger";
 import { ReactNative } from "@metro/common";
 import { findByProps, findByStoreName } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import TapTapSettings from "./settings";
 import { taptapSettings, useTapTapSettings } from "./storage";
-import {Developers} from "@rain/Developers";
 
 type Unpatch = () => void;
 

@@ -1,5 +1,6 @@
 import { registerCommand } from "@api/commands";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import settings from "./settings/settings";
 import { catFactCommand, dogFactCommand, uselessFactCommand } from "./src/commands/facts";
@@ -14,7 +15,6 @@ import { petPetCommand } from "./src/commands/petpet";
 import { spotifyAlbumCommand, spotifyArtistsCommand, spotifyCoverCommand,spotifyTrackCommand } from "./src/commands/spotify";
 import { sysinfoCommand } from "./src/commands/sysinfo";
 import { useMoreCommandsSettings, waitForMoreCommandsSettingsHydration } from "./storage";
-import {Developers} from "@rain/Developers";
 
 const commandMap = {
     catfact: catFactCommand,

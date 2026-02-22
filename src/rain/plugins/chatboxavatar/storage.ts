@@ -12,24 +12,24 @@ export interface Settings {
 }
 
 export const useChatboxAvatarSettings = create<PluginStore<Settings>>()(
-  persist(
-    set => ({
-      replaceButton: "gallery",
-      pressAction: "profile",
-      longPressAction: "server", 
-      serverId: "",
-      showStatusCutout: false, 
-      collapseWhileTyping: false,
-      _hasHydrated: false,
-      updateSettings: (newSettings: Partial<Settings>) => set(state => ({ ...state, ...newSettings })),
-      setHasHydrated: (state: boolean) => set({ _hasHydrated: state })
-    }),
-    {
-      name: "chatboxavatar-settings",
-      storage: createJSONStorage(() => createFileStorage("plugins/chatboxavatar.json")),
-      onRehydrateStorage: () => state => {
-        state?.setHasHydrated?.(true);
-      }
-    }
-  )
+    persist(
+        set => ({
+            replaceButton: "gallery",
+            pressAction: "profile",
+            longPressAction: "server",
+            serverId: "",
+            showStatusCutout: false,
+            collapseWhileTyping: false,
+            _hasHydrated: false,
+            updateSettings: (newSettings: Partial<Settings>) => set(state => ({ ...state, ...newSettings })),
+            setHasHydrated: (state: boolean) => set({ _hasHydrated: state })
+        }),
+        {
+            name: "chatboxavatar-settings",
+            storage: createJSONStorage(() => createFileStorage("plugins/chatboxavatar.json")),
+            onRehydrateStorage: () => state => {
+                state?.setHasHydrated?.(true);
+            }
+        }
+    )
 );

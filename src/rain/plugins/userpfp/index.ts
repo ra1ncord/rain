@@ -1,10 +1,10 @@
 import { showToast } from "@api/ui/toasts";
 import { logger } from "@lib/utils/logger";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import Settings from "./settings";
 import patcher, { fetchData,setPluginEnabled } from "./stuff/patcher";
-import {Developers} from "@rain/Developers";
 
 export { fetchData };
 

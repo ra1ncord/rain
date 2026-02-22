@@ -1,7 +1,7 @@
 import { after } from "@api/patcher";
 import { findByProps } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
-import {Developers} from "@rain/Developers";
+import { Developers } from "@rain/Developers";
 
 const { View } = findByProps("View", "Text");
 const patches: (() => void)[] = [];

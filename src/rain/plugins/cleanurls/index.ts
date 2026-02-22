@@ -1,12 +1,12 @@
 import { waitForHydration } from "@api/storage";
 import { logger } from "@lib/utils/logger";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import { setupPatches } from "./patcher";
 import { useRulesStore } from "./rulesStore";
 import CleanUrlsSettings from "./settings";
 import { useCleanUrlsSettings } from "./storage";
-import {Developers} from "@rain/Developers";
 
 type Unpatch = () => void;
 

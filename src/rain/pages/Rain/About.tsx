@@ -1,9 +1,9 @@
 import { getDebugInfo } from "@api/debug";
 import { RainIcon } from "@assets";
+import { Strings } from "@i18n";
 import { Stack, TableRowGroup } from "@metro/common/components";
 import { Platform, ScrollView } from "react-native";
 
-import { Strings } from "@i18n";
 import Version from "./Version";
 
 export default function About() {

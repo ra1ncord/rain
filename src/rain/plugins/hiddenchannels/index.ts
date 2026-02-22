@@ -4,11 +4,11 @@ import { showConfirmationAlert } from "@api/ui/alerts";
 import { findByName,findByProps } from "@metro";
 import { constants, React, ReactNative as RN } from "@metro/common";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import AlertContent from "./AlertContent";
 import Settings from "./settings";
 import { hiddenChannelsSettings } from "./storage";
-import {Developers} from "@rain/Developers";
 
 const Permissions = findByProps("getChannelPermissions", "can");
 const { ChannelTypes } = findByProps("ChannelTypes");

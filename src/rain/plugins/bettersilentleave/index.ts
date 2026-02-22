@@ -5,8 +5,8 @@ import { findInReactTree } from "@lib/utils";
 import { findByProps } from "@metro";
 import { ActionSheet, ActionSheetRow } from "@metro/common/components";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 import { ReactElement } from "react";
-import {Developers} from "@rain/Developers";
 
 const patches: (() => void)[] = [];
 const APIUtils = findByProps("getAPIBaseURL", "del");

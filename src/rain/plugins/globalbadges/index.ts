@@ -2,12 +2,12 @@ import { after } from "@api/patcher";
 import { onJsxCreate } from "@api/react/jsx";
 import { findByNameLazy } from "@metro";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import badgeGroups from "./badgeGroups";
 import CustomBadgesSettings from "./settings";
 import { customBadgesSettings } from "./storage";
 import { CustomBadges } from "./types";
-import {Developers} from "@rain/Developers";
 
 const useBadgesModule = findByNameLazy("useBadges", false);
 

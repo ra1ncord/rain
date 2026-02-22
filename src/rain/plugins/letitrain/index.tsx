@@ -1,9 +1,9 @@
 import { onJsxCreate } from "@api/react/jsx";
 import { definePlugin } from "@plugins";
+import { Developers } from "@rain/Developers";
 
 import RainOverlay from "./RainOverlay";
 import settings from "./settings";
-import {Developers} from "@rain/Developers";
 
 const patches: (() => void)[] = [];
 
