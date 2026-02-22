@@ -146,6 +146,13 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
         }
     }, [navigation]);
 
+    useEffect(() => {
+        const sortKey = props.defaultSortKey;
+        if (props.sortOptions && sortKey && props.sortOptions[sortKey]) {
+            setSortFn(() => props.sortOptions![sortKey]);
+        }
+    }, [props.sortOptions, props.defaultSortKey]);
+
     const results = useMemo(() => {
         let values = props.items;
         if (props.resolveItem) values = values.map(props.resolveItem).filter(isNotNil);

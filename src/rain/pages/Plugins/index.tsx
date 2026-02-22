@@ -19,23 +19,39 @@ function PluginPage(props: PluginPageProps) {
     const items = props.useItems() as UnifiedPluginModel[];
     const { pinnedPlugins, developerSettings } = useSettings();
 
-    // Reorder items so pinned ones are at the top
-    const reorderedItems = useMemo(() => {
-        // Filter out dev-only plugins if developer mode is off
-        const filtered = items.filter(p => {
+    const isPinned = (id: string) => pinnedPlugins?.includes(id);
+    const isCore = (id: string) => id.startsWith("core");
+
+    const sortOptions = {
+        [Strings.SORT_NAME_AZ]: (a: UnifiedPluginModel, b: UnifiedPluginModel) => {
+            if (isCore(a.id) !== isCore(b.id)) return isCore(a.id) ? -1 : 1;
+            if (isPinned(a.id) !== isPinned(b.id)) return isPinned(b.id) ? 1 : -1;
+            return a.name.localeCompare(b.name);
+        },
+        [Strings.SORT_NAME_ZA]: (a: UnifiedPluginModel, b: UnifiedPluginModel) => {
+            if (isCore(a.id) !== isCore(b.id)) return isCore(a.id) ? -1 : 1;
+            if (isPinned(a.id) !== isPinned(b.id)) return isPinned(b.id) ? 1 : -1;
+            return b.name.localeCompare(a.name);
+        },
+        [Strings.ENABLED]: (a: UnifiedPluginModel, b: UnifiedPluginModel) => {
+            if (isCore(a.id) !== isCore(b.id)) return isCore(a.id) ? -1 : 1;
+            if (isPinned(a.id) !== isPinned(b.id)) return isPinned(b.id) ? 1 : -1;
+            return Number(b.isEnabled()) - Number(a.isEnabled());
+        },
+        [Strings.DISABLED]: (a: UnifiedPluginModel, b: UnifiedPluginModel) => {
+            if (isCore(a.id) !== isCore(b.id)) return isCore(a.id) ? -1 : 1;
+            if (isPinned(a.id) !== isPinned(b.id)) return isPinned(b.id) ? 1 : -1;
+            return Number(a.isEnabled()) - Number(b.isEnabled());
+        },
+    };
+
+    const filteredItems = useMemo(() => {
+        return items.filter(p => {
             if (p.devOnly && !developerSettings) {
                 return false;
             }
             return true;
         });
-
-        // Reorder items so pinned ones are at the top
-        if (!pinnedPlugins || pinnedPlugins.length === 0) return filtered;
-
-        const pinned = filtered.filter(p => pinnedPlugins.includes(p.id));
-        const unpinned = filtered.filter(p => !pinnedPlugins.includes(p.id));
-
-        return [...pinned, ...unpinned];
     }, [items, pinnedPlugins, developerSettings]);
 
     return (
@@ -50,12 +66,7 @@ function PluginPage(props: PluginPageProps) {
                         ?.map((a: developer | string) => (typeof a === "string" ? a : a.name))
                         .join() || "",
             ]}
-            sortOptions={{
-                [Strings.SORT_NAME_AZ]: (a, b) => a.name.localeCompare(b.name),
-                [Strings.SORT_NAME_ZA]: (a, b) => b.name.localeCompare(a.name),
-                [Strings.ENABLED]: (a, b) => Number(b.isEnabled()) - Number(a.isEnabled()),
-                [Strings.DISABLED]: (a, b) => Number(a.isEnabled()) - Number(b.isEnabled()),
-            }}
+            sortOptions={sortOptions}
             defaultSortKey="Name (A-Z)"
             filterOptions={{
                 [Strings.HIDE_CORE]: p => !p.id.startsWith("core"),
@@ -63,7 +74,7 @@ function PluginPage(props: PluginPageProps) {
             }}
             safeModeHint={{ message: Strings.HINT_SAFE_MODE }}
             defaultFilterKey={Strings.HIDE_CORE}
-            items={reorderedItems}
+            items={filteredItems}
             {...props}
         />
     );
