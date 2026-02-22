@@ -68,15 +68,15 @@ export default function General() {
                             openAlert(
                                 "rain-reload-safe-mode",
                                 <AlertModal
-                                    title="Reload now?"
-                                    content={"You must reload for this to take effect, in safe mode all plugins/themes are disabled"}
+                                    title={Strings.RELOAD_DISCORD}
+                                    content={Strings.SAFE_MODE_REQUIRES_RELOAD}
                                     actions={<AlertActions>
                                         <AlertActionButton
-                                            text="Reload Now"
+                                            text={Strings.RELOAD}
                                             variant="destructive"
                                             onPress={() => BundleUpdaterManager.reload()}
                                         />
-                                        <AlertActionButton text="Later" variant="secondary" />
+                                        <AlertActionButton text={Strings.LATER} variant="secondary" />
                                     </AlertActions>}
                                 />
                             );
