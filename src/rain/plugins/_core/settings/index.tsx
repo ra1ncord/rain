@@ -16,7 +16,7 @@ export default definePlugin({
     description: "injects the settings menu",
     author: [{ name: "cocobo1", id: 767650984175992833n }],
     id: "settings",
-    version: "v1.0.0",
+    version: "1.0.0",
     start() {
         patchAssets(findByPropsLazy("registerAsset"));
         patchSettings();

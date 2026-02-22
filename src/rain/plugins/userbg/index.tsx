@@ -33,7 +33,7 @@ export default definePlugin({
     description: "https://github.com/Discord-Custom-Covers/usrbg#request-your-own-usrbg",
     author: [{ name: "sapphire", id: 757982547861962752n }, { name: "Rico040", id: 619474349845643275n }],
     id: "userbg",
-    version: "v1.0.0",
+    version: "1.0.0",
     start() {
         pluginEnabled = true;
         fetchData();

@@ -307,7 +307,7 @@ export default definePlugin({
     description: "Prevents deleted messages from being lost by storing them in memory",
     author: [{ name: "LampDelivery", id: 650805815623680030n }, { name: "kmmiio99o", id: 879393496627306587n }],
     id: "messagelogger",
-    version: "v2.0.0",
+    version: "2.0.0",
     settings: Settings,
     start() {
         patches.push(patchDeleteAction());

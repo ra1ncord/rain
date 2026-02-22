@@ -91,7 +91,7 @@ export default definePlugin({
     description: "Manage emojis and stickers with ease. Adds context menu options to emojis and stickers.",
     author: [{ name: "LampDelivery", id: 650805815623680030n }, { name: "reyyan1", id: 797034673846747158n }, { name: "sapphire", id: 757982547861962752n }],
     id: "expressionutils",
-    version: "v1.0.0",
+    version: "1.0.0",
 
     async start() {
         try {

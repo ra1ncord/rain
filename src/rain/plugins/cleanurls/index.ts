@@ -16,7 +16,7 @@ export default definePlugin({
     description: "Remove tracking parameters and redirect wrappers from URLs",
     author: [{ name: "nexpid", id: 853550207039832084n }],
     id: "cleanurls",
-    version: "v1.0.0",
+    version: "1.0.0",
     async start() {
         Promise.all([
             waitForHydration(useCleanUrlsSettings),

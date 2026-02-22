@@ -9,7 +9,7 @@ export default definePlugin({
     description: "Customize Discord's appearance with themes and fonts",
     author: [{ name: "cocobo1", id: 767650984175992833n }, { name: "LampDelivery", id: 650805815623680030n }],
     id: "painter",
-    version: "v1.0.0",
+    version: "1.0.0",
     async start() {
         initThemes();
 

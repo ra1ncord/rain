@@ -29,7 +29,7 @@ export default definePlugin({
     description: "Display custom badges from various Discord mod clients",
     author: [{ name: "wolfie", id: 347096063569559553n }],
     id: "globalbadges",
-    version: "v1.0.0",
+    version: "1.0.0",
     start() {
         const badgeProps = {} as Record<string, any>;
 

@@ -15,7 +15,7 @@ export default definePlugin({
     description: "Gives you Client-Side Nitro",
     author: [{ name: "John", id: 780819226839220265n }],
     id: "fakenitro",
-    version: "v1.1.0",
+    version: "1.1.0",
     start() {
         patches.push(...getNitroChecks());
         patches.push(...getSendMessage());

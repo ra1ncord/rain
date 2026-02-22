@@ -10,7 +10,7 @@ export default definePlugin({
     description: "Hides your typing status from others",
     author: [{ name: "redstonekasi", id: 265064055490871297n }],
     id: "silenttyping",
-    version: "v1.0.0",
+    version: "1.0.0",
     start() {
         patches.push(
             instead("startTyping", Typing, () => {}),

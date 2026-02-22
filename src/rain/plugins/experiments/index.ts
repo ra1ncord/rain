@@ -26,7 +26,7 @@ export default definePlugin({
     description: "Enables Discord Staff settings, continue with caution",
     author: [{ name: "cocobo1", id: 767650984175992833n }],
     id: "dummy",
-    version: "v1.0.0",
+    version: "1.0.0",
     start() {
         const targetModule = findByProps("isStaffEnv");
 

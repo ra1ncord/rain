@@ -20,7 +20,7 @@ export default definePlugin({
         { name: "maisy", id: 257109471589957632n },
     ],
     id: "reviewdb",
-    version: "v1.0.0",
+    version: "1.0.0",
     async start() {
         waitForHydration(useReviewDBSettings);
         patches.push(patchProfile());

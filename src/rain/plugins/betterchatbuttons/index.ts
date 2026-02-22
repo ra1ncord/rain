@@ -17,7 +17,7 @@ export default definePlugin({
     description: "Customize all the annoying chat buttons",
     author: [{ name: "palmdevs", id: 629368283354628116n }],
     id: "betterchatbuttons",
-    version: "v1.0.0",
+    version: "1.0.0",
     start() {
         const ChatInputSendButton = findByTypeDisplayName("ChatInputSendButton");
         const ChatInputActions = findByTypeDisplayName("ChatInputActions");

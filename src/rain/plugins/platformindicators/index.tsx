@@ -22,7 +22,7 @@ export default definePlugin({
     description: "Shows platform indicators on users",
     author: [{ name: "MSMA", id: 307215253811363843n }, { name: "kmmiio99o", id: 879393496627306587n }],
     id: "platformindicators",
-    version: "v1.0.0",
+    version: "1.0.0",
     async start() {
         waitForHydration(usePlatformIndicatorSettings);
 

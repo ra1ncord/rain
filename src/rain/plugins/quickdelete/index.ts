@@ -35,7 +35,7 @@ export default definePlugin({
         }
     ],
     id: "quickdelete",
-    version: "v1.0.0",
+    version: "1.0.0",
     async start() {
         waitForHydration(useQuickDeleteSettings);
 

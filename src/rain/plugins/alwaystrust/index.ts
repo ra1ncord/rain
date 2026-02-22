@@ -10,7 +10,7 @@ export default definePlugin({
     description: "Disable the untrusted link popup for every link",
     author: [{ name: "fres", id: 843448897737064448n }],
     id: "alwaystrust",
-    version: "v1.0.0",
+    version: "1.0.0",
     start() {
         patches.push(
             after("isTrustedDomain", MaskedLink, () => {

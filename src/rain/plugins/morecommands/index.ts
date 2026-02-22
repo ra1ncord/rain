@@ -44,7 +44,7 @@ export default definePlugin({
     description: "Additional commands for Discord",
     author: [{ name: "kmmiio99o", id: 879393496627306587n }],
     id: "morecommands",
-    version: "v1.0.0",
+    version: "1.0.0",
     async start() {
         await waitForMoreCommandsSettingsHydration();
 
