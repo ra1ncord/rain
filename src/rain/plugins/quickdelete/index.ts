@@ -1,7 +1,7 @@
 import { instead } from "@api/patcher";
 import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
-import { Developers, Contributors } from "@rain/Developers";
+import { Contributors,Developers } from "@rain/Developers";
 
 import Settings from "./Settings";
 import { quickDeleteSettings } from "./storage";

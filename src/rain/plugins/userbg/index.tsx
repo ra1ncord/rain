@@ -3,7 +3,7 @@ import { safeFetch } from "@lib/utils";
 import { logger } from "@lib/utils/logger";
 import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
-import { Developers, Contributors } from "@rain/Developers";
+import { Contributors,Developers } from "@rain/Developers";
 
 import Settings from "./settings";
 

@@ -3,7 +3,7 @@ import { before } from "@api/patcher";
 import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
-import { Developers, Contributors } from "@rain/Developers";
+import { Contributors,Developers } from "@rain/Developers";
 
 import settings from "./settings";
 import { useActionSheetFinderSettings } from "./storage";

@@ -2,7 +2,7 @@ import { instead } from "@api/patcher";
 import { showToast } from "@api/ui/toasts";
 import { ReactNative as RN } from "@metro/common";
 import { definePlugin, usePluginSettings } from "@plugins";
-import { Developers, Contributors } from "@rain/Developers";
+import { Contributors,Developers } from "@rain/Developers";
 import { Platform } from "react-native";
 
 const patches: any[] = [];

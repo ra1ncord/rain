@@ -1,6 +1,6 @@
 import { definePlugin } from "@plugins";
 import { unpatchAvatar, unpatchBanner } from "@plugins/picturelinks/patches/picturelinks";
-import { Developers, Contributors } from "@rain/Developers";
+import { Contributors,Developers } from "@rain/Developers";
 
 const patches: any[] = [];
 

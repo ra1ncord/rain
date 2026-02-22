@@ -21,7 +21,7 @@ import patcher from "@api/patcher";
 import { logger } from "@lib/utils/logger";
 import { findByProps, findByStoreName } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
-import { Developers, Contributors } from "@rain/Developers";
+import { Contributors,Developers } from "@rain/Developers";
 
 const dialog = findByProps("show", "confirm", "close");
 const relationshipManager = findByProps("addRelationship");

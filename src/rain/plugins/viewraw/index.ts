@@ -1,6 +1,6 @@
 import { definePlugin } from "@plugins";
 import viewraw from "@plugins/viewraw/patches/viewraw";
-import { Developers, Contributors } from "@rain/Developers";
+import { Contributors,Developers } from "@rain/Developers";
 
 const patches: any[] = [];
 

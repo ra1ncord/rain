@@ -1,5 +1,5 @@
 import { definePlugin } from "@plugins";
-import { Developers, Contributors } from "@rain/Developers";
+import { Contributors,Developers } from "@rain/Developers";
 import { Strings } from "@rain/i18n";
 
 import { patchConsole, patchMiscellaneous, patchNetwork, patchSentry } from "./notrack";

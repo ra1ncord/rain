@@ -1,7 +1,7 @@
 import { findByStoreName } from "@metro";
 import { FluxDispatcher, ReactNative } from "@metro/common";
 import { definePlugin } from "@plugins";
-import { Developers, Contributors } from "@rain/Developers";
+import { Contributors,Developers } from "@rain/Developers";
 
 import settings from "./settings";
 import { useMoyaiSettings } from "./storage";

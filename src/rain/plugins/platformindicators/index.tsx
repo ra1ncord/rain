@@ -5,7 +5,7 @@ import { findInReactTree } from "@lib/utils";
 import { findByName,findByProps, findByTypeName, findByTypeNameAll } from "@metro";
 import { ReactNative } from "@metro/common";
 import { definePlugin } from "@plugins";
-import { Developers, Contributors } from "@rain/Developers";
+import { Contributors,Developers } from "@rain/Developers";
 
 import PresenceUpdatedContainer from "./PresenceUpdatedContainer";
 import Settings from "./settings";

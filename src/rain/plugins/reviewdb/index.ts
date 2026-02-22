@@ -1,6 +1,6 @@
 import { waitForHydration } from "@api/storage";
 import { definePlugin } from "@plugins";
-import { Developers, Contributors } from "@rain/Developers";
+import { Contributors,Developers } from "@rain/Developers";
 
 import { getAdmins } from "./lib/api";
 import patchContextMenu from "./patches/patchContextMenu";
