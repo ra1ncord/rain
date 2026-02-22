@@ -61,10 +61,10 @@ function PluginPage(props: PluginPageProps) {
             searchKeywords={[
                 "name",
                 "description",
-                p =>
-                    p.authors
-                        ?.map((a: developer | string) => (typeof a === "string" ? a : a.name))
-                        .join() || "",
+                p => {
+                    const allAuthors = [...(p.developers ?? []), ...(p.contributors ?? [])];
+                    return allAuthors.map((a: developer) => a.name).join() || "";
+                },
             ]}
             sortOptions={sortOptions}
             defaultSortKey="Name (A-Z)"

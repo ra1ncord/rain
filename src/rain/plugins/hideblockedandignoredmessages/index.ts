@@ -1,5 +1,5 @@
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Developers, Contributors } from "@rain/Developers";
 
 import getPatches from "./patches/hidemessages";
 import settings from "./settings";
@@ -9,7 +9,7 @@ const patches: any[] = [];
 export default definePlugin({
     name: "HideBlockedAndIgnoredMessages",
     description: "A plugin that removes the `X blocked or ignored message/s` prompt and replies to the blocked or ignored messages from chat.",
-    author: [Developers.Zykrah, Developers.siguma, Developers.j],
+    author: [Contributors.Zykrah, Contributors.siguma, Developers.j],
     id: "hideblockedandignoredmessages",
     version: "1.0.0",
     start() {

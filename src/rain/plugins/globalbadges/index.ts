@@ -2,7 +2,7 @@ import { after } from "@api/patcher";
 import { onJsxCreate } from "@api/react/jsx";
 import { findByNameLazy } from "@metro";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Contributors } from "@rain/Developers";
 
 import badgeGroups from "./badgeGroups";
 import CustomBadgesSettings from "./settings";
@@ -28,7 +28,7 @@ async function fetchBadges(userId: string): Promise<CustomBadges> {
 export default definePlugin({
     name: "GlobalBadges",
     description: "Display custom badges from various Discord mod clients",
-    author: [Developers.wolfie],
+    author: [Contributors.wolfie],
     id: "globalbadges",
     version: "1.0.0",
     start() {

@@ -1,7 +1,7 @@
 import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Developers, Contributors } from "@rain/Developers";
 
 import patchMessageEmojiActionSheet from "./patchMessageEmojiActionSheet";
 import ExpressionUtilsSettings from "./settings";
@@ -90,7 +90,7 @@ async function cloneEmojiToGuild(emojiId: string, emojiName: string, animated: b
 export default definePlugin({
     name: "ExpressionUtils",
     description: "Manage emojis and stickers with ease. Adds context menu options to emojis and stickers.",
-    author: [Developers.LampDelivery, Developers.reyyan1, Developers.sapphire],
+    author: [Developers.LampDelivery, Developers.reyyan1, Contributors.sapphire],
     id: "expressionutils",
     version: "1.0.0",
 

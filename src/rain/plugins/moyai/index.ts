@@ -1,7 +1,7 @@
 import { findByStoreName } from "@metro";
 import { FluxDispatcher, ReactNative } from "@metro/common";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Developers, Contributors } from "@rain/Developers";
 
 import settings from "./settings";
 import { useMoyaiSettings } from "./storage";
@@ -71,7 +71,7 @@ let soundPrepared = false;
 export default definePlugin({
     name: "Moyai",
     description: "Play a sound when 🗿 emoji is sent or when reaction is added.",
-    author: [Developers.Cynosphere, Developers.kmmiio99o],
+    author: [Contributors.Cynosphere, Developers.kmmiio99o],
     id: "moyai",
     version: "1.0.0",
     start() {

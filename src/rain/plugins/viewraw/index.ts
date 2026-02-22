@@ -1,13 +1,13 @@
 import { definePlugin } from "@plugins";
 import viewraw from "@plugins/viewraw/patches/viewraw";
-import { Developers } from "@rain/Developers";
+import { Developers, Contributors } from "@rain/Developers";
 
 const patches: any[] = [];
 
 export default definePlugin({
     name: "ViewRaw",
     description: "View raw message data",
-    author: [Developers.sapphire, Developers.Vendicated, Developers.Bwlok, Developers.j],
+    author: [Contributors.sapphire, Contributors.Vendicated, Contributors.Bwlok, Developers.j],
     id: "viewraw",
     version: "1.0.0",
     start() {

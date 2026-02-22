@@ -3,7 +3,7 @@ import { safeFetch } from "@lib/utils";
 import { logger } from "@lib/utils/logger";
 import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Developers, Contributors } from "@rain/Developers";
 
 import Settings from "./settings";
 
@@ -32,7 +32,7 @@ export { fetchData };
 export default definePlugin({
     name: "UserBG",
     description: "https://github.com/Discord-Custom-Covers/usrbg#request-your-own-usrbg",
-    author: [Developers.sapphire, Developers.rico040, Developers.kmmiio99o],
+    author: [Contributors.sapphire, Contributors.rico040, Developers.kmmiio99o],
     id: "userbg",
     version: "1.0.0",
     start() {

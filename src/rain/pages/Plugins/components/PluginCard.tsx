@@ -55,9 +55,9 @@ function Authors() {
     const { plugin, result } = useCardContext();
     const styles = usePluginCardStyles();
 
-    if (!plugin.authors) return null;
+    const allAuthors = [...(plugin.developers ?? []), ...(plugin.contributors ?? [])];
+    if (!allAuthors.length) return null;
 
-    // could be empty if the author(s) are irrelevant with the search!
     const highlightedNode = result[2].highlight((m, i) => (
         <Text key={i} style={{ backgroundColor: getHighlightColor() }}>
             {m}
@@ -67,7 +67,7 @@ function Authors() {
     const authorText =
     highlightedNode.length > 0
         ? highlightedNode
-        : plugin.authors.map(a => a.name).join(", ");
+        : allAuthors.map(a => a.name).join(", ");
 
     return (
         <View

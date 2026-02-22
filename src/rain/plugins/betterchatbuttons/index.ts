@@ -3,7 +3,7 @@ import { logger } from "@lib/utils/logger";
 import { findByTypeDisplayName } from "@metro";
 import { ReactNative } from "@metro/common";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Contributors } from "@rain/Developers";
 import React from "react";
 
 import BetterChatButtonsSettings from "./settings";
@@ -16,7 +16,7 @@ const unpatches: Unpatch[] = [];
 export default definePlugin({
     name: "BetterChatButtons",
     description: "Customize all the annoying chat buttons",
-    author: [Developers.palmdevs],
+    author: [Contributors.palmdevs],
     id: "betterchatbuttons",
     version: "1.0.0",
     start() {

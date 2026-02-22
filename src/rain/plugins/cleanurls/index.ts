@@ -1,7 +1,7 @@
 import { waitForHydration } from "@api/storage";
 import { logger } from "@lib/utils/logger";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Contributors } from "@rain/Developers";
 
 import { setupPatches } from "./patcher";
 import { useRulesStore } from "./rulesStore";
@@ -15,7 +15,7 @@ let patches: Unpatch[] = [];
 export default definePlugin({
     name: "CleanURLs",
     description: "Remove tracking parameters and redirect wrappers from URLs",
-    author: [Developers.nexpid],
+    author: [Contributors.nexpid],
     id: "cleanurls",
     version: "1.0.0",
     async start() {

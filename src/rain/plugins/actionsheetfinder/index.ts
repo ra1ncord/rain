@@ -3,7 +3,7 @@ import { before } from "@api/patcher";
 import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Developers, Contributors } from "@rain/Developers";
 
 import settings from "./settings";
 import { useActionSheetFinderSettings } from "./storage";
@@ -29,7 +29,7 @@ function SheetOutput(text: string) {
 export default definePlugin({
     name: "ActionSheetFinder",
     description: "Utility plugin to find ActionSheet key of pressed sheet. Mostly used by developers to find action sheet keys.",
-    author: [Developers.rico040, Developers.byeoon, Developers.kmmiio99o],
+    author: [Contributors.rico040, Contributors.byeoon, Developers.kmmiio99o],
     id: "actionsheetfinder",
     version: "1.0.0",
     devOnly: true,

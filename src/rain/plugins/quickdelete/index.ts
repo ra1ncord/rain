@@ -1,7 +1,7 @@
 import { instead } from "@api/patcher";
 import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Developers, Contributors } from "@rain/Developers";
 
 import Settings from "./Settings";
 import { quickDeleteSettings } from "./storage";
@@ -29,8 +29,8 @@ export default definePlugin({
     name: "QuickDelete",
     description: "Automatically confirm delete popups for messages and embeds",
     author: [
-        Developers.TheSun,
-        Developers.PurpleEye,
+        Contributors.TheSun,
+        Contributors.PurpleEye,
         Developers.kmmiio99o
     ],
     id: "quickdelete",

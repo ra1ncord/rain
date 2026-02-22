@@ -4,7 +4,7 @@ import { showConfirmationAlert } from "@api/ui/alerts";
 import { findByName,findByProps } from "@metro";
 import { constants, React, ReactNative as RN } from "@metro/common";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Developers, Contributors } from "@rain/Developers";
 
 import AlertContent from "./AlertContent";
 import Settings from "./settings";
@@ -34,9 +34,9 @@ export default definePlugin({
     name: "HiddenChannels",
     description: "View hidden channels with permission bypass",
     author: [
-        Developers.cloudburst,
-        Developers.TrainingDummy,
-        Developers.Lioncat6,
+        Contributors.cloudburst,
+        Contributors.TrainingDummy,
+        Contributors.Lioncat6,
         Developers.kmmiio99o
     ],
     id: "hiddenchannels",

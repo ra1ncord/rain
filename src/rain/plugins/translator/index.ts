@@ -1,5 +1,5 @@
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Developers, Contributors } from "@rain/Developers";
 
 import patchActionSheet from "./patches/ActionSheet";
 import Settings from "./settings/index";
@@ -15,10 +15,10 @@ export default definePlugin({
     name: "Translator",
     description: "Translate messages using DeepL or Google Translate",
     author: [
-        Developers.Acquite,
-        Developers.sapphire,
-        Developers.rico040,
-        Developers.chrysoljq,
+        Contributors.Acquite,
+        Contributors.sapphire,
+        Contributors.rico040,
+        Contributors.chrysoljq,
         Developers.kmmiio99o
     ],
     id: "translator",

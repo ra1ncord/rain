@@ -1,7 +1,7 @@
 import { instead } from "@api/patcher";
 import { findByProps } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Contributors } from "@rain/Developers";
 
 const Typing = findByProps("startTyping", "stopTyping");
 const patches: (() => void)[] = [];
@@ -9,7 +9,7 @@ const patches: (() => void)[] = [];
 export default definePlugin({
     name: "SilentTyping",
     description: "Hides your typing status from others",
-    author: [Developers.redstonekasi],
+    author: [Contributors.redstonekasi],
     id: "silenttyping",
     version: "1.0.0",
     start() {

@@ -1,7 +1,7 @@
 import { after } from "@api/patcher";
 import { findByProps } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Contributors } from "@rain/Developers";
 
 const { View } = findByProps("View", "Text");
 const patches: (() => void)[] = [];
@@ -9,7 +9,7 @@ const patches: (() => void)[] = [];
 export default definePlugin({
     name: "Dashless",
     description: "Changes dashes in text channel names to spaces",
-    author: [Developers.Awesomegamergame],
+    author: [Contributors.Awesomegamergame],
     id: "dashless",
     version: "1.0.0",
 

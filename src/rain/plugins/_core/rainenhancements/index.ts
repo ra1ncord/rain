@@ -1,5 +1,5 @@
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Developers, Contributors } from "@rain/Developers";
 import { Strings } from "@rain/i18n";
 
 import { patchConsole, patchMiscellaneous, patchNetwork, patchSentry } from "./notrack";
@@ -12,7 +12,7 @@ let patches: any[] = [];
 export default definePlugin({
     name: Strings.PLUGIN__CORE_RAINENHANCEMENTS,
     description: Strings.PLUGIN__CORE_RAINENHANCEMENTS_DESC,
-    author: [Developers.cocobo1, Developers.j, Developers.rico040, Developers.redstonekasi],
+    author: [Developers.cocobo1, Developers.j, Contributors.rico040, Contributors.redstonekasi],
     id: "rainenhancements",
     version: "1.0.0",
     start() {

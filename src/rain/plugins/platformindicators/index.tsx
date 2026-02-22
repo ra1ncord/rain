@@ -5,7 +5,7 @@ import { findInReactTree } from "@lib/utils";
 import { findByName,findByProps, findByTypeName, findByTypeNameAll } from "@metro";
 import { ReactNative } from "@metro/common";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Developers, Contributors } from "@rain/Developers";
 
 import PresenceUpdatedContainer from "./PresenceUpdatedContainer";
 import Settings from "./settings";
@@ -21,7 +21,7 @@ const unpatches: Unpatch[] = [];
 export default definePlugin({
     name: "PlatformIndicators",
     description: "Shows platform indicators on users",
-    author: [Developers.MSMA, Developers.kmmiio99o],
+    author: [Contributors.MSMA, Developers.kmmiio99o],
     id: "platformindicators",
     version: "1.0.0",
     async start() {

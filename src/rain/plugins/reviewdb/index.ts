@@ -1,6 +1,6 @@
 import { waitForHydration } from "@api/storage";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Developers, Contributors } from "@rain/Developers";
 
 import { getAdmins } from "./lib/api";
 import patchContextMenu from "./patches/patchContextMenu";
@@ -18,7 +18,7 @@ export default definePlugin({
     description: "Display and post reviews on user profiles.",
     author: [
         Developers.John,
-        Developers.maisy
+        Contributors.maisy
     ],
     id: "reviewdb",
     version: "1.0.0",

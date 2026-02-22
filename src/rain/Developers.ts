@@ -13,6 +13,21 @@ export const Developers = {
         name: "j",
         id: 1356632712861192242n,
     },
+    kmmiio99o: {
+        name: "kmmiio99o",
+        id: 879393496627306587n,
+    },
+    reyyan1: {
+        name: "reyyan1",
+        id: 797034673846747158n,
+    },
+    John: {
+        name: "John",
+        id: 780819226839220265n,
+    }
+} satisfies Record<string, developer>;
+
+export const Contributors = {
     rico040: {
         name: "rico040",
         id: 619474349845643275n,
@@ -25,10 +40,6 @@ export const Developers = {
         name: "byeoon",
         id: 1167275288036655133n,
     },
-    kmmiio99o: {
-        name: "kmmiio99o",
-        id: 879393496627306587n,
-    },
     fres: {
         name: "fres",
         id: 843448897737064448n,
@@ -36,10 +47,6 @@ export const Developers = {
     palmdevs: {
         name: "palmdevs",
         id: 629368283354628116n,
-    },
-    reyyan1: {
-        name: "reyyan1",
-        id: 797034673846747158n,
     },
     Narwhal: {
         name: "Narwhal",
@@ -56,10 +63,6 @@ export const Developers = {
     sapphire: {
         name: "sapphire",
         id: 757982547861962752n,
-    },
-    John: {
-        name: "John",
-        id: 780819226839220265n,
     },
     wolfie: {
         name: "wolfie",
