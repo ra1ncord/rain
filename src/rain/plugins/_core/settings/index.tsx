@@ -33,7 +33,7 @@ function initSettings() {
         items: [
             {
                 key: "RAIN",
-                title: () => "Rain",
+                title: () => Strings.RAIN,
                 icon: { uri: RainIcon },
                 render: () => import("@rain/pages/Rain"),
                 useTrailing: () => `(${version})`
