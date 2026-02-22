@@ -17,7 +17,7 @@ const { AlertModal, AlertActionButton } = lazyDestructure(() => findByProps("Ale
 
 function promptDetachConfirmationForThen(fontName: string | undefined, cb: () => void) {
     const currentFonts = useFonts.getState().fonts;
-    if (fontName && currentFonts[fontName].source) openAlert("revenge-fonts-detach-source-confirmation", <AlertModal
+    if (fontName && currentFonts[fontName].source) openAlert("rain-fonts-detach-source-confirmation", <AlertModal
         title={Strings.FONTS_DETACH_URL}
         content={Strings.FONTS_DETACH_URL_DESC}
         actions={
