@@ -14,6 +14,7 @@ import { petPetCommand } from "./src/commands/petpet";
 import { spotifyAlbumCommand, spotifyArtistsCommand, spotifyCoverCommand,spotifyTrackCommand } from "./src/commands/spotify";
 import { sysinfoCommand } from "./src/commands/sysinfo";
 import { useMoreCommandsSettings, waitForMoreCommandsSettingsHydration } from "./storage";
+import {Developers} from "@rain/Developers";
 
 const commandMap = {
     catfact: catFactCommand,
@@ -42,7 +43,7 @@ let commands: Array<() => void> = [];
 export default definePlugin({
     name: "MoreCommands",
     description: "Additional commands for Discord",
-    author: [{ name: "kmmiio99o", id: 879393496627306587n }],
+    author: [Developers.kmmiio99o],
     id: "morecommands",
     version: "1.0.0",
     async start() {

@@ -4,6 +4,7 @@ import { findByNameLazy } from "@metro";
 import { definePlugin } from "@plugins";
 import { Strings } from "@rain/i18n";
 import { useEffect, useState } from "react";
+import { Developers } from "@rain/Developers";
 
 interface Badge {
     label: string;
@@ -15,7 +16,7 @@ const useBadgesModule = findByNameLazy("useBadges", false);
 export default definePlugin({
     name: Strings.PLUGIN__CORE_BADGES,
     description: Strings.PLUGIN__CORE_BADGES_DESC,
-    author: [{ name: "cocobo1", id: 767650984175992833n }],
+    author: [Developers.cocobo1],
     id: "badges",
     version: "1.1.0",
     start() {

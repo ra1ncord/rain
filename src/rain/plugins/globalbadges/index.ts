@@ -7,6 +7,7 @@ import badgeGroups from "./badgeGroups";
 import CustomBadgesSettings from "./settings";
 import { customBadgesSettings } from "./storage";
 import { CustomBadges } from "./types";
+import {Developers} from "@rain/Developers";
 
 const useBadgesModule = findByNameLazy("useBadges", false);
 
@@ -27,7 +28,7 @@ async function fetchBadges(userId: string): Promise<CustomBadges> {
 export default definePlugin({
     name: "GlobalBadges",
     description: "Display custom badges from various Discord mod clients",
-    author: [{ name: "wolfie", id: 347096063569559553n }],
+    author: [Developers.wolfie],
     id: "globalbadges",
     version: "1.0.0",
     start() {

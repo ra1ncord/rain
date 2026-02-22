@@ -8,6 +8,7 @@ import { UserStore } from "./modules";
 import { serviceFactory } from "./services/ServiceFactory";
 import { currentSettings, pluginState, useMultiScrobblerSettings } from "./storage";
 import Settings from "./ui/pages/Settings";
+import {Developers} from "@rain/Developers";
 
 export { currentSettings,pluginState };
 
@@ -90,7 +91,7 @@ async function validateAndInitialize() {
 export default definePlugin({
     name: "MultiScrobbler",
     description: "Show off your music status from Last.fm, Libre.fm, or ListenBrainz on your Discord profile.",
-    author: [{ name: "kmmiio99o", id: 879393496627306587n }],
+    author: [Developers.kmmiio99o],
     id: "multiscrobbler",
     version: "1.0.0",
 

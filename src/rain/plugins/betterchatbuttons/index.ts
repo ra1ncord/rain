@@ -7,6 +7,7 @@ import React from "react";
 
 import BetterChatButtonsSettings from "./settings";
 import { useBetterChatButtonsSettings } from "./storage";
+import {Developers} from "@rain/Developers";
 
 type Unpatch = () => void;
 
@@ -15,7 +16,7 @@ const unpatches: Unpatch[] = [];
 export default definePlugin({
     name: "BetterChatButtons",
     description: "Customize all the annoying chat buttons",
-    author: [{ name: "palmdevs", id: 629368283354628116n }],
+    author: [Developers.palmdevs],
     id: "betterchatbuttons",
     version: "1.0.0",
     start() {

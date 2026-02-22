@@ -6,6 +6,7 @@ import { definePlugin } from "@plugins";
 
 import Settings from "./settings";
 import { useMessageLoggerSettings } from "./storage";
+import {Developers} from "@rain/Developers";
 
 let patches: Array<() => void> = [];
 const selfDeletedMessages = new Set<string>();
@@ -307,7 +308,7 @@ function patchDeleteAction() {
 export default definePlugin({
     name: "MessageLogger",
     description: "Prevents deleted messages from being lost by storing them in memory",
-    author: [{ name: "LampDelivery", id: 650805815623680030n }, { name: "kmmiio99o", id: 879393496627306587n }],
+    author: [Developers.LampDelivery, Developers.kmmiio99o],
     id: "messagelogger",
     version: "2.0.0",
     settings: Settings,

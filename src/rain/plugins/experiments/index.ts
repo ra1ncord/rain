@@ -2,6 +2,7 @@ import { patcher } from "@api";
 import { findByProps, findByStoreName } from "@metro";
 import { UserStore } from "@metro/common/stores";
 import { definePlugin } from "@plugins";
+import {Developers} from "@rain/Developers";
 
 let unpatchIsStaffEnv;
 let unpatchDevStoreProps;
@@ -24,7 +25,7 @@ function reinitStore() {
 export default definePlugin({
     name: "Experiments",
     description: "Enables Discord Staff settings, continue with caution",
-    author: [{ name: "cocobo1", id: 767650984175992833n }],
+    author: [Developers.cocobo1],
     id: "dummy",
     version: "1.0.0",
     start() {

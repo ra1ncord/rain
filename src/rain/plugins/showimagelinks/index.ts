@@ -1,13 +1,14 @@
 import { definePlugin } from "@plugins";
 
 import { onLoad } from "./patches/showimagelinks";
+import {Developers} from "@rain/Developers";
 
 const patches: any[] = [];
 
 export default definePlugin({
     name: "ShowImageLinks",
     description: "Shows image links if the message is just a linked image.",
-    author: [ { name: "Cynosphere", id: 150745989836308480n } ],
+    author: [Developers.Cynosphere],
     id: "showimagelinks",
     version: "1.0.0",
     start() {

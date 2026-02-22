@@ -3,6 +3,7 @@ import { showToast } from "@api/ui/toasts";
 import { ReactNative as RN } from "@metro/common";
 import { definePlugin, usePluginSettings } from "@plugins";
 import { Platform } from "react-native";
+import {Developers} from "@rain/Developers";
 
 const patches: any[] = [];
 
@@ -10,8 +11,8 @@ export default definePlugin({
     name: "BluetoothAudioFix",
     description: "Prevents Discord from enabling handsfree mode while in a call",
     author: [
-        { name: "Narwhal", id: 455429792871874581n },
-        { name: "redstonekasi", id: 265064055490871297n }
+        Developers.Narwhal,
+        Developers.redstonekasi
     ],
     id: "bluetoothaudiofix",
     version: "1.0.0",

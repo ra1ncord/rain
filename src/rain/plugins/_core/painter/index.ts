@@ -4,11 +4,12 @@ import { definePlugin } from "@plugins";
 import { initFonts } from "./fonts";
 import { initThemes } from "./themes";
 import { Strings } from "@rain/i18n";
+import {Developers} from "@rain/Developers";
 
 export default definePlugin({
     name: Strings.PLUGIN__CORE_PAINTER,
     description: Strings.PLUGIN__CORE_PAINTER_DESC,
-    author: [{ name: "cocobo1", id: 767650984175992833n }, { name: "LampDelivery", id: 650805815623680030n }],
+    author: [Developers.cocobo1, Developers.LampDelivery],
     id: "painter",
     version: "1.0.0",
     async start() {

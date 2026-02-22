@@ -8,6 +8,7 @@ import { definePlugin } from "@plugins";
 import AlertContent from "./AlertContent";
 import Settings from "./settings";
 import { hiddenChannelsSettings } from "./storage";
+import {Developers} from "@rain/Developers";
 
 const Permissions = findByProps("getChannelPermissions", "can");
 const { ChannelTypes } = findByProps("ChannelTypes");
@@ -33,9 +34,9 @@ export default definePlugin({
     name: "HiddenChannels",
     description: "View hidden channels with permission bypass",
     author: [
-        { name: "cloudburst", id: 892128204150685769n },
-        { name: "Training Dummy", id: 601137505739472908n },
-        { name: "Lioncat6", id: 917903273514663957n }
+        Developers.cloudburst,
+        Developers.TrainingDummy,
+        Developers.Lioncat6
     ],
     id: "hiddenchannels",
     version: "1.0.0",

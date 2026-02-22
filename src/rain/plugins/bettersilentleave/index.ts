@@ -6,6 +6,7 @@ import { findByProps } from "@metro";
 import { ActionSheet, ActionSheetRow } from "@metro/common/components";
 import { definePlugin } from "@plugins";
 import { ReactElement } from "react";
+import {Developers} from "@rain/Developers";
 
 const patches: (() => void)[] = [];
 const APIUtils = findByProps("getAPIBaseURL", "del");
@@ -13,7 +14,7 @@ const APIUtils = findByProps("getAPIBaseURL", "del");
 export default definePlugin({
     name: "SilentLeave",
     description: "Adds a button to leave groups silently.",
-    author: [{ name: "reyyan1", id: 797034673846747158n }],
+    author: [Developers.reyyan1],
     id: "silentleave",
     version: "1.0.0",
     start() {

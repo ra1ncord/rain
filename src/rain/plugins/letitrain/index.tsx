@@ -3,13 +3,14 @@ import { definePlugin } from "@plugins";
 
 import RainOverlay from "./RainOverlay";
 import settings from "./settings";
+import {Developers} from "@rain/Developers";
 
 const patches: (() => void)[] = [];
 
 export default definePlugin({
     name: "LetItRain",
     description: "rain tomorrow btw",
-    author: [{ name: "LampDelivery", id: 650805815623680030n }],
+    author: [Developers.LampDelivery],
     id: "letitrain",
     version: "1.0.0",
 

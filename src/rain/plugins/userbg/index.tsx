@@ -5,6 +5,7 @@ import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
 
 import Settings from "./settings";
+import {Developers} from "@rain/Developers";
 
 interface userBGData {
     endpoint: string;
@@ -31,7 +32,7 @@ export { fetchData };
 export default definePlugin({
     name: "UserBG",
     description: "https://github.com/Discord-Custom-Covers/usrbg#request-your-own-usrbg",
-    author: [{ name: "sapphire", id: 757982547861962752n }, { name: "Rico040", id: 619474349845643275n }],
+    author: [Developers.sapphire, Developers.rico040],
     id: "userbg",
     version: "1.0.0",
     start() {

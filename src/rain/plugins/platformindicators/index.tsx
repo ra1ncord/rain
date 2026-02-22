@@ -10,6 +10,7 @@ import PresenceUpdatedContainer from "./PresenceUpdatedContainer";
 import Settings from "./settings";
 import StatusIcons from "./StatusIcons";
 import { platformIndicatorSettings,usePlatformIndicatorSettings } from "./storage";
+import {Developers} from "@rain/Developers";
 
 const { View, Text } = ReactNative;
 
@@ -20,7 +21,7 @@ const unpatches: Unpatch[] = [];
 export default definePlugin({
     name: "PlatformIndicators",
     description: "Shows platform indicators on users",
-    author: [{ name: "MSMA", id: 307215253811363843n }, { name: "kmmiio99o", id: 879393496627306587n }],
+    author: [Developers.MSMA, Developers.kmmiio99o],
     id: "platformindicators",
     version: "1.0.0",
     async start() {

@@ -21,6 +21,7 @@ import patcher from "@api/patcher";
 import { logger } from "@lib/utils/logger";
 import { findByProps, findByStoreName } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
+import {Developers} from "@rain/Developers";
 
 const dialog = findByProps("show", "confirm", "close");
 const relationshipManager = findByProps("addRelationship");
@@ -33,7 +34,7 @@ const patches: (() => void)[] = [];
 export default definePlugin({
     name: "MoreConfirm",
     description: "Prompts confirmations before making irreversible actions.",
-    author: [{ name: "pylix", id: 492949202121261067n }],
+    author: [Developers.pylix],
     id: "moreconfirm",
     version: "1.0.0",
 
