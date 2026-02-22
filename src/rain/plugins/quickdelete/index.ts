@@ -30,7 +30,8 @@ export default definePlugin({
     description: "Automatically confirm delete popups for messages and embeds",
     author: [
         Developers.TheSun,
-        Developers.PurpleEye
+        Developers.PurpleEye,
+        Developers.kmmiio99o
     ],
     id: "quickdelete",
     version: "1.0.0",

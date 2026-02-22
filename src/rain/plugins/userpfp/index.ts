@@ -13,7 +13,7 @@ let unpatch: (() => void) | undefined;
 export default definePlugin({
     name: "UserPFP",
     description: "https://userpfp.github.io/UserPFP/#using-userpfp",
-    author: [Developers.nexpid],
+    author: [Developers.nexpid, Developers.kmmiio99o],
     id: "userpfp",
     version: "1.0.0",
     settings: Settings,

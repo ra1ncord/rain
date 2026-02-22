@@ -7,7 +7,7 @@ const patches: any[] = [];
 export default definePlugin({
     name: "PictureLinks",
     description: "Allows you to click on profile pictures and banners.",
-    author: [Developers.redstonekasi, Developers.rico040 ],
+    author: [Developers.redstonekasi, Developers.rico040, Developers.reyyan1],
     id: "picturelinks",
     version: "1.0.0",
     start() {

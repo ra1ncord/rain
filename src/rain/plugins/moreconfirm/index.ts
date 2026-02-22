@@ -34,7 +34,7 @@ const patches: (() => void)[] = [];
 export default definePlugin({
     name: "MoreConfirm",
     description: "Prompts confirmations before making irreversible actions.",
-    author: [Developers.pylix],
+    author: [Developers.pylix, Developers.j],
     id: "moreconfirm",
     version: "1.0.0",
 

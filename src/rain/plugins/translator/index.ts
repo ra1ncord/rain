@@ -18,7 +18,8 @@ export default definePlugin({
         Developers.Acquite,
         Developers.sapphire,
         Developers.rico040,
-        Developers.chrysoljq
+        Developers.chrysoljq,
+        Developers.kmmiio99o
     ],
     id: "translator",
     version: "1.0.0",

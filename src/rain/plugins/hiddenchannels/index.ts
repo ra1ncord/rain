@@ -36,7 +36,8 @@ export default definePlugin({
     author: [
         Developers.cloudburst,
         Developers.TrainingDummy,
-        Developers.Lioncat6
+        Developers.Lioncat6,
+        Developers.kmmiio99o
     ],
     id: "hiddenchannels",
     version: "1.0.0",

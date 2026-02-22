@@ -7,7 +7,7 @@ const patches: any[] = [];
 export default definePlugin({
     name: "ViewRaw",
     description: "View raw message data",
-    author: [Developers.sapphire, Developers.Vendicated, Developers.Bwlok],
+    author: [Developers.sapphire, Developers.Vendicated, Developers.Bwlok, Developers.j],
     id: "viewraw",
     version: "1.0.0",
     start() {

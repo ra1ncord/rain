@@ -12,7 +12,8 @@ export default definePlugin({
     description: "Prevents Discord from enabling handsfree mode while in a call",
     author: [
         Developers.Narwhal,
-        Developers.redstonekasi
+        Developers.redstonekasi,
+        Developers.reyyan1
     ],
     id: "bluetoothaudiofix",
     version: "1.0.0",

@@ -8,7 +8,7 @@ const patches: any[] = [];
 export default definePlugin({
     name: "ShowImageLinks",
     description: "Shows image links if the message is just a linked image.",
-    author: [Developers.Cynosphere],
+    author: [Developers.Cynosphere, Developers.reyyan1],
     id: "showimagelinks",
     version: "1.0.0",
     start() {

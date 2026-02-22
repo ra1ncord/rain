@@ -32,7 +32,7 @@ export { fetchData };
 export default definePlugin({
     name: "UserBG",
     description: "https://github.com/Discord-Custom-Covers/usrbg#request-your-own-usrbg",
-    author: [Developers.sapphire, Developers.rico040],
+    author: [Developers.sapphire, Developers.rico040, Developers.kmmiio99o],
     id: "userbg",
     version: "1.0.0",
     start() {
