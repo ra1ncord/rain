@@ -105,16 +105,14 @@ const Actions = () => {
 
     return (
         <View style={{ flexDirection: "row", gap: 6 }}>
-            {isPinned && (
-                <IconButton
-                    size="sm"
-                    variant="secondary"
-                    icon={findAssetId("PinIcon")}
-                    onPress={() => {
-                        togglePinnedPlugin(plugin.id);
-                    }}
-                />
-            )}
+            <IconButton style={{ opacity: isPinned ? 1 : 0, pointerEvents: isPinned ? "auto" : "none", paddingRight: 5 }}
+                size="sm"
+                variant="secondary"
+                icon={findAssetId("PinIcon")}
+                onPress={() => {
+                    togglePinnedPlugin(plugin.id);
+                }}
+            />
             <IconButton
                 size="sm"
                 variant="secondary"
