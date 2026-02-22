@@ -4,6 +4,7 @@ import { definePlugin } from "@plugins";
 
 import Settings from "./settings";
 import patcher, { fetchData,setPluginEnabled } from "./stuff/patcher";
+import {Developers} from "@rain/Developers";
 
 export { fetchData };
 
@@ -12,7 +13,7 @@ let unpatch: (() => void) | undefined;
 export default definePlugin({
     name: "UserPFP",
     description: "https://userpfp.github.io/UserPFP/#using-userpfp",
-    author: [{ name: "nexpid", id: 853550207039832084n }],
+    author: [Developers.nexpid, Developers.kmmiio99o],
     id: "userpfp",
     version: "1.0.0",
     settings: Settings,

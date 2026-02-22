@@ -5,6 +5,7 @@ import { definePlugin } from "@plugins";
 import patchMessageEmojiActionSheet from "./patchMessageEmojiActionSheet";
 import ExpressionUtilsSettings from "./settings";
 import { patchStickerActionSheet } from "./stickerutils";
+import {Developers} from "@rain/Developers";
 
 type Unpatch = () => void;
 
@@ -89,7 +90,7 @@ async function cloneEmojiToGuild(emojiId: string, emojiName: string, animated: b
 export default definePlugin({
     name: "ExpressionUtils",
     description: "Manage emojis and stickers with ease. Adds context menu options to emojis and stickers.",
-    author: [{ name: "LampDelivery", id: 650805815623680030n }, { name: "reyyan1", id: 797034673846747158n }, { name: "sapphire", id: 757982547861962752n }],
+    author: [Developers.LampDelivery, Developers.reyyan1, Developers.sapphire],
     id: "expressionutils",
     version: "1.0.0",
 

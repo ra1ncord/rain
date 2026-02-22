@@ -5,6 +5,7 @@ import { definePlugin } from "@plugins";
 import React from "react";
 import ChatboxAvatarSettings from "./settings";
 import { useChatboxAvatarSettings } from "./storage";
+import {Developers} from "@rain/Developers";
 
 const Flux = findByProps("useStateFromStores");
 const ChatInputActions = findByTypeDisplayName("ChatInputActions");
@@ -103,7 +104,7 @@ const unpatches: (() => void)[] = [];
 export default definePlugin({
   name: "ChatboxAvatar",
   description: "Adds your avatar to the chatbox.",
-  author: [{ name: "LampDelivery", id: 650805815623680030n }],
+  author: [Developers.LampDelivery],
   id: "chatboxavatar",
   version: "v1.0.0",
   settings: ChatboxAvatarSettings,

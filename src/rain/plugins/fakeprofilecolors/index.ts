@@ -105,13 +105,14 @@ function patchUserProfileEditForm() {
 }
 
 import Settings from "./settings";
+import {Developers} from "@rain/Developers";
 
 export default definePlugin({
     name: "FakeProfileColors",
     description: "Set fake profile colors for yourself",
     id: "fakeprofilecolors",
     version: "1.0.0",
-    author: [{ name: "LampDelivery", id: 650805815623680030n }],
+    author: [Developers.LampDelivery],
     start() {
         patchUseProfileTheme();
         patchGetUserProfile();

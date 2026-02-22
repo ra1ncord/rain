@@ -8,6 +8,7 @@ import { definePlugin } from "@plugins";
 
 import settings from "./settings";
 import { hidecallbuttonsSettings, useHideCallButtonsSettings } from "./storage";
+import {Developers} from "@rain/Developers";
 
 const patches: (() => boolean)[] = [];
 const find = (filter: (m: any) => boolean) => {
@@ -22,7 +23,7 @@ const find = (filter: (m: any) => boolean) => {
 export default definePlugin({
     name: "HideCallButtons",
     description: "Hides call buttons from dms, user profiles and vcs",
-    author: [{ name: "John", id: 780819226839220265n }],
+    author: [Developers.John],
     id: "hidecallbuttons",
     version: "1.0.0",
     async start() {

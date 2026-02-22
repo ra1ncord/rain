@@ -7,13 +7,14 @@ import getNitroThemes from "./patches/nitroThemes";
 import getRemoveGetNitroButton from "./patches/removeGetNitroButton";
 import getSendMessage from "./patches/sendMessage";
 import settings from "./settings";
+import {Developers} from "@rain/Developers";
 
 const patches: any[] = [];
 
 export default definePlugin({
     name: "FakeNitro",
     description: "Gives you Client-Side Nitro",
-    author: [{ name: "John", id: 780819226839220265n }, { name: "cocobo1", id: 767650984175992833n }, { name: "kmmiio99o", id: 879393496627306587n }, { name: "LampDelivery", id: 650805815623680030n }],
+    author: [Developers.John, Developers.cocobo1, Developers.kmmiio99o, Developers.LampDelivery, Developers.j],
     id: "fakenitro",
     version: "1.1.0",
     start() {

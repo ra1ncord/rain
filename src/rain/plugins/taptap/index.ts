@@ -7,6 +7,7 @@ import { definePlugin } from "@plugins";
 
 import TapTapSettings from "./settings";
 import { taptapSettings, useTapTapSettings } from "./storage";
+import {Developers} from "@rain/Developers";
 
 type Unpatch = () => void;
 
@@ -351,7 +352,7 @@ function resolveRuntimeModules() {
 export default definePlugin({
     name: "TapTap",
     description: "Double-tap others to reply, Double-tap self to edit",
-    author: [{ name: "LampDelivery", id: 650805815623680030n }],
+    author: [Developers.LampDelivery],
     id: "taptap",
     version: "1.0.0",
     async start() {

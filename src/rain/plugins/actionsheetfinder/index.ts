@@ -6,6 +6,7 @@ import { definePlugin } from "@plugins";
 
 import settings from "./settings";
 import { useActionSheetFinderSettings } from "./storage";
+import {Developers} from "@rain/Developers";
 
 const LazyActionSheet = findByProps("openLazy", "hideActionSheet");
 
@@ -28,7 +29,7 @@ function SheetOutput(text: string) {
 export default definePlugin({
     name: "ActionSheetFinder",
     description: "Utility plugin to find ActionSheet key of pressed sheet. Mostly used by developers to find action sheet keys.",
-    author: [{ name: "Rico040", id: 619474349845643275n }, { name: "byeoon", id: 1167275288036655133n }, { name: "kmmiio99o", id: 879393496627306587n }],
+    author: [Developers.rico040, Developers.byeoon, Developers.kmmiio99o],
     id: "actionsheetfinder",
     version: "1.0.0",
     devOnly: true,

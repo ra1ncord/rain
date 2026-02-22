@@ -4,6 +4,7 @@ import { definePlugin } from "@plugins";
 
 import Settings from "./Settings";
 import { quickDeleteSettings } from "./storage";
+import {Developers} from "@rain/Developers";
 
 const { intl, t: intlMap } = findByProps("intl");
 
@@ -28,14 +29,9 @@ export default definePlugin({
     name: "QuickDelete",
     description: "Automatically confirm delete popups for messages and embeds",
     author: [
-        {
-            name: "The Sun",
-            id: 406028027768733696n
-        },
-        {
-            name: "Purple_Ξye™",
-            id: 646535537334812682n
-        }
+        Developers.TheSun,
+        Developers.PurpleEye,
+        Developers.kmmiio99o
     ],
     id: "quickdelete",
     version: "1.0.0",

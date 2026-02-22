@@ -8,6 +8,7 @@ import patchServer from "./patches/patchServer";
 import patchSimplifiedProfile from "./patches/patchSimplifiedProfile";
 import Settings from "./Settings";
 import { useReviewDBSettings } from "./storage";
+import {Developers} from "@rain/Developers";
 
 const patches: (() => boolean)[] = [];
 export const admins: any[] = [];
@@ -16,8 +17,8 @@ export default definePlugin({
     name: "ReviewDB",
     description: "Display and post reviews on user profiles.",
     author: [
-        { name: "John", id: 780819226839220265n },
-        { name: "maisy", id: 257109471589957632n },
+        Developers.John,
+        Developers.maisy
     ],
     id: "reviewdb",
     version: "1.0.0",

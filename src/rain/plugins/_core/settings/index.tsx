@@ -11,11 +11,12 @@ import type { ImageURISource } from "react-native";
 
 import { patchTabsUI } from "./patches/tabs";
 import settings from "./settings";
+import {Developers} from "@rain/Developers";
 
 export default definePlugin({
     name: Strings.PLUGIN__CORE_SETTINGS,
     description: Strings.PLUGIN__CORE_SETTINGS_DESC,
-    author: [{ name: "cocobo1", id: 767650984175992833n }],
+    author: [Developers.cocobo1],
     id: "settings",
     version: "1.0.0",
     start() {
