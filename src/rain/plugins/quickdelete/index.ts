@@ -52,40 +52,32 @@ export default definePlugin({
                 message: "Delete Message",
             };
         }
-        
-        console.log("[QuickDelete] Starting...");
+
         const Popup = findByProps("show", "openLazy");
-        console.log("[QuickDelete] Popup found:", !!Popup);
         if (!Popup) return;
 
         unpatch = instead("show", Popup, (args, fn) => {
             const popup = args?.[0];
-            console.log("[QuickDelete] Popup:", popup);
             const title = popup?.title;
             const body = popup?.children?.props?.message?.content;
-            console.log("[QuickDelete] title:", title, "body:", body);
 
             if (
                 !popup?.onConfirm ||
                 typeof popup.onConfirm !== 'function' ||
                 (typeof title !== 'string' && typeof body !== 'string')
-            ) {
-                console.log("[QuickDelete] Skipping - not a delete popup");
+            ) {;
                 return fn(...args)
             }
 
             const shouldConfirm = (type: "message" | "embed") => {
                 const matcher = autoConfirmMessages[type];
-                console.log("[QuickDelete] matcher:", matcher, "setting:", quickDeleteSettings[KEYS[type].storage]);
                 if (!matcher) return false;
 
                 const match = title?.includes(matcher) || body?.includes(matcher);
-                console.log("[QuickDelete] match:", match);
                 return quickDeleteSettings[KEYS[type].storage] && match;
             };
 
             const result = shouldConfirm("message") || shouldConfirm("embed");
-            console.log("[QuickDelete] result:", result);
             return result ? popup.onConfirm() : fn(...args);
         });
     },
