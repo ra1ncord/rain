@@ -9,7 +9,7 @@ export default definePlugin({
     description: "Shows image links if the message is just a linked image.",
     author: [ { name: "Cynosphere", id: 150745989836308480n } ],
     id: "showimagelinks",
-    version: "v1.0.0",
+    version: "1.0.0",
     start() {
         patches.push(
             onLoad()

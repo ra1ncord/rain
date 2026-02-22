@@ -353,7 +353,7 @@ export default definePlugin({
     description: "Double-tap others to reply, Double-tap self to edit",
     author: [{ name: "LampDelivery", id: 650805815623680030n }],
     id: "taptap",
-    version: "v1.0.0",
+    version: "1.0.0",
     async start() {
         waitForHydration(useTapTapSettings);
 

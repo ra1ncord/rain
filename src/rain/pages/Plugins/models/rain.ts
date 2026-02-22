@@ -20,6 +20,7 @@ export default function unifyRainPlugin(
         authors: manifest.author,
         isEnabled: () => isPluginEnabled(manifest.id),
         isCore: () => isPluginCore(manifest.id),
+        devOnly: manifest.devOnly,
         toggle(start: boolean) {
             try {
                 start ? startPlugin(manifest.id) : stopPlugin(manifest.id);

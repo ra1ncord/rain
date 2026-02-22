@@ -1,7 +1,6 @@
 import { findAssetId } from "@api/assets";
 import { semanticColors } from "@api/ui/components/color";
-import { ReactNative as RN } from "@metro/common";
-import { NavigationNative } from "@metro/common";
+import { NavigationNative, ReactNative as RN } from "@metro/common";
 import { Stack, TableRow, TableRowGroup,TableSwitchRow } from "@metro/common/components";
 
 import { useMoreCommandsSettings } from "../../storage";

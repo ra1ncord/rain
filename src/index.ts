@@ -1,4 +1,5 @@
 import { initEagerPlugins, initPlugins } from "@plugins/index";
+import { initFetchI18nStrings } from "@i18n";
 
 import { patchLogHook } from "./api/debug";
 import { injectFluxInterceptor } from "./api/flux";
@@ -10,11 +11,12 @@ export default async () => {
         patchLogHook(),
         patchJsx(),
         injectFluxInterceptor(),
-        window.rain = lib
+        window.rain = lib,
     ]);
 
     const core = await Promise.all([
         initEagerPlugins(),
+        initFetchI18nStrings(),
     ]);
 
     critical.forEach(f => { if (f !== undefined) lib.unload.push(f); });

@@ -1,3 +1,4 @@
+import { Strings } from "@i18n";
 import { findAssetId } from "@api/assets";
 import { connectToDebugger, disconnectFromDebugger, isConnectedToDebugger } from "@api/debug";
 import { getReactDevToolsProp, isLoaderConfigSupported, isReactDevToolsPreloaded } from "@api/native/loader";
@@ -61,7 +62,7 @@ export default function Developer() {
             <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 38 }}>
                 <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
 
-                    <TableRowGroup title={"Strings.DEBUGGER_URL"}>
+                    <TableRowGroup title={Strings.DEBUGGER_URL}>
                         <TextInput
                             placeholder="127.0.0.1:9090"
                             size="md"
@@ -71,22 +72,22 @@ export default function Developer() {
                         />
                         <Stack style={{ marginTop: 4, borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: "hidden" }}>
                             <TableSwitchRow
-                                label={"Strings.AUTO_DEBUGGER"}
-                                subLabel={isDebuggerConnected ? "Connected" : undefined}
+                                label={Strings.AUTO_DEBUGGER}
+                                subLabel={isDebuggerConnected ? Strings.CONNECTED : undefined}
                                 icon={<TableRow.Icon source={findAssetId("copy")} />}
                                 value={settings.autoDebugger}
                                 onValueChange={(v: boolean) => settings.updateSettings({ autoDebugger: v })}
                             />
                         </Stack>
                         <TableRow
-                            label={isDebuggerConnected ? "Disconnect from Debugger" : "Strings.CONNECT_TO_DEBUG_WEBSOCKET"}
+                            label={isDebuggerConnected ? Strings.DISCONNECT_FROM_DEBUGGER : Strings.CONNECT_TO_DEBUG_WEBSOCKET}
                             icon={<TableRow.Icon source={findAssetId(isDebuggerConnected ? "ic_message_delete" : "copy")} />}
                             onPress={handleDebuggerConnect}
                         />
                     </TableRowGroup>
 
                     {isReactDevToolsPreloaded() && (
-                        <TableRowGroup title={"Strings.DEVTOOLS_URL"}>
+                        <TableRowGroup title={Strings.DEVTOOLS_URL}>
                             <TextInput
                                 placeholder="127.0.0.1:8097"
                                 size="md"
@@ -96,24 +97,24 @@ export default function Developer() {
                             />
                             <Stack style={{ marginTop: 4, borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: "hidden" }}>
                                 <TableSwitchRow
-                                    label={"Strings.AUTO_DEVTOOLS"}
+                                    label={Strings.AUTO_DEVTOOLS}
                                     icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
                                     value={settings.autoDevTools}
                                     onValueChange={(v: boolean) => settings.updateSettings({ autoDevTools: v })}
                                 />
                             </Stack>
                             <TableRow
-                                label={"Strings.CONNECT_TO_REACT_DEVTOOLS"}
+                                label={Strings.CONNECT_TO_REACT_DEVTOOLS}
                                 icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
                                 onPress={async () => {
                                     if (!settings.devToolsUrl?.trim()) {
-                                        showToast("Invalid devTools URL!", findAssetId("Small"));
+                                        showToast(Strings.INVALID_DEVTOOLS_URL, findAssetId("Small"));
                                         return;
                                     }
                                     try {
                                         const devTools = window[getReactDevToolsProp() || "__vendetta_rdc"];
                                         if (!devTools?.connectToDevTools) {
-                                            showToast("Invalid devTools URL!", findAssetId("Small"));
+                                            showToast(Strings.INVALID_DEVTOOLS_URL, findAssetId("Small"));
                                             return;
                                         }
                                         await devTools.connectToDevTools({
@@ -121,7 +122,7 @@ export default function Developer() {
                                             resolveRNStyle: StyleSheet.flatten,
                                         });
                                     } catch (error) {
-                                        showToast("Invalid devTools URL!", findAssetId("Small"));
+                                        showToast(Strings.INVALID_DEVTOOLS_URL, findAssetId("Small"));
                                     }
                                 }}
                             />
@@ -129,10 +130,10 @@ export default function Developer() {
                     )}
 
                     {isLoaderConfigSupported() && (
-                        <TableRowGroup title="Loader config">
+                        <TableRowGroup title={Strings.LOADER_CONFIG}>
                             <TableSwitchRow
-                                label={"Strings.LOAD_FROM_CUSTOM_URL"}
-                                subLabel={"Strings.LOAD_FROM_CUSTOM_URL_DEC"}
+                                label={Strings.LOAD_FROM_CUSTOM_URL}
+                                subLabel={Strings.LOAD_FROM_CUSTOM_URL_DEC}
                                 icon={<TableRow.Icon source={findAssetId("copy")} />}
                                 value={loaderConfig.customLoadUrl.enabled}
                                 onValueChange={(v: boolean) =>
@@ -152,41 +153,41 @@ export default function Developer() {
                                             })
                                         }
                                         placeholder="http://localhost:4040/rain.js"
-                                        label={"Strings.PUPU_URL"}
+                                        label={Strings.RAIN_URL}
                                     />
                                 } />
                             )}
                         </TableRowGroup>
                     )}
 
-                    <TableRowGroup title="Other">
+                    <TableRowGroup title={Strings.OTHER}>
                         <TableRow
                             arrow
-                            label={"ASSET_BROWSER"}
+                            label={Strings.ASSET_BROWSER}
                             icon={<TableRow.Icon source={findAssetId("ImageIcon")} />}
                             onPress={() => navigation.push("RAIN_CUSTOM_PAGE", { render: () => <AssetBrowser /> })}
                         />
                         <TableRow
                             arrow
-                            label={"Strings.ERROR_BOUNDARY_TOOLS_LABEL"}
+                            label={Strings.ERROR_BOUNDARY_TOOLS_LABEL}
                             icon={<TableRow.Icon source={findAssetId("ic_warning_24px")} />}
                             onPress={() => showSimpleActionSheet({
                                 key: "ErrorBoundaryTools",
                                 header: {
-                                    title: "Which ErrorBoundary do you want to trip?",
+                                    title: Strings.ERROR_BOUNDARY_QUESTION,
                                     icon: <TableRow.Icon style={{ marginRight: 8 }} source={findAssetId("ic_warning_24px")} />,
                                     onClose: () => hideActionSheet(),
                                 },
                                 options: [
                                     // @ts-expect-error this needs to be an error so it crashes duh
-                                    { label: "Strings.PUPU", onPress: () => navigation.push("RAIN_CUSTOM_PAGE", { render: () => <undefined /> }) },
-                                    { label: "Discord", isDestructive: true, onPress: () => navigation.push("RAIN_CUSTOM_PAGE", { noErrorBoundary: true }) },
+                                  { label: Strings.RAIN, onPress: () => navigation.push("RAIN_CUSTOM_PAGE", { render: () => <undefined /> }) },
+                                    { label: Strings.DISCORD, isDestructive: true, onPress: () => navigation.push("RAIN_CUSTOM_PAGE", { noErrorBoundary: true }) },
                                 ],
                             })}
                         />
                         <TableRow
-                            label={"Strings.INSTALL_REACT_DEVTOOLS"}
-                            subLabel={"Strings.RESTART_REQUIRED_TO_TAKE_EFFECT"}
+                            label={Strings.INSTALL_REACT_DEVTOOLS}
+                            subLabel={Strings.RESTART_REQUIRED_TO_TAKE_EFFECT}
                             icon={<TableRow.Icon source={findAssetId("DownloadIcon")} />}
                             trailing={
                                 <Button
@@ -194,7 +195,7 @@ export default function Developer() {
                                     loading={rdtFileExists === CheckState.LOADING}
                                     disabled={rdtFileExists === CheckState.LOADING}
                                     variant={rdtFileExists === CheckState.TRUE ? "secondary" : "primary"}
-                                    text={rdtFileExists === CheckState.TRUE ? "Strings.UNINSTALL" : "Strings.INSTALL"}
+                                    text={rdtFileExists === CheckState.TRUE ? Strings.UNINSTALL : Strings.INSTALL}
                                     onPress={async () => {
                                         if (rdtFileExists === CheckState.FALSE) {
                                             fs.downloadFile(RDT_EMBED_LINK, "preloads/reactDevtools.js");

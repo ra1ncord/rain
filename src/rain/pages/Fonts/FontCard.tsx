@@ -9,6 +9,7 @@ import { NavigationNative, tokens } from "@metro/common";
 import { Button, Card, IconButton, Stack, Text } from "@metro/common/components";
 import { FontDefinition, selectFont, useFonts } from "@plugins/_core/painter/fonts";
 import { CardWrapper } from "@rain/pages/Addon/AddonCard";
+import { Strings } from "@i18n";
 import { useEffect, useMemo, useState } from "react";
 import { PixelRatio, Platform,View } from "react-native";
 
@@ -79,7 +80,7 @@ function FontPreview({ font }: { font: FontDefinition; }) {
         family: fontUri,
         size: fontSize! * PixelRatio.getFontScale(),
         color: TEXT_DEFAULT,
-        text: "The quick brown fox jumps over the lazy dog",
+        text: Strings.PREVIEW_TEXT,
     }), [fontUri, fontSize, TEXT_DEFAULT]);
 
     if (Platform.OS === "android" && isReady && WebView) {
@@ -101,7 +102,7 @@ function FontPreview({ font }: { font: FontDefinition; }) {
                 {!loaded && (
                     <View style={[styles.full, { justifyContent: "center", alignItems: "center" }]}>
                         <Text color="text-muted" variant="heading-lg/semibold">
-                            Loading...
+                            {Strings.LOADING}
                         </Text>
                     </View>
                 )}
@@ -112,7 +113,7 @@ function FontPreview({ font }: { font: FontDefinition; }) {
             <View style={{ width: "100%", height: 32 }}>
                 <View style={[styles.full, { justifyContent: "center", alignItems: "center" }]}>
                     <Text color="text-muted" variant="heading-lg/semibold">
-                        Loading preview...
+                        {Strings.LOADING_PREVIEW}
                     </Text>
                 </View>
             </View>
@@ -123,7 +124,7 @@ function FontPreview({ font }: { font: FontDefinition; }) {
             <View style={{ width: "100%", height: 32 }}>
                 <View style={[styles.full, { justifyContent: "center", alignItems: "center" }]}>
                     <Text color="text-muted" variant="heading-lg/semibold">
-                        Font previews are not supported on iOS
+                        {Strings.PREVIEW_NOT_SUPPORTED}
                     </Text>
                 </View>
             </View>
@@ -154,7 +155,7 @@ export default function FontCard({ item: font }: CardWrapper<FontDefinition>) {
                             <IconButton
                                 onPress={() => {
                                     navigation.push("RAIN_CUSTOM_PAGE", {
-                                        title: "Edit Font",
+                                        title: Strings.EDIT_FONT,
                                         render: () => <FontEditor name={font.name} />
                                     });
                                 }}
@@ -166,14 +167,14 @@ export default function FontCard({ item: font }: CardWrapper<FontDefinition>) {
                             <Button
                                 size="sm"
                                 variant={selected ? "secondary" : "primary"}
-                                text={selected ? "Unapply" : "Apply"}
+                                text={selected ? Strings.UNAPPLY : Strings.APPLY}
                                 onPress={async () => {
                                     await selectFont(selected ? null : font.name);
                                     showConfirmationAlert({
-                                        title: "Hold up!",
-                                        content: "Reload Discord to apply changes?",
-                                        confirmText: "Reload",
-                                        cancelText: "Cancel",
+                                        title: Strings.HOLD_UP,
+                                        content: Strings.RELOAD_DISCORD,
+                                        confirmText: Strings.RELOAD,
+                                        cancelText: Strings.CANCEL,
                                         confirmColor: "red",
                                         onConfirm: BundleUpdaterManager.reload
                                     });

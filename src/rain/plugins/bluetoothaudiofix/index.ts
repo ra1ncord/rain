@@ -14,7 +14,7 @@ export default definePlugin({
         { name: "redstonekasi", id: 265064055490871297n }
     ],
     id: "bluetoothaudiofix",
-    version: "v1.0.0",
+    version: "1.0.0",
     start() {
         if (Platform.OS === "ios") {
             showToast("This plugin does not do anything on iOS");

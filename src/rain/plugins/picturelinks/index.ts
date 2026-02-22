@@ -8,7 +8,7 @@ export default definePlugin({
     description: "Allows you to click on profile pictures and banners.",
     author: [{ name: "redstonekasi" , id: 265064055490871297n }, { name: "Rico040", id: 619474349845643275n } ],
     id: "picturelinks",
-    version: "v1.0.0",
+    version: "1.0.0",
     start() {
         patches.push(unpatchAvatar());
         patches.push(unpatchBanner());

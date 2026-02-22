@@ -35,7 +35,7 @@ export default definePlugin({
     description: "Prompts confirmations before making irreversible actions.",
     author: [{ name: "pylix", id: 492949202121261067n }],
     id: "moreconfirm",
-    version: "v1.0.0",
+    version: "1.0.0",
 
     start() {
         patches.push(patcher.instead("handleStartCall", callManager, (args, orig) => {

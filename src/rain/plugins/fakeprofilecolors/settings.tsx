@@ -71,6 +71,8 @@ export default function ProfileColorSettings() {
                         isClearable
                     />
                 </Card>
+            </TableRowGroup>
+            <TableRowGroup>
                 <TableRow
                     label="Reset Colors"
                     variant="danger"

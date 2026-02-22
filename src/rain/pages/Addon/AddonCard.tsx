@@ -20,6 +20,7 @@ const useStyles = createStyles({
         padding: 0,
     },
     headerLeading: {
+        flex: 1,
         flexDirection: "column",
         justifyContent: "center",
         scale: 1.2
@@ -100,7 +101,7 @@ export default function AddonCard(props: CardProps) {
             <Stack spacing={16}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                     <View style={styles.headerLeading}>
-                        <Text variant={props.headerLabelVariant} style={{ ...styles.headerLabel, ...props.headerLabelStyle }}>{props.headerLabel}</Text>
+                        <Text variant={props.headerLabelVariant} numberOfLines={1} ellipsizeMode="tail" style={{ ...styles.headerLabel, ...props.headerLabelStyle }}>{props.headerLabel}</Text>
                         {props.headerSublabel && (
                             <Text variant={props.headerSublabelVariant} color={props.headerSublabelColor} style={{ ...styles.headerSubtitle, ...props.headerSublabelStyle }}>{props.headerSublabel}</Text>
                         )}

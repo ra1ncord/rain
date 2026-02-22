@@ -1,7 +1,6 @@
 import { findAssetId } from "@api/assets";
 import { semanticColors } from "@api/ui/components/color";
-import { React } from "@metro/common";
-import { NavigationNative } from "@metro/common";
+import { NavigationNative,React } from "@metro/common";
 import { Stack, TableRow, TableRowGroup } from "@metro/common/components";
 import { ScrollView } from "react-native";
 

@@ -1,19 +1,22 @@
+import { findByProps } from "@metro";
 import { instead } from "@api/patcher";
-import { waitForHydration } from "@api/storage";
-import { findByProps } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
 
 import Settings from "./Settings";
-import { quickDeleteSettings,useQuickDeleteSettings } from "./storage";
+import { quickDeleteSettings } from "./storage";
+
+const { intl, t: intlMap } = findByProps("intl");
 
 const KEYS = {
     message: {
         hash: "AMvpS4",
         storage: "autoConfirmMessage",
+        default: true,
     },
     embed: {
         hash: "vXZ+Fo",
         storage: "autoConfirmEmbed",
+        default: true,
     },
 } as const;
 
@@ -35,47 +38,58 @@ export default definePlugin({
         }
     ],
     id: "quickdelete",
-    version: "v1.0.0",
-    async start() {
-        waitForHydration(useQuickDeleteSettings);
-
-        const { intl, t: intlMap } = findByProps("intl");
-
-        autoConfirmMessages = {
-            embed: intl.string(intlMap[KEYS.embed.hash]),
-            message: intl.string(intlMap[KEYS.message.hash]),
-        };
-
+    version: "1.0.0",
+    settings: Settings,
+    start() {
+        if (intl && intlMap) {
+            autoConfirmMessages = {
+                embed: intl.string(intlMap[KEYS.embed.hash]) || "Delete embed",
+                message: intl.string(intlMap[KEYS.message.hash]) || "Delete Message",
+            };
+        } else {
+            autoConfirmMessages = {
+                embed: "Delete embed",
+                message: "Delete Message",
+            };
+        }
+        
+        console.log("[QuickDelete] Starting...");
         const Popup = findByProps("show", "openLazy");
-
+        console.log("[QuickDelete] Popup found:", !!Popup);
         if (!Popup) return;
 
         unpatch = instead("show", Popup, (args, fn) => {
             const popup = args?.[0];
-            const title = popup?.children?.props?.title;
-            const body = popup?.body;
+            console.log("[QuickDelete] Popup:", popup);
+            const title = popup?.title;
+            const body = popup?.children?.props?.message?.content;
+            console.log("[QuickDelete] title:", title, "body:", body);
 
             if (
                 !popup?.onConfirm ||
-                typeof popup.onConfirm !== "function" ||
-                (typeof title !== "string" && typeof body !== "string")
+                typeof popup.onConfirm !== 'function' ||
+                (typeof title !== 'string' && typeof body !== 'string')
             ) {
-                return fn(...args);
+                console.log("[QuickDelete] Skipping - not a delete popup");
+                return fn(...args)
             }
 
             const shouldConfirm = (type: "message" | "embed") => {
                 const matcher = autoConfirmMessages[type];
+                console.log("[QuickDelete] matcher:", matcher, "setting:", quickDeleteSettings[KEYS[type].storage]);
                 if (!matcher) return false;
 
-                return quickDeleteSettings[KEYS[type].storage] && (title?.includes(matcher) || body?.includes(matcher));
+                const match = title?.includes(matcher) || body?.includes(matcher);
+                console.log("[QuickDelete] match:", match);
+                return quickDeleteSettings[KEYS[type].storage] && match;
             };
 
             const result = shouldConfirm("message") || shouldConfirm("embed");
+            console.log("[QuickDelete] result:", result);
             return result ? popup.onConfirm() : fn(...args);
         });
     },
     stop() {
         unpatch?.();
     },
-    settings: Settings,
 });

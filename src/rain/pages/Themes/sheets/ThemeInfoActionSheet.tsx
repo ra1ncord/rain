@@ -9,6 +9,8 @@ import { fetchTheme, removeTheme, selectTheme, ThemeInfo } from "@rain/plugins/_
 import React, { ComponentProps, useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity,View } from "react-native";
 
+import { Strings, formatString } from "@i18n";
+
 interface ThemeInfoActionSheetProps {
   theme: ThemeInfo;
   navigation: any;
@@ -48,7 +50,7 @@ function TitleComponent({ theme }: { theme: ThemeInfo }) {
                         disabled={!authors.some(a => a.id)}
                     >
                         <Text variant="text-md/medium">
-              by {authors.map(a => a.name).join(", ")}
+                            {Strings.AUTHOR_BY} {authors.map(a => a.name).join(", ")}
                         </Text>
                     </TouchableOpacity>
                 )}
@@ -80,7 +82,7 @@ export default function ThemeInfoActionSheet({
         if (typeof showToast?.showCopyToClipboard === "function") {
             showToast.showCopyToClipboard();
         } else {
-            showToast("Copied to clipboard");
+            showToast(Strings.COPIED_TO_CLIPBOARD);
         }
     };
 
@@ -88,10 +90,10 @@ export default function ThemeInfoActionSheet({
         setLoading(true);
         try {
             await fetchTheme(themeState.id, themeState.selected);
-            showToast("Theme refreshed successfully");
+            showToast(Strings.THEME_REFRESHED);
         } catch (e) {
             console.error("Failed to refresh theme:", e);
-            showToast("Failed to refresh theme");
+            showToast(Strings.FAILED_TO_REFRESH_THEME);
         } finally {
             setLoading(false);
         }
@@ -99,23 +101,22 @@ export default function ThemeInfoActionSheet({
 
     const removeThemeHandler = () => {
         showConfirmationAlert({
-            title: "Hold up!",
-            // content: formatString("ARE_YOU_SURE_TO_DELETE_THEME", {
-            //  name: themeState.data.name,
-            // }),
-            content: "ARE_YOU_SURE_TO_DELETE_THEME",
-            confirmText: "delete",
-            cancelText: "cancel",
+            title: Strings.HOLD_UP,
+            content: formatString("ARE_YOU_SURE_TO_DELETE_THEME", {
+                name: themeState.data.name,
+            }),
+            confirmText: Strings.DELETE,
+            cancelText: Strings.CANCEL,
             confirmColor: "red",
             onConfirm: async () => {
                 hideSheet("ThemeInfoActionSheet");
                 try {
                     const wasSelected = await removeTheme(themeState.id);
                     if (wasSelected) selectTheme(null);
-                    showToast("Theme removed successfully");
+                    showToast(Strings.THEME_REMOVED);
                 } catch (e) {
                     console.error("Failed to remove theme:", e);
-                    showToast("Failed to remove theme");
+                    showToast(Strings.FAILED_TO_REMOVE_THEME);
                 }
             },
         });
@@ -147,20 +148,20 @@ export default function ThemeInfoActionSheet({
                     }}
                 >
                     <ThemeInfoIconButton
-                        label={"Strings.REFETCH"}
+                        label={Strings.REFETCH}
                         variant="secondary"
                         icon={findAssetId("RetryIcon")}
                         onPress={refetchTheme}
                         disabled={loading}
                     />
                     <ThemeInfoIconButton
-                        label={"Strings.COPY_URL"}
+                        label={Strings.COPY_URL}
                         variant="secondary"
                         icon={findAssetId("LinkIcon")}
                         onPress={copyThemeUrl}
                     />
                     <ThemeInfoIconButton
-                        label={"Strings.UNINSTALL"}
+                        label={Strings.UNINSTALL}
                         variant="secondary"
                         icon={findAssetId("TrashIcon")}
                         onPress={removeThemeHandler}
@@ -174,10 +175,10 @@ export default function ThemeInfoActionSheet({
                             color: semanticColors.MOBILE_TEXT_HEADING_PRIMARY,
                         }}
                     >
-            Description
+                        {Strings.DESCRIPTION}
                     </Text>
                     <Text variant="text-md/medium">
-                        {themeState.data.description || "No description provided."}
+                        {themeState.data.description || Strings.NO_DESCRIPTION}
                     </Text>
                 </Card>
             </ScrollView>

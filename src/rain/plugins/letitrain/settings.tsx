@@ -1,62 +1,54 @@
-import SettingsTextInput from "@api/ui/components/SettingsTextInput";
+import { findByProps } from "@metro";
 import { Stack } from "@metro/common/components";
-import { StyleSheet,Text, View } from "react-native";
+import { ScrollView } from "react-native";
 
 import { useLetItRainSettings } from "./storage";
+
+const { TextInput, TableRowGroup } = findByProps("TextInput");
 
 export default function LetItRainSettings() {
     const { settings, updateSetting } = useLetItRainSettings();
 
     return (
-        <Stack spacing={16}>
-            <View style={styles.section}>
-                <Text style={styles.label}>Rain Amount ({settings.amount})</Text>
-                <SettingsTextInput
-                    placeholder="50"
-                    value={settings.amount.toString()}
-                    onChange={val => updateSetting("amount", parseInt(val) || 0)}
-                />
-            </View>
-
-            <View style={styles.section}>
-                <Text style={styles.label}>Raindrop Size ({settings.size})</Text>
-                <SettingsTextInput
-                    placeholder="1"
-                    value={settings.size.toString()}
-                    onChange={val => updateSetting("size", parseFloat(val) || 1)}
-                />
-            </View>
-
-            <View style={styles.section}>
-                <Text style={styles.label}>Transparency (between 0 and 1) ({settings.transparency})</Text>
-                <SettingsTextInput
-                    placeholder="0.8"
-                    value={settings.transparency.toString()}
-                    onChange={val => updateSetting("transparency", parseFloat(val) || 0.8)}
-                />
-            </View>
-
-            <View style={styles.section}>
-                <Text style={styles.label}>Speed Multiplier ({settings.speed})</Text>
-                <SettingsTextInput
-                    placeholder="1"
-                    value={settings.speed.toString()}
-                    onChange={val => updateSetting("speed", parseFloat(val) || 1)}
-                />
-            </View>
-        </Stack>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 10 }}>
+            <Stack spacing={8}>
+                <TableRowGroup title="Rain Amount">
+                    <TextInput
+                        placeholder="50"
+                        value={String(settings.amount)}
+                        onChange={(v: string) => updateSetting("amount", parseInt(v) || 0)}
+                        keyboardType="numeric"
+                        isClearable
+                    />
+                </TableRowGroup>
+                <TableRowGroup title="Raindrop Size">
+                    <TextInput
+                        placeholder="1"
+                        value={String(settings.size)}
+                        onChange={(v: string) => updateSetting("size", parseFloat(v) || 1)}
+                        keyboardType="numeric"
+                        isClearable
+                    />
+                </TableRowGroup>
+                <TableRowGroup title="Transparency">
+                    <TextInput
+                        placeholder="0.8"
+                        value={String(settings.transparency)}
+                        onChange={(v: string) => updateSetting("transparency", parseFloat(v) || 0.8)}
+                        keyboardType="numeric"
+                        isClearable
+                    />
+                </TableRowGroup>
+                <TableRowGroup title="Speed Multiplier">
+                    <TextInput
+                        placeholder="1"
+                        value={String(settings.speed)}
+                        onChange={(v: string) => updateSetting("speed", parseFloat(v) || 1)}
+                        keyboardType="numeric"
+                        isClearable
+                    />
+                </TableRowGroup>
+            </Stack>
+        </ScrollView>
     );
 }
-
-const styles = StyleSheet.create({
-    section: {
-        paddingHorizontal: 16,
-        paddingVertical: 8
-    },
-    label: {
-        color: "#FFFFFF",
-        marginBottom: 8,
-        fontSize: 16,
-        fontWeight: "600"
-    }
-});

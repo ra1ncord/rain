@@ -2,8 +2,7 @@ import { findAssetId } from "@api/assets";
 import { after, before } from "@api/patcher";
 import { waitForHydration } from "@api/storage";
 import { findInReactTree } from "@lib/utils";
-import { findByProps, findByTypeName, findByTypeNameAll } from "@metro";
-import { findByName } from "@metro";
+import { findByName,findByProps, findByTypeName, findByTypeNameAll } from "@metro";
 import { ReactNative } from "@metro/common";
 import { definePlugin } from "@plugins";
 
@@ -23,7 +22,7 @@ export default definePlugin({
     description: "Shows platform indicators on users",
     author: [{ name: "MSMA", id: 307215253811363843n }, { name: "kmmiio99o", id: 879393496627306587n }],
     id: "platformindicators",
-    version: "v1.0.0",
+    version: "1.0.0",
     async start() {
         waitForHydration(usePlatformIndicatorSettings);
 
@@ -32,7 +31,7 @@ export default definePlugin({
         // tabs v2 dm header
         unpatches.push(after("default", findByName("ChannelHeader", false), (args, res) => {
             if (!platformIndicatorSettings.dmTopBar) return;
-            if (!(res.type?.type?.name == "PrivateChannelHeader")) return;
+            if (!(res.type?.type?.name === "PrivateChannelHeader")) return;
 
             after("type", res.type, (args, res) => {
                 if (!res.props?.children?.props?.children) return;
@@ -40,14 +39,14 @@ export default definePlugin({
                 if (!userId) return;
 
                 const dmTopBar = res.props?.children;
-                if (!findInReactTree(res, m => m.key == "DMTabsV2Header")) {
+                if (!findInReactTree(res, m => m.key === "DMTabsV2Header")) {
                     if (dmTopBar.props?.children?.props?.children[1]) {
                         if (typeof dmTopBar.props?.children?.props?.children[1]?.type === "function") {
                             const titleThing = dmTopBar.props?.children?.props?.children[1];
 
                             const unpatchTV2HdrV2 = after("type", titleThing, (args, res) => {
                                 unpatchTV2HdrV2();
-                                if (!findInReactTree(res, c => c.key == "DMTabsV2Header-v2")) {
+                                if (!findInReactTree(res, c => c.key === "DMTabsV2Header-v2")) {
                                     res.props.children[0].props.children.push(
                                         <PresenceUpdatedContainer key="DMTabsV2Header-v2">
                                             {debugLabels ? <Text>DTV2H-v2</Text> : <StatusIcons userId={userId} />}
@@ -57,7 +56,7 @@ export default definePlugin({
                             });
                         } else {
                             const arrowId = findAssetId("arrow-right");
-                            const container1 = findInReactTree(dmTopBar, m => m.props?.children[1]?.props?.source == arrowId);
+                            const container1 = findInReactTree(dmTopBar, m => m.props?.children[1]?.props?.source === arrowId);
 
                             container1?.props?.children?.push(<View
                                 key="DMTabsV2Header"
@@ -75,7 +74,7 @@ export default definePlugin({
                         }
                     }
                 }
-                const topIcons = findInReactTree(res, m => m.key == "DMTabsV2HeaderIcons");
+                const topIcons = findInReactTree(res, m => m.key === "DMTabsV2HeaderIcons");
                 if (topIcons) {
                     topIcons.props.children = <StatusIcons userId={userId} />;
                 }
@@ -86,11 +85,11 @@ export default definePlugin({
         const UserProfileContent = findByTypeName("UserProfileContent");
 
         unpatches.push(after("type", UserProfileContent, (args, res) => {
-            const primaryInfo = findInReactTree(res, c => c?.type?.name == "PrimaryInfo");
+            const primaryInfo = findInReactTree(res, c => c?.type?.name === "PrimaryInfo");
             after("type", primaryInfo, (args, res) => {
-                if (res?.type?.name == "UserProfilePrimaryInfo") {
+                if (res?.type?.name === "UserProfilePrimaryInfo") {
                     after("type", res, (args, res) => {
-                        const displayName = findInReactTree(res, c => c?.type?.name == "DisplayName");
+                        const displayName = findInReactTree(res, c => c?.type?.name === "DisplayName");
 
                         after("type", displayName, (args, res) => {
                             const userId = args[0]?.user?.id;
@@ -133,7 +132,7 @@ export default definePlugin({
             unpatches.push(after("type", Rows.GuildMemberRow, (args: any[], res: any) => {
                 const user = args[0]?.user;
                 if (!platformIndicatorSettings.userList) return;
-                const statusIconsView = findInReactTree(res, c => c.key == "GuildMemberRowStatusIconsView");
+                const statusIconsView = findInReactTree(res, c => c.key === "GuildMemberRowStatusIconsView");
                 if (!statusIconsView) {
                     const row = findInReactTree(res, c => c.props?.style?.flexDirection === "row");
                     if (row) {
@@ -157,7 +156,7 @@ export default definePlugin({
             const user = args[0]?.user;
             if (!platformIndicatorSettings.userList) return;
 
-            const modifiedStatusIcons = findInReactTree(res?.props?.label, c => c.key == "TabsV2MemberListStatusIconsView");
+            const modifiedStatusIcons = findInReactTree(res?.props?.label, c => c.key === "TabsV2MemberListStatusIconsView");
             if (!modifiedStatusIcons) {
                 res.props.label = (
                     <View style={{
@@ -190,9 +189,9 @@ export default definePlugin({
         const MessagesItemChannelContent = findByTypeName("MessagesItemChannelContent");
         unpatches.push(after("type", MessagesItemChannelContent, (args, res) => {
             const channel = args[0]?.channel;
-            if (channel?.recipients?.length == 1) {
+            if (channel?.recipients?.length === 1) {
                 const userId = channel.recipients[0];
-                const textContainer = findInReactTree(res, m => m.props?.children?.[0]?.props?.variant == "redesign/channel-title/semibold");
+                const textContainer = findInReactTree(res, m => m.props?.children?.[0]?.props?.variant === "redesign/channel-title/semibold");
                 if (textContainer) {
                     textContainer.props.children.push(<View key="TabsV2RedesignDMListIcons" style={{
                         flexDirection: "row"

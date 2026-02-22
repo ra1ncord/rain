@@ -4,6 +4,7 @@ import { ErrorBoundary, Search } from "@api/ui/components";
 import { showSheet } from "@api/ui/sheets";
 import { NavigationNative } from "@metro/common";
 import { ActionSheet, BottomSheetTitleHeader,IconButton, TableCheckboxRow, TableRowGroup } from "@metro/common/components";
+import { Strings } from "@rain/i18n";
 import { useCallback,useEffect,useMemo, useState } from "react";
 import { FlatList, View } from "react-native";
 
@@ -29,7 +30,7 @@ export default function AssetBrowser() {
     const navigation = NavigationNative.useNavigation();
 
     useEffect(() => {
-        navigation.setOptions({ title: "ASSET_BROWSER" });
+        navigation.setOptions({ title: Strings.ASSET_BROWSER });
     }, [navigation]);
 
     const settings = useAssetBrowserSettings();
@@ -70,8 +71,8 @@ export default function AssetBrowser() {
 
             return (
                 <ActionSheet>
-                    <BottomSheetTitleHeader title="ASSET_TYPES" />
-                    <TableRowGroup title="IMAGE_FILES">
+                    <BottomSheetTitleHeader title={Strings.ASSET_TYPES} />
+                    <TableRowGroup title={Strings.IMAGE_FILES}>
                         {IMAGE_FILES.map(fileType => (
                             <TableCheckboxRow
                                 key={fileType.id}
@@ -81,7 +82,7 @@ export default function AssetBrowser() {
                             />
                         ))}
                     </TableRowGroup>
-                    <TableRowGroup title="TEXT_FILES">
+                    <TableRowGroup title={Strings.TEXT_FILES}>
                         {TEXT_FILES.map(fileType => (
                             <TableCheckboxRow
                                 key={fileType.id}

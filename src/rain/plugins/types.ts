@@ -11,6 +11,7 @@ export interface rainPlugin {
     eagerStart?: () => void;
     stop?: () => void;
     settings?(): JSX.Element;
+    devOnly?: boolean;
 }
 
 export interface PluginSettingsStorage {

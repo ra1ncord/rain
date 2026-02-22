@@ -6,6 +6,7 @@ import { clipboard } from "@metro/common";
 import { Stack, TableRow, Text } from "@metro/common/components";
 import { requireModule } from "@metro/internals/modules";
 import { Image, ScrollView } from "react-native";
+import { Strings } from "@rain/i18n";
 
 const { openAlert } = lazyDestructure(() =>
     findByProps("openAlert", "dismissAlert"),
@@ -98,7 +99,7 @@ export default function AssetDisplay({ asset }: AssetDisplayProps) {
                                                 color="text-warning"
                                                 style={{ width: "100%", textAlign: "center" }}
                                             >
-                        Could not load preview for {type.toUpperCase()}.
+                        {Strings.COULD_NOT_LOAD_PREVIEW} {type.toUpperCase()}.
                                             </Text>
                                         );
                                     }
@@ -109,20 +110,19 @@ export default function AssetDisplay({ asset }: AssetDisplayProps) {
                                     color="text-danger"
                                     style={{ width: "100%", textAlign: "center" }}
                                 >
-                  Asset type {String(asset.type).toUpperCase()} is not supported
-                  for preview.
+                  {Strings.ASSET_TYPE} {String(asset.type).toUpperCase()} {Strings.NOT_SUPPORTED_FOR_PREVIEW}
                                 </Text>
                             )
                         }
                         actions={
                             <Stack>
                                 <AlertActionButton
-                                    text="Copy asset name"
+                                    text={Strings.COPY_ASSET_NAME}
                                     variant="primary"
                                     onPress={() => copyToClipboard(asset.name)}
                                 />
                                 <AlertActionButton
-                                    text="Copy asset index"
+                                    text={Strings.COPY_ASSET_INDEX}
                                     variant="secondary"
                                     onPress={() => copyToClipboard(asset.id.toString())}
                                 />

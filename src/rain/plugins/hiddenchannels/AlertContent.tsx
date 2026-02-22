@@ -1,8 +1,7 @@
 import { findAssetId } from "@api/assets";
 import { semanticColors } from "@api/ui/components/color";
 import { showToast } from "@api/ui/toasts";
-import { clipboard,constants } from "@metro/common";
-import { ReactNative as RN } from "@metro/common";
+import { clipboard, constants, ReactNative as RN } from "@metro/common";
 import { findByPropsLazy } from "@metro/wrappers";
 
 const moment = findByPropsLazy("isMoment");
