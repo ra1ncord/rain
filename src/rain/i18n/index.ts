@@ -54,11 +54,8 @@ function fetchLocale(locale: string) {
     if (!_loadedLocale.has(resolvedLocale)) {
       _loadedLocale.add(resolvedLocale);
 
-      logger.log("[i18n] Fetching from:", `https://cdn.kmmiio99o.dev/${resolvedLocale}.json`);
-
-      // todo: change URL at the end of testing, temp thing (only Polish was done)
       fetch(
-        `https://cdn.kmmiio99o.dev/${resolvedLocale}.json`,
+        `https://codeberg.org/raincord/i18n/raw/branch/main/base/${resolvedLocale}.json`,
       )
         .then((r) => {
             logger.log("[i18n] Response status:", r.status);
