@@ -17,7 +17,7 @@ const dbStorage = createFileStorage("public/message_logs.json");
 
 async function logToDatabase(message: any, type: "DELETE" | "UPDATE") {
     try {
-        const rawLogs = await dbStorage.getItem("logs");
+        const rawLogs = dbStorage.getItem("logs");
         let currentLogs: any[] = [];
         if (typeof rawLogs === "string") {
             try { currentLogs = JSON.parse(rawLogs); } catch { currentLogs = []; }
@@ -38,7 +38,7 @@ async function logToDatabase(message: any, type: "DELETE" | "UPDATE") {
         };
         currentLogs.push(logEntry);
         if (currentLogs.length > 1000) currentLogs.shift();
-        await dbStorage.setItem("logs", JSON.stringify(currentLogs));
+        dbStorage.setItem("logs", JSON.stringify(currentLogs));
     } catch (e) {
         console.error("[MessageLogger] DB Log Error:", e);
     }
