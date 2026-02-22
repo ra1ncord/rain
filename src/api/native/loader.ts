@@ -6,20 +6,6 @@ const pyonLoaderIdentity = globalThis.__PYON_LOADER__;
 // @ts-ignore
 const rainLoaderIdentity = globalThis.__RAIN_LOADER__;
 
-export interface VendettaLoaderIdentity {
-    name: string;
-    features: {
-        loaderConfig?: boolean;
-        devtools?: {
-            prop: string;
-            version: string;
-        },
-        themes?: {
-            prop: string;
-        };
-    };
-}
-
 export interface ThemeInfo {
     id: string;
     selected: boolean;
@@ -47,7 +33,7 @@ export function getLoaderIdentity() {
 
 export function getLoaderName() {
     if (isPyonLoader()) return pyonLoaderIdentity.loaderName;
-    if (isRainLoader()) return rainLoaderIdentity.loadername;
+    if (isRainLoader()) return rainLoaderIdentity.loaderName;
 
     return "Unknown";
 }
