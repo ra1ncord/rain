@@ -27,6 +27,7 @@ interface AddonPageProps<T extends object, I = any> {
     items: I[];
     searchKeywords: SearchKeywords<T>;
     sortOptions?: Record<string, (a: T, b: T) => number>;
+    defaultSortKey?: string;
     filterOptions?: Record<string, (item: T) => boolean>;
     defaultFilterKey?: string;
     resolveItem?: (value: I) => T | undefined;
@@ -126,7 +127,7 @@ function InputAlert(props: { label: string, fetchFn: (url: string) => Promise<vo
 export default function AddonPage<T extends object>({ CardComponent, ...props }: AddonPageProps<T>) {
     const settings = useSettings();
     const [search, setSearch] = React.useState("");
-    const [sortFn, setSortFn] = React.useState<((a: T, b: T) => number) | null>(() => null);
+    const [sortFn, setSortFn] = React.useState<((a: T, b: T) => number) | null>(() => props.defaultSortKey && props.sortOptions ? props.sortOptions[props.defaultSortKey] : null);
     const [filterFn, setFilterFn] = React.useState<((item: T) => boolean) | null>(() => props.defaultFilterKey && props.filterOptions ? props.filterOptions[props.defaultFilterKey] : null);
     const { bottom: bottomInset } = useSafeAreaInsets();
     const { right: rightInset } = useSafeAreaInsets();

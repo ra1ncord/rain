@@ -2,7 +2,7 @@ import { findByProps } from "@metro";
 import { ReactNative as RN } from "@metro/common";
 import { ScrollView } from "react-native";
 
-import { fakenitroSettings } from "./storage";
+import { useFakeNitroSettings } from "./storage";
 
 const {
     TableSwitchRow,
@@ -24,6 +24,9 @@ const sizeOptions = {
 const previewUri = "https://cdn.discordapp.com/emojis/926602689213767680.webp";
 
 export default () => {
+    const settings = useFakeNitroSettings();
+    const { updateSettings } = settings;
+
     return (
         <ScrollView style={{ flex: 1 }}>
             <Stack
@@ -32,9 +35,9 @@ export default () => {
             >
                 <TableRadioGroup
                     title="Emoji size"
-                    defaultValue={fakenitroSettings.emojiSize.toString()}
+                    defaultValue={settings.emojiSize.toString()}
                     onChange={(v: string) =>
-                        (fakenitroSettings.emojiSize = parseInt(v))
+                        updateSettings({ emojiSize: parseInt(v) })
                     }
                 >
                     {Object.entries(sizeOptions).map(([name, size]) => (
@@ -49,9 +52,9 @@ export default () => {
                 <TableRowGroup title="Preview">
                     <RN.Image
                         source={{
-                            uri: `${previewUri}?size=${fakenitroSettings.emojiSize}`,
-                            width: fakenitroSettings.emojiSize,
-                            height: fakenitroSettings.emojiSize,
+                            uri: `${previewUri}?size=${settings.emojiSize}`,
+                            width: settings.emojiSize,
+                            height: settings.emojiSize,
                         }}
                     />
                 </TableRowGroup>
@@ -59,18 +62,69 @@ export default () => {
                     <TableSwitchRow
                         label="Use hyperlinks when sending fake emojis"
                         onValueChange={(v: boolean) => {
-                            fakenitroSettings.hyperLink = v;
+                            updateSettings({ hyperLink: v });
                         }}
-                        value={fakenitroSettings.hyperLink}
+                        value={settings.hyperLink}
                     />
                 </TableRowGroup>
                 <TableRowGroup title="Stickers" titleStyleType="no_border">
                     <TableSwitchRow
                         label="Use hyperlinks when sending fake stickers"
                         onValueChange={(v: boolean) => {
-                            fakenitroSettings.stickerHyperLink = v;
+                            updateSettings({ stickerHyperLink: v });
                         }}
-                        value={fakenitroSettings.stickerHyperLink}
+                        value={settings.stickerHyperLink}
+                    />
+                </TableRowGroup>
+                <TableRowGroup title="Hide in Settings items" titleStyleType="no_border">
+                    <TableSwitchRow
+                        label="Hide Shop"
+                        onValueChange={(v: boolean) => {
+                            updateSettings({ hideCollectiblesShop: v });
+                        }}
+                        value={settings.hideCollectiblesShop}
+                    />
+                    <TableSwitchRow
+                        label="Hide Quests"
+                        onValueChange={(v: boolean) => {
+                            updateSettings({ hideQuests: v });
+                        }}
+                        value={settings.hideQuests}
+                    />
+                    <TableSwitchRow
+                        label="Hide Manage Nitro"
+                        onValueChange={(v: boolean) => {
+                            updateSettings({ hidePremium: v });
+                        }}
+                        value={settings.hidePremium}
+                    />
+                    <TableSwitchRow
+                        label="Hide Server Boost"
+                        onValueChange={(v: boolean) => {
+                            updateSettings({ hidePremiumGuildBoosting: v });
+                        }}
+                        value={settings.hidePremiumGuildBoosting}
+                    />
+                    <TableSwitchRow
+                        label="Hide Gifting"
+                        onValueChange={(v: boolean) => {
+                            updateSettings({ hidePremiumGifting: v });
+                        }}
+                        value={settings.hidePremiumGifting}
+                    />
+                    <TableSwitchRow
+                        label="Hide Guild Role Subscriptions"
+                        onValueChange={(v: boolean) => {
+                            updateSettings({ hideGuildRoleSubscriptions: v });
+                        }}
+                        value={settings.hideGuildRoleSubscriptions}
+                    />
+                    <TableSwitchRow
+                        label="Hide Premium Restore Subscription"
+                        onValueChange={(v: boolean) => {
+                            updateSettings({ hidePremiumRestoreSubscription: v });
+                        }}
+                        value={settings.hidePremiumRestoreSubscription}
                     />
                 </TableRowGroup>
             </Stack>

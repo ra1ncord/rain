@@ -8,7 +8,7 @@ export default definePlugin({
     author: [{ name: "cocobo1", id: 767650984175992833n }],
     // this is still the id as we automatically add "core." to core plugins
     id: "commands",
-    version: "v1.0.0",
+    version: "1.0.0",
     start() {
         patchCommands();
         [require("./builtins/debug"), require("./builtins/plugins"), require("./builtins/themes")].forEach(r => registerCommand(r.default()));

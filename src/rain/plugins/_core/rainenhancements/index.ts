@@ -13,7 +13,7 @@ export default definePlugin({
     description: Strings.PLUGIN__CORE_RAINENHANCEMENTS_DESC,
     author: [{ name: "cocobo1", id: 767650984175992833n }, { name: "j", id: 1356632712861192242n }, { name: "rico040", id: 619474349845643275n }, { name: "redstonekasi", id: 265064055490871297n }],
     id: "rainenhancements",
-    version: "v1.0.0",
+    version: "1.0.0",
     start() {
         // NoTrack
         patches = [

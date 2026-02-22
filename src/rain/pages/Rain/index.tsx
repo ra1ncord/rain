@@ -12,6 +12,21 @@ import { Linking, ScrollView } from "react-native";
 import { Strings } from "@i18n";
 import About from "./About";
 
+async function disableDevOnlyPlugins() {
+    const { pluginInstances, usePluginSettings, stopPlugin } = await import("@plugins");
+    const settings = usePluginSettings.getState().settings;
+    const devOnlyPlugins = [...pluginInstances.entries()]
+        .filter(([id, plugin]) => plugin.devOnly && settings[id]?.enabled)
+        .map(([id]) => id);
+
+    for (const id of devOnlyPlugins) {
+        try {
+            await stopPlugin(id);
+        } catch (e) {
+        }
+    }
+}
+
 export default function General() {
     const debugInfo = getDebugInfo();
     const navigation = NavigationNative.useNavigation();
@@ -71,7 +86,10 @@ export default function General() {
                         label={Strings.DEVELOPER_SETTINGS}
                         icon={<TableRow.Icon source={findAssetId("WrenchIcon")!} />}
                         value={developerSettings}
-                        onValueChange={(v: boolean) => {
+                        onValueChange={async (v: boolean) => {
+                            if (!v) {
+                                await disableDevOnlyPlugins();
+                            }
                             updateSettings({ developerSettings: v });
                         }}
                     />

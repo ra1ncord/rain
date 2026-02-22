@@ -1,11 +1,11 @@
-import { showToast } from "@api/ui/toasts";
-import { before } from "@api/patcher";
 import { findAssetId } from "@api/assets";
+import { before } from "@api/patcher";
+import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
 
-import { useActionSheetFinderSettings } from "./storage";
 import settings from "./settings";
+import { useActionSheetFinderSettings } from "./storage";
 
 const LazyActionSheet = findByProps("openLazy", "hideActionSheet");
 
@@ -30,7 +30,8 @@ export default definePlugin({
     description: "Utility plugin to find ActionSheet key of pressed sheet. Mostly used by developers to find action sheet keys.",
     author: [{ name: "Rico040", id: 619474349845643275n }, { name: "byeoon", id: 1167275288036655133n }, { name: "kmmiio99o", id: 879393496627306587n }],
     id: "actionsheetfinder",
-    version: "v1.0.0",
+    version: "1.0.0",
+    devOnly: true,
     start() {
         unpatch = before("openLazy", LazyActionSheet, ([_, key]) => {
             if (key) SheetOutput(key);

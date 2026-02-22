@@ -33,7 +33,7 @@ export default function TitleComponent({ plugin }: { plugin: UnifiedPluginModel;
         authorTextNode.pop();
     }
 
-    return <View style={{ gap: 4 }}>
+    return <View style={{ gap: 4, marginLeft: -10 }}>
         <View>
             <Text variant="heading-xl/semibold">
                 {plugin.name}

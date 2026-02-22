@@ -1,3 +1,5 @@
+import { JSX } from "react";
+
 export interface rainPlugin {
     name: string;
     description: string;
@@ -8,6 +10,7 @@ export interface rainPlugin {
     eagerStart?: () => void;
     stop?: () => void;
     settings?(): JSX.Element;
+    devOnly?: boolean;
 }
 
 export interface PluginSettingsStorage {

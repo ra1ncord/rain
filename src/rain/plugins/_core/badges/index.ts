@@ -17,7 +17,7 @@ export default definePlugin({
     description: Strings.PLUGIN__CORE_BADGES_DESC,
     author: [{ name: "cocobo1", id: 767650984175992833n }],
     id: "badges",
-    version: "v1.1.0",
+    version: "1.1.0",
     start() {
         let allBadges: { [x: string]: any; } | null = null;
         const badgeProps = {} as Record<string, any>;

@@ -1,8 +1,9 @@
-import React from "react";
-import { findByProps } from "@metro";
 import { semanticColors } from "@api/ui/components/color";
-import { useProfileColorStore } from "./storage";
 import SettingsTextInput from "@api/ui/components/SettingsTextInput";
+import { findByProps } from "@metro";
+import React from "react";
+
+import { useProfileColorStore } from "./storage";
 
 const { TableRow, TableSwitchRow, TableRowGroup } = findByProps("TableRow");
 const { Card } = findByProps("Card");
@@ -70,6 +71,8 @@ export default function ProfileColorSettings() {
                         isClearable
                     />
                 </Card>
+            </TableRowGroup>
+            <TableRowGroup>
                 <TableRow
                     label="Reset Colors"
                     variant="danger"

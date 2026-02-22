@@ -6,8 +6,7 @@ import { findByPropsLazy } from "@metro";
 import { definePlugin } from "@plugins";
 import { version } from "rain-build-info";
 import { Strings } from "@rain/i18n";
-import React from "react";
-import { lazy } from "react";
+import React, { lazy } from "react";
 import type { ImageURISource } from "react-native";
 
 import { patchTabsUI } from "./patches/tabs";
@@ -18,7 +17,7 @@ export default definePlugin({
     description: Strings.PLUGIN__CORE_SETTINGS_DESC,
     author: [{ name: "cocobo1", id: 767650984175992833n }],
     id: "settings",
-    version: "v1.0.0",
+    version: "1.0.0",
     start() {
         patchAssets(findByPropsLazy("registerAsset"));
         patchSettings();

@@ -25,9 +25,9 @@ const DEFAULT_SETTINGS: LetItRainSettings = {
 
 export const useLetItRainSettings = create<LetItRainStore>()(
     persist(
-        (set) => ({
+        set => ({
             settings: DEFAULT_SETTINGS,
-            updateSetting: (key, value) => set((state) => ({
+            updateSetting: (key, value) => set(state => ({
                 settings: { ...state.settings, [key]: value }
             }))
         }),

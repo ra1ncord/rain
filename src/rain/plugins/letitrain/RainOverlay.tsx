@@ -1,5 +1,6 @@
-import { useEffect, useState, useRef } from "react";
-import { View, StyleSheet, Animated, Dimensions } from "react-native";
+import { useEffect, useRef,useState } from "react";
+import { Animated, Dimensions,StyleSheet, View } from "react-native";
+
 import { useLetItRainSettings } from "./storage";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -64,7 +65,7 @@ export default function RainOverlay() {
             const drop = createDrop(i);
             newDrops.push(drop);
             animationRef.current[i] = true;
-            
+
             // Stagger initial start
             setTimeout(() => animateDrop(drop), Math.random() * 3000);
         }
@@ -78,7 +79,7 @@ export default function RainOverlay() {
 
     return (
         <View style={styles.container} pointerEvents="none">
-            {rainDrops.map((drop) => (
+            {rainDrops.map(drop => (
                 <Animated.View
                     key={drop.id}
                     style={[

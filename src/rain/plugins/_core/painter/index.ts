@@ -10,7 +10,7 @@ export default definePlugin({
     description: Strings.PLUGIN__CORE_PAINTER_DESC,
     author: [{ name: "cocobo1", id: 767650984175992833n }, { name: "LampDelivery", id: 650805815623680030n }],
     id: "painter",
-    version: "v1.0.0",
+    version: "1.0.0",
     async start() {
         initThemes();
 

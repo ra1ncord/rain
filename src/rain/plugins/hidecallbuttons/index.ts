@@ -24,7 +24,7 @@ export default definePlugin({
     description: "Hides call buttons from dms, user profiles and vcs",
     author: [{ name: "John", id: 780819226839220265n }],
     id: "hidecallbuttons",
-    version: "v1.0.0",
+    version: "1.0.0",
     async start() {
         waitForHydration(useHideCallButtonsSettings);
         let videoCallAsset = findAssetId("ic_video");

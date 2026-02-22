@@ -1,48 +1,79 @@
+import { Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import React from "react";
 import { ScrollView } from "react-native";
-import { Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
+
 import { useMessageLoggerSettings } from "./storage";
 
 export default function MessageLoggerSettings() {
     const settings = useMessageLoggerSettings();
-    const [, forceUpdate] = React.useReducer(x => ~x, 0);
 
     return (
         <ScrollView style={{ flex: 1 }}>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
-                <TableRowGroup title="Settings">
+                <TableRowGroup title="Deleted Messages">
                     <TableSwitchRow
-                        label="Show the time of deletion"
-                        value={!!settings.timestamps}
+                        label="Enable"
+                        value={!!settings.deleted?.enabled}
                         onValueChange={v => {
-                            useMessageLoggerSettings.getState().updateSettings({ timestamps: v });
-                            forceUpdate();
+                            useMessageLoggerSettings.getState().updateSettings({ deleted: { ...settings.deleted, enabled: v } });
                         }}
                     />
                     <TableSwitchRow
-                        label="Use 12-hour format"
-                        value={!!settings.ew}
+                        label="Show Timestamps"
+                        value={!!settings.deleted?.showTimestamps}
                         onValueChange={v => {
-                            useMessageLoggerSettings.getState().updateSettings({ ew: v });
-                            forceUpdate();
+                            useMessageLoggerSettings.getState().updateSettings({ deleted: { ...settings.deleted, showTimestamps: v } });
                         }}
                     />
                     <TableSwitchRow
-                        label="Only show timestamps (no content)"
-                        value={!!settings.onlyTimestamps}
+                        label="Use 12-Hour Format"
+                        value={!!settings.deleted?.use12Hour}
                         onValueChange={v => {
-                            useMessageLoggerSettings.getState().updateSettings({ onlyTimestamps: v });
-                            forceUpdate();
+                            useMessageLoggerSettings.getState().updateSettings({ deleted: { ...settings.deleted, use12Hour: v } });
+                        }}
+                    />
+                    <TableSwitchRow
+                        label="Show Only Timestamp"
+                        value={!!settings.deleted?.showOnlyTimestamp}
+                        onValueChange={v => {
+                            useMessageLoggerSettings.getState().updateSettings({ deleted: { ...settings.deleted, showOnlyTimestamp: v } });
                         }}
                     />
                 </TableRowGroup>
+
+                <TableRowGroup title="Edited Messages">
+                    <TableSwitchRow
+                        label="Enable"
+                        value={!!settings.edited?.enabled}
+                        onValueChange={v => {
+                            useMessageLoggerSettings.getState().updateSettings({ edited: { ...settings.edited, enabled: v } });
+                        }}
+                    />
+                    <TableSwitchRow
+                        label="Show Separator"
+                        value={!!settings.edited?.showSeparator}
+                        onValueChange={v => {
+                            useMessageLoggerSettings.getState().updateSettings({ edited: { ...settings.edited, showSeparator: v } });
+                        }}
+                    />
+                </TableRowGroup>
+
                 <TableRowGroup title="Filters">
                     <TableSwitchRow
-                        label="Ignore bots"
-                        value={!!settings.ignore.bots}
+                        label="Ignore Bots"
+                        value={!!settings.filters?.ignoreBots}
                         onValueChange={v => {
-                            useMessageLoggerSettings.getState().updateSettings({ ignore: { ...settings.ignore, bots: v } });
-                            forceUpdate();
+                            useMessageLoggerSettings.getState().updateSettings({ filters: { ...settings.filters, ignoreBots: v } });
+                        }}
+                    />
+                </TableRowGroup>
+
+                <TableRowGroup title="Database">
+                    <TableSwitchRow
+                        label="Enable Logging"
+                        value={!!settings.databaseLogging}
+                        onValueChange={v => {
+                            useMessageLoggerSettings.getState().updateSettings({ databaseLogging: v });
                         }}
                     />
                 </TableRowGroup>

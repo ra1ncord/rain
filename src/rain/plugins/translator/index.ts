@@ -32,7 +32,7 @@ export default definePlugin({
         }
     ],
     id: "translator",
-    version: "v1.0.0",
+    version: "1.0.0",
     start() {
         patches.push(patchActionSheet());
     },

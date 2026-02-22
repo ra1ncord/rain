@@ -1,6 +1,6 @@
 import { findAssetId } from "@api/assets";
-import { showSheet } from "@api/ui/sheets";
 import { useSettings } from "@api/settings";
+import { showSheet } from "@api/ui/sheets";
 import { NavigationNative, tokens } from "@metro/common";
 import {
     Card,
@@ -194,7 +194,7 @@ export default function PluginCard({
                                     <Actions />
                                     <View style={core ? { opacity: 0.5 } : undefined}>
                                         <TableSwitch
-                                            value={core ? true : (toggling ? !plugin.isEnabled() : plugin.isEnabled())}
+                                            value={core ? true : plugin.isEnabled()}
                                             disabled={core || toggling}
                                             onValueChange={handleToggle}
                                         />
