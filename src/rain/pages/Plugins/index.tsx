@@ -2,6 +2,7 @@ import { useSettings } from "@api/settings";
 import { pluginInstances } from "@plugins";
 import { developer } from "@plugins/types";
 import AddonPage from "@rain/pages/Addon/AddonPage";
+import { Strings } from "@i18n";
 import { ComponentProps, useMemo } from "react";
 
 import PluginCard from "./components/PluginCard";
@@ -40,7 +41,7 @@ function PluginPage(props: PluginPageProps) {
     return (
         <AddonPage<UnifiedPluginModel>
             CardComponent={PluginCard}
-            title={"plugins"}
+            title={Strings.PLUGINS}
             searchKeywords={[
                 "name",
                 "description",
@@ -50,18 +51,18 @@ function PluginPage(props: PluginPageProps) {
                         .join() || "",
             ]}
             sortOptions={{
-                "Name (A-Z)": (a, b) => a.name.localeCompare(b.name),
-                "Name (Z-A)": (a, b) => b.name.localeCompare(a.name),
-                "Enabled": (a, b) => Number(b.isEnabled()) - Number(a.isEnabled()),
-                "Disabled": (a, b) => Number(a.isEnabled()) - Number(b.isEnabled()),
+                [Strings.SORT_NAME_AZ]: (a, b) => a.name.localeCompare(b.name),
+                [Strings.SORT_NAME_ZA]: (a, b) => b.name.localeCompare(a.name),
+                [Strings.ENABLED]: (a, b) => Number(b.isEnabled()) - Number(a.isEnabled()),
+                [Strings.DISABLED]: (a, b) => Number(a.isEnabled()) - Number(b.isEnabled()),
             }}
             defaultSortKey="Name (A-Z)"
             filterOptions={{
-                "Hide Core Plugins": p => !p.id.startsWith("core"),
-                "Show Core Plugins": () => true,
+                [Strings.HIDE_CORE]: p => !p.id.startsWith("core"),
+                [Strings.SHOW_CORE]: () => true,
             }}
-            safeModeHint={{ message: "You are in safemode, plugins are not running but can still be toggled" }}
-            defaultFilterKey="Hide Core Plugins"
+            safeModeHint={{ message: Strings.HINT_SAFE_MODE }}
+            defaultFilterKey={Strings.HIDE_CORE}
             items={reorderedItems}
             {...props}
         />

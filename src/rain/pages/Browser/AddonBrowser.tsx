@@ -9,13 +9,20 @@ import { clipboard,NavigationNative, React } from "@metro/common";
 import { ActionSheet, Button, Card, FlashList, IconButton, Stack, TableRow, TableRowGroup,Text } from "@metro/common/components";
 import { View } from "react-native";
 
+import { Strings, formatString } from "@i18n";
+
 const { showSimpleActionSheet } = lazyDestructure(() => findByProps("showSimpleActionSheet"));
 const { hideActionSheet } = findByProps("hideActionSheet");
 
 enum Sort {
-    NameAZ = "Name (A–Z)",
-    NameZA = "Name (Z–A)",
+    NameAZ = "NameAZ",
+    NameZA = "NameZA",
 }
+
+const SortLabels: Record<Sort, string> = {
+    [Sort.NameAZ]: Strings.SORT_NAME_AZ,
+    [Sort.NameZA]: Strings.SORT_NAME_ZA,
+};
 
 interface Addon {
     name: string;
@@ -54,11 +61,11 @@ function AddonCard({ item, identityKey, installFn, removeFn, isInstalled }: Card
             const id = item[identityKey];
             if (isInstalled) {
                 await removeFn(id);
-                showToast(`Removed ${item.name}`, findAssetId("TrashIcon"));
+                showToast(formatString("REMOVED", { name: item.name }), findAssetId("TrashIcon"));
             } else {
                 setIsBusy(true);
                 await installFn(item.installUrl);
-                showToast(`Installed ${item.name}`, findAssetId("CheckIcon"));
+                showToast(formatString("INSTALLED", { name: item.name }), findAssetId("CheckIcon"));
             }
         } catch (e) {
             showToast(e instanceof Error ? e.message : String(e), findAssetId("CircleXIcon-primary"));
@@ -71,9 +78,9 @@ function AddonCard({ item, identityKey, installFn, removeFn, isInstalled }: Card
         const sheetKey = "addon-menu";
         showSheet(sheetKey, () => (
             <ActionSheet>
-                <TableRowGroup title="Info">
+                <TableRowGroup title={Strings.INFO}>
                     <TableRow
-                        label="Copy Source URL"
+                        label={Strings.COPY_SOURCE_URL}
                         icon={<TableRow.Icon source={findAssetId("CopyIcon")} />}
                         onPress={() => {
                             clipboard.setString(item.installUrl);
@@ -94,7 +101,7 @@ function AddonCard({ item, identityKey, installFn, removeFn, isInstalled }: Card
                             {item.name}
                         </Text>
                         <Text variant="text-md/semibold" color="text-muted">
-                            by {item.authors?.join(", ") || "Unknown"}
+                            by {item.authors?.join(", ") || Strings.UNKNOWN_AUTHOR}
                         </Text>
                     </View>
                     <View>
@@ -111,7 +118,7 @@ function AddonCard({ item, identityKey, installFn, removeFn, isInstalled }: Card
                                 icon={findAssetId(isInstalled ? "TrashIcon" : "DownloadIcon")}
                                 loading={isBusy}
                                 disabled={isBusy}
-                                text={isInstalled ? "Uninstall" : "Install"}
+                                text={isInstalled ? Strings.UNINSTALL : Strings.INSTALL}
                                 onPress={handleAction}
                             />
                         </Stack>
@@ -143,7 +150,7 @@ export default function AddonBrowser({ type, url, useStore, installFn, removeFn,
         setError(null);
         try {
             const response = await safeFetch(url);
-            if (!response.ok) throw new Error("Failed to fetch");
+            if (!response.ok) throw new Error(Strings.FAILED_TO_FETCH);
             const data = await response.json();
             const parsed = Array.isArray(data) ? data : (data.fonts || data.themes || []);
             cache.data = parsed;
@@ -172,9 +179,9 @@ export default function AddonBrowser({ type, url, useStore, installFn, removeFn,
     if (error) {
         return (
             <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
-                <Text variant="heading-lg/bold">Failed to load {type}</Text>
+                <Text variant="heading-lg/bold">{formatString("FAILED_TO_LOAD", { type })}</Text>
                 <Text color="text-muted">{error}</Text>
-                <Button size="md" text="Retry" onPress={() => fetchAddons(true)} style={{ marginTop: 10 }} />
+                <Button size="md" text={Strings.RETRY} onPress={() => fetchAddons(true)} style={{ marginTop: 10 }} />
             </View>
         );
     }
@@ -185,7 +192,7 @@ export default function AddonBrowser({ type, url, useStore, installFn, removeFn,
                 <Stack spacing={12}>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                         <Search
-                            placeholder={`Search ${type}...`}
+                            placeholder={formatString("SEARCH_PLACEHOLDER", { type })}
                             onChangeText={setSearchQuery}
                             style={{ flex: 1 }}
                             isRound={true}
@@ -196,10 +203,10 @@ export default function AddonBrowser({ type, url, useStore, installFn, removeFn,
                             icon={findAssetId("MoreVerticalIcon")}
                             onPress={() => showSimpleActionSheet({
                                 key: "SortOptions",
-                                header: { title: "Sort By", onClose: () => hideActionSheet("SortOptions") },
-                                options: Object.entries(Sort).map(([_, value]) => ({
-                                    label: value,
-                                    onPress: () => setSort(value as Sort)
+                                header: { title: Strings.SORT_BY, onClose: () => hideActionSheet("SortOptions") },
+                                options: Object.values(Sort).map((value) => ({
+                                    label: SortLabels[value],
+                                    onPress: () => setSort(value)
                                 }))
                             })}
                         />

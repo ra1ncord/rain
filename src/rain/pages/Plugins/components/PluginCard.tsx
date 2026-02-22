@@ -13,6 +13,7 @@ import { isPluginCore } from "@plugins";
 import { CardWrapper } from "@rain/pages/Addon/AddonCard";
 import { UnifiedPluginModel } from "@rain/pages/Plugins/models";
 import { usePluginCardStyles } from "@rain/pages/Plugins/usePluginCardStyles";
+import { Strings } from "@i18n";
 import chroma from "chroma-js";
 import { createContext, useContext, useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
@@ -72,8 +73,8 @@ function Authors() {
         <View
             style={{ flexDirection: "row", flexWrap: "wrap", flexShrink: 1, gap: 4 }}
         >
-            <Text variant="text-sm/semibold" color="text-muted">
-        by {authorText}
+<Text variant="text-sm/semibold" color="text-muted">
+                {Strings.AUTHOR_BY} {authorText}
             </Text>
         </View>
     );

@@ -73,7 +73,7 @@ if (typeof window.__r === "undefined") {
             deferMethodExecution(
                 batchedBridge,
                 "callFunctionReturnFlushedQueue",
-                // If the call is to AppRegistry, we want to defer it because it is not yet registered (Revenge delays it)
+                // If the call is to AppRegistry, we want to defer it because it is not yet registered (we delay it)
                 // Same goes to the non-callable modules, which are not registered yet, so we ensure that only registered ones can get through
                 (...args) => args[0] === "AppRegistry" || !batchedBridge.getCallableModule(args[0]),
                 ({ args }) => {

@@ -21,7 +21,7 @@ export default function ThemeCard({ item: theme }: CardWrapper<ThemeInfo>) {
         )
     );
 
-    const safeModeEnabled = useSettings(state => state.safeMode?.enabled);
+    const safeModeEnabled = useSettings(state => state.safeMode);
     const { fetchTheme, removeTheme } = useThemes.getState();
     const [removed, setRemoved] = React.useState(false);
 
