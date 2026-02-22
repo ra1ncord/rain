@@ -11,7 +11,7 @@ const patches: (() => void)[] = [];
 const APIUtils = findByProps("getAPIBaseURL", "del");
 
 export default definePlugin({
-    name: "BetterSilentLeave",
+    name: "SilentLeave",
     description: "Adds a button to leave groups silently.",
     author: [{ name: "reyyan1", id: 797034673846747158n }],
     id: "silentleave",
