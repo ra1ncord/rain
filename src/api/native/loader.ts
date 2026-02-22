@@ -57,7 +57,7 @@ export function isLoaderConfigSupported() {
 
 export function getThemeFilePath() {
     if (isRainLoader()) {
-        return "raincord/current-theme.json";
+        return "rain/current-theme.json";
     }
     if (isPyonLoader()) {
         return "pyon/current-theme.json";

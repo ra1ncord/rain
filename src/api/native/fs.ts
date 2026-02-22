@@ -1,10 +1,19 @@
+import { isPyonLoader, isRainLoader } from "./loader";
 import { NativeFileModule } from "./modules";
+
+let prefix = "rain/";
+
+if (isRainLoader()) {
+    prefix = "rain/";
+} else if (isPyonLoader()) {
+    prefix = "pyoncord/";
+}
 
 /**
  * Removes all files in a directory from the path given
  * @param path Path to the targeted directory
  */
-export async function clearFolder(path: string, { prefix = "pyoncord/" } = {}) {
+export async function clearFolder(path: string = "") {
     if (typeof NativeFileModule.clearFolder !== "function") throw new Error("'fs.clearFolder' is not supported");
     return void await NativeFileModule.clearFolder("documents", `${prefix}${path}`);
 }
@@ -13,7 +22,7 @@ export async function clearFolder(path: string, { prefix = "pyoncord/" } = {}) {
  * Remove file from given path, currently no check for any failure
  * @param path Path to the file
  */
-export async function removeFile(path: string, { prefix = "pyoncord/" } = {}) {
+export async function removeFile(path: string = "") {
     if (typeof NativeFileModule.removeFile !== "function") throw new Error("'fs.removeFile' is not supported");
     return void await NativeFileModule.removeFile("documents", `${prefix}${path}`);
 }
@@ -22,7 +31,7 @@ export async function removeFile(path: string, { prefix = "pyoncord/" } = {}) {
  * Remove file from given path, currently no check for any failure
  * @param path Path to the file
  */
-export async function removeCacheFile(path: string, prefix = "pyoncord/") {
+export async function removeCacheFile(path: string = "") {
     if (typeof NativeFileModule.removeFile !== "function") throw new Error("'fs.removeFile' is not supported");
     return void await NativeFileModule.removeFile("cache", `${prefix}${path}`);
 }
@@ -31,7 +40,7 @@ export async function removeCacheFile(path: string, prefix = "pyoncord/") {
  * Check if the file or directory given by the path exists
  * @param path Path to the file
  */
-export async function fileExists(path: string, { prefix = "pyoncord/" } = {}) {
+export async function fileExists(path: string = "") {
     return await NativeFileModule.fileExists(`${NativeFileModule.getConstants().DocumentsDirPath}/${prefix}${path}`);
 }
 
@@ -40,7 +49,7 @@ export async function fileExists(path: string, { prefix = "pyoncord/" } = {}) {
  * @param path Path to the file
  * @param data String data to write to the file
  */
-export async function writeFile(path: string, data: string, { prefix = "pyoncord/" } = {}): Promise<void> {
+export async function writeFile(path: string, data: string): Promise<void> {
     if (typeof data !== "string") throw new Error("Argument 'data' must be a string");
     return void await NativeFileModule.writeFile("documents", `${prefix}${path}`, data, "utf8");
 }
@@ -50,7 +59,7 @@ export async function writeFile(path: string, data: string, { prefix = "pyoncord
  * @param path Path to the file
  * @param fallback Fallback data to return if the file doesn't exist, and will be written to the file
  */
-export async function readFile(path: string, { prefix = "pyoncord/", encoding = "utf8" }: { prefix?: string, encoding?: "utf8" | "base64" } = {}): Promise<string> {
+export async function readFile(path: string, { encoding = "utf8" }: { prefix?: string, encoding?: "utf8" | "base64" } = {}): Promise<string> {
     try {
         return await NativeFileModule.readFile(`${NativeFileModule.getConstants().DocumentsDirPath}/${prefix}${path}`, encoding);
     } catch (err) {
@@ -63,7 +72,7 @@ export async function readFile(path: string, { prefix = "pyoncord/", encoding = 
  * @param url URL to download the file from
  * @param path Path to save the file to
  */
-export async function downloadFile(url: string, path: string, { prefix = "pyoncord/" } = {}) {
+export async function downloadFile(url: string, path: string) {
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`Failed to download file from ${url}: ${response.status}`);
