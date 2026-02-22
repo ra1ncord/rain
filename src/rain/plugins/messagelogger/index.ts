@@ -161,6 +161,7 @@ function patchMessageEditHandler() {
         const EDIT_HISTORY_SEPARATOR = "`[ EDITED ]`";
         const FluxDispatcher = findByProps("dispatch", "_subscriptions");
         const MessageStore = findByStoreName("MessageStore");
+        const emojiRegex = /https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.\w+/g;
 
         if (!FluxDispatcher || !MessageStore) return () => {};
 
@@ -180,7 +181,8 @@ function patchMessageEditHandler() {
                 if (!prevMessage || !prevMessage.content || prevMessage.content === message.content) return args;
 
                 const separator = storage.edited?.showSeparator !== false ? EDIT_HISTORY_SEPARATOR : "";
-                const newContent = prevMessage.content + (separator ? `\n\n${separator}\n\n` : "\n") + message.content;
+                const oldContent = prevMessage.content.replace(emojiRegex, "").trim();
+                const newContent = oldContent + (separator ? `\n\n${separator}\n\n` : "\n") + message.content;
 
                 event.message = {
                     ...message,
