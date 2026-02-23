@@ -127,5 +127,9 @@ export const Contributors = {
     Bwlok: {
         name: "Bwlok",
         id: 501827585806827520n,
+    },
+    Fiery: {
+        name: "Fiery",
+        id: 890228870559698955n,
     }
 } satisfies Record<string, developer>;
