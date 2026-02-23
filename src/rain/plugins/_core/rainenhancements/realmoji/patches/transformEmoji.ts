@@ -34,10 +34,10 @@ export default [
         }
 
         data.message.content = content;
-        data.__rainenhancements = true;
+        data.message.__rainenhancements = true;
     }),
     after("generate", RowManager.prototype, ([data], row) => {
-        if (data.rowType !== 1 || data.__rainenhancements !== true || !rainenhancementsSettings.transformEmoji) return;
+        if (data.rowType !== 1 || data.message.__rainenhancements !== true || !rainenhancementsSettings.transformEmoji) return;
         const { content } = row.message as Message;
         if (!Array.isArray(content)) return;
 

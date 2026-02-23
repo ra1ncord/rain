@@ -56,6 +56,8 @@ function shouldIgnoreMessage(message: any, storage: any): boolean {
 
         if (storage.filters?.ignoreBots && isBot(message.author)) return true;
 
+        if (message?.__rainenhancements) return true;
+
         return false;
     } catch {
         return false;
