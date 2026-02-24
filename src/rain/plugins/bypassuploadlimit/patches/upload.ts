@@ -2,16 +2,16 @@ import { findAssetId } from "@api/assets";
 import { showToast } from "@api/ui/toasts";
 import { logger } from "@lib/utils/logger";
 import { findByProps } from "@metro";
-import { clipboard, messageUtil } from "@metro/common";
+import { clipboard } from "@metro/common";
 import { findByProps as findByPropsWrappers } from "@metro/wrappers";
 
 // For robust chat input manipulation
 let getChatInputRef: ((channelId: string, idx?: number) => any) | null = null;
-import { uploaderSettings } from "../storage";
 import { uploadToCatbox } from "../api/catbox";
 import { uploadToLitterbox } from "../api/litterbox";
 import { uploadToUguu } from "../api/uguu";
 import { formatBytes } from "../lib/utils";
+import { uploaderSettings } from "../storage";
 
 const CloudUpload = findByProps("CloudUpload")?.CloudUpload;
 const MessageSender = findByProps("sendMessage");

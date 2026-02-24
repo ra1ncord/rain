@@ -2,6 +2,7 @@ import { createFileStorage, PluginStore } from "@api/storage";
 import { UserStore } from "@metro/common/stores";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+
 import type { UserData } from "../types";
 
 interface CacheState {

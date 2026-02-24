@@ -1,7 +1,8 @@
+import { rawColors } from "@api/ui/components/color";
 import { findByProps, findByStoreName } from "@metro";
 import { constants, i18n } from "@metro/common";
 import chroma from "chroma-js";
-import { rawColors } from "@api/ui/components/color";
+
 import { useStaffTagsSettings } from "../storage";
 
 const { computePermissions } = findByProps("computePermissions", "canEveryoneRole") ?? {};
@@ -56,7 +57,7 @@ const tags: Tag[] = [
         text: "Chat Mod",
         permissions: ["MODERATE_MEMBERS"]
     }
-]
+];
 
 export default function getTag(guild: any, channel: any, user: any) {
     if (!guild || !user) return undefined;
@@ -82,9 +83,9 @@ export default function getTag(guild: any, channel: any, user: any) {
         if (tag.condition?.(guild, channel, user) ||
             (!user.bot && tag.permissions?.some(perm => permissions?.includes(perm)))) {
 
-            let roleColor = useRoleColor && GuildMemberStore ? GuildMemberStore.getMember(guild?.id, user.id)?.colorString : undefined;
-            let backgroundColor = roleColor ? roleColor : tag.backgroundColor ?? rawColors?.BRAND_500 ?? "#5865F2";
-            let textColor = (roleColor || !tag.textColor) ? (chroma(backgroundColor).get('lab.l') < 70 ? rawColors?.WHITE_500 ?? "#ffffff" : rawColors?.BLACK_500 ?? "#000000") : tag.textColor;
+            const roleColor = useRoleColor && GuildMemberStore ? GuildMemberStore.getMember(guild?.id, user.id)?.colorString : undefined;
+            const backgroundColor = roleColor ? roleColor : tag.backgroundColor ?? rawColors?.BRAND_500 ?? "#5865F2";
+            const textColor = (roleColor || !tag.textColor) ? (chroma(backgroundColor).get("lab.l") < 70 ? rawColors?.WHITE_500 ?? "#ffffff" : rawColors?.BLACK_500 ?? "#000000") : tag.textColor;
 
             return {
                 ...tag,
