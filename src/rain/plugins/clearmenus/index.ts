@@ -12,7 +12,7 @@ let unpatchSettingsSections: (() => void) | null = null;
 export default definePlugin({
   name: "ClearMenus",
   description: "Hide unwanted buttons and settings",
-  author: [{ name: "LampDelivery", id: 0n }],
+  author: [Developers.LampDelivery],
   id: "clearmenus",
   version: "1.0.0",
   start() {
