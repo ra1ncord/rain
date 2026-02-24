@@ -1,7 +1,7 @@
 import { ApplicationCommand } from "@api/commands/types";
 import { messageUtil } from "@metro/common";
-import unifyRainPlugin from "@rain/pages/Plugins/models/rain";
 import { pluginInstances } from "@plugins";
+import unifyRainPlugin from "@rain/pages/Plugins/models/rain";
 
 // todo: i18n
 export default () => <ApplicationCommand>{

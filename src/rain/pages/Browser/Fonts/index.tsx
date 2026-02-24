@@ -1,5 +1,5 @@
-import AddonBrowser from "@rain/pages/Browser/AddonBrowser";
 import { installFont, removeFont,useFonts } from "@plugins/_core/painter/fonts";
+import AddonBrowser from "@rain/pages/Browser/AddonBrowser";
 
 const cachedFonts = { data: null };
 
