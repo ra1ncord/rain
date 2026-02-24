@@ -25,26 +25,14 @@ export default function patchSettingsSections() {
     const createListModule = findByPropsLazy("createList");
     if (!createListModule) return patches;
     const unpatch = after("createList", createListModule, function(args: any[], ret: any) {
-        console.log("ClearMenus patch: createList patch running");
         const [config] = args;
-        console.log("ClearMenus patch: config", config);
         if (!config?.sections || !Array.isArray(config.sections)) {
-            console.log("ClearMenus patch: config.sections missing or not array", config?.sections);
             return;
-        }
-        console.log("ClearMenus patch: sections", config.sections);
-        // Runtime log: print all keys for each section
-        for (const section of config.sections) {
-            if (section?.id && Array.isArray(section.settings)) {
-                console.log("ClearMenus section:", section.id, "keys:", section.settings.map((item: any) => typeof item === "string" ? item : item?.key));
-            }
         }
         const settings = useSettingsSections.getState();
         for (const section of config.sections) {
             if (!section?.settings || !Array.isArray(section.settings)) continue;
             const sectionData = section.settings;
-            // Rain categories logic
-            // Rain categories logic (Themes, Fonts, Developer)
             const rainRowKeys: Record<string, string> = {
                 themes: "RAIN_THEMES",
                 fonts: "RAIN_FONTS",
@@ -61,7 +49,6 @@ export default function patchSettingsSections() {
                         for (let i = section.settings.length - 1; i >= 0; i--) {
                             const item = section.settings[i];
                             const key = typeof item === "string" ? item : item?.key;
-                            // Use correct row key for themes, fonts, developer
                             let toggleKey = key;
                             if (rainCat.section in rainRowKeys && key === rainRowKeys[rainCat.section as string]) {
                                 toggleKey = rainRowKeys[rainCat.section as string];
@@ -73,7 +60,6 @@ export default function patchSettingsSections() {
                     }
                 }
             }
-            // HideAll logic for every category in SettingsSections
             for (let i = sectionData.length - 1; i >= 0; i--) {
                 const item = sectionData[i];
                 const key = typeof item === "string" ? item : item?.key;
@@ -88,7 +74,6 @@ export default function patchSettingsSections() {
                     continue;
                 }
 
-                // Explicit logic for each category shown in the runtime log
                 const explicitCategories = [
                     { id: "account settings", key: "account" },
                     { id: "billing settings", key: "billing" },
@@ -113,7 +98,6 @@ export default function patchSettingsSections() {
                 }
                 if (handled) continue;
 
-                // Support fallback for id (in case label is not present)
                 if (section.id && section.id.toLowerCase() === "support") {
                     if (settings.support?.hideAll || settings.support?.[key as keyof typeof settings.support]) {
                         sectionData.splice(i, 1);
@@ -121,9 +105,7 @@ export default function patchSettingsSections() {
                     continue;
                 }
 
-                // Generic hideAll logic for all categories (fallback)
                 for (const category of Object.keys(settings)) {
-                    // Skip billing (already handled), support (handled above), rain/plugins/themes/fonts/developer (handled above)
                     if (["billing", "support", ...RAIN_CATEGORIES.map(r => r.section)].includes(category)) continue;
                     // Section id can be label or id, so compare lowercased
                     if (section.id && section.id.toLowerCase().replace(/\s/g,"") === category.toLowerCase()) {
