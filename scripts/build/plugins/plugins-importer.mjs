@@ -78,7 +78,7 @@ export function pluginsImporterPlugin() {
             //@ts-ignore
             build.onResolve({ filter: /^#rain-plugins$/ }, args => {
                 return {
-                    path: path.join(projectRoot, "src/rain/plugins"),
+                    path: path.join(projectRoot, "src/plugins"),
                     namespace: "rain-plugins-importer",
                 };
             });
