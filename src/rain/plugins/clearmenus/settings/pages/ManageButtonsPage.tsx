@@ -86,6 +86,8 @@ export default function ManageButtonsPage() {
               update();
             }}
           />
+        </TableRowGroup>
+        <Stack style={{ marginTop: -16 }}>
           <TextInput
             placeholder="Custom labels to hide (comma-separated)"
             value={settings.customLabels ?? ""}
@@ -95,7 +97,7 @@ export default function ManageButtonsPage() {
             }}
             isClearable
           />
-        </TableRowGroup>
+        </Stack>
       </Stack>
     </ReactNative.ScrollView>
   );
