@@ -1,5 +1,5 @@
 import AddonBrowser from "@rain/pages/Browser/AddonBrowser";
-import { installTheme, removeTheme,useThemes } from "@rain/plugins/_core/painter/themes";
+import { installTheme, removeTheme,useThemes } from "@plugins/_core/painter/themes";
 
 const cachedThemes = { data: null };
 

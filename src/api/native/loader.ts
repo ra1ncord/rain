@@ -1,4 +1,4 @@
-import { ThemeManifest } from "@rain/plugins/_core/painter/themes/types";
+import { ThemeManifest } from "@plugins/_core/painter/themes/types";
 
 // @ts-ignore
 const pyonLoaderIdentity = globalThis.__PYON_LOADER__;

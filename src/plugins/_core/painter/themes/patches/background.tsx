@@ -2,8 +2,8 @@ import { after } from "@api/patcher";
 import { findInReactTree } from "@lib/utils";
 import { logger } from "@lib/utils/logger";
 import { findByFilePathLazy } from "@metro";
-import { useColorsPref } from "@rain/plugins/_core/painter/themes/preferences";
-import { _colorRef } from "@rain/plugins/_core/painter/themes/updater";
+import { useColorsPref } from "@plugins/_core/painter/themes/preferences";
+import { _colorRef } from "@plugins/_core/painter/themes/updater";
 import chroma from "chroma-js";
 import { ImageBackground, StyleSheet } from "react-native";
 
