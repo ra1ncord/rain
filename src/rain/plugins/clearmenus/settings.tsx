@@ -28,12 +28,12 @@ export default function Settings() {
   const categories = [
     { key: "account", label: "Account", icon: "UserIcon", render: AccountSettingsPage },
     { key: "billing", label: "Billing", icon: "CreditCardIcon", render: BillingSettingsPage },
-    { key: "appSettings", label: "App Settings", icon: "SettingsIcon", render: AppSettingsPage },
+    { key: "appSettings", label: "App", icon: "SettingsIcon", render: AppSettingsPage },
     { key: "support", label: "Support", icon: "CircleQuestionIcon", render: SupportSettingsPage },
     { key: "whatsNew", label: "What's New", icon: "CircleInformationIcon", render: WhatsNewSettingsPage },
-    { key: "developerSettings", label: "Developer Settings", icon: "WrenchIcon", render: DeveloperSettingsPage },
-    { key: "buildStatus", label: "Build Status", icon: "RefreshIcon", render: BuildStatusSettingsPage },
-    { key: "staffSettings", label: "Staff Settings", icon: "StaffBadgeIcon", render: StaffSettingsPage },
+    { key: "developerSettings", label: "Developer", icon: "WrenchIcon", render: DeveloperSettingsPage },
+    { key: "buildStatus", label: "Build", icon: "RefreshIcon", render: BuildStatusSettingsPage },
+    { key: "staffSettings", label: "Staff", icon: "StaffBadgeIcon", render: StaffSettingsPage },
   ];
 
   // User header logic
