@@ -183,6 +183,8 @@ function patchMessageEditHandler() {
                 const prevMessage = MessageStore.getMessage?.(message.channel_id || message.channelId, message.id);
                 if (!prevMessage || !prevMessage.content || prevMessage.content === message.content) return args;
 
+                if (prevMessage?.__rainenhancements || message?.__rainenhancements) return args;
+
                 const separator = storage.edited?.showSeparator !== false ? EDIT_HISTORY_SEPARATOR : "";
                 const oldContent = prevMessage.content.replace(emojiRegex, "").trim();
                 const newContent = oldContent + (separator ? `\n\n${separator}\n\n` : "\n") + message.content;
