@@ -76,57 +76,6 @@ export default () => {
                         value={settings.stickerHyperLink}
                     />
                 </TableRowGroup>
-                <TableRowGroup title="Hide in Settings items" titleStyleType="no_border">
-                    <TableSwitchRow
-                        label="Hide Shop"
-                        onValueChange={(v: boolean) => {
-                            updateSettings({ hideCollectiblesShop: v });
-                        }}
-                        value={settings.hideCollectiblesShop}
-                    />
-                    <TableSwitchRow
-                        label="Hide Quests"
-                        onValueChange={(v: boolean) => {
-                            updateSettings({ hideQuests: v });
-                        }}
-                        value={settings.hideQuests}
-                    />
-                    <TableSwitchRow
-                        label="Hide Manage Nitro"
-                        onValueChange={(v: boolean) => {
-                            updateSettings({ hidePremium: v });
-                        }}
-                        value={settings.hidePremium}
-                    />
-                    <TableSwitchRow
-                        label="Hide Server Boost"
-                        onValueChange={(v: boolean) => {
-                            updateSettings({ hidePremiumGuildBoosting: v });
-                        }}
-                        value={settings.hidePremiumGuildBoosting}
-                    />
-                    <TableSwitchRow
-                        label="Hide Gifting"
-                        onValueChange={(v: boolean) => {
-                            updateSettings({ hidePremiumGifting: v });
-                        }}
-                        value={settings.hidePremiumGifting}
-                    />
-                    <TableSwitchRow
-                        label="Hide Guild Role Subscriptions"
-                        onValueChange={(v: boolean) => {
-                            updateSettings({ hideGuildRoleSubscriptions: v });
-                        }}
-                        value={settings.hideGuildRoleSubscriptions}
-                    />
-                    <TableSwitchRow
-                        label="Hide Premium Restore Subscription"
-                        onValueChange={(v: boolean) => {
-                            updateSettings({ hidePremiumRestoreSubscription: v });
-                        }}
-                        value={settings.hidePremiumRestoreSubscription}
-                    />
-                </TableRowGroup>
             </Stack>
         </ScrollView>
     );
