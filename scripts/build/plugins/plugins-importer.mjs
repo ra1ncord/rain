@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, "../../..");
-const pluginsDirectoryPath = path.join(projectRoot, "src/rain/plugins");
+const pluginsDirectoryPath = path.join(projectRoot, "src/plugins");
 
 // @ts-ignore
 async function gatherPlugins(plugins = [], dir = pluginsDirectoryPath, relativePath = "") {
