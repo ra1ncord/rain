@@ -3,6 +3,7 @@ import { definePlugin } from "@plugins";
 import Settings from "./settings";
 import patchMessageActionSheet from "./patches/ActionSheet";
 import patchSettingsSections from "./patches/SettingsSections";
+import { Developers } from "@rain/Developers";
 
 type Unpatch = () => void;
 
