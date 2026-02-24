@@ -2,7 +2,6 @@ import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
 
 import getAppIcons from "./patches/appIcons";
-import getHidePaymentItems from "./patches/hidePaymentItems";
 import getNitroChecks from "./patches/nitroChecks";
 import getNitroThemes from "./patches/nitroThemes";
 import getRemoveGetNitroButton from "./patches/removeGetNitroButton";
@@ -23,7 +22,6 @@ export default definePlugin({
         patches.push(...getAppIcons());
         patches.push(...getNitroThemes());
         patches.push(...getRemoveGetNitroButton());
-        patches.push(...getHidePaymentItems());
     },
     stop() {
         for (const unpatch of patches) unpatch();
