@@ -88,7 +88,7 @@ export default function patchSettingsSections() {
                 ];
                 let handled = false;
                 for (const cat of explicitCategories) {
-                    if (section.label && section.label.toLowerCase() === cat.id) {
+                    if (typeof section.label === "string" && section.label.toLowerCase() === cat.id) {
                         const toggles = settings[cat.key as keyof typeof settings];
                         if (toggles && typeof toggles === "object" && (toggles.hideAll || toggles[key as keyof typeof toggles])) {
                             sectionData.splice(i, 1);
