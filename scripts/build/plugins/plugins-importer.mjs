@@ -87,7 +87,7 @@ export function pluginsImporterPlugin() {
                 return {
                     contents: await makeModule(),
                     loader: "ts",
-                    resolveDir: path.join(projectRoot, "src/rain"),
+                    resolveDir: path.join(projectRoot, "src"),
                 };
             });
         },
