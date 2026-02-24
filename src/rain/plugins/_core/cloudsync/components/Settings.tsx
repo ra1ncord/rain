@@ -68,9 +68,10 @@ export default function CloudSyncSettings() {
                                 disabled
                             />
                             <TableRow
+                                variant="danger"
                                 label="Log out"
                                 subLabel="Disconnect your account from Cloud Sync"
-                                icon={<TableRow.Icon source={findAssetId("DoorExitIcon")} />}
+                                icon={<TableRow.Icon variant="danger" source={findAssetId("DoorExitIcon")} />}
                                 onPress={() => auth.setToken(undefined)}
                             />
                         </>
