@@ -9,7 +9,7 @@ export default function AppSettingsPage() {
   return (
     <ReactNative.ScrollView style={{ flex: 1, backgroundColor: semanticColors.BACKGROUND_PRIMARY }}>
       <Stack spacing={24} style={{ paddingVertical: 24, paddingHorizontal: 12 }}>
-        <TableRowGroup title="App">
+        <TableRowGroup title="App Settings">
           <TableSwitchRow label="Hide All" value={!!settingsSections.appSettings.hideAll} onValueChange={v => settingsSections.updateSettings({ appSettings: { ...settingsSections.appSettings, hideAll: v } })} />
           <TableSwitchRow label="Hide Voice" icon={<TableRow.Icon source={findAssetId("MicrophoneIcon")} />} value={!!settingsSections.appSettings.VOICE} disabled={!!settingsSections.appSettings.hideAll} onValueChange={v => settingsSections.updateSettings({ appSettings: { ...settingsSections.appSettings, VOICE: v } })} />
           <TableSwitchRow label="Hide Appearance" icon={<TableRow.Icon source={findAssetId("PaintPaletteIcon")} />} value={!!settingsSections.appSettings.APPEARANCE} disabled={!!settingsSections.appSettings.hideAll} onValueChange={v => settingsSections.updateSettings({ appSettings: { ...settingsSections.appSettings, APPEARANCE: v } })} />
