@@ -1,4 +1,3 @@
-
 import { findAssetId } from "@api/assets";
 import { React } from "@metro/common";
 import { NavigationNative } from "@metro/common";
@@ -109,7 +108,7 @@ export default function Settings() {
             align="center"
             style={{ marginTop: 4 }}
           >
-            Remove unwanted buttons and settings
+            Hide unwanted buttons and settings
           </MoreCommandsText>
         </View>
       </View>
