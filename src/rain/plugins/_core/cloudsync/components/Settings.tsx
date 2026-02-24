@@ -1,16 +1,17 @@
-import SettingsTextInput from "@api/ui/components/SettingsTextInput";
 import { findAssetId } from "@api/assets";
+import SettingsTextInput from "@api/ui/components/SettingsTextInput";
 import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro";
 import { Stack, TableRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import React from "react";
-import { ScrollView, ActivityIndicator } from "react-native";
+import { ActivityIndicator,ScrollView } from "react-native";
+
+import { getData, saveData } from "../api";
+import showAuthModal from "../lib/showAuthModal";
+import { grabEverything, importData } from "../lib/syncStuff";
 import { useCloudSyncSettings } from "../storage";
 import { useAuthorizationStore } from "../stores/AuthorizationStore";
 import { useCacheStore } from "../stores/CacheStore";
-import { getData, saveData } from "../api";
-import { grabEverything, importData } from "../lib/syncStuff";
-import showAuthModal from "../lib/showAuthModal";
 
 const { Card } = findByProps("Card");
 

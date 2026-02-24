@@ -1,6 +1,7 @@
-import { findByProps, findByStoreName, findByTypeNameAll } from "@metro";
 import { after } from "@api/patcher";
 import { findInReactTree } from "@lib/utils";
+import { findByProps, findByStoreName, findByTypeNameAll } from "@metro";
+
 import getTag, { BUILT_IN_TAGS } from "../lib/getTag";
 
 const TagModule = findByProps("getBotLabel");
@@ -10,7 +11,7 @@ const GuildStore = findByStoreName("GuildStore");
 const rowPatch = ([{ guildId, user }]: [{ guildId: string, user: any }], res: any) => {
     const label = res?.props?.label;
     if (!label) return;
-    
+
     const nameContainer = findInReactTree(
         label,
         (c: any) =>
@@ -57,9 +58,9 @@ const rowPatch = ([{ guildId, user }]: [{ guildId: string, user: any }], res: an
 };
 
 export default () => {
-    const patches: any[] = []
+    const patches: any[] = [];
 
-    findByTypeNameAll("UserRow").forEach((UserRow: any) => patches.push(after("type", UserRow, (args: any[], res: any) => rowPatch(args as any, res))))
+    findByTypeNameAll("UserRow").forEach((UserRow: any) => patches.push(after("type", UserRow, (args: any[], res: any) => rowPatch(args as any, res))));
 
-    return () => patches.forEach((unpatch: any) => unpatch())
-}
+    return () => patches.forEach((unpatch: any) => unpatch());
+};

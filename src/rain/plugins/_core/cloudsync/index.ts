@@ -1,12 +1,13 @@
+import { logger } from "@lib/utils/logger";
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
+
+import { saveData } from "./api";
+import Settings from "./components/Settings";
+import { grabEverything } from "./lib/syncStuff";
 import { useCloudSyncSettings } from "./storage";
 import { useAuthorizationStore } from "./stores/AuthorizationStore";
 import { useCacheStore } from "./stores/CacheStore";
-import { grabEverything, importData } from "./lib/syncStuff";
-import { saveData } from "./api";
-import Settings from "./components/Settings";
-import { logger } from "@lib/utils/logger";
 
 let syncTimeout: any = 0;
 function debounceSync(run: () => void) {

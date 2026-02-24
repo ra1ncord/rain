@@ -2,6 +2,7 @@ import { findAssetId } from "@api/assets";
 import { showToast } from "@api/ui/toasts";
 import { logger } from "@lib/utils/logger";
 import { findByName, findByProps } from "@metro";
+
 import { getClientId, getRedirectUrl } from "../constants";
 import { useAuthorizationStore } from "../stores/AuthorizationStore";
 
@@ -27,7 +28,7 @@ export default () =>
                     try {
                         const url = new URL(location);
                         const code = url.searchParams.get("code");
-                        
+
                         if (!code) {
                             throw new Error("No code found in redirect URL");
                         }
@@ -44,13 +45,13 @@ export default () =>
                         });
 
                         const text = await res.text();
-                        
+
                         if (!res.ok) {
                             throw new Error(`Server error (${res.status}): ${text}`);
                         }
 
                         let token: string | undefined;
-                        
+
                         // Try to parse as JSON first
                         try {
                             const json = JSON.parse(text);

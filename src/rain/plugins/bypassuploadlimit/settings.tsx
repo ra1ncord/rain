@@ -1,7 +1,8 @@
 import SettingsTextInput from "@api/ui/components/SettingsTextInput";
 import { findByProps } from "@metro";
 import { Stack, TableRadioGroup, TableRadioRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
-import { ScrollView, View } from "react-native";
+import { ScrollView } from "react-native";
+
 import { useUploaderSettings } from "./storage";
 
 const { Card } = findByProps("Card");
@@ -27,30 +28,30 @@ export default function UploaderSettings() {
                         value={settings.alwaysUpload}
                         onValueChange={(v: boolean) => updateSettings({ alwaysUpload: v })}
                     />
-                </TableRowGroup>    
+                </TableRowGroup>
 
-                    <TableRadioGroup
-                        title="Upload Action"
-                        value={settings.uploadAction || "clipboard"}
-                        onChange={(v: string) => updateSettings({ uploadAction: v as typeof settings.uploadAction })}
-                    >
-                        <TableRadioRow
-                            label="Copy link to clipboard"
-                            value="clipboard"
-                        />
-                        <TableRadioRow
-                            label="Insert into input only"
-                            value="insertonly"
-                        />
-                        <TableRadioRow
-                            label="Insert into input and send"
-                            value="insert"
-                        />
-                        <TableRadioRow
-                            label="Send on next message"
-                            value="nextmsg"
-                        />
-                    </TableRadioGroup>
+                <TableRadioGroup
+                    title="Upload Action"
+                    value={settings.uploadAction || "clipboard"}
+                    onChange={(v: string) => updateSettings({ uploadAction: v as typeof settings.uploadAction })}
+                >
+                    <TableRadioRow
+                        label="Copy link to clipboard"
+                        value="clipboard"
+                    />
+                    <TableRadioRow
+                        label="Insert into input only"
+                        value="insertonly"
+                    />
+                    <TableRadioRow
+                        label="Insert into input and send"
+                        value="insert"
+                    />
+                    <TableRadioRow
+                        label="Send on next message"
+                        value="nextmsg"
+                    />
+                </TableRadioGroup>
 
                 <TableRadioGroup
                     title="File Host"

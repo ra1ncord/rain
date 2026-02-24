@@ -1,10 +1,11 @@
-import { readFile, writeFile } from "@api/native/fs";
 import { findAssetId } from "@api/assets";
+import { readFile, writeFile } from "@api/native/fs";
 import { showToast } from "@api/ui/toasts";
 import { logger } from "@lib/utils/logger";
-import { pluginInstances, startPlugin, stopPlugin, isPluginEnabled } from "@plugins";
-import { useThemes, installTheme, selectTheme } from "@plugins/_core/painter/themes";
-import { useFonts, saveFont, selectFont } from "@plugins/_core/painter/fonts";
+import { isPluginEnabled,pluginInstances, startPlugin, stopPlugin } from "@plugins";
+import { saveFont,useFonts } from "@plugins/_core/painter/fonts";
+import { installTheme, selectTheme,useThemes } from "@plugins/_core/painter/themes";
+
 import type { UserData } from "../types";
 
 // Helper functions to map IDs <-> URLs
@@ -47,7 +48,7 @@ export async function grabEverything(): Promise<UserData & { coreSettings?: any 
             installed: {},
             custom: [],
         },
-    } as UserData 
+    } as UserData;
 
     for (const [id, item] of pluginInstances.entries()) {
         if (cloudSyncSettings.ignoredPlugins.includes(id)) continue;
@@ -98,7 +99,7 @@ export async function grabEverything(): Promise<UserData & { coreSettings?: any 
 
 export async function importData(data: UserData & { coreSettings?: any }) {
     showToast("Importing data...", findAssetId("DownloadIcon"));
-        // Core/global settings are no longer imported
+    // Core/global settings are no longer imported
 
     const status = { plugins: 0, themes: 0, fonts: 0 };
 

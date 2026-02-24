@@ -1,6 +1,7 @@
 import { after } from "@api/patcher";
 import { findByPropsLazy } from "@metro/wrappers";
-import { useSettingsSections, SettingsSections } from "../storage";
+
+import { SettingsSections,useSettingsSections } from "../storage";
 
 const BILLING_ITEMS = [
     { key: "COLLECTIBLES_SHOP", rowKey: "collectiblesShop" },
