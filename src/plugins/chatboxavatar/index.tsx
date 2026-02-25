@@ -104,7 +104,7 @@ function AvatarAction() {
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
-                overflow: "hidden",
+                overflow: settings.collapseWhileTyping ? "hidden" : "visible",
             }}
         >
             <Pressable
@@ -117,7 +117,7 @@ function AvatarAction() {
                         guildId={channel?.guild_id}
                         status={settings.showStatusCutout ? status : undefined}
                         avatarDecoration={self?.avatarDecoration}
-                        animate={true}
+                        animate={settings.collapseWhileTyping}
                     />
                 )}
             </Pressable>
