@@ -22,7 +22,7 @@ export default definePlugin({
     author: [Developers.Bwlok, Developers.cocobo1, Contributors.Fiery],
     id: "decor",
     version: "1.0.0",
-    start() {
+    async eagerStart() {
         patches.push(unsubscribe);
         patches.push(...UserDecorationsStoreSubscriptions);
         patches.push(...CurrentUserDecorationsStoreSubscriptions);

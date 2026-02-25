@@ -95,34 +95,6 @@ export default function DecorationPicker() {
                 }
             />
 
-            {selectedDecoration && (
-                <TableRowGroup title="Selected Decoration">
-                    <TableRow
-                        label={selectedDecoration.alt}
-                        subLabel={
-                            decorPreset
-                                ? `Part of the ${decorPreset.name} Preset`
-                                : undefined
-                        }
-                        icon={<TableRow.Icon source={findAssetId("ic_star_filled")} />}
-                        trailing={() => (
-                            <Pressable
-                                onPress={() =>
-                                    UserStore.getUser(selectedDecoration.authorId)
-                                        ? showUserProfile({ userId: selectedDecoration.authorId })
-                                        : UserUtils.getUser(selectedDecoration.authorId).then(() =>
-                                            showUserProfile({ userId: selectedDecoration.authorId })
-                                        )
-                                }
-                                pointerEvents="box-only"
-                            >
-                                {Parser.parse(`<@${selectedDecoration.authorId}>`, true)}
-                            </Pressable>
-                        )}
-                    />
-                </TableRowGroup>
-            )}
-
             <TableRowGroup title="Decoration Actions">
 
                 <TableRow
