@@ -28,8 +28,12 @@ export default definePlugin({
         patches.push(...CurrentUserDecorationsStoreSubscriptions);
         patches.push(
             after("getUser", UserStore, (_, user) => {
-                const store = useUsersDecorationsStore.getState();
+                // Only modify decorations if the plugin is enabled
+                const pluginSettings = require("../../rain/plugins/index");
+                const isEnabled = pluginSettings.isPluginEnabled?.("decor");
+                if (!isEnabled) return;
 
+                const store = useUsersDecorationsStore.getState();
                 if (user && store.has(user.id)) {
                     const decoration = store.get(user.id);
 
