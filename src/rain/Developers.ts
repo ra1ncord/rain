@@ -24,7 +24,11 @@ export const Developers = {
     John: {
         name: "John",
         id: 780819226839220265n,
-    }
+    },
+    Bwlok: {
+        name: "Bwlok",
+        id: 501827585806827520n,
+    },
 } satisfies Record<string, developer>;
 
 export const Contributors = {

@@ -14,9 +14,9 @@ import {
 import { getCurrentTheme, installTheme, ThemeInfo,useThemes } from "@plugins/_core/painter/themes";
 import { useColorsPref } from "@plugins/_core/painter/themes/preferences";
 import { Author } from "@plugins/_core/painter/themes/types";
+import { updateColor } from "@plugins/_core/painter/themes/updater";
 import AddonPage from "@rain/pages/Addon/AddonPage";
 import ThemeBrowser from "@rain/pages/Browser/Themes";
-import { updateColor } from "@plugins/_core/painter/themes/updater";
 import { View } from "react-native";
 
 import ThemeCard from "./ThemeCard";
