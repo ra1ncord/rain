@@ -1,5 +1,5 @@
 import { after } from "@api/patcher";
-import { findByNameLazy, findByProps, findByPropsLazy,findByStoreName, findByTypeDisplayName } from "@metro";
+import { findByNameLazy, findByProps, findByPropsLazy, findByStoreName, findByTypeDisplayName } from "@metro";
 import { ReactNative } from "@metro/common";
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
@@ -13,10 +13,9 @@ const ChatInputActions = findByTypeDisplayName("ChatInputActions");
 const ChatInputSendButton = findByTypeDisplayName("ChatInputSendButton");
 let hasText = false;
 let sendBtnRef: { setHasText?: (hasText: boolean) => void } | undefined;
-const Avatar = findByProps("getStatusSize")?.default;
 const { Pressable, View } = ReactNative;
-const AvatarStuff211 = findByProps("DEFAULT_STATUS_CUTOUT");
-const DEFAULT_STATUS_CUTOUT = AvatarStuff211?.DEFAULT_STATUS_CUTOUT;
+
+const Avatar = findByPropsLazy("default", "AvatarSizes", "getStatusSize")?.default;
 
 const UserStore = findByStoreName("UserStore");
 const SelectedChannelStore = findByStoreName("SelectedChannelStore");
@@ -93,7 +92,6 @@ function AvatarAction() {
                     status={settings.showStatusCutout ? status : undefined}
                     avatarDecoration={self?.avatarDecoration}
                     animate={true}
-                    autoStatusCutout={settings.showStatusCutout ? DEFAULT_STATUS_CUTOUT : undefined}
                 />
             )}
         </Pressable>

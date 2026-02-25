@@ -58,6 +58,12 @@ function initSettings() {
                 render: () => import("@rain/pages/Fonts"),
             },
             {
+                key: "RAIN_CLOUDSYNC",
+                title: () => "Cloud Sync",
+                icon: findAssetId("CloudIcon"),
+                render: () => import("@plugins/_core/cloudsync/components/Settings"),
+            },
+            {
                 key: "RAIN_DEVELOPER",
                 title: () => Strings.DEVELOPER,
                 icon: findAssetId("WrenchIcon"),
