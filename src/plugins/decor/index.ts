@@ -1,7 +1,7 @@
 import { after, instead } from "@api/patcher";
 import { findByProps, findByStoreName } from "@metro";
 import { ReactNative } from "@metro/common";
-import { definePlugin } from "@plugins";
+import { definePlugin, isPluginEnabled } from "@plugins";
 import { Contributors, Developers } from "@rain/Developers";
 
 import { CDN_URL, RAW_SKU_ID, SKU_ID } from "./lib/constants";
@@ -29,8 +29,7 @@ export default definePlugin({
         patches.push(
             after("getUser", UserStore, (_, user) => {
                 // Only modify decorations if the plugin is enabled
-                const pluginSettings = require("../../rain/plugins/index");
-                const isEnabled = pluginSettings.isPluginEnabled?.("decor");
+                const isEnabled = isPluginEnabled("decor");
                 if (!isEnabled) return;
 
                 const store = useUsersDecorationsStore.getState();
