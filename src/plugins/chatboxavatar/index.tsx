@@ -3,7 +3,7 @@ import { findByNameLazy, findByProps, findByPropsLazy, findByStoreName, findByTy
 import { ReactNative } from "@metro/common";
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 import ChatboxAvatarSettings from "./settings";
 import { useChatboxAvatarSettings } from "./storage";
@@ -13,7 +13,9 @@ const ChatInputActions = findByTypeDisplayName("ChatInputActions");
 const ChatInputSendButton = findByTypeDisplayName("ChatInputSendButton");
 let hasText = false;
 let sendBtnRef: { setHasText?: (hasText: boolean) => void } | undefined;
-const { Pressable, View } = ReactNative;
+const { Pressable, View, Animated } = ReactNative;
+
+const avatarCollapse = new Animated.Value(0);
 
 const Avatar = findByPropsLazy("default", "AvatarSizes", "getStatusSize")?.default;
 
@@ -25,11 +27,32 @@ const showUserProfileActionSheet = findByNameLazy("showUserProfileActionSheet");
 const showYouAccountActionSheetByProp = findByPropsLazy("showYouAccountActionSheet");
 
 function AvatarAction() {
+    const [textState, setTextState] = React.useState(false);
     const self = Flux?.useStateFromStores?.([UserStore], () => UserStore?.getCurrentUser?.());
     const status = Flux?.useStateFromStores?.([SelfPresenceStore], () => SelfPresenceStore?.getStatus?.());
     const settings = useChatboxAvatarSettings();
     const channelId = Flux?.useStateFromStores?.([SelectedChannelStore], () => SelectedChannelStore?.getCurrentlySelectedChannelId?.());
     const channel = Flux?.useStateFromStores?.([ChannelStore], () => ChannelStore?.getChannel?.(channelId), [channelId]);
+
+    const animated = useRef(avatarCollapse).current;
+
+    React.useEffect(() => {
+        const interval = setInterval(() => {
+            setTextState(hasText);
+        }, 100);
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const shouldCollapse = settings.collapseWhileTyping && textState;
+        Animated.parallel([
+            Animated.timing(animated, {
+                toValue: shouldCollapse ? 1 : 0,
+                duration: 200,
+                useNativeDriver: false,
+            }),
+        ]).start();
+    }, [textState, settings.collapseWhileTyping, animated]);
 
     if (!self) return null;
 
@@ -72,29 +95,33 @@ function AvatarAction() {
     };
 
     return (
-        <Pressable
+        <Animated.View
             style={{
                 height: 40,
-                width: 40,
-                marginHorizontal: 4,
+                width: animated.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }),
+                marginHorizontal: animated.interpolate({ inputRange: [0, 1], outputRange: [4, 0] }),
                 flexShrink: 0,
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
+                overflow: "hidden",
             }}
-            onPress={handlePress}
-            onLongPress={handleLongPress}
         >
-            {Avatar && (
-                <Avatar
-                    user={self}
-                    guildId={channel?.guild_id}
-                    status={settings.showStatusCutout ? status : undefined}
-                    avatarDecoration={self?.avatarDecoration}
-                    animate={true}
-                />
-            )}
-        </Pressable>
+            <Pressable
+                onPress={handlePress}
+                onLongPress={handleLongPress}
+            >
+                {Avatar && (
+                    <Avatar
+                        user={self}
+                        guildId={channel?.guild_id}
+                        status={settings.showStatusCutout ? status : undefined}
+                        avatarDecoration={self?.avatarDecoration}
+                        animate={true}
+                    />
+                )}
+            </Pressable>
+        </Animated.View>
     );
 }
 
@@ -130,10 +157,6 @@ export default definePlugin({
         );
         unpatches.push(
             after("render", ChatInputActions.type, (args, ret) => {
-                const settings = useChatboxAvatarSettings.getState();
-                if (settings.collapseWhileTyping && hasText) {
-                    return ret;
-                }
                 return React.createElement(
                     View,
                     { style: { flexDirection: "row", alignItems: "center" } },
