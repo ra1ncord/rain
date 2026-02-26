@@ -1,24 +1,10 @@
-import { ThemeManifest } from "@rain/plugins/_core/painter/themes/types";
+import { ThemeManifest } from "@plugins/_core/painter/themes/types";
 
 // @ts-ignore
 const pyonLoaderIdentity = globalThis.__PYON_LOADER__;
 
 // @ts-ignore
 const rainLoaderIdentity = globalThis.__RAIN_LOADER__;
-
-export interface VendettaLoaderIdentity {
-    name: string;
-    features: {
-        loaderConfig?: boolean;
-        devtools?: {
-            prop: string;
-            version: string;
-        },
-        themes?: {
-            prop: string;
-        };
-    };
-}
 
 export interface ThemeInfo {
     id: string;
@@ -47,7 +33,7 @@ export function getLoaderIdentity() {
 
 export function getLoaderName() {
     if (isPyonLoader()) return pyonLoaderIdentity.loaderName;
-    if (isRainLoader()) return rainLoaderIdentity.loadername;
+    if (isRainLoader()) return rainLoaderIdentity.loaderName;
 
     return "Unknown";
 }
@@ -71,7 +57,7 @@ export function isLoaderConfigSupported() {
 
 export function getThemeFilePath() {
     if (isRainLoader()) {
-        return "raincord/current-theme.json";
+        return "rain/current-theme.json";
     }
     if (isPyonLoader()) {
         return "pyon/current-theme.json";

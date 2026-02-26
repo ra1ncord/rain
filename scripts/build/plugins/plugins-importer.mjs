@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, "../../..");
-const pluginsDirectoryPath = path.join(projectRoot, "src/rain/plugins");
+const pluginsDirectoryPath = path.join(projectRoot, "src/plugins");
 
 // @ts-ignore
 async function gatherPlugins(plugins = [], dir = pluginsDirectoryPath, relativePath = "") {
@@ -78,7 +78,7 @@ export function pluginsImporterPlugin() {
             //@ts-ignore
             build.onResolve({ filter: /^#rain-plugins$/ }, args => {
                 return {
-                    path: path.join(projectRoot, "src/rain/plugins"),
+                    path: path.join(projectRoot, "src/plugins"),
                     namespace: "rain-plugins-importer",
                 };
             });
@@ -87,7 +87,7 @@ export function pluginsImporterPlugin() {
                 return {
                     contents: await makeModule(),
                     loader: "ts",
-                    resolveDir: path.join(projectRoot, "src/rain"),
+                    resolveDir: path.join(projectRoot, "src"),
                 };
             });
         },

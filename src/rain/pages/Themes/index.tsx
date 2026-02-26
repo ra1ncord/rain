@@ -1,5 +1,6 @@
 import { findAssetId } from "@api/assets";
 import { useSettings } from "@api/settings";
+import { Strings } from "@i18n";
 import { NavigationNative } from "@metro/common";
 import {
     ActionSheet,
@@ -13,12 +14,11 @@ import {
 import { getCurrentTheme, installTheme, ThemeInfo,useThemes } from "@plugins/_core/painter/themes";
 import { useColorsPref } from "@plugins/_core/painter/themes/preferences";
 import { Author } from "@plugins/_core/painter/themes/types";
+import { updateColor } from "@plugins/_core/painter/themes/updater";
 import AddonPage from "@rain/pages/Addon/AddonPage";
 import ThemeBrowser from "@rain/pages/Browser/Themes";
-import { updateColor } from "@rain/plugins/_core/painter/themes/updater";
 import { View } from "react-native";
 
-import { Strings } from "@i18n";
 import ThemeCard from "./ThemeCard";
 
 export default function Themes() {

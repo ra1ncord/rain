@@ -5,8 +5,8 @@ import { findByProps } from "@metro";
 import { clipboard } from "@metro/common";
 import { Stack, TableRow, Text } from "@metro/common/components";
 import { requireModule } from "@metro/internals/modules";
-import { Image, ScrollView } from "react-native";
 import { Strings } from "@rain/i18n";
+import { Image, ScrollView } from "react-native";
 
 const { openAlert } = lazyDestructure(() =>
     findByProps("openAlert", "dismissAlert"),
@@ -99,7 +99,7 @@ export default function AssetDisplay({ asset }: AssetDisplayProps) {
                                                 color="text-warning"
                                                 style={{ width: "100%", textAlign: "center" }}
                                             >
-                        {Strings.COULD_NOT_LOAD_PREVIEW} {type.toUpperCase()}.
+                                                {Strings.COULD_NOT_LOAD_PREVIEW} {type.toUpperCase()}.
                                             </Text>
                                         );
                                     }
@@ -110,7 +110,7 @@ export default function AssetDisplay({ asset }: AssetDisplayProps) {
                                     color="text-danger"
                                     style={{ width: "100%", textAlign: "center" }}
                                 >
-                  {Strings.ASSET_TYPE} {String(asset.type).toUpperCase()} {Strings.NOT_SUPPORTED_FOR_PREVIEW}
+                                    {Strings.ASSET_TYPE} {String(asset.type).toUpperCase()} {Strings.NOT_SUPPORTED_FOR_PREVIEW}
                                 </Text>
                             )
                         }

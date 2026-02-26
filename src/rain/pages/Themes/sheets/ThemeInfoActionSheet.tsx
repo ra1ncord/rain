@@ -3,13 +3,12 @@ import { showConfirmationAlert } from "@api/ui/alerts";
 import { semanticColors } from "@api/ui/components/color";
 import { hideSheet } from "@api/ui/sheets";
 import { showToast } from "@api/ui/toasts";
+import { formatString,Strings } from "@i18n";
 import { clipboard } from "@metro/common";
 import { ActionSheet, Card, IconButton, Text } from "@metro/common/components";
-import { fetchTheme, removeTheme, selectTheme, ThemeInfo } from "@rain/plugins/_core/painter/themes";
+import { fetchTheme, removeTheme, selectTheme, ThemeInfo } from "@plugins/_core/painter/themes";
 import React, { ComponentProps, useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity,View } from "react-native";
-
-import { Strings, formatString } from "@i18n";
 
 interface ThemeInfoActionSheetProps {
   theme: ThemeInfo;

@@ -3,6 +3,7 @@ import { useSettings } from "@api/settings";
 import { dismissAlert, openAlert } from "@api/ui/alerts";
 import { ErrorBoundary, Search } from "@api/ui/components";
 import { showSheet } from "@api/ui/sheets";
+import { Strings } from "@i18n";
 import isValidHttpUrl from "@lib/utils/isValidHttpUrl";
 import { lazyDestructure } from "@lib/utils/lazy";
 import { findByProps } from "@metro";
@@ -15,7 +16,6 @@ import * as React from "react";
 import { Image, ScrollView, View } from "react-native";
 
 import { CardWrapper } from "./AddonCard";
-import { Strings } from "@i18n";
 
 const { showSimpleActionSheet } = lazyDestructure(() => findByProps("showSimpleActionSheet"));
 const { hideActionSheet } = findByProps("hideActionSheet");
@@ -145,6 +145,13 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
             });
         }
     }, [navigation]);
+
+    useEffect(() => {
+        const sortKey = props.defaultSortKey;
+        if (props.sortOptions && sortKey && props.sortOptions[sortKey]) {
+            setSortFn(() => props.sortOptions![sortKey]);
+        }
+    }, [props.sortOptions, props.defaultSortKey]);
 
     const results = useMemo(() => {
         let values = props.items;

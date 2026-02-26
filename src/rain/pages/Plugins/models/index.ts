@@ -4,7 +4,8 @@ export interface UnifiedPluginModel {
     id: string;
     name: string;
     description?: string;
-    authors?: developer[];
+    developers?: developer[];
+    contributors?: developer[];
     isEnabled(): boolean;
     isCore(): boolean;
     usePluginState?(): void;

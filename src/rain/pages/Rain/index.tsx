@@ -4,12 +4,12 @@ import { BundleUpdaterManager } from "@api/native/modules";
 import { useSettings } from "@api/settings";
 import { openAlert } from "@api/ui/alerts";
 import { CodebergIcon, KofiIcon,RainIcon } from "@assets";
+import { Strings } from "@i18n";
 import { CODEBERG, DEVELOPERS,DISCORD_SERVER, GITHUB, KOFI } from "@lib/info";
 import { NavigationNative } from "@metro/common";
 import { AlertActionButton, AlertActions, AlertModal, Stack, TableRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import { Linking, ScrollView } from "react-native";
 
-import { Strings } from "@i18n";
 import About from "./About";
 
 async function disableDevOnlyPlugins() {

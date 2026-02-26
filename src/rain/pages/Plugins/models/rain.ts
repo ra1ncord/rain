@@ -7,17 +7,26 @@ import {
     usePluginSettings,
 } from "@plugins";
 import { rainPlugin } from "@plugins/types";
+import { Developers } from "@rain/Developers";
 
 import { UnifiedPluginModel } from ".";
+
+function isDeveloper(author: { name: string }): boolean {
+    return Object.keys(Developers).some(key => Developers[key as keyof typeof Developers].name === author.name);
+}
 
 export default function unifyRainPlugin(
     manifest: rainPlugin,
 ): UnifiedPluginModel {
+    const developers = manifest.author?.filter(isDeveloper) ?? [];
+    const contributors = manifest.author?.filter(a => !isDeveloper(a)) ?? [];
+
     return {
         id: manifest.id,
         name: manifest.name,
         description: manifest.description,
-        authors: manifest.author,
+        developers,
+        contributors,
         isEnabled: () => isPluginEnabled(manifest.id),
         isCore: () => isPluginCore(manifest.id),
         devOnly: manifest.devOnly,

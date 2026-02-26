@@ -1,4 +1,3 @@
-import { Strings } from "@i18n";
 import { findAssetId } from "@api/assets";
 import { connectToDebugger, disconnectFromDebugger, isConnectedToDebugger } from "@api/debug";
 import { getReactDevToolsProp, isLoaderConfigSupported, isReactDevToolsPreloaded } from "@api/native/loader";
@@ -8,6 +7,7 @@ import { ErrorBoundary } from "@api/ui/components";
 import { semanticColors } from "@api/ui/components/color";
 import { createStyles, TextStyleSheet } from "@api/ui/styles";
 import { showToast } from "@api/ui/toasts";
+import { Strings } from "@i18n";
 import { NavigationNative } from "@metro/common";
 import { Button, LegacyFormText, Stack, TableRow, TableRowGroup, TableSwitchRow, TextInput } from "@metro/common/components";
 import { findByProps } from "@metro/wrappers";
@@ -180,7 +180,7 @@ export default function Developer() {
                                 },
                                 options: [
                                     // @ts-expect-error this needs to be an error so it crashes duh
-                                  { label: Strings.RAIN, onPress: () => navigation.push("RAIN_CUSTOM_PAGE", { render: () => <undefined /> }) },
+                                    { label: Strings.RAIN, onPress: () => navigation.push("RAIN_CUSTOM_PAGE", { render: () => <undefined /> }) },
                                     { label: Strings.DISCORD, isDestructive: true, onPress: () => navigation.push("RAIN_CUSTOM_PAGE", { noErrorBoundary: true }) },
                                 ],
                             })}

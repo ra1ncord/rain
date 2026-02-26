@@ -1,6 +1,7 @@
 import { findAssetId } from "@api/assets";
 import { useSettings } from "@api/settings";
 import { showSheet } from "@api/ui/sheets";
+import { Strings } from "@i18n";
 import { NavigationNative, tokens } from "@metro/common";
 import {
     Card,
@@ -13,7 +14,6 @@ import { isPluginCore } from "@plugins";
 import { CardWrapper } from "@rain/pages/Addon/AddonCard";
 import { UnifiedPluginModel } from "@rain/pages/Plugins/models";
 import { usePluginCardStyles } from "@rain/pages/Plugins/usePluginCardStyles";
-import { Strings } from "@i18n";
 import chroma from "chroma-js";
 import { createContext, useContext, useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
@@ -55,9 +55,9 @@ function Authors() {
     const { plugin, result } = useCardContext();
     const styles = usePluginCardStyles();
 
-    if (!plugin.authors) return null;
+    const allAuthors = [...(plugin.developers ?? []), ...(plugin.contributors ?? [])];
+    if (!allAuthors.length) return null;
 
-    // could be empty if the author(s) are irrelevant with the search!
     const highlightedNode = result[2].highlight((m, i) => (
         <Text key={i} style={{ backgroundColor: getHighlightColor() }}>
             {m}
@@ -67,13 +67,13 @@ function Authors() {
     const authorText =
     highlightedNode.length > 0
         ? highlightedNode
-        : plugin.authors.map(a => a.name).join(", ");
+        : allAuthors.map(a => a.name).join(", ");
 
     return (
         <View
             style={{ flexDirection: "row", flexWrap: "wrap", flexShrink: 1, gap: 4 }}
         >
-<Text variant="text-sm/semibold" color="text-muted">
+            <Text variant="text-sm/semibold" color="text-muted">
                 {Strings.AUTHOR_BY} {authorText}
             </Text>
         </View>
@@ -105,16 +105,14 @@ const Actions = () => {
 
     return (
         <View style={{ flexDirection: "row", gap: 6 }}>
-            {isPinned && (
-                <IconButton
-                    size="sm"
-                    variant="secondary"
-                    icon={findAssetId("PinIcon")}
-                    onPress={() => {
-                        togglePinnedPlugin(plugin.id);
-                    }}
-                />
-            )}
+            <IconButton style={{ opacity: isPinned ? 1 : 0, pointerEvents: isPinned ? "auto" : "none", paddingRight: 5 }}
+                size="sm"
+                variant="secondary"
+                icon={findAssetId("PinIcon")}
+                onPress={() => {
+                    togglePinnedPlugin(plugin.id);
+                }}
+            />
             <IconButton
                 size="sm"
                 variant="secondary"
