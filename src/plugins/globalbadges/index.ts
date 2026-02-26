@@ -1,6 +1,7 @@
 import { after } from "@api/patcher";
 import { onJsxCreate } from "@api/react/jsx";
 import { findByNameLazy } from "@metro";
+import { FluxDispatcher } from "@metro/common";
 import { definePlugin } from "@plugins";
 import { Contributors } from "@rain/Developers";
 
@@ -13,6 +14,7 @@ const useBadgesModule = findByNameLazy("useBadges", false);
 
 const customBadgesCache = new Map<string, CustomBadges>();
 const pendingRequests = new Set<string>();
+const badgeProps = new Map<string, Record<string, any>>();
 
 let patches: Array<() => void> = [];
 
@@ -32,29 +34,51 @@ export default definePlugin({
     id: "globalbadges",
     version: "1.0.0",
     start() {
-        const badgeProps = {} as Record<string, any>;
-
         onJsxCreate("ProfileBadge", (component, ret) => {
             if (ret.props.id?.startsWith("gb-")) {
-                const cachedProps = badgeProps[ret.props.id];
+                const cachedProps = badgeProps.get(ret.props.id);
                 if (cachedProps) {
                     ret.props.source = cachedProps.source;
                     ret.props.label = cachedProps.label;
                     ret.props.id = cachedProps.id;
-                } else {
                 }
             }
         });
 
         onJsxCreate("RenderBadge", (component, ret) => {
             if (ret.props.id?.startsWith("gb-")) {
-                const cachedProps = badgeProps[ret.props.id];
+                const cachedProps = badgeProps.get(ret.props.id);
                 if (cachedProps) {
                     Object.assign(ret.props, cachedProps);
-                } else {
                 }
             }
         });
+
+        const processBadges = (badges: CustomBadges, user: { userId: string }) => {
+            Object.entries(badges).forEach(([key, value]: [string, any]) => {
+                const isModBadge = ["aliu", "bd", "enmity", "goosemod", "replugged", "vencord", "equicord"].includes(key);
+                const isCustomBadge = ["customBadgesArray", "reviewdb"].includes(key);
+
+                if (customBadgesSettings.mods && isModBadge) return;
+                if (customBadgesSettings.customs && isCustomBadge) return;
+
+                const badgeGroupFn = badgeGroups[key];
+                if (!badgeGroupFn) return;
+
+                const badgeItems = badgeGroupFn(value, user);
+                if (!badgeItems || badgeItems.length === 0) return;
+
+                badgeItems.forEach(({ type, label, uri }) => {
+                    const badgeId = `gb-${key}-${type}`;
+                    badgeProps.set(badgeId, {
+                        id: badgeId,
+                        source: { uri },
+                        label,
+                        userId: user.userId,
+                    });
+                });
+            });
+        };
 
         patches.push(
             after("default", useBadgesModule, ([user], result) => {
@@ -68,10 +92,14 @@ export default definePlugin({
                         fetchBadges(userId).then(badges => {
                             customBadgesCache.set(userId, badges);
                             pendingRequests.delete(userId);
+                            processBadges(badges, user);
+                            FluxDispatcher.dispatch({ type: "USER_UPDATE", user: { id: userId } });
                         });
                     }
                     return;
                 }
+
+                processBadges(cached, user);
 
                 Object.entries(cached).forEach(([key, value]: [string, any]) => {
                     const isModBadge = ["aliu", "bd", "enmity", "goosemod", "replugged", "vencord", "equicord"].includes(key);
@@ -86,14 +114,8 @@ export default definePlugin({
                     const badges = badgeGroupFn(value, user);
                     if (!badges || badges.length === 0) return;
 
-                    badges.forEach(({ type, label, uri }) => {
+                    badges.forEach(({ type, label }) => {
                         const badgeId = `gb-${key}-${type}`;
-                        badgeProps[badgeId] = {
-                            id: badgeId,
-                            source: { uri },
-                            label,
-                            userId: user.userId,
-                        };
 
                         const badgeEntry = {
                             id: badgeId,
@@ -116,6 +138,7 @@ export default definePlugin({
             if (typeof unpatch === "function") unpatch();
         }
         patches = [];
+        badgeProps.clear();
     },
     settings: CustomBadgesSettings,
 });

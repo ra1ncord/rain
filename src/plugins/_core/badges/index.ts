@@ -1,17 +1,25 @@
 import { after } from "@api/patcher";
 import { onJsxCreate } from "@api/react/jsx";
 import { findByNameLazy } from "@metro";
+import { FluxDispatcher } from "@metro/common";
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
 import { Strings } from "@rain/i18n";
-import { useEffect, useState } from "react";
 
 interface Badge {
     label: string;
     url: string;
 }
 
+interface BadgeData {
+    [userId: string]: Badge[];
+}
+
 const useBadgesModule = findByNameLazy("useBadges", false);
+
+const badgesCache = new Map<string, Badge[]>();
+const badgeProps = new Map<string, Record<string, any>>();
+const pendingRequests = new Set<string>();
 
 export default definePlugin({
     name: Strings.PLUGIN__CORE_BADGES,
@@ -20,12 +28,9 @@ export default definePlugin({
     id: "badges",
     version: "1.1.0",
     start() {
-        let allBadges: { [x: string]: any; } | null = null;
-        const badgeProps = {} as Record<string, any>;
-
         onJsxCreate("ProfileBadge", (component, ret) => {
             if (ret.props.id?.startsWith("rain-")) {
-                const cachedProps = badgeProps[ret.props.id];
+                const cachedProps = badgeProps.get(ret.props.id);
                 if (cachedProps) {
                     ret.props.source = cachedProps.source;
                     ret.props.label = cachedProps.label;
@@ -36,50 +41,61 @@ export default definePlugin({
 
         onJsxCreate("RenderedBadge", (component, ret) => {
             if (ret.props.id?.startsWith("rain-")) {
-                const cachedProps = badgeProps[ret.props.id];
+                const cachedProps = badgeProps.get(ret.props.id);
                 if (cachedProps) {
                     Object.assign(ret.props, cachedProps);
                 }
             }
         });
 
-        after("default", useBadgesModule, ([user], result) => {
-            const [badges, setBadges] = useState<Badge[]>([]);
+        const fetchAndProcessBadges = async (userId: string) => {
+            if (pendingRequests.has(userId)) return;
+            pendingRequests.add(userId);
 
-            useEffect(() => {
-                if (!user) return;
+            try {
+                const res = await fetch("https://codeberg.org/raincord/badges/raw/branch/main/badges.json");
+                const data: BadgeData = await res.json();
+                const userBadges = data[userId] || [];
+                badgesCache.set(userId, userBadges);
 
-                if (!allBadges) {
-                    fetch("https://codeberg.org/raincord/badges/raw/branch/main/badges.json")
-                        .then(r => r.json())
-                        .then(data => {
-                            allBadges = data;
-                            // @ts-expect-error
-                            setBadges(allBadges[user.userId] || []);
-                        });
-                } else {
-                    setBadges(allBadges[user.userId] || []);
-                }
-            }, [user?.userId]);
-
-            if (user && badges.length > 0) {
-                badges.forEach((badge, i) => {
-                    const badgeId = `rain-${user.userId}-${i}`;
-
-                    badgeProps[badgeId] = {
+                userBadges.forEach((badge, i) => {
+                    const badgeId = `rain-${userId}-${i}`;
+                    badgeProps.set(badgeId, {
                         id: badgeId,
                         source: { uri: badge.url },
                         label: badge.label,
-                        userId: user.userId,
-                    };
-
-                    result.unshift({
-                        id: badgeId,
-                        description: badge.label,
-                        icon: " _",
+                        userId,
                     });
                 });
+
+                FluxDispatcher.dispatch({ type: "USER_UPDATE", user: { id: userId } });
+            } finally {
+                pendingRequests.delete(userId);
             }
+        };
+
+        after("default", useBadgesModule, ([user], result) => {
+            if (!user) return;
+
+            const userId = user.userId;
+            const cached = badgesCache.get(userId);
+
+            if (!cached) {
+                if (!pendingRequests.has(userId)) {
+                    fetchAndProcessBadges(userId);
+                }
+                return;
+            }
+
+            cached.forEach((badge, i) => {
+                const badgeId = `rain-${userId}-${i}`;
+
+                result.unshift({
+                    id: badgeId,
+                    description: badge.label,
+                    icon: " _",
+                });
+            });
         });
     }
 });

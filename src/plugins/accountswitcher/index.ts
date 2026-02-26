@@ -3,7 +3,7 @@ import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
 
-const AccountDispatcher = findByProps("getCanUseMultiAccountMobile")
+const AccountDispatcher = findByProps("getCanUseMultiAccountMobile");
 const patches: (() => boolean)[] = [];
 
 export default definePlugin({
