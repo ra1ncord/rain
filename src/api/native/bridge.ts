@@ -1,28 +1,29 @@
-import { NativeModules } from "react-native";
+import { getNativeModule } from "./modules";
+
+const BridgePromise = getNativeModule<{
+    readAsDataURL(map: object): Promise<any>
+}>('FileReaderModule')!
+
+function makePayload(name: string, args: any[]): object {
+    return {
+        rain: {
+            method: name,
+            args: args,
+        },
+    }
+}
 
 export async function callBridgeMethod(method: string, ...args: any[]): Promise<any> {
-    const [moduleName, methodName] = method.split(".");
+  try {
+      const result = await BridgePromise.readAsDataURL(
+          makePayload(method, args),
+      )
 
-    if (!moduleName || !methodName) {
-        throw new Error(`Invalid method string format: ${method}. Expected "moduleName.methodName".`);
-    }
+      if ('error' in result) throw result.error
+      if ('result' in result) return result.result
 
-    const nativeModule = NativeModules[moduleName];
-
-    if (!nativeModule) {
-        throw new Error(`Native module '${moduleName}' is not available. Please ensure it is correctly linked and initialized.`);
-    }
-
-    const nativeMethod = nativeModule[methodName];
-
-    if (typeof nativeMethod !== "function") {
-        throw new Error(`Method '${methodName}' not found or is not a function on native module '${moduleName}'. Found type: ${typeof nativeMethod}`);
-    }
-
-    try {
-        const result = await nativeMethod(...args);
-        return result;
-    } catch (e: any) {
-        throw new Error(`Error calling native method '${methodName}' on module '${moduleName}': ${e.message || e}`);
-    }
+      throw 'The module did not return a valid result. The native hook must have failed.'
+  } catch (error) {
+      throw new Error(`Call failed: ${error}`)
+  }
 }
