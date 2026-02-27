@@ -27,7 +27,7 @@ export default function patchStorage() {
             const json = JSON.stringify(value);
             const lastSetDiscordTheme = _colorRef.lastSetDiscordTheme ?? "darker";
             const replaced = json.replace(
-                /"theme":"bn-theme-\d+"/,
+                /"theme":"rain-theme-\d+"/,
                 `"theme":${JSON.stringify(lastSetDiscordTheme)}`
             );
 
