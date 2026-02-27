@@ -1,9 +1,11 @@
+import { isChatBubblesSupported } from "@api/native/loader";
 import BubbleModule from "@api/native/modules/bubble";
 import { waitForHydration } from "@api/storage";
 import { logger } from "@lib/utils/logger";
 import { findByStoreName } from "@metro";
 import { FluxDispatcher, tokens } from "@metro/common";
 import { definePlugin } from "@plugins";
+import { Contributors, Developers } from "@rain/Developers";
 
 import settings from "./settings";
 import { useChatBubblesSettings } from "./storage";
@@ -11,14 +13,12 @@ import { useChatBubblesSettings } from "./storage";
 export default definePlugin({
     name: "ChatBubbles",
     description: "Adds customizable chat bubbles to the chat, similar to Flowercord",
-    author: [
-        { name: "Pylix", id: 492949202121261067n },
-        { name: "cocobo1", id: 767650984175992833n },
-        { name: "kmmiio99o", id: 879393496627306587n },
-    ],
+    author: [ Contributors.pylix, Developers.cocobo1, Developers.kmmiio99o ],
     id: "chatbubbles",
     version: "1.0.0",
-    platforms: ["android"],
+    predicates: [
+        () => isChatBubblesSupported() == true,
+    ],
 
     async start() {
         BubbleModule?.hookBubbles();
