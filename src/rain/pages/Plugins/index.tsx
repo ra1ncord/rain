@@ -50,7 +50,10 @@ function PluginPage(props: PluginPageProps) {
             if (p.devOnly && !developerSettings) {
                 return false;
             }
-            if (p.isSupported && !p.isSupported()) {
+            if (p.isPlatformSupported && !p.isPlatformSupported()) {
+                return false;
+            }
+            if (!p.arePredicatesMet) {
                 return false;
             }
             return true;

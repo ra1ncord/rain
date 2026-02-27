@@ -8,7 +8,8 @@ export interface UnifiedPluginModel {
     contributors?: developer[];
     isEnabled(): boolean;
     isCore(): boolean;
-    isSupported?(): boolean;
+    isPlatformSupported?(): boolean;
+    arePredicatesMet?(): boolean;
     usePluginState?(): void;
     isInstalled?(): boolean;
     toggle(start: boolean): void;

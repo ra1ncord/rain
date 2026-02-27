@@ -22,20 +22,13 @@ export default function unifyRainPlugin(
     const developers = manifest.author?.filter(isDeveloper) ?? [];
     const contributors = manifest.author?.filter(a => !isDeveloper(a)) ?? [];
 
-    const isSupportedPlatform = !manifest.platforms ||
+    const isPlatformSupported = !manifest.platforms || 
         (manifest.platforms as string[]).includes(Platform.OS);
 
-    const passesPredicates = !manifest.predicates ||
-        manifest.predicates.every(predicate => {
-            try {
-                return predicate();
-            } catch (e) {
-                console.error(`Predicate failed for plugin ${manifest.id}:`, e);
-                return false;
-            }
+    const arePredicatesMet = !manifest.predicates || 
+        manifest.predicates.every(p => {
+            try { return p(); } catch { return false; }
         });
-
-    const isCompatible = isSupportedPlatform && passesPredicates;
 
     return {
         id: manifest.id,
@@ -45,7 +38,8 @@ export default function unifyRainPlugin(
         contributors,
         isEnabled: () => isPluginEnabled(manifest.id),
         isCore: () => isPluginCore(manifest.id),
-        isSupported: () => isCompatible,
+        isPlatformSupported: () => isPlatformSupported,
+        arePredicatesMet: () => arePredicatesMet,
         devOnly: manifest.devOnly,
         toggle(start: boolean) {
             try {
