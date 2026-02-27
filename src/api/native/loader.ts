@@ -121,7 +121,7 @@ export function getStoredTheme(): ThemeInfo | null {
 
 export function isChatBubblesSupported() {
     if (isRainLoader()) {
-        return rainLoaderIdentity.isBubbleChatSupported;
+        return rainLoaderIdentity.isChatBubblesSupported;
     }
     else {
         return false;

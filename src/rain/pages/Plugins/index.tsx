@@ -53,7 +53,7 @@ function PluginPage(props: PluginPageProps) {
             if (p.isPlatformSupported && !p.isPlatformSupported()) {
                 return false;
             }
-            if (!p.arePredicatesMet) {
+            if (p.arePredicatesMet && !p.arePredicatesMet()) {
                 return false;
             }
             return true;
