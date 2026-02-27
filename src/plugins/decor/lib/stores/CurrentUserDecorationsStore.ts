@@ -25,8 +25,10 @@ interface CurrentUserDecorationsState {
 
 function updateCurrentUserAvatarDecoration(decoration: Decoration | null) {
     const user = UserStore.getCurrentUser();
-    user.avatarDecoration = decoration ? discordifyDecoration(decoration) : null;
-    user.avatarDecorationData = user.avatarDecoration;
+    if (decoration) {
+        user.avatarDecoration = discordifyDecoration(decoration);
+        user.avatarDecorationData = user.avatarDecoration;
+    }
 
     useUsersDecorationsStore.getState().set(user.id, decoration ? decorationToString(decoration) : null);
     FluxDispatcher.dispatch({ type: "CURRENT_USER_UPDATE", user });
