@@ -119,6 +119,24 @@ export function getStoredTheme(): ThemeInfo | null {
     return null;
 }
 
+export function isChatBubblesSupported() {
+    if (isRainLoader()) {
+        return rainLoaderIdentity.isBubbleChatSupported;
+    }
+    else {
+        return false;
+    }
+}
+
+export function isSysColorsSupported() {
+    if (isRainLoader()) {
+        return rainLoaderIdentity.isSysColorsSupported;
+    }
+    if (isPyonLoader()) {
+        return pyonLoaderIdentity.isSysColorsSupported;
+    }
+}
+
 export function getLoaderConfigPath() {
     return "loader.json";
 }

@@ -17,6 +17,7 @@ export default definePlugin({
     ],
     id: "bluetoothaudiofix",
     version: "1.0.0",
+    platforms: ["android"],
     start() {
         if (Platform.OS === "ios") {
             showToast("This plugin does not do anything on iOS");

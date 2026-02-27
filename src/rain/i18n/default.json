@@ -133,7 +133,7 @@
     "HINT_SAFE_MODE": "You are in safemode, plugins are not running but can still be toggled",
     "SDK": "SDK",
     "SAVE": "Save",
-    "SEARCH_PLACEHOLDER": "Search {type}...",
+    "SEARCH_PLACEHOLDER": "Search...",
     "SETTINGS": "Settings",
     "SHOW_BACKGROUND": "Show Background",
     "SHOW_BACKGROUND_DESC": "Shows or hides the theme's background image in chat",
