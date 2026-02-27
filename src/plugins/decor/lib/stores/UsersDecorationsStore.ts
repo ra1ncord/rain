@@ -5,12 +5,10 @@
  */
 
 import { findByStoreName } from "@metro";
-import { FluxDispatcher } from "@metro/common";
 import { debounce } from "lodash";
 import { create } from "zustand";
 
 import { getUsersDecorations } from "../api";
-import { SKU_ID } from "../constants";
 import subscribeToFluxDispatcher from "../utils/subscribeToFluxDispatcher";
 
 const UserStore = findByStoreName("UserStore");
@@ -26,6 +24,7 @@ interface UsersDecorationsState {
 	get: (userId: string) => string | null | undefined;
 	has: (userId: string) => boolean;
 	set: (userId: string, decoration: string | null) => void;
+	clear: () => void;
 }
 
 export const useUsersDecorationsStore = create<UsersDecorationsState>((set, get) => ({
@@ -44,14 +43,6 @@ export const useUsersDecorationsStore = create<UsersDecorationsState>((set, get)
 
         for (const [userId, decoration] of Object.entries(fetchedUsersDecorations)) {
             newUsersDecorations.set(userId, decoration);
-
-            const user = UserStore.getUser(userId) as any;
-            if (user) {
-                user.avatarDecoration = decoration ? { asset: decoration, skuId: SKU_ID } : null;
-                user.avatarDecorationData = user.avatarDecoration;
-
-                FluxDispatcher.dispatch({ type: "USER_UPDATE", user });
-            }
         }
 
         for (const fetchedId of fetchIds) {
@@ -92,6 +83,9 @@ export const useUsersDecorationsStore = create<UsersDecorationsState>((set, get)
 
         newUsersDecorations.set(userId, decoration);
         set({ usersDecorations: newUsersDecorations });
+    },
+    clear() {
+        set({ usersDecorations: new Map(), fetchQueue: new Set() });
     }
 }));
 

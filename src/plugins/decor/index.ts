@@ -1,12 +1,12 @@
 import { after, instead } from "@api/patcher";
 import { findByProps, findByStoreName } from "@metro";
 import { ReactNative } from "@metro/common";
-import { definePlugin, isPluginEnabled } from "@plugins";
+import { definePlugin } from "@plugins";
 import { Contributors, Developers } from "@rain/Developers";
 
 import { CDN_URL, RAW_SKU_ID, SKU_ID } from "./lib/constants";
 import { unsubscribe } from "./lib/stores/AuthorizationStore";
-import { subscriptions as CurrentUserDecorationsStoreSubscriptions } from "./lib/stores/CurrentUserDecorationsStore";
+import { subscriptions as CurrentUserDecorationsStoreSubscriptions, useCurrentUserDecorationsStore } from "./lib/stores/CurrentUserDecorationsStore";
 import { subscriptions as UserDecorationsStoreSubscriptions, useUsersDecorationsStore } from "./lib/stores/UsersDecorationsStore";
 import Settings from "./ui/pages/Settings";
 
@@ -28,9 +28,6 @@ export default definePlugin({
         patches.push(...CurrentUserDecorationsStoreSubscriptions);
         patches.push(
             after("getUser", UserStore, (_, user) => {
-                // Only modify decorations if the plugin is enabled
-                const isEnabled = isPluginEnabled("decor");
-                if (!isEnabled) return;
 
                 const store = useUsersDecorationsStore.getState();
                 if (user && store.has(user.id)) {
@@ -78,6 +75,8 @@ export default definePlugin({
     stop() {
         for (const unpatch of patches) unpatch();
         patches.length = 0;
+        useUsersDecorationsStore.getState().clear();
+        useCurrentUserDecorationsStore.getState().clear();
     },
     settings: Settings,
 });
