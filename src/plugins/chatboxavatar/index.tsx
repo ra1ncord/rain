@@ -117,7 +117,7 @@ function AvatarAction() {
                         guildId={channel?.guild_id}
                         status={settings.showStatusCutout ? status : undefined}
                         avatarDecoration={self?.avatarDecoration}
-                        animate={settings.collapseWhileTyping}
+                        animate={!settings.collapseWhileTyping || !textState}
                     />
                 )}
             </Pressable>
