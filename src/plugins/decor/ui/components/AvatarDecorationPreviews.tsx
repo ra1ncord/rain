@@ -4,8 +4,7 @@ import { findByName, findByStoreName } from "@metro";
 import { CDN_URL } from "@plugins/decor/lib/constants";
 import { useCurrentUserDecorationsStore } from "@plugins/decor/lib/stores/CurrentUserDecorationsStore";
 import discordifyDecoration from "@plugins/decor/lib/utils/discordifyDecoration";
-import { View } from "react-native";
-import { Image } from "react-native";
+import { Image, View } from "react-native";
 
 const HeaderAvatar = findByName("HeaderAvatar");
 const UserStore = findByStoreName("UserStore");
@@ -52,14 +51,14 @@ export default function AvatarDecorationPreviews({ pendingAvatarDecoration }) {
                     decorationStyle={{ margin: -12 }}
                 />
                 {decoration && (
-		    <Image
-		        source={{
-		            uri: /^(file|content|ph):\/\//.test(decoration.asset)
-		                ? decoration.asset
-		                : `${CDN_URL}/${decoration.asset}.png`
-		        }}
-		        style={{ position: "absolute", width: 180, height: 180 }}
-		    />
+                    <Image
+                        source={{
+                            uri: /^(file|content|ph):\/\//.test(decoration.asset)
+                                ? decoration.asset
+                                : `${CDN_URL}/${decoration.asset}.png`
+                        }}
+                        style={{ position: "absolute", width: 180, height: 180 }}
+                    />
                 )}
             </View>
         </View>

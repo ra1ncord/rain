@@ -1,6 +1,5 @@
 import { findAssetId } from "@api/assets";
 import { findByProps } from "@metro";
-import { React } from "@metro/common";
 import { NavigationNative } from "@metro/common";
 import { Image,StyleSheet, View } from "react-native";
 

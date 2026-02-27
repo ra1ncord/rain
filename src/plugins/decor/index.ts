@@ -66,11 +66,11 @@ export default definePlugin({
         );
 
         if (AvatarDecorationUtils) {
-		    patches.push(
-		        after("isAnimatedAvatarDecoration", AvatarDecorationUtils, ([avatarDecoration]) => {
-		            if (ReactNative.Platform.OS === "ios" && avatarDecoration?.asset?.startsWith("file://")) return true;
-		        })
-		    );
+            patches.push(
+                after("isAnimatedAvatarDecoration", AvatarDecorationUtils, ([avatarDecoration]) => {
+                    if (ReactNative.Platform.OS === "ios" && avatarDecoration?.asset?.startsWith("file://")) return true;
+                })
+            );
         }
 
         useUsersDecorationsStore.getState().fetch(UserStore.getCurrentUser().id, true);

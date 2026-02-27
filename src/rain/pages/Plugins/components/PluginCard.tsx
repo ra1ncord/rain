@@ -171,19 +171,19 @@ export default function PluginCard({
                     title={Strings.RELOAD_DISCORD}
                     content={Strings.PLUGIN_RESTART_MESSAGE}
                     actions={
-                      <AlertActions>
-                        <AlertActionButton
-                          text="Restart Now"
-                          variant="primary"
-                          onPress={() => {
-                            BundleUpdaterManager.reload();
-                          }}
-                        />
-                        <AlertActionButton text="Later" variant="secondary" />
-                      </AlertActions>
+                        <AlertActions>
+                            <AlertActionButton
+                                text="Restart Now"
+                                variant="primary"
+                                onPress={() => {
+                                    BundleUpdaterManager.reload();
+                                }}
+                            />
+                            <AlertActionButton text="Later" variant="secondary" />
+                        </AlertActions>
                     }
                 />,
-            )
+            );
         }
     };
 

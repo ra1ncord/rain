@@ -22,10 +22,10 @@ export default function unifyRainPlugin(
     const developers = manifest.author?.filter(isDeveloper) ?? [];
     const contributors = manifest.author?.filter(a => !isDeveloper(a)) ?? [];
 
-    const isPlatformSupported = !manifest.platforms || 
+    const isPlatformSupported = !manifest.platforms ||
         (manifest.platforms as string[]).includes(Platform.OS);
 
-    const arePredicatesMet = !manifest.predicates || 
+    const arePredicatesMet = !manifest.predicates ||
         manifest.predicates.every(p => {
             try { return p(); } catch { return false; }
         });

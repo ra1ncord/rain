@@ -72,13 +72,13 @@ export default definePlugin({
                                     if (channel && isHidden(channel)) {
                                         // console.log(key.toString())
                                         if (hiddenChannelsSettings.showPopup) {
-	                                        showConfirmationAlert({
-	                                            title: "This channel is hidden.",
-	                                            content: React.createElement(AlertContent, { channel }),
-	                                            confirmText: "View Anyway",
-	                                            cancelText: "Cancel",
-	                                            onConfirm: () => { return orig(...args); },
-	                                        });
+                                            showConfirmationAlert({
+                                                title: "This channel is hidden.",
+                                                content: React.createElement(AlertContent, { channel }),
+                                                confirmText: "View Anyway",
+                                                cancelText: "Cancel",
+                                                onConfirm: () => { return orig(...args); },
+                                            });
                                         } else { return orig(...args); }
                                         return {};
                                     }

@@ -1,8 +1,7 @@
 import { after, instead } from "@api/patcher";
 import { showToast } from "@api/ui/toasts";
 import { findByProps, findByStoreName } from "@metro";
-import { ReactNative } from "@metro/common";
-import { clipboard } from "@metro/common";
+import { clipboard, ReactNative } from "@metro/common";
 import { Button } from "@metro/common/components";
 import React from "react";
 

@@ -68,12 +68,12 @@ export default function CreateDecoration() {
     const isDisabled = !asset || !alt.trim() || asset.type !== "image/png" || !!error;
 
     return (
-    	<View style={styles.root}>
-        	<ScrollView
-        	    contentContainerStyle={{ flexGrow: 1 }}
-        	    keyboardShouldPersistTaps="handled"
-        	    automaticallyAdjustKeyboardInsets={ReactNative.Platform.OS === "ios"}
-        	>
+        <View style={styles.root}>
+            <ScrollView
+                contentContainerStyle={{ flexGrow: 1 }}
+                keyboardShouldPersistTaps="handled"
+                automaticallyAdjustKeyboardInsets={ReactNative.Platform.OS === "ios"}
+            >
                 <View style={styles.content}>
                     <AvatarDecorationPreviews
                         pendingAvatarDecoration={

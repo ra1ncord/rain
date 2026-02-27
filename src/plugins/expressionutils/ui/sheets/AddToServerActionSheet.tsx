@@ -1,7 +1,6 @@
 import { hideSheet, showSheet } from "@api/ui/sheets";
 import { findByProps } from "@metro";
-import { constants } from "@metro/common";
-import { ReactNative as RN } from "@metro/common";
+import { constants, ReactNative as RN } from "@metro/common";
 import { ActionSheet, Text } from "@metro/common/components";
 import { ScrollView, View } from "react-native";
 

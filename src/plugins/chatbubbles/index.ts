@@ -17,7 +17,7 @@ export default definePlugin({
     id: "chatbubbles",
     version: "1.0.0",
     predicates: [
-        () => isChatBubblesSupported() == true,
+        () => isChatBubblesSupported() === true,
     ],
 
     async start() {

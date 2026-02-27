@@ -54,7 +54,7 @@ export default (decoration: Decoration) =>
                                     ReactNative.unstable_batchedUpdates(() => useCurrentUserDecorationsStore.getState().delete(decoration))
                             })
                     }
-				  ]
+                ]
                 : [])
         ]
     });
