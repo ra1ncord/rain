@@ -1,4 +1,5 @@
 import { processColor } from "react-native";
+
 import { callBridgeMethod } from "../bridge";
 
 export default {

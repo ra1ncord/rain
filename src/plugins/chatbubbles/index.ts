@@ -1,11 +1,12 @@
-import { findByProps, findByStoreName, filters } from "@metro";
-import { tokens } from "@metro/common";
-import { waitFor } from "@metro/internals/modules";
-import { waitForHydration } from "@api/storage";
-import { definePlugin } from "@plugins";
-import { logger } from "@lib/utils/logger";
-import { useChatBubblesSettings } from "./storage";
 import BubbleModule from "@api/native/modules/bubble";
+import { waitForHydration } from "@api/storage";
+import { logger } from "@lib/utils/logger";
+import { findByStoreName } from "@metro";
+import { FluxDispatcher, tokens } from "@metro/common";
+import { definePlugin } from "@plugins";
+
+import settings from "./settings";
+import { useChatBubblesSettings } from "./storage";
 
 export default definePlugin({
     name: "ChatBubbles",
@@ -22,7 +23,7 @@ export default definePlugin({
     async start() {
         BubbleModule?.hookBubbles();
         await waitForHydration(useChatBubblesSettings);
-        
+
         const updateBubbleAppearance = () => {
             const { avatarRadius, bubbleChatRadius } = useChatBubblesSettings.getState();
             const color = getBubbleColor();
@@ -35,7 +36,7 @@ export default definePlugin({
             const { bubbleChatColor } = useChatBubblesSettings.getState();
             if (bubbleChatColor) return bubbleChatColor;
             try {
-                const token = tokens.colors.BG_BASE_TERTIARY;
+                const token = tokens.colors.BACKGROUND_SECONDARY_ALT;
                 const theme = findByStoreName("ThemeStore")?.theme;
                 const resolved = tokens.internal.resolveSemanticColor(theme, token);
                 if (typeof resolved === "string" && resolved.startsWith("#")) return resolved;
@@ -45,19 +46,18 @@ export default definePlugin({
 
         updateBubbleAppearance();
 
-        waitFor(filters.byProps("_interceptors"), (FluxDispatcher: any) => {
-            for (const event of [
-                "CACHE_LOADED",
-                "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
-                "THEME_UPDATE",
-            ]) {
-                FluxDispatcher.subscribe(event, updateBubbleAppearance);
-            }
-        });
+        for (const event of [
+            "CACHE_LOADED",
+            "SELECTIVELY_SYNCED_USER_SETTINGS_UPDATE",
+            "THEME_UPDATE",
+        ]) {
+            FluxDispatcher.subscribe(event, updateBubbleAppearance);
+        }
 
         useChatBubblesSettings.subscribe(updateBubbleAppearance);
     },
     stop() {
         BubbleModule?.unhookBubbles();
     },
+    settings: settings
 });
