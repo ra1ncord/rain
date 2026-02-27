@@ -88,6 +88,21 @@ interface CompatSegmentedControlProps {
 
 export type CompatSegmentedControl = React.FC<CompatSegmentedControlProps>;
 
+interface SliderProps {
+    value: number;
+    minimumValue: number;
+    maximumValue: number;
+    step?: number;
+    onValueChange: (v: number) => void;
+    minimumTrackTintColor?: string;
+    maximumTrackTintColor?: string;
+    thumbTintColor?: string;
+    style?: RN.ViewStyle;
+    disabled?: boolean;
+}
+
+export type Slider = React.FC<SliderProps>;
+
 // TODO: Confirm if this is real
 interface TextInputProps extends Omit<RN.TextInputProps, "onChange" | "onChangeText" | "value"> {
     defaultValue?: string;

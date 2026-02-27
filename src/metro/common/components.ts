@@ -72,6 +72,8 @@ export const Avatar = findProp("default", "AvatarSizes", "getStatusSize");
 // Inputs
 export const TextInput = findSingular("TextInput") as t.TextInput;
 export const TextArea = findSingular("TextArea");
+export const Slider = findByProps("SliderComponent") as t.Slider
+    ?? findSingular("Slider") as t.Slider;
 
 // SegmentedControl
 export const SegmentedControl = findProp("SegmentedControl") as t.SegmentedControl;

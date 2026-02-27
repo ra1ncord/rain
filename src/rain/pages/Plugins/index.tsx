@@ -50,6 +50,9 @@ function PluginPage(props: PluginPageProps) {
             if (p.devOnly && !developerSettings) {
                 return false;
             }
+            if (p.isSupported && !p.isSupported()) {
+                return false;
+            }
             return true;
         });
     }, [items, pinnedPlugins, developerSettings]);

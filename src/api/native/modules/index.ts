@@ -2,7 +2,7 @@ import { RNModules } from "./types";
 
 const nmp = window.nativeModuleProxy;
 
-function getNativeModule<T = any>(...names: string[]): T | undefined {
+export function getNativeModule<T = any>(...names: string[]): T | undefined {
     for (const name of names) {
         if (globalThis.__turboModuleProxy) {
             const module = globalThis.__turboModuleProxy(name);
