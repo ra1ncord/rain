@@ -104,6 +104,7 @@
     "OVERRIDE_THEME_TYPE": "Override Theme Type",
     "PLATFORMS": "Platforms",
     "PLUGINS": "Plugins",
+    "PLUGIN_RESTART_MESSAGE": "This plugin requires a restart to take effect. Do you want to restart now?",
     "PLUGIN__CORE_BADGES": "Badges",
     "PLUGIN__CORE_BADGES_DESC": "Adds raincord badges to raincord devs and supporters",
     "PLUGIN__CORE_COMMANDS": "CoreCommands",

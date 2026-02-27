@@ -1,9 +1,14 @@
 import { findAssetId } from "@api/assets";
+import { BundleUpdaterManager } from "@api/native/modules";
 import { useSettings } from "@api/settings";
+import { openAlert } from "@api/ui/alerts";
 import { showSheet } from "@api/ui/sheets";
 import { Strings } from "@i18n";
 import { NavigationNative, tokens } from "@metro/common";
 import {
+    AlertActionButton,
+    AlertActions,
+    AlertModal,
     Card,
     IconButton,
     Stack,
@@ -158,6 +163,27 @@ export default function PluginCard({
             await plugin.toggle(v);
         } finally {
             setToggling(false);
+        }
+        if (plugin.requiresRestart) {
+            openAlert(
+                "plugin-restart-alert",
+                <AlertModal
+                    title={Strings.RELOAD_DISCORD}
+                    content={Strings.PLUGIN_RESTART_MESSAGE}
+                    actions={
+                      <AlertActions>
+                        <AlertActionButton
+                          text="Restart Now"
+                          variant="primary"
+                          onPress={() => {
+                            BundleUpdaterManager.reload();
+                          }}
+                        />
+                        <AlertActionButton text="Later" variant="secondary" />
+                      </AlertActions>
+                    }
+                />,
+            )
         }
     };
 

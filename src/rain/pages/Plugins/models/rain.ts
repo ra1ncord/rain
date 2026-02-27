@@ -38,6 +38,7 @@ export default function unifyRainPlugin(
         contributors,
         isEnabled: () => isPluginEnabled(manifest.id),
         isCore: () => isPluginCore(manifest.id),
+        requiresRestart: manifest.requiresRestart,
         isPlatformSupported: () => isPlatformSupported,
         arePredicatesMet: () => arePredicatesMet,
         devOnly: manifest.devOnly,

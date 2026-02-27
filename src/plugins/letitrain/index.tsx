@@ -13,7 +13,7 @@ export default definePlugin({
     author: [Developers.LampDelivery],
     id: "letitrain",
     version: "1.0.0",
-
+    requiresRestart: true,
     start() {
         const injectRain = (_: any, ret: any) => {
             if (!ret || !ret.props) return ret;

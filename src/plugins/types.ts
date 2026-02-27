@@ -8,6 +8,7 @@ export interface rainPlugin {
     author: developer[];
     platforms?: ["android" | "ios"];
     predicates?: (() => boolean)[];
+    requiresRestart?: boolean;
     start?: () => void;
     eagerStart?: () => void;
     stop?: () => void;
