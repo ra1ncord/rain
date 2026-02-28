@@ -1,9 +1,9 @@
 import { logger } from "@lib/utils/logger";
 import { definePlugin } from "@plugins";
 import { Contributors, Developers } from "@rain/Developers";
+import Settings from "@rain/pages/CloudSync";
 
 import { saveData } from "./api";
-import Settings from "@rain/pages/CloudSync";
 import { grabEverything } from "./lib/syncStuff";
 import { useCloudSyncSettings } from "./storage";
 import { useAuthorizationStore } from "./stores/AuthorizationStore";
