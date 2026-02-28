@@ -18,7 +18,7 @@ export default [
         if (matchIndex === undefined) return;
         const emojis = content.slice(matchIndex).trim().split("\n");
         if (!emojis.every(s => s.match(emojiRegex))) return;
-        content = content.slice(0, matchIndex);
+        content = content.slice(0, matchIndex).replace(/\n/g, " ");
 
         while (content.indexOf("  ") !== -1)
             content = content.replace("  ", ` ${emojis.shift()} `);
