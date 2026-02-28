@@ -3,15 +3,14 @@ import SettingsTextInput from "@api/ui/components/SettingsTextInput";
 import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro";
 import { Stack, TableRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
+import { getData, saveData } from "@plugins/_core/cloudsync/api";
+import showAuthModal from "@plugins/_core/cloudsync/lib/showAuthModal";
+import { grabEverything, importData } from "@plugins/_core/cloudsync/lib/syncStuff";
+import { useCloudSyncSettings } from "@plugins/_core/cloudsync/storage";
+import { useAuthorizationStore } from "@plugins/_core/cloudsync/stores/AuthorizationStore";
+import { useCacheStore } from "@plugins/_core/cloudsync/stores/CacheStore";
 import React from "react";
 import { ActivityIndicator,ScrollView } from "react-native";
-
-import { getData, saveData } from "../api";
-import showAuthModal from "../lib/showAuthModal";
-import { grabEverything, importData } from "../lib/syncStuff";
-import { useCloudSyncSettings } from "../storage";
-import { useAuthorizationStore } from "../stores/AuthorizationStore";
-import { useCacheStore } from "../stores/CacheStore";
 
 const { Card } = findByProps("Card");
 

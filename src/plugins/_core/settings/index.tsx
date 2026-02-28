@@ -61,7 +61,7 @@ function initSettings() {
                 key: "RAIN_CLOUDSYNC",
                 title: () => "Cloud Sync",
                 icon: findAssetId("CloudIcon"),
-                render: () => import("@plugins/_core/cloudsync/components/Settings"),
+                render: () => import("@rain/pages/CloudSync"),
             },
             {
                 key: "RAIN_DEVELOPER",

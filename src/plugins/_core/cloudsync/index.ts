@@ -1,9 +1,9 @@
 import { logger } from "@lib/utils/logger";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Contributors, Developers } from "@rain/Developers";
 
 import { saveData } from "./api";
-import Settings from "./components/Settings";
+import Settings from "@rain/pages/CloudSynca";
 import { grabEverything } from "./lib/syncStuff";
 import { useCloudSyncSettings } from "./storage";
 import { useAuthorizationStore } from "./stores/AuthorizationStore";
@@ -38,7 +38,7 @@ const autoSync = async () => {
 export default definePlugin({
     name: "CloudSync",
     description: "Sync your plugins, themes, and fonts to the cloud.",
-    author: [Developers.LampDelivery],
+    author: [Developers.LampDelivery, Contributors.nexpid],
     id: "cloudsync",
     version: "1.0.0",
     start() {
@@ -49,7 +49,6 @@ export default definePlugin({
         useCacheStore.subscribe(autoSync);
     },
     stop() {
-        // Cleanup if needed
     },
     settings: Settings,
 });
