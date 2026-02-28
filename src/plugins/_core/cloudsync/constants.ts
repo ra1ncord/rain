@@ -1,7 +1,7 @@
 import { cloudSyncSettings } from "./storage";
 
-export const defaultHost = "https://dc.cloudsync.nexpid.xyz/";
-export const defaultClientId = "1120793656878714913";
+export const defaultHost = "https://cloud.raincord.dev/";
+export const defaultClientId = "1477357340045873204";
 
 export const getApiUrl = () => {
     const host = cloudSyncSettings.customHost || defaultHost;
