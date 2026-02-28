@@ -3,7 +3,7 @@ import { definePlugin } from "@plugins";
 import { Contributors, Developers } from "@rain/Developers";
 
 import { saveData } from "./api";
-import Settings from "@rain/pages/CloudSynca";
+import Settings from "@rain/pages/CloudSync";
 import { grabEverything } from "./lib/syncStuff";
 import { useCloudSyncSettings } from "./storage";
 import { useAuthorizationStore } from "./stores/AuthorizationStore";
