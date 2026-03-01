@@ -7,6 +7,12 @@ interface Settings {
     accent: number | null;
     enabled: boolean;
     bannerFallback: boolean;
+    /** Opt-in: share your profile colors to the public registry */
+    shareColors: boolean;
+    /** Apply registry colors to other users' profiles */
+    showOtherColors: boolean;
+    /** URL of the profile colors registry worker */
+    registryUrl: string;
 }
 
 type ProfileColorSettingsStore = PluginStore<Settings>;
@@ -18,6 +24,9 @@ export const useProfileColorStore = create<ProfileColorSettingsStore>()(
             accent: null,
             enabled: false,
             bannerFallback: false,
+            shareColors: false,
+            showOtherColors: true,
+            registryUrl: "https://profilecolors-registry.songspotlight.workers.dev",
             _hasHydrated: false,
             updateSettings: newSettings => set(state => ({ ...state, ...newSettings })),
             setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),

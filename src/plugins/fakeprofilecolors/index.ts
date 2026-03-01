@@ -3,7 +3,40 @@ import { UserStore } from "@metro/common/stores";
 import { findByName, findByStoreName } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
 
+import { fetchRegistryColors } from "./api";
 import { useProfileColorStore } from "./storage";
+
+// In-memory cache of already-resolved registry colors for synchronous access in patches
+const resolvedColors = new Map<string, { primary: number; accent: number } | null>();
+// Track in-flight fetches to avoid duplicates
+const pendingFetches = new Set<string>();
+
+/**
+ * Kick off an async fetch for a user's registry colors.
+ * When it resolves we force UserProfileStore to re-emit so the patch re-runs.
+ */
+function ensureRegistryColors(userId: string) {
+    if (resolvedColors.has(userId) || pendingFetches.has(userId)) return;
+    const state = useProfileColorStore.getState();
+    if (!state.showOtherColors || !state.registryUrl) return;
+
+    pendingFetches.add(userId);
+    fetchRegistryColors(userId)
+        .then(colors => {
+            resolvedColors.set(userId, colors);
+            // Force a store re-emit so patches re-run with the resolved data
+            try {
+                const UserProfileStore = findByStoreName("UserProfileStore");
+                UserProfileStore?.emitChange?.();
+            } catch {}
+        })
+        .catch(() => {
+            resolvedColors.set(userId, null);
+        })
+        .finally(() => {
+            pendingFetches.delete(userId);
+        });
+}
 function patchUseProfileTheme() {
     const funcParent = findByName("useProfileTheme", false);
     if (!funcParent) return;
@@ -71,6 +104,18 @@ function patchGetUserProfile() {
             } else {
             }
         } else {
+            // Other users: check registry colors first, then banner fallback
+            if (state.showOtherColors) {
+                const regColors = resolvedColors.get(userId);
+                if (regColors) {
+                    profile.themeColors = [regColors.primary, regColors.accent];
+                    profile.premiumType = 2;
+                    return profile;
+                }
+                // Kick off async fetch if not yet resolved
+                ensureRegistryColors(userId);
+            }
+
             if (state.bannerFallback && (!profile.premiumType || profile.premiumType === 0) && profile.bannerColor) {
                 let color = profile.bannerColor;
                 if (typeof color === "number") color = `#${color.toString(16).padStart(6, "0")}`;

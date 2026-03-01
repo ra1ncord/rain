@@ -1,14 +1,18 @@
+import { findAssetId } from "@api/assets";
 import { semanticColors } from "@api/ui/components/color";
 import SettingsTextInput from "@api/ui/components/SettingsTextInput";
-import { findByProps } from "@metro";
+import { showToast } from "@api/ui/toasts";
+import { findByProps, findByStoreName } from "@metro";
 import React from "react";
 
+import { clearColorCache, publishToRegistry, unpublishFromRegistry } from "./api";
 import { useProfileColorStore } from "./storage";
 
 const { TableRow, TableSwitchRow, TableRowGroup } = findByProps("TableRow");
 const { Card } = findByProps("Card");
 const { TextInput } = findByProps("TextInput");
 const { View } = findByProps("View");
+const UserStore = findByStoreName("UserStore");
 
 export default function ProfileColorSettings() {
     const store = useProfileColorStore();
@@ -81,6 +85,79 @@ export default function ProfileColorSettings() {
                         setPrimaryInput("");
                         setAccentInput("");
                         store.updateSettings({ primary: null, accent: null, enabled: false });
+                    }}
+                />
+            </TableRowGroup>
+
+            <TableRowGroup title="Other Users">
+                <TableSwitchRow
+                    label="Show other users' colors"
+                    subLabel="Apply profile colors shared by other Rain users via the registry"
+                    value={store.showOtherColors}
+                    onValueChange={(v: boolean) => store.updateSettings({ showOtherColors: v })}
+                />
+                <TableSwitchRow
+                    label="Banner color fallback"
+                    subLabel="Use banner color as profile theme for non-Nitro users"
+                    value={store.bannerFallback}
+                    onValueChange={(v: boolean) => store.updateSettings({ bannerFallback: v })}
+                />
+            </TableRowGroup>
+
+            <TableRowGroup title="Sharing">
+                <TableSwitchRow
+                    label="Share my profile colors"
+                    subLabel="Allow other Rain users to see your custom profile colors. Your Discord ID and color values will be stored in a public registry."
+                    value={store.shareColors}
+                    onValueChange={(v: boolean) => {
+                        store.updateSettings({ shareColors: v });
+                        const myId = UserStore?.getCurrentUser?.()?.id;
+                        if (!v) {
+                            if (myId) {
+                                unpublishFromRegistry(myId).then(ok => {
+                                    if (ok) showToast("Removed from registry", findAssetId("CheckIcon"));
+                                });
+                            }
+                        } else if (store.primary !== null && myId) {
+                            publishToRegistry(myId, store.primary, store.accent ?? store.primary).then(ok => {
+                                if (ok) showToast("Published colors!", findAssetId("CheckIcon"));
+                                else showToast("Failed to publish", findAssetId("XIcon"));
+                            });
+                        }
+                    }}
+                />
+                <TableRow
+                    label="Publish Now"
+                    subLabel="Manually sync your current colors to the registry"
+                    trailing={<TableRow.Arrow />}
+                    onPress={() => {
+                        if (store.primary === null) {
+                            showToast("Set a primary color first", findAssetId("XIcon"));
+                            return;
+                        }
+                        const myId = UserStore?.getCurrentUser?.()?.id;
+                        if (!myId) {
+                            showToast("Not logged in", findAssetId("XIcon"));
+                            return;
+                        }
+                        showToast("Publishing...", findAssetId("ClockIcon"));
+                        publishToRegistry(myId, store.primary!, store.accent ?? store.primary!).then(ok => {
+                            if (ok) {
+                                store.updateSettings({ shareColors: true });
+                                showToast("Published colors!", findAssetId("CheckIcon"));
+                            } else {
+                                showToast("Failed to publish", findAssetId("XIcon"));
+                            }
+                        });
+                    }}
+                />
+                <TableRow
+                    label="Clear Color Cache"
+                    subLabel="Force re-fetch other users' colors from the registry"
+                    trailing={<TableRow.Arrow />}
+                    onPress={() => {
+                        clearColorCache();
+                        showToast("Color cache cleared", findAssetId("CheckIcon"));
                     }}
                 />
             </TableRowGroup>
