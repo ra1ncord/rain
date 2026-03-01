@@ -2,7 +2,9 @@ import { after } from "@api/patcher";
 import { findInReactTree } from "@lib/utils";
 import { findByTypeName } from "@metro";
 
+
 import SongSection from "../components/SongSection";
+import { songSpotlightSettings } from "../storage";
 
 const SimplifiedUserProfileContent = findByTypeName(
     "SimplifiedUserProfileContent",
@@ -24,11 +26,24 @@ export default () =>
 
             const userId = args[0]?.user?.id;
             if (profileSections) {
-                const reviewIndex = profileSections.findIndex(
-                    (i: any) => i?.type?.name === "ReviewSection",
-                );
-                const insertAt = reviewIndex !== -1 ? reviewIndex : profileSections.length;
-                profileSections.splice(insertAt, 0, React.createElement(SongSection, { userId }));
+                const displayPosition = songSpotlightSettings.displayPosition;
+                if (displayPosition === "betweenBioAndRoles") {
+                    // Insert after about me card, before roles
+                    const bioIdx = profileSections.findIndex(
+                        (i: any) =>
+                            i?.type?.name === "SimplifiedUserProfileAboutMeCard",
+                    );
+                    // Insert after about me card if found, else at start
+                    const insertAt = bioIdx !== -1 ? bioIdx + 1 : 0;
+                    profileSections.splice(insertAt, 0, React.createElement(SongSection, { userId }));
+                } else {
+                    // Default: above ReviewDB
+                    const reviewIndex = profileSections.findIndex(
+                        (i: any) => i?.type?.name === "ReviewSection",
+                    );
+                    const insertAt = reviewIndex !== -1 ? reviewIndex : profileSections.length;
+                    profileSections.splice(insertAt, 0, React.createElement(SongSection, { userId }));
+                }
             }
         })
         : (): boolean => {

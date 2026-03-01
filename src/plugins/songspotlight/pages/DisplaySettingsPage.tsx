@@ -64,6 +64,19 @@ export default function DisplaySettingsPage() {
                     />
                 </TableRowGroup>
 
+                <TableRowGroup title="Section Position">
+                    <TableRadioGroup
+                        title="Where to show Song Spotlight"
+                        value={settings.displayPosition}
+                        onChange={(value: string) =>
+                            settings.updateSettings({ displayPosition: value as "aboveReviewDB" | "betweenBioAndRoles" })
+                        }
+                    >
+                        <TableRadioRow label="Below Connections (default)" value="aboveReviewDB" />
+                        <TableRadioRow label="Between Bio and Roles" value="betweenBioAndRoles" />
+                    </TableRadioGroup>
+                </TableRowGroup>
+
                 <TableRowGroup title="Visibility">
                     <TableSwitchRow
                         label="Show on own profile"

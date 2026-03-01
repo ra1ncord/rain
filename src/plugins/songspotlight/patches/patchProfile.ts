@@ -2,7 +2,9 @@ import { after } from "@api/patcher";
 import { findInReactTree } from "@lib/utils";
 import { findByTypeName } from "@metro";
 
+
 import SongSection from "../components/SongSection";
+import { songSpotlightSettings } from "../storage";
 
 let UserProfile = findByTypeName("UserProfile");
 if (UserProfile === undefined)
@@ -25,11 +27,24 @@ export default () =>
         if (userId === undefined) userId = args[0]?.user?.id;
 
         if (profileSections) {
-            // Insert right before ReviewDB's ReviewSection, or at end if not present
-            const reviewIndex = profileSections.findIndex(
-                (i: any) => i?.type?.name === "ReviewSection",
-            );
-            const insertAt = reviewIndex !== -1 ? reviewIndex : profileSections.length;
-            profileSections.splice(insertAt, 0, React.createElement(SongSection, { userId }));
+            const displayPosition = songSpotlightSettings.displayPosition;
+            if (displayPosition === "betweenBioAndRoles") {
+                // Insert after bio/about me, before roles
+                const bioIdx = profileSections.findIndex(
+                    (i: any) =>
+                        i?.type?.name === "UserProfileBio" ||
+                        i?.type?.name === "UserProfileAboutMeCard",
+                );
+                // Insert after bio/about me if found, else at start
+                const insertAt = bioIdx !== -1 ? bioIdx + 1 : 0;
+                profileSections.splice(insertAt, 0, React.createElement(SongSection, { userId }));
+            } else {
+                // Default: above ReviewDB
+                const reviewIndex = profileSections.findIndex(
+                    (i: any) => i?.type?.name === "ReviewSection",
+                );
+                const insertAt = reviewIndex !== -1 ? reviewIndex : profileSections.length;
+                profileSections.splice(insertAt, 0, React.createElement(SongSection, { userId }));
+            }
         }
     });
