@@ -66,7 +66,6 @@ export default function DisplaySettingsPage() {
 
                 <TableRowGroup title="Section Position">
                     <TableRadioGroup
-                        title="Where to show Song Spotlight"
                         value={settings.displayPosition}
                         onChange={(value: string) =>
                             settings.updateSettings({ displayPosition: value as "aboveReviewDB" | "betweenBioAndRoles" })
