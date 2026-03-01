@@ -36,11 +36,11 @@ export async function cFetch(
 
     let ret: string;
     if (res.status !== 200) {
-        if (cache.isCached(rawUrl)) ret = cache.readCache(rawUrl);
-        else throw new Error(`Failed to fetch ${rawUrl}`);
+	    if (cache?.isCached?.(rawUrl)) ret = cache.readCache(rawUrl);
+	    else throw new Error(`Failed to fetch ${rawUrl}`);
     } else {
-        ret = await res.text();
-        cache.writeCache(rawUrl, ret);
+	    ret = await res.text();
+	    cache?.writeCache?.(rawUrl, ret);
     }
 
     if (format === "json") return JSON.parse(ret);
