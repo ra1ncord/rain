@@ -47,7 +47,7 @@ export default function SongSection({ userId }: SongSectionProps) {
                 ? "#00000073"
                 : semanticColors.CARD_PRIMARY_BG,
             borderRadius: 16,
-            padding: 8,
+            padding: 12,
         },
         trackCard: {
             backgroundColor: hasThemeColors
