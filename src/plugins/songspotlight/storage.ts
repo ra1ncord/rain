@@ -40,7 +40,7 @@ export interface SongSpotlightSettings {
     /** URL of the song spotlight registry (Cloudflare Worker or compatible endpoint) */
     registryUrl: string;
     /** Where to display Song Spotlight section on profile */
-    displayPosition: "aboveReviewDB" | "betweenBioAndRoles";
+    displayPosition: "aboveReviewDB" | "betweenBioAndRoles" | "aboveBio";
 }
 
 export const DEFAULT_SETTINGS: SongSpotlightSettings = {
@@ -62,7 +62,7 @@ export const DEFAULT_SETTINGS: SongSpotlightSettings = {
     cardOpacity: 40,
     shareUsername: false,
     registryUrl: "https://songspotlight-registry.songspotlight.workers.dev",
-    displayPosition: "aboveReviewDB",
+    displayPosition: "aboveBio",
 };
 
 type SongSpotlightStore = PluginStore<SongSpotlightSettings>;

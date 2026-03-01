@@ -68,10 +68,11 @@ export default function DisplaySettingsPage() {
                     <TableRadioGroup
                         value={settings.displayPosition}
                         onChange={(value: string) =>
-                            settings.updateSettings({ displayPosition: value as "aboveReviewDB" | "betweenBioAndRoles" })
+                            settings.updateSettings({ displayPosition: value as "aboveReviewDB" | "betweenBioAndRoles" | "aboveBio" })
                         }
                     >
-                        <TableRadioRow label="Below Connections (default)" value="aboveReviewDB" />
+                        <TableRadioRow label="Above Bio (default)" value="aboveBio" />
+                        <TableRadioRow label="Below Connections" value="aboveReviewDB" />
                         <TableRadioRow label="Between Bio and Roles" value="betweenBioAndRoles" />
                     </TableRadioGroup>
                 </TableRowGroup>

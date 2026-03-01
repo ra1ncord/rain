@@ -35,8 +35,16 @@ export default () =>
                         i?.type?.name === "UserProfileBio" ||
                         i?.type?.name === "UserProfileAboutMeCard",
                 );
-                // Insert after bio/about me if found, else at start
                 const insertAt = bioIdx !== -1 ? bioIdx + 1 : 0;
+                profileSections.splice(insertAt, 0, React.createElement(SongSection, { userId }));
+            } else if (displayPosition === "aboveBio") {
+                // Insert before bio/about me
+                const bioIdx = profileSections.findIndex(
+                    (i: any) =>
+                        i?.type?.name === "UserProfileBio" ||
+                        i?.type?.name === "UserProfileAboutMeCard",
+                );
+                const insertAt = bioIdx !== -1 ? bioIdx : 0;
                 profileSections.splice(insertAt, 0, React.createElement(SongSection, { userId }));
             } else {
                 // Default: above ReviewDB
