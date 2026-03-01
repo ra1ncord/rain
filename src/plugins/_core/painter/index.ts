@@ -4,6 +4,7 @@ import { Developers } from "@rain/Developers";
 import { Strings } from "@rain/i18n";
 
 import { initFonts } from "./fonts";
+import { initMonet } from "./monet";
 import { initThemes } from "./themes";
 
 export default definePlugin({
@@ -14,6 +15,7 @@ export default definePlugin({
     version: "1.0.0",
     async start() {
         initThemes();
+        initMonet();
 
         // todo: more this into initFonts
         if (settings().safeMode) { initFonts(); }

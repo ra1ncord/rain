@@ -15,6 +15,7 @@ import { getCurrentTheme, installTheme, ThemeInfo,useThemes } from "@plugins/_co
 import { useColorsPref } from "@plugins/_core/painter/themes/preferences";
 import { Author } from "@plugins/_core/painter/themes/types";
 import { updateColor } from "@plugins/_core/painter/themes/updater";
+import MonetCard from "@plugins/_core/painter/monet/MonetCard";
 import AddonPage from "@rain/pages/Addon/AddonPage";
 import ThemeBrowser from "@rain/pages/Browser/Themes";
 import { View } from "react-native";
@@ -57,6 +58,7 @@ export default function Themes() {
                 message: Strings.THEMES_DISABLED_IN_SAFE_MODE,
             }}
             CardComponent={ThemeCard}
+            ListHeaderComponent={MonetCard}
             OptionsActionSheetComponent={() => {
                 const { type, customBackground, setType, setCustomBackground } = useColorsPref();
 
