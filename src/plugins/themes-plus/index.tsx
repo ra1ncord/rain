@@ -61,7 +61,7 @@ export default definePlugin({
     author: [Contributors.nexpid],
     id: "themes-plus",
     version: "1.0.0",
-    start() {
+    eagerStart() {
         try {
             load();
         } catch (e) {

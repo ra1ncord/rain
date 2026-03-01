@@ -149,8 +149,7 @@ export default function patchIcons(
                     }
 
                     patches.push(
-                        instead("jsx", ReactJSX, (args: any[], orig: Function) => interceptJSX(args, orig)),
-                        instead("jsxs", ReactJSX, (args: any[], orig: Function) => interceptJSX(args, orig)),
+                        instead("jsx", ReactJSX, (args: any[], orig: Function) => interceptJSX(args, orig))
                     );
                 },
             )
