@@ -95,7 +95,10 @@ export function build(patches: Patches): BuiltTheme {
 
     // Fix PLUM shades that the "alternative" replacer pushes to pure black.
     // Map them to their corresponding PRIMARY raw values which compute correctly.
-    if (raw["PRIMARY_700"]) raw["PLUM_23"] = raw["PRIMARY_700"];
+    if (raw["PRIMARY_700"]) {
+        raw["PLUM_23"] = raw["PRIMARY_700"];
+        raw["PLUM_24"] = raw["PRIMARY_700"];
+    }
 
     for (const key of Object.keys(patches.semantic.both)) {
         const clr = parseColor(rawPatches[key]);
