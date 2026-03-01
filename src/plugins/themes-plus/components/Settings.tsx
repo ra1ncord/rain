@@ -1,13 +1,13 @@
+import { findAssetId } from "@api/assets";
+import { openAlert } from "@api/ui/alerts";
+import { createStyles } from "@api/ui/styles";
 import { React, ReactNative as RN, url } from "@metro/common";
 import { tokens } from "@metro/common";
-import { findAssetId } from "@api/assets";
-import { createStyles } from "@api/ui/styles";
-import { Text, Button, FloatingActionButton } from "@metro/common/components";
-import { openAlert } from "@api/ui/alerts";
-import { lang, PatchType } from "..";
+import { Button, FloatingActionButton,Text } from "@metro/common/components";
+
+import { PatchType } from "..";
 import { state, useState } from "../stuff/active";
 import load from "../stuff/loader";
-import ConfigModal from "./modals/ConfigModal";
 
 const useStyles = createStyles({
     icon: {

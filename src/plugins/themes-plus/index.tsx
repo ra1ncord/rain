@@ -1,5 +1,6 @@
 import { definePlugin } from "@plugins";
 import { Contributors } from "@rain/Developers";
+
 import Settings from "./components/Settings";
 import load, { patches } from "./stuff/loader";
 
@@ -55,23 +56,23 @@ export const vstorage: ThemesPlusStorage = {
 };
 
 export default definePlugin({
-name: "Themes+",
-description: "Adds more customizability to Themes",
-author: [Contributors.nexpid],
-id: "themes-plus",
-version: "1.0.0",
-start() {
-try {
-load();
-} catch (e) {
-console.log("Themes+ failed to load whoopsies!!", e);
-}
-},
-stop() {
-for (const x of patches) {
-x();
-}
-patches.length = 0;
-},
-settings: Settings,
+    name: "Themes+",
+    description: "Adds more customizability to Themes",
+    author: [Contributors.nexpid],
+    id: "themes-plus",
+    version: "1.0.0",
+    start() {
+        try {
+            load();
+        } catch (e) {
+            console.log("Themes+ failed to load whoopsies!!", e);
+        }
+    },
+    stop() {
+        for (const x of patches) {
+            x();
+        }
+        patches.length = 0;
+    },
+    settings: Settings,
 });
