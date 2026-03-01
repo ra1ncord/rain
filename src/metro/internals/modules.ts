@@ -48,10 +48,9 @@ for (const key of moduleKeys) {
                 const exps = metroRequire(id);
                 if (exps && exps.__esModule) return exps;
 
-                const importAll: Record<string, any> = {};
-                if (exps) Object.assign(importAll, exps);
-                importAll.default = exps;
-                return importAll;
+                // This isnt as safe as before but themes+ is more important imo
+                if (exps) exps.default = exps;
+                return exps;
             };
 
             origFunc(...args);
