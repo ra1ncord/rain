@@ -1,6 +1,6 @@
 import { waitForHydration } from "@api/storage";
 import { definePlugin } from "@plugins";
-import { Contributors, Developers } from "@rain/Developers";
+import { Developers } from "@rain/Developers";
 
 import patchProfile from "./patches/patchProfile";
 import patchSimplifiedProfile from "./patches/patchSimplifiedProfile";

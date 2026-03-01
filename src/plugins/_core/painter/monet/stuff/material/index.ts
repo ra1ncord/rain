@@ -1,7 +1,7 @@
 // Material Color Utilities - ARGB/Hex conversion
 // https://github.com/material-foundation/material-color-utilities
 
-export { redFromArgb, greenFromArgb, blueFromArgb } from "./utils";
+export { blueFromArgb,greenFromArgb, redFromArgb } from "./utils";
 
 export function hexFromArgb(argb: number): string {
     const r = (argb >> 16) & 255;

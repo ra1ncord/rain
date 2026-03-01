@@ -11,11 +11,11 @@ import {
     TableRowIcon,
     TableSwitchRow,
 } from "@metro/common/components";
+import MonetCard from "@plugins/_core/painter/monet/MonetCard";
 import { getCurrentTheme, installTheme, ThemeInfo,useThemes } from "@plugins/_core/painter/themes";
 import { useColorsPref } from "@plugins/_core/painter/themes/preferences";
 import { Author } from "@plugins/_core/painter/themes/types";
 import { updateColor } from "@plugins/_core/painter/themes/updater";
-import MonetCard from "@plugins/_core/painter/monet/MonetCard";
 import AddonPage from "@rain/pages/Addon/AddonPage";
 import ThemeBrowser from "@rain/pages/Browser/Themes";
 import { View } from "react-native";

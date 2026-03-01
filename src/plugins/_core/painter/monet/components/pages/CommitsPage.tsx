@@ -3,9 +3,9 @@ import { showToast } from "@api/ui/toasts";
 import { React, ReactNative as RN } from "@metro/common";
 import { FlashList, Text } from "@metro/common/components";
 
+import useCommits from "../../hooks/useCommits";
 import { useMonetSettings } from "../../storage";
 import Commit, { CommitState } from "../Commit";
-import useCommits from "../../hooks/useCommits";
 
 export default function CommitsPage() {
     const patches = useMonetSettings(s => s.patches);

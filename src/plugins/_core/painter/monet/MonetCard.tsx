@@ -1,13 +1,13 @@
 import { findAssetId } from "@api/assets";
 import { showToast } from "@api/ui/toasts";
 import { NavigationNative, React, ReactNative as RN } from "@metro/common";
+import AddonCard from "@rain/pages/Addon/AddonCard";
 
 import { useThemes } from "../themes";
-import AddonCard from "@rain/pages/Addon/AddonCard";
+import usePatches from "./hooks/usePatches";
 import { applyMonetTheme, hasMonetTheme } from "./index";
 import Settings from "./Settings";
 import { build } from "./stuff/buildTheme";
-import usePatches from "./hooks/usePatches";
 
 export default function MonetCard() {
     const navigation = NavigationNative.useNavigation();

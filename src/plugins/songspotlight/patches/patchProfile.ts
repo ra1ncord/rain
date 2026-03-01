@@ -2,7 +2,6 @@ import { after } from "@api/patcher";
 import { findInReactTree } from "@lib/utils";
 import { findByTypeName } from "@metro";
 
-
 import SongSection from "../components/SongSection";
 import { songSpotlightSettings } from "../storage";
 

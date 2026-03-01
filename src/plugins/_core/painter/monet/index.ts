@@ -1,19 +1,16 @@
-import { findAssetId } from "@api/assets";
 import { callBridgeMethod } from "@api/native/bridge";
-import { getSysColors as getLoaderSysColors, isSysColorsSupported } from "@api/native/loader";
+import { getSysColors as getLoaderSysColors } from "@api/native/loader";
 import { waitForHydration } from "@api/storage";
 import { showConfirmationAlert } from "@api/ui/alerts";
-import { showToast } from "@api/ui/toasts";
 import { LoggerClass } from "@lib/utils/logger";
 import { findByStoreNameLazy } from "@metro/wrappers";
 
 import { getCurrentTheme } from "../themes";
-import { updateColor } from "../themes/updater";
 import type { ThemeManifest } from "../themes/types";
-
+import { updateColor } from "../themes/updater";
 import usePatches from "./hooks/usePatches";
 import { useMonetSettings } from "./storage";
-import { build, getDiscordTheme, type BuiltTheme } from "./stuff/buildTheme";
+import { build, type BuiltTheme,getDiscordTheme } from "./stuff/buildTheme";
 import type { VendettaSysColors } from "./types";
 
 const logger = new LoggerClass("MonetTheme");
