@@ -107,6 +107,62 @@ export async function unpublishFromRegistry(discordId: string): Promise<boolean>
 }
 
 /**
+ * Publish a user's favorites list to the registry.
+ * Sends the Discord ID and an array of favorite song objects.
+ */
+export async function publishFavorites(discordId: string, favorites: Array<{ title: string; artist: string; album: string; url: string; albumArt: string | null; }>): Promise<boolean> {
+    const registryUrl = songSpotlightSettings.registryUrl;
+    if (!registryUrl || !discordId) return false;
+
+    try {
+        const res = await fetch(`${registryUrl}/favorites/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ discordId, favorites }),
+        });
+        return res.ok;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Remove a user's favorites from the registry.
+ */
+export async function unpublishFavorites(discordId: string): Promise<boolean> {
+    const registryUrl = songSpotlightSettings.registryUrl;
+    if (!registryUrl || !discordId) return false;
+
+    try {
+        const res = await fetch(`${registryUrl}/favorites/register`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ discordId }),
+        });
+        return res.ok;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Look up a user's public favorites from the registry.
+ */
+export async function fetchRegistryFavorites(userId: string): Promise<Array<{ title: string; artist: string; album: string; url: string; albumArt: string | null; }> | null> {
+    const registryUrl = songSpotlightSettings.registryUrl;
+    if (!registryUrl) return null;
+
+    try {
+        const res = await fetch(`${registryUrl}/favorites/lookup/${userId}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data?.favorites ?? null;
+    } catch {
+        return null;
+    }
+}
+
+/**
  * Resolve the Last.fm username for a given Discord user ID.
  * Priority: own profile configured username > registry lookup > bio parsing
  */
@@ -259,6 +315,14 @@ async function fetchITunesInfo(artist: string, track: string): Promise<{ art: st
         } catch { continue; }
     }
     return { art: null, album: "" };
+}
+
+/**
+ * Fetch album art and album name for a track using iTunes search heuristics.
+ * Exported for use by settings/page code when adding favorites.
+ */
+export async function fetchTrackInfo(artist: string, track: string): Promise<{ art: string | null; album: string }> {
+    return fetchITunesInfo(artist, track);
 }
 
 // Simple in-memory cache for top tracks

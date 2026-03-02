@@ -15,6 +15,7 @@ interface SongRowProps {
     hasThemeColors?: boolean;
     colorfulCards?: boolean;
     cardOpacity?: number;
+    trailing?: React.ReactNode;
 }
 
 /** Swap the iTunes art URL to a tiny version for the blur source. */
@@ -22,7 +23,7 @@ function getBlurSource(artUrl: string): string {
     return artUrl.replace(/\d+x\d+/, "100x100");
 }
 
-export default function SongRow({ track, style, showAlbumArt, showPlayCount, showAlbumName = true, showRankNumbers = true, hasThemeColors, colorfulCards, cardOpacity = 40 }: SongRowProps) {
+export default function SongRow({ track, style, showAlbumArt, showPlayCount, showAlbumName = true, showRankNumbers = true, hasThemeColors, colorfulCards, cardOpacity = 40, trailing }: SongRowProps) {
     const showBlur = colorfulCards && !!track.albumArt;
     const overlayOpacity = cardOpacity / 100;
 
@@ -82,6 +83,11 @@ export default function SongRow({ track, style, showAlbumArt, showPlayCount, sho
             flexDirection: "row" as const,
             alignItems: "center" as const,
             marginTop: 2,
+        },
+        trailingContainer: {
+            marginLeft: 8,
+            alignItems: "flex-end" as const,
+            justifyContent: "center" as const,
         },
     });
 
@@ -165,8 +171,16 @@ export default function SongRow({ track, style, showAlbumArt, showPlayCount, sho
                         </Text>
                     </RN.View>
                 </RN.View>
+                {/** Trailing area for inline actions (remove/reorder) */}
+                {trailing ? (
+                    <RN.View style={styles.trailingContainer}>
+                        {trailing}
+                    </RN.View>
+                ) : null}
                 </RN.View>
             </RN.View>
         </PressableScale>
     );
 }
+
+// Note: We declare propsTrailing separately to avoid re-declaring styles above.

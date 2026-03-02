@@ -13,6 +13,8 @@ export interface SongSpotlightSettings {
     period: "7day" | "1month" | "3month" | "6month" | "12month" | "overall";
     /** Display mode: top tracks or recently played */
     displayMode: "top" | "recent";
+    /** Which source to show in the card: Last.fm tracks or manually added favorites */
+    displaySource: "lastfm" | "favorites";
     /** Show album art thumbnails */
     showAlbumArt: boolean;
     /** Show play count */
@@ -41,6 +43,14 @@ export interface SongSpotlightSettings {
     registryUrl: string;
     /** Where to display Song Spotlight section on profile */
     displayPosition: "aboveReviewDB" | "betweenBioAndRoles" | "aboveBio";
+    /** Manually added favorite songs (from Last.fm links) */
+    favoriteSongs: Array<{
+        title: string;
+        artist: string;
+        album: string;
+        url: string;
+        albumArt: string | null;
+    }>;
 }
 
 export const DEFAULT_SETTINGS: SongSpotlightSettings = {
@@ -49,6 +59,7 @@ export const DEFAULT_SETTINGS: SongSpotlightSettings = {
     trackCount: 5,
     period: "7day",
     displayMode: "top",
+    displaySource: "lastfm",
     showAlbumArt: true,
     showPlayCount: true,
     showAlbumName: true,
@@ -63,6 +74,7 @@ export const DEFAULT_SETTINGS: SongSpotlightSettings = {
     shareUsername: false,
     registryUrl: "https://songspotlight-registry.songspotlight.workers.dev",
     displayPosition: "aboveBio",
+    favoriteSongs: [],
 };
 
 type SongSpotlightStore = PluginStore<SongSpotlightSettings>;

@@ -3,6 +3,7 @@ import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro";
 
 import { clearTrackCache } from "../api";
+import { NavigationNative } from "@metro/common";
 import { useSongSpotlightSettings } from "../storage";
 
 const { ScrollView } = findByProps("ScrollView");
@@ -25,6 +26,7 @@ const { TextInput } = findByProps("TextInput");
 
 export default function DisplaySettingsPage() {
     const settings = useSongSpotlightSettings();
+    const navigation = NavigationNative.useNavigation();
 
     return (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 10 }}>
@@ -76,6 +78,33 @@ export default function DisplaySettingsPage() {
                         <TableRadioRow label="Between Bio and Roles" value="betweenBioAndRoles" />
                     </TableRadioGroup>
                 </TableRowGroup>
+
+                <TableRowGroup title="Source">
+                    <TableRadioGroup
+                        value={settings.displaySource}
+                        onChange={(value: string) =>
+                            settings.updateSettings({ displaySource: value as "lastfm" | "favorites" })
+                        }
+                    >
+                        <TableRadioRow label="Last.fm stats" value="lastfm" />
+                        <TableRadioRow label="Favorites" value="favorites" />
+                    </TableRadioGroup>
+                </TableRowGroup>
+
+                {settings.displaySource === "favorites" && (
+                    <TableRowGroup title="Favorites">
+                        <TableRow
+                            label="Configure favorite songs"
+                            trailing={<TableRow.Arrow />}
+                            onPress={() =>
+                                navigation.push("RAIN_CUSTOM_PAGE", {
+                                    title: "Favorite Songs",
+                                    render: require("../pages/FavoriteSongsSettingsPage").default,
+                                })
+                            }
+                        />
+                    </TableRowGroup>
+                )}
 
                 <TableRowGroup title="Visibility">
                     <TableSwitchRow

@@ -81,6 +81,10 @@ export default function SongSection({ userId }: SongSectionProps) {
 
     const sectionTitle = settings.sectionTitle?.trim() || "Song Spotlight";
 
+    const favoriteSongs = settings.favoriteSongs ?? [];
+
+    const autofillTracks = tracks.slice(0, Math.max(0, Math.min(settings.trackCount || 0, 5)));
+
     // Resolve Last.fm username for this user (async: checks cloud + bio)
     React.useEffect(() => {
         setResolving(true);
@@ -108,6 +112,14 @@ export default function SongSection({ userId }: SongSectionProps) {
 
     React.useEffect(() => {
         if (resolving) return;
+
+        // If user selected favorites as the source, we don't need to fetch Last.fm tracks
+        if (settings.displaySource === "favorites") {
+            setTracks([]);
+            setLoading(false);
+            setError(null);
+            return;
+        }
 
         if (!hasCredentials()) {
             setLoading(false);
@@ -148,14 +160,18 @@ export default function SongSection({ userId }: SongSectionProps) {
             });
     }, [resolving, lastFmUsername, settings.period, settings.trackCount, settings.displayMode, settings.showOnOwnProfile, settings.showOnOtherProfiles]);
 
-    // Don't render if no API key configured at all
-    if (!hasCredentials()) return null;
-    // Still resolving username — don't render yet
-    if (resolving) return null;
-    // No Last.fm username resolved for this user
-    if (!lastFmUsername) return null;
-    if (isOwnProfile && !settings.showOnOwnProfile) return null;
-    if (!isOwnProfile && !settings.showOnOtherProfiles) return null;
+    // Decide visibility based on selected source
+    if (settings.displaySource === "favorites") {
+        if (favoriteSongs.length === 0) return null;
+        if (isOwnProfile && !settings.showOnOwnProfile) return null;
+        if (!isOwnProfile && !settings.showOnOtherProfiles) return null;
+    } else {
+        if (!hasCredentials()) return null;
+        if (resolving) return null;
+        if (!lastFmUsername) return null;
+        if (isOwnProfile && !settings.showOnOwnProfile) return null;
+        if (!isOwnProfile && !settings.showOnOtherProfiles) return null;
+    }
 
     const handleHeaderPress = () => {
         const url = userInfo?.url || `https://www.last.fm/user/${lastFmUsername}`;
@@ -165,7 +181,7 @@ export default function SongSection({ userId }: SongSectionProps) {
     return (
         <ErrorBoundary>
             <RN.View style={[styles.card]}>
-                <UserProfileCard title={sectionTitle} styles={[styles.card]}>
+                <UserProfileCard title={sectionTitle} style={[styles.card]}>
                     {settings.showLastFmHeader && lastFmUsername && (
                         <PressableScale onPress={handleHeaderPress}>
                             <RN.View style={styles.headerRow}>
@@ -180,42 +196,34 @@ export default function SongSection({ userId }: SongSectionProps) {
                                 <Text variant={hSize.textVariant} style={styles.headerText}>
                                     {userInfo?.name || lastFmUsername}
                                 </Text>
-                                <Text variant={hSize.arrowVariant} style={[styles.headerText, { marginLeft: 4 }]}>
+                                <Text variant={hSize.arrowVariant} style={{ ...(styles.headerText as any), marginLeft: 4 }}>
                                     ↗
                                 </Text>
                             </RN.View>
                         </PressableScale>
                     )}
 
-                    {loading ? (
-                        <RN.ActivityIndicator
-                            size="small"
-                            style={{ paddingVertical: 20 }}
-                        />
-                    ) : error ? (
-                        <Text
-                            variant="text-sm/medium"
-                            style={styles.emptyText}
-                        >
-                            {error}
-                        </Text>
-                    ) : tracks.length === 0 ? (
-                        <Text
-                            variant="text-sm/medium"
-                            style={styles.emptyText}
-                        >
-                            {settings.displayMode === "recent" ? "No recent tracks" : "No top tracks found"}
-                        </Text>
-                    ) : (
-                        <RN.View>
-                            {tracks.map((track, index) => (
-                                <React.Fragment key={`${track.rank}-${track.name}`}>
+                    {settings.displaySource === "favorites" ? (
+                        <RN.View style={{ marginBottom: 10 }}>
+                            <RN.View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
+                                <Text variant="text-sm/semibold" style={{ color: "#FF69B4" }}>Favorites</Text>
+                            </RN.View>
+                            {favoriteSongs.map((song, index) => (
+                                <React.Fragment key={song.url || song.title || index}>
                                     {index > 0 && <RN.View style={{ height: 6 }} />}
                                     <SongRow
-                                        track={track}
+                                        track={{
+                                            name: song.title,
+                                            artist: song.artist,
+                                            album: song.album,
+                                            playCount: 0,
+                                            url: song.url,
+                                            albumArt: song.albumArt || null,
+                                            rank: index + 1,
+                                        }}
                                         style={styles.trackCard}
                                         showAlbumArt={settings.showAlbumArt}
-                                        showPlayCount={settings.showPlayCount}
+                                        showPlayCount={false}
                                         showAlbumName={settings.showAlbumName}
                                         showRankNumbers={settings.showRankNumbers}
                                         hasThemeColors={hasThemeColors}
@@ -225,6 +233,46 @@ export default function SongSection({ userId }: SongSectionProps) {
                                 </React.Fragment>
                             ))}
                         </RN.View>
+                    ) : (
+                        loading ? (
+                            <RN.ActivityIndicator
+                                size="small"
+                                style={{ paddingVertical: 20 }}
+                            />
+                        ) : error ? (
+                            <Text
+                                variant="text-sm/medium"
+                                style={styles.emptyText}
+                            >
+                                {error}
+                            </Text>
+                        ) : autofillTracks.length === 0 ? (
+                            <Text
+                                variant="text-sm/medium"
+                                style={styles.emptyText}
+                            >
+                                {settings.displayMode === "recent" ? "No recent tracks" : "No top tracks found"}
+                            </Text>
+                        ) : (
+                            <RN.View>
+                                {autofillTracks.map((track, index) => (
+                                    <React.Fragment key={`${track.rank}-${track.name}`}>
+                                        {index > 0 && <RN.View style={{ height: 6 }} />}
+                                        <SongRow
+                                            track={track}
+                                            style={styles.trackCard}
+                                            showAlbumArt={settings.showAlbumArt}
+                                            showPlayCount={settings.showPlayCount}
+                                            showAlbumName={settings.showAlbumName}
+                                            showRankNumbers={settings.showRankNumbers}
+                                            hasThemeColors={hasThemeColors}
+                                            colorfulCards={settings.colorfulCards}
+                                            cardOpacity={settings.cardOpacity}
+                                        />
+                                    </React.Fragment>
+                                ))}
+                            </RN.View>
+                        )
                     )}
                 </UserProfileCard>
             </RN.View>

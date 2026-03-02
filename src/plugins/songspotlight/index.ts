@@ -10,7 +10,7 @@ import { useSongSpotlightSettings } from "./storage";
 const patches: (() => boolean)[] = [];
 
 export default definePlugin({
-    name: "Song Spotlight",
+    name: "SongSpotlight",
     description: "Show your top Last.fm tracks on your Discord profile.",
     author: [Developers.LampDelivery],
     id: "songspotlight",
