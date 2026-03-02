@@ -245,9 +245,6 @@ export default function SongSection({ userId }: SongSectionProps) {
 
                     {settings.displaySource === "favorites" ? (
                         <RN.View style={{ marginBottom: 10 }}>
-                            <RN.View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
-                                <Text variant="text-sm/semibold" style={{ color: "#FF69B4" }}>Favorites</Text>
-                            </RN.View>
                             {favorites.map((song, index) => (
                                 <React.Fragment key={song.url || song.name || index}>
                                     {index > 0 && <RN.View style={{ height: 6 }} />}
