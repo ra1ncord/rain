@@ -5,7 +5,7 @@ import { findByName, findByProps, findByStoreName } from "@metro";
 import { ReactNative as RN } from "@metro/common";
 import { PressableScale, Text } from "@metro/common/components";
 
-import { fetchLastFmUserInfo, fetchRecentTracks, fetchTopTracks, hasCredentials, LastFmUserInfo, resolveLastFmUsername } from "../api";
+import { fetchLastFmUserInfo, fetchRecentTracks, fetchTopTracks, fetchFavoritesFromRegistry, hasCredentials, LastFmUserInfo, resolveLastFmUsername } from "../api";
 import { useSongSpotlightSettings } from "../storage";
 import { TopTrack } from "../types";
 import SongRow from "./SongRow";
@@ -26,6 +26,8 @@ export default function SongSection({ userId }: SongSectionProps) {
     const [lastFmUsername, setLastFmUsername] = React.useState<string | null>(null);
     const [resolving, setResolving] = React.useState(true);
     const [userInfo, setUserInfo] = React.useState<LastFmUserInfo | null>(null);
+    const [favorites, setFavorites] = React.useState<TopTrack[]>([]);
+    const [favoritesLoading, setFavoritesLoading] = React.useState(true);
 
     const isOwnProfile = userId === UserStore.getCurrentUser()?.id;
 
@@ -160,9 +162,47 @@ export default function SongSection({ userId }: SongSectionProps) {
             });
     }, [resolving, lastFmUsername, settings.period, settings.trackCount, settings.displayMode, settings.showOnOwnProfile, settings.showOnOtherProfiles]);
 
+    React.useEffect(() => {
+        if (settings.displaySource !== "favorites") return;
+        setFavoritesLoading(true);
+        if (isOwnProfile) {
+            // Utilise les favoris locaux pour son propre profil
+            setFavorites((settings.favoriteSongs ?? []).map((song, index) => ({
+                name: song.title,
+                artist: song.artist,
+                album: song.album,
+                playCount: 0,
+                url: song.url,
+                albumArt: song.albumArt || null,
+                rank: index + 1,
+            })));
+            setFavoritesLoading(false);
+        } else {
+            // Récupère les favoris du registre distant pour les autres profils
+            fetchFavoritesFromRegistry(userId)
+                .then(favs => {
+                    setFavorites((favs ?? []).map((song, index) => ({
+                        name: song.title,
+                        artist: song.artist,
+                        album: song.album,
+                        playCount: 0,
+                        url: song.url,
+                        albumArt: song.albumArt || null,
+                        rank: index + 1,
+                    })));
+                    setFavoritesLoading(false);
+                })
+                .catch(() => {
+                    setFavorites([]);
+                    setFavoritesLoading(false);
+                });
+        }
+    }, [settings.displaySource, userId, isOwnProfile, settings.favoriteSongs]);
+
     // Decide visibility based on selected source
     if (settings.displaySource === "favorites") {
-        if (favoriteSongs.length === 0) return null;
+        if (favoritesLoading) return null;
+        if (favorites.length === 0) return null;
         if (isOwnProfile && !settings.showOnOwnProfile) return null;
         if (!isOwnProfile && !settings.showOnOtherProfiles) return null;
     } else {
@@ -208,19 +248,11 @@ export default function SongSection({ userId }: SongSectionProps) {
                             <RN.View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
                                 <Text variant="text-sm/semibold" style={{ color: "#FF69B4" }}>Favorites</Text>
                             </RN.View>
-                            {favoriteSongs.map((song, index) => (
-                                <React.Fragment key={song.url || song.title || index}>
+                            {favorites.map((song, index) => (
+                                <React.Fragment key={song.url || song.name || index}>
                                     {index > 0 && <RN.View style={{ height: 6 }} />}
                                     <SongRow
-                                        track={{
-                                            name: song.title,
-                                            artist: song.artist,
-                                            album: song.album,
-                                            playCount: 0,
-                                            url: song.url,
-                                            albumArt: song.albumArt || null,
-                                            rank: index + 1,
-                                        }}
+                                        track={song}
                                         style={styles.trackCard}
                                         showAlbumArt={settings.showAlbumArt}
                                         showPlayCount={false}

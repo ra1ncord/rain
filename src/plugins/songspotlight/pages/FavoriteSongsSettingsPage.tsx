@@ -5,7 +5,7 @@ import { ReactNative as RN } from "@metro/common";
 import { showToast } from "@api/ui/toasts";
 import { findAssetId } from "@api/assets";
 import { useSongSpotlightSettings } from "../storage";
-import { fetchTrackInfo, publishFavorites } from "../api";
+import { fetchTrackInfo, publishFavoritesToRegistry } from "../api";
 import SongRow from "../components/SongRow";
 
 const { ScrollView } = findByProps("ScrollView");
@@ -59,7 +59,7 @@ export default function FavoriteSongsSettingsPage() {
                 const UserStore = findByStoreName("UserStore");
                 const myId = UserStore?.getCurrentUser?.()?.id;
                 if (myId && settings.shareUsername) {
-                    publishFavorites(myId, updated);
+                    publishFavoritesToRegistry(myId, updated);
                 }
             } catch {}
             setInput("");
@@ -80,7 +80,7 @@ export default function FavoriteSongsSettingsPage() {
             const UserStore = findByStoreName("UserStore");
             const myId = UserStore?.getCurrentUser?.()?.id;
             if (myId && settings.shareUsername) {
-                publishFavorites(myId, updated);
+                publishFavoritesToRegistry(myId, updated);
             }
         } catch {}
     }
@@ -96,7 +96,7 @@ export default function FavoriteSongsSettingsPage() {
         try {
             const UserStore = findByStoreName("UserStore");
             const myId = UserStore?.getCurrentUser?.()?.id;
-            if (myId && settings.shareUsername) publishFavorites(myId, list);
+            if (myId && settings.shareUsername) publishFavoritesToRegistry(myId, list);
         } catch {}
     }
 
@@ -112,7 +112,7 @@ export default function FavoriteSongsSettingsPage() {
         try {
             const UserStore = findByStoreName("UserStore");
             const myId = UserStore?.getCurrentUser?.()?.id;
-            if (myId && settings.shareUsername) publishFavorites(myId, list);
+            if (myId && settings.shareUsername) publishFavoritesToRegistry(myId, list);
         } catch {}
     }
 

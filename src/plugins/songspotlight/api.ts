@@ -163,9 +163,59 @@ export async function fetchRegistryFavorites(userId: string): Promise<Array<{ ti
 }
 
 /**
- * Resolve the Last.fm username for a given Discord user ID.
- * Priority: own profile configured username > registry lookup > bio parsing
+ * Publish a user's favorites list to the dedicated favorites registry.
+ * Utilise un registre séparé pour les favoris.
  */
+export async function publishFavoritesToRegistry(discordId: string, favorites: Array<{ title: string; artist: string; album: string; url: string; albumArt: string | null; }>): Promise<boolean> {
+    const favoritesRegistryUrl = songSpotlightSettings.favoritesRegistryUrl;
+    if (!favoritesRegistryUrl || !discordId) return false;
+    try {
+        const res = await fetch(`${favoritesRegistryUrl}/favorites/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ discordId, favorites }),
+        });
+        return res.ok;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Remove a user's favorites from the dedicated favorites registry.
+ */
+export async function unpublishFavoritesFromRegistry(discordId: string): Promise<boolean> {
+    const favoritesRegistryUrl = songSpotlightSettings.favoritesRegistryUrl;
+    if (!favoritesRegistryUrl || !discordId) return false;
+    try {
+        const res = await fetch(`${favoritesRegistryUrl}/favorites/register`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ discordId }),
+        });
+        return res.ok;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Look up a user's public favorites from the dedicated favorites registry.
+ */
+export async function fetchFavoritesFromRegistry(userId: string): Promise<Array<{ title: string; artist: string; album: string; url: string; albumArt: string | null; }> | null> {
+    const favoritesRegistryUrl = songSpotlightSettings.favoritesRegistryUrl;
+    if (!favoritesRegistryUrl || !userId) return null;
+    try {
+        const res = await fetch(`${favoritesRegistryUrl}/favorites/lookup/${userId}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data?.favorites ?? null;
+    } catch {
+        return null;
+    }
+}
+
+// Priority: own profile configured username > registry lookup > bio parsing
 export async function resolveLastFmUsername(
     userId: string,
     isOwnProfile: boolean,

@@ -41,6 +41,8 @@ export interface SongSpotlightSettings {
     shareUsername: boolean;
     /** URL of the song spotlight registry (Cloudflare Worker or compatible endpoint) */
     registryUrl: string;
+    /** URL du registre dédié aux favoris */
+    favoritesRegistryUrl: string;
     /** Where to display Song Spotlight section on profile */
     displayPosition: "aboveReviewDB" | "betweenBioAndRoles" | "aboveBio";
     /** Manually added favorite songs (from Last.fm links) */
@@ -73,6 +75,7 @@ export const DEFAULT_SETTINGS: SongSpotlightSettings = {
     cardOpacity: 40,
     shareUsername: false,
     registryUrl: "https://songspotlight-registry.songspotlight.workers.dev",
+    favoritesRegistryUrl: "https://songspotlight-favorites.songspotlight.workers.dev",
     displayPosition: "aboveBio",
     favoriteSongs: [],
 };
