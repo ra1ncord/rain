@@ -21,6 +21,7 @@ import ThemeBrowser from "@rain/pages/Browser/Themes";
 import { View } from "react-native";
 
 import ThemeCard from "./ThemeCard";
+import initPlus from "@plugins/_core/painter/plus/stuff/loader";
 
 export default function Themes() {
     const themesMap = useThemes(s => s.themes);
@@ -61,6 +62,7 @@ export default function Themes() {
             ListHeaderComponent={MonetCard}
             OptionsActionSheetComponent={() => {
                 const { type, customBackground, setType, setCustomBackground } = useColorsPref();
+                const { iconsEnabled, setIconsEnabled } = useColorsPref();
 
                 return (
                     <ActionSheet>
@@ -95,7 +97,7 @@ export default function Themes() {
                                     icon={<TableRowIcon source={findAssetId("ThemeLightIcon")} />}
                                 />
                             </TableRadioGroup>
-                            <TableRowGroup title={Strings.CHAT_BACKGROUND}>
+                            <TableRowGroup title={Strings.CUSTOMISATION}>
                                 <TableSwitchRow
                                     label={Strings.SHOW_BACKGROUND}
                                     subLabel={Strings.SHOW_BACKGROUND_DESC}
@@ -108,6 +110,16 @@ export default function Themes() {
                                         if (currentTheme?.data) {
                                             updateColor(currentTheme.data, { update: true });
                                         }
+                                    }}
+                                />
+                                <TableSwitchRow
+                                    label={Strings.USE_CUSTOM_ICONS}
+                                    subLabel={Strings.USE_CUSTOM_ICONS_DESC}
+                                    icon={<TableRowIcon source={findAssetId("PlusSmallIcon")} />}
+                                    value={iconsEnabled}
+                                    onValueChange={() => {
+                                        setIconsEnabled(!iconsEnabled);
+                                        initPlus();
                                     }}
                                 />
                             </TableRowGroup>

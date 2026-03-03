@@ -7,12 +7,14 @@ interface RainColorPreferencesStorage {
     type?: "dark" | "light" | null;
     customBackground: "hidden" | null;
     per?: Record<string, { autoUpdate?: string; } | undefined>;
+    iconsEnabled: boolean;
 }
 
 interface ColorsPrefStore extends RainColorPreferencesStorage {
     setType: (type: "dark" | "light" | null | undefined) => void;
     setCustomBackground: (background: "hidden" | null) => void;
     setSelected: (selected: string | null) => void;
+    setIconsEnabled: (enabled: boolean) => void;
     _hasHydrated: boolean;
     setHasHydrated: (state: boolean) => void;
 }
@@ -22,10 +24,12 @@ export const useColorsPref = create<ColorsPrefStore>()(
         set => ({
             selected: null,
             customBackground: null,
+            iconsEnabled: true,
             _hasHydrated: false,
             setType: type => set({ type }),
             setCustomBackground: background => set({ customBackground: background }),
             setSelected: selected => set({ selected }),
+            setIconsEnabled: enabled => set({ iconsEnabled: enabled }),
             setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
         }),
         {
@@ -47,6 +51,7 @@ export const colorsPref = new Proxy({} as RainColorPreferencesStorage, {
         if (prop === "type") state.setType(value);
         else if (prop === "customBackground") state.setCustomBackground(value);
         else if (prop === "selected") state.setSelected(value);
+        else if (prop === "iconsEnabled") state.setIconsEnabled(value);
         return true;
     }
 });

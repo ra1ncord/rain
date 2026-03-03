@@ -364,17 +364,19 @@ export function getDebugInfo() {
  * @internal
  */
 export function initDebugger() {
-    if (settings.autoDebugger) {
+    const currentSettings = settings();
+
+    if (currentSettings.autoDebugger) {
         try {
-            connectToDebugger(settings.debuggerUrl);
+            connectToDebugger(currentSettings.debuggerUrl);
         } catch (e) {
             logger.error("Failed to connect to Debugger during startup:", e);
         }
     }
-    if (settings.autoDevTools) {
+    if (currentSettings.autoDevTools) {
         try {
-            if (settings.devToolsUrl) {
-                connectRdt(settings.devToolsUrl, true);
+            if (currentSettings.devToolsUrl) {
+                connectRdt(currentSettings.devToolsUrl, true);
             }
         } catch (e) {
             logger.error("Failed to connect to ReactDevTools during startup:", e);

@@ -27,6 +27,7 @@
     "COPY_URL": "Copy URL",
     "COULD_NOT_FIND": "Hmmm... could not find that!",
     "COULD_NOT_LOAD_PREVIEW": "Could not load preview for",
+    "CUSTOMISATION": "Customisation",
     "DARK": "Dark",
     "DEBUGGER_URL": "Debugger URL",
     "DELETE": "delete",
@@ -136,7 +137,7 @@
     "SAVE": "Save",
     "SEARCH_PLACEHOLDER": "Search...",
     "SETTINGS": "Settings",
-    "SHOW_BACKGROUND": "Show Background",
+    "SHOW_BACKGROUND": "Show Chat Background",
     "SHOW_BACKGROUND_DESC": "Shows or hides the theme's background image in chat",
     "SHOW_CORE": "Show Core Plugins",
     "SOME_ENTRIES_ERROR": "Some font entries cannot be imported. Please modify the entries and try again.",
@@ -151,5 +152,7 @@
     "UNAPPLY": "Unapply",
     "UNINSTALL": "Uninstall",
     "UNKNOWN_AUTHOR": "Unknown",
+    "USE_CUSTOM_ICONS": "Show custom icons",
+    "USE_CUSTOM_ICONS_DESC": "Replace icons with custom ones",
     "VERSIONS": "Versions"
 }

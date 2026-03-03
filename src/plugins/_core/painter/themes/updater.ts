@@ -1,5 +1,6 @@
 import { findByProps, findByPropsLazy, findByStoreNameLazy } from "@metro";
 
+import initPlus from "../plus/stuff/loader";
 import { parseColorManifest } from "./parser";
 import { ColorManifest, InternalColorDefinition } from "./types";
 
@@ -26,7 +27,7 @@ export const _colorRef: InternalColorRef = {
     lastSetDiscordTheme: "darker"
 };
 
-export function updateColor(colorManifest: ColorManifest | null, { update = true }) {
+export async function updateColor(colorManifest: ColorManifest | null, { update = true }) {
 
     const internalDef = colorManifest ? parseColorManifest(colorManifest) : null;
     const ref = Object.assign(_colorRef, {
@@ -36,6 +37,8 @@ export function updateColor(colorManifest: ColorManifest | null, { update = true
             ? ThemeStore.theme
             : _colorRef.lastSetDiscordTheme
     });
+
+    await initPlus();
 
     if (internalDef != null) {
         tokenRef.Theme[ref.key.toUpperCase()] = ref.key;
