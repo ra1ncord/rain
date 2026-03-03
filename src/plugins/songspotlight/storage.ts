@@ -3,6 +3,8 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 export interface SongSpotlightSettings {
+        /** Show album grid view instead of list */
+        albumGridView: boolean;
     /** Last.fm username */
     username: string;
     /** Last.fm API key */
@@ -78,6 +80,7 @@ export const DEFAULT_SETTINGS: SongSpotlightSettings = {
     favoritesRegistryUrl: "https://songspotlight-favorites.songspotlight.workers.dev",
     displayPosition: "aboveBio",
     favoriteSongs: [],
+    albumGridView: false,
 };
 
 type SongSpotlightStore = PluginStore<SongSpotlightSettings>;
@@ -97,6 +100,10 @@ export const useSongSpotlightSettings = create<SongSpotlightStore>()(
                 createFileStorage("plugins/songspotlight.json"),
             ),
             onRehydrateStorage: () => state => {
+                // TEMP: Auto-reset if albumGridView is missing
+                if (state && typeof state.albumGridView === "undefined") {
+                    Object.assign(state, DEFAULT_SETTINGS);
+                }
                 state?.setHasHydrated(true);
             },
         },

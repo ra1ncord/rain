@@ -26,11 +26,21 @@ const { TextInput } = findByProps("TextInput");
 
 export default function DisplaySettingsPage() {
     const settings = useSongSpotlightSettings();
+    // Album grid toggle
+    const albumGridValue = settings.albumGridView ?? false;
     const navigation = NavigationNative.useNavigation();
 
     return (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 10 }}>
             <Stack spacing={8}>
+                <TableRowGroup title="Layout">
+                    <TableSwitchRow
+                        label="Album grid view"
+                        subLabel="Show album art in a grid instead of a list (applies to both Last.fm and Favorites)"
+                        onValueChange={(value: boolean) => settings.updateSettings({ albumGridView: value })}
+                        value={albumGridValue}
+                    />
+                </TableRowGroup>
                 <TableRowGroup title="Track Display">
                     <TableSwitchRow
                         label="Show album art"

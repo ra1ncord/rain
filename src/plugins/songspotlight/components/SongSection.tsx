@@ -56,6 +56,38 @@ export default function SongSection({ userId }: SongSectionProps) {
                 ? "#00000083"
                 : semanticColors.CARD_SECONDARY_BG,
         },
+        grid: {
+            flexDirection: "row" as const,
+            flexWrap: "wrap" as const,
+            justifyContent: "flex-start" as const,
+        },
+        gridItem: {
+            width: 89,
+            height: 89,
+            margin: 6,
+            borderRadius: 10,
+            overflow: "hidden" as const,
+            alignItems: "center" as const,
+            justifyContent: "center" as const,
+            borderWidth: 4, // Thicker border
+            borderColor: "transparent",
+        },
+        gridImage: {
+            width: 89,
+            height: 89,
+            borderRadius: 10,
+        },
+        gridText: {
+            position: "absolute" as const,
+            bottom: 4,
+            left: 4,
+            right: 4,
+            color: "#fff",
+            fontSize: 12,
+            textShadowColor: "#000",
+            textShadowOffset: { width: 0, height: 1 },
+            textShadowRadius: 2,
+        },
         emptyText: {
             textAlign: "center" as const,
             paddingVertical: 16,
@@ -218,6 +250,41 @@ export default function SongSection({ userId }: SongSectionProps) {
         RN.Linking.openURL(url);
     };
 
+    // Helper for colorful backgrounds
+    // Helper for colored border in grid
+    function getGridBorderColor(track: TopTrack) {
+        if (!settings.colorfulCards || !track.albumArt) return "transparent";
+        // Use a simple hash of the albumArt URL to generate a color
+        let hash = 0;
+        for (let i = 0; i < track.albumArt.length; i++) {
+            hash = track.albumArt.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        // Generate a less vibrant, more subtle color from hash
+        const color = `hsl(${hash % 360}, 30%, 35%)`;
+        return color;
+    }
+
+    function renderGrid(tracks: TopTrack[]) {
+        return (
+            <RN.View style={styles.grid}>
+                {tracks.map((track, idx) => (
+                    <PressableScale key={track.url || track.name || idx} onPress={() => track.url && RN.Linking.openURL(track.url)}>
+                        <RN.View style={[styles.gridItem, settings.colorfulCards && track.albumArt ? { borderColor: getGridBorderColor(track) } : null]}>
+                            {track.albumArt ? (
+                                <RN.Image source={{ uri: track.albumArt }} style={styles.gridImage} resizeMode="cover" />
+                            ) : (
+                                <RN.View style={[styles.gridImage, { backgroundColor: hasThemeColors ? "#FFFFFF1A" : semanticColors.BACKGROUND_TERTIARY, alignItems: "center", justifyContent: "center" }]}> 
+                                    <Text variant="text-lg/bold" style={{ color: hasThemeColors ? "#fff" : semanticColors.TEXT_NORMAL }}>♪</Text>
+                                </RN.View>
+                            )}
+                            <Text style={styles.gridText} numberOfLines={2}>{track.name}</Text>
+                        </RN.View>
+                    </PressableScale>
+                ))}
+            </RN.View>
+        );
+    }
+
     return (
         <ErrorBoundary>
             <RN.View style={[styles.card]}>
@@ -243,55 +310,27 @@ export default function SongSection({ userId }: SongSectionProps) {
                         </PressableScale>
                     )}
 
-                    {settings.displaySource === "favorites" ? (
-                        <RN.View style={{ marginBottom: 10 }}>
-                            {favorites.map((song, index) => (
-                                <React.Fragment key={song.url || song.name || index}>
-                                    {index > 0 && <RN.View style={{ height: 6 }} />}
-                                    <SongRow
-                                        track={song}
-                                        style={styles.trackCard}
-                                        showAlbumArt={settings.showAlbumArt}
-                                        showPlayCount={false}
-                                        showAlbumName={settings.showAlbumName}
-                                        showRankNumbers={settings.showRankNumbers}
-                                        hasThemeColors={hasThemeColors}
-                                        colorfulCards={settings.colorfulCards}
-                                        cardOpacity={settings.cardOpacity}
-                                    />
-                                </React.Fragment>
-                            ))}
-                        </RN.View>
+                    {settings.albumGridView ? (
+                        settings.displaySource === "favorites"
+                            ? renderGrid(favorites)
+                            : loading
+                                ? <RN.ActivityIndicator size="small" style={{ paddingVertical: 20 }} />
+                                : error
+                                    ? <Text variant="text-sm/medium" style={styles.emptyText}>{error}</Text>
+                                    : autofillTracks.length === 0
+                                        ? <Text variant="text-sm/medium" style={styles.emptyText}>{settings.displayMode === "recent" ? "No recent tracks" : "No top tracks found"}</Text>
+                                        : renderGrid(autofillTracks)
                     ) : (
-                        loading ? (
-                            <RN.ActivityIndicator
-                                size="small"
-                                style={{ paddingVertical: 20 }}
-                            />
-                        ) : error ? (
-                            <Text
-                                variant="text-sm/medium"
-                                style={styles.emptyText}
-                            >
-                                {error}
-                            </Text>
-                        ) : autofillTracks.length === 0 ? (
-                            <Text
-                                variant="text-sm/medium"
-                                style={styles.emptyText}
-                            >
-                                {settings.displayMode === "recent" ? "No recent tracks" : "No top tracks found"}
-                            </Text>
-                        ) : (
-                            <RN.View>
-                                {autofillTracks.map((track, index) => (
-                                    <React.Fragment key={`${track.rank}-${track.name}`}>
+                        settings.displaySource === "favorites" ? (
+                            <RN.View style={{ marginBottom: 10 }}>
+                                {favorites.map((song, index) => (
+                                    <React.Fragment key={song.url || song.name || index}>
                                         {index > 0 && <RN.View style={{ height: 6 }} />}
                                         <SongRow
-                                            track={track}
+                                            track={song}
                                             style={styles.trackCard}
                                             showAlbumArt={settings.showAlbumArt}
-                                            showPlayCount={settings.showPlayCount}
+                                            showPlayCount={false}
                                             showAlbumName={settings.showAlbumName}
                                             showRankNumbers={settings.showRankNumbers}
                                             hasThemeColors={hasThemeColors}
@@ -301,6 +340,46 @@ export default function SongSection({ userId }: SongSectionProps) {
                                     </React.Fragment>
                                 ))}
                             </RN.View>
+                        ) : (
+                            loading ? (
+                                <RN.ActivityIndicator
+                                    size="small"
+                                    style={{ paddingVertical: 20 }}
+                                />
+                            ) : error ? (
+                                <Text
+                                    variant="text-sm/medium"
+                                    style={styles.emptyText}
+                                >
+                                    {error}
+                                </Text>
+                            ) : autofillTracks.length === 0 ? (
+                                <Text
+                                    variant="text-sm/medium"
+                                    style={styles.emptyText}
+                                >
+                                    {settings.displayMode === "recent" ? "No recent tracks" : "No top tracks found"}
+                                </Text>
+                            ) : (
+                                <RN.View>
+                                    {autofillTracks.map((track, index) => (
+                                        <React.Fragment key={`${track.rank}-${track.name}`}>
+                                            {index > 0 && <RN.View style={{ height: 6 }} />}
+                                            <SongRow
+                                                track={track}
+                                                style={styles.trackCard}
+                                                showAlbumArt={settings.showAlbumArt}
+                                                showPlayCount={settings.showPlayCount}
+                                                showAlbumName={settings.showAlbumName}
+                                                showRankNumbers={settings.showRankNumbers}
+                                                hasThemeColors={hasThemeColors}
+                                                colorfulCards={settings.colorfulCards}
+                                                cardOpacity={settings.cardOpacity}
+                                            />
+                                        </React.Fragment>
+                                    ))}
+                                </RN.View>
+                            )
                         )
                     )}
                 </UserProfileCard>
