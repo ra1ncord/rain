@@ -1,6 +1,6 @@
 import { findAssetId } from "@api/assets";
-import { createStyles } from "@api/ui/styles";
 import { semanticColors } from "@api/ui/components/color";
+import { createStyles } from "@api/ui/styles";
 import { showToast } from "@api/ui/toasts";
 import { LoggerClass } from "@lib/utils/logger";
 import { React, ReactNative as RN } from "@metro/common";
@@ -13,12 +13,11 @@ import {
     Text,
 } from "@metro/common/components";
 
-import { useMonetSettings } from "./storage";
-import { build, type BuiltTheme } from "./stuff/buildTheme";
 import Color from "./components/Color";
 import usePatches from "./hooks/usePatches";
-
-import { applyMonetTheme, hasMonetTheme, setColorsFromDynamic, getMonetSysColors, refreshMonetSysColors } from "./index";
+import { applyMonetTheme, getMonetSysColors, hasMonetTheme, refreshMonetSysColors,setColorsFromDynamic } from "./index";
+import { useMonetSettings } from "./storage";
+import { build, type BuiltTheme } from "./stuff/buildTheme";
 import type { VendettaSysColors } from "./types";
 
 const logger = new LoggerClass("MonetTheme");

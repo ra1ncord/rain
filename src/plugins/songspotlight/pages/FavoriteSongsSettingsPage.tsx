@@ -1,12 +1,13 @@
-import React from "react";
-import { findByProps, findByStoreName } from "@metro";
-import { PressableScale, Text as MetroText, IconButton } from "@metro/common/components";
-import { ReactNative as RN } from "@metro/common";
-import { showToast } from "@api/ui/toasts";
 import { findAssetId } from "@api/assets";
-import { useSongSpotlightSettings } from "../storage";
+import { showToast } from "@api/ui/toasts";
+import { findByProps, findByStoreName } from "@metro";
+import { ReactNative as RN } from "@metro/common";
+import { IconButton } from "@metro/common/components";
+import React from "react";
+
 import { fetchTrackInfo, publishFavoritesToRegistry } from "../api";
 import SongRow from "../components/SongRow";
+import { useSongSpotlightSettings } from "../storage";
 
 const { ScrollView } = findByProps("ScrollView");
 const {
@@ -35,7 +36,7 @@ export default function FavoriteSongsSettingsPage() {
         setError(null);
         if (!input) return;
         // Parse Last.fm track URL: https://www.last.fm/music/Artist/Track or /music/Artist/_/Track
-        const m = input.match(/last\.fm\/music\/([^\/]+)(?:\/_\/|\/)([^\/?#]+)/i);
+        const m = input.match(/last\.fm\/music\/([^/]+)(?:\/_\/|\/)([^?#]+)/i);
         if (!m) {
             setError("Invalid Last.fm track URL");
             return;

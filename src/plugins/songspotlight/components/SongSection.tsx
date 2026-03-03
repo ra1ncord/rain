@@ -5,7 +5,7 @@ import { findByName, findByProps, findByStoreName } from "@metro";
 import { ReactNative as RN } from "@metro/common";
 import { PressableScale, Text } from "@metro/common/components";
 
-import { fetchLastFmUserInfo, fetchRecentTracks, fetchTopTracks, fetchFavoritesFromRegistry, hasCredentials, LastFmUserInfo, resolveLastFmUsername } from "../api";
+import { fetchFavoritesFromRegistry, fetchLastFmUserInfo, fetchRecentTracks, fetchTopTracks, hasCredentials, LastFmUserInfo, resolveLastFmUsername } from "../api";
 import { useSongSpotlightSettings } from "../storage";
 import { TopTrack } from "../types";
 import SongRow from "./SongRow";
@@ -273,7 +273,7 @@ export default function SongSection({ userId }: SongSectionProps) {
                             {track.albumArt ? (
                                 <RN.Image source={{ uri: track.albumArt }} style={styles.gridImage} resizeMode="cover" />
                             ) : (
-                                <RN.View style={[styles.gridImage, { backgroundColor: hasThemeColors ? "#FFFFFF1A" : semanticColors.BACKGROUND_TERTIARY, alignItems: "center", justifyContent: "center" }]}> 
+                                <RN.View style={[styles.gridImage, { backgroundColor: hasThemeColors ? "#FFFFFF1A" : semanticColors.BACKGROUND_TERTIARY, alignItems: "center", justifyContent: "center" }]}>
                                     <Text variant="text-lg/bold" style={{ color: hasThemeColors ? "#fff" : semanticColors.TEXT_NORMAL }}>♪</Text>
                                 </RN.View>
                             )}

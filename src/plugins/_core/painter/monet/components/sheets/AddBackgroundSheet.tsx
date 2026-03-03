@@ -1,8 +1,7 @@
 import { findAssetId } from "@api/assets";
-import { showToast } from "@api/ui/toasts";
+import { hideSheet } from "@api/ui/sheets";
 import { React, ReactNative as RN } from "@metro/common";
 import { Button, Text, TextInput } from "@metro/common/components";
-import { hideSheet } from "@api/ui/sheets";
 
 const SHEET_KEY = "AddBackgroundSheet";
 

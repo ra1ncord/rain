@@ -4,8 +4,8 @@ import { createStyles } from "@api/ui/styles";
 import { ReactNative as RN } from "@metro/common";
 import { PressableScale, Stack, Text } from "@metro/common/components";
 
-import { conventionalCommitRegex, parseConventionalCommit } from "../stuff/conventionalCommits";
 import { getDiscordTheme } from "../stuff/buildTheme";
+import { conventionalCommitRegex, parseConventionalCommit } from "../stuff/conventionalCommits";
 
 export interface CommitUser {
     login: string;

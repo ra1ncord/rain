@@ -75,7 +75,7 @@ export default function SongRow({ track, style, showAlbumArt, showPlayCount, sho
         subText: {
             color: showBlur || hasThemeColors ? "#FFFFFFB3" : semanticColors.TEXT_MUTED,
         },
-    albumSubText: {
+        albumSubText: {
             color: showBlur || hasThemeColors ? "#FFFFFF60" : semanticColors.TEXT_MUTED,
             opacity: 0.7,
         },
@@ -115,68 +115,68 @@ export default function SongRow({ track, style, showAlbumArt, showPlayCount, sho
                 )}
 
                 <RN.View style={styles.container}>
-                {showRankNumbers && (
-                <RN.View style={styles.rankContainer}>
-                    <Text
-                        variant="text-md/bold"
-                        style={styles.rankText}
-                    >
-                        {track.rank}
-                    </Text>
-                </RN.View>
-                )}
-
-                {showAlbumArt && (
-                    track.albumArt ? (
-                        <RN.Image
-                            source={{ uri: track.albumArt }}
-                            style={styles.thumbnail}
-                        />
-                    ) : (
-                        <RN.View style={styles.thumbnail}>
-                            <RN.View style={{
-                                flex: 1,
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}>
-                                <Text variant="text-lg/bold" style={styles.rankText}>
-                                    ♪
-                                </Text>
-                            </RN.View>
+                    {showRankNumbers && (
+                        <RN.View style={styles.rankContainer}>
+                            <Text
+                                variant="text-md/bold"
+                                style={styles.rankText}
+                            >
+                                {track.rank}
+                            </Text>
                         </RN.View>
-                    )
-                )}
+                    )}
 
-                <RN.View style={styles.infoContainer}>
-                    <Text
-                        variant="text-sm/semibold"
-                        style={styles.trackName}
-                        numberOfLines={1}
-                    >
-                        {track.name}
-                    </Text>
-                    <RN.View style={styles.playCountContainer}>
+                    {showAlbumArt && (
+                        track.albumArt ? (
+                            <RN.Image
+                                source={{ uri: track.albumArt }}
+                                style={styles.thumbnail}
+                            />
+                        ) : (
+                            <RN.View style={styles.thumbnail}>
+                                <RN.View style={{
+                                    flex: 1,
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}>
+                                    <Text variant="text-lg/bold" style={styles.rankText}>
+                                    ♪
+                                    </Text>
+                                </RN.View>
+                            </RN.View>
+                        )
+                    )}
+
+                    <RN.View style={styles.infoContainer}>
                         <Text
-                            variant="text-xs/normal"
-                            style={styles.subText}
+                            variant="text-sm/semibold"
+                            style={styles.trackName}
                             numberOfLines={1}
                         >
-                            {track.artist}
-                            {showPlayCount && track.playCount > 0
-                                ? ` · ${track.playCount.toLocaleString()} plays`
-                                : ""}
-                            {showAlbumName && track.album
-                                ? <Text variant="text-xs/normal" style={styles.albumSubText}>{` · ${track.album}`}</Text>
-                                : null}
+                            {track.name}
                         </Text>
+                        <RN.View style={styles.playCountContainer}>
+                            <Text
+                                variant="text-xs/normal"
+                                style={styles.subText}
+                                numberOfLines={1}
+                            >
+                                {track.artist}
+                                {showPlayCount && track.playCount > 0
+                                    ? ` · ${track.playCount.toLocaleString()} plays`
+                                    : ""}
+                                {showAlbumName && track.album
+                                    ? <Text variant="text-xs/normal" style={styles.albumSubText}>{` · ${track.album}`}</Text>
+                                    : null}
+                            </Text>
+                        </RN.View>
                     </RN.View>
-                </RN.View>
-                {/** Trailing area for inline actions (remove/reorder) */}
-                {trailing ? (
-                    <RN.View style={styles.trailingContainer}>
-                        {trailing}
-                    </RN.View>
-                ) : null}
+                    {/** Trailing area for inline actions (remove/reorder) */}
+                    {trailing ? (
+                        <RN.View style={styles.trailingContainer}>
+                            {trailing}
+                        </RN.View>
+                    ) : null}
                 </RN.View>
             </RN.View>
         </PressableScale>

@@ -1,17 +1,16 @@
 import { findAssetId } from "@api/assets";
-import { showSheet } from "@api/ui/sheets";
-import { showToast } from "@api/ui/toasts";
-import { createStyles } from "@api/ui/styles";
 import { semanticColors } from "@api/ui/components/color";
+import { showSheet } from "@api/ui/sheets";
+import { createStyles } from "@api/ui/styles";
+import { showToast } from "@api/ui/toasts";
 import { React, ReactNative as RN } from "@metro/common";
 import { PressableScale, Text } from "@metro/common/components";
+import type { ImageSourcePropType } from "react-native";
 
 import { useMonetSettings } from "../../storage";
 import { getDiscordTheme } from "../../stuff/buildTheme";
 import wallpapers, { type Collection, type CollectionEntry } from "../../stuff/wallpapers";
 import AddBackgroundSheet, { SHEET_KEY } from "../sheets/AddBackgroundSheet";
-
-import type { ImageSourcePropType } from "react-native";
 
 const useStyles = createStyles({
     thing: {

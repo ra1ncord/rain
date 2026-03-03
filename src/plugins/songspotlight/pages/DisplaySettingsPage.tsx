@@ -1,9 +1,9 @@
 import { findAssetId } from "@api/assets";
 import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro";
+import { NavigationNative } from "@metro/common";
 
 import { clearTrackCache } from "../api";
-import { NavigationNative } from "@metro/common";
 import { useSongSpotlightSettings } from "../storage";
 
 const { ScrollView } = findByProps("ScrollView");
