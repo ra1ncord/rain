@@ -13,8 +13,7 @@ import Submitoin from "../pages/CreateDecoration";
 import Presets from "../pages/Presets";
 import AvatarDecorationPreviews from "./AvatarDecorationPreviews";
 
-const { FlatList, View, ActivityIndicator, Pressable } = ReactNative;
-const { Stack } = findByProps("Stack");
+const { View, ActivityIndicator, Pressable } = ReactNative;
 const { TextStyleSheet, Text } = findByProps("TextStyleSheet");
 
 const UserStore = findByStoreName("UserStore");
@@ -73,8 +72,11 @@ export default function DecorationPicker() {
     }, [isAuthorized]);
 
     const navigation = NavigationNative.useNavigation();
+    const styles = useStyles();
 
     const isDisabled = !isAuthorized() || loading === null;
+
+    const personalDecorations = decorations.filter(d => d.presetId === null || d.presetId === undefined);
     const hasPendingDecoration = decorations.some(d => d.reviewed === false);
     const decorPreset = presets && selectedDecoration
         ? presets.find(p => p.id === selectedDecoration.presetId)
@@ -87,12 +89,62 @@ export default function DecorationPicker() {
             : undefined;
 
     return (
-        <Stack spacing={24}>
+        <View style={{ gap: 24 }}>
             <AvatarDecorationPreviews
                 pendingAvatarDecoration={
                     selectedDecoration ? discordifyDecoration(selectedDecoration) : null
                 }
             />
+
+            {selectedDecoration && (
+                <View style={styles.selectedMetaContainer}>
+                    <Text style={TextStyleSheet["text-lg/semibold"]}>
+                        {selectedDecoration.alt}
+                    </Text>
+                    {decorPreset && (
+                        <Text style={[TextStyleSheet["eyebrow"], styles.presetLabel]}>
+                            Part of the {decorPreset.name} Preset
+                        </Text>
+                    )}
+                    <Text style={TextStyleSheet["text-md/normal"]}>
+                        {"Created by "}
+                        <Pressable
+                            onPress={() =>
+                                UserStore.getUser(selectedDecoration.authorId)
+                                    ? showUserProfile({ userId: selectedDecoration.authorId })
+                                    : UserUtils.getUser(selectedDecoration.authorId).then(() =>
+                                        showUserProfile({ userId: selectedDecoration.authorId })
+                                    )
+                            }
+                            pointerEvents="box-only"
+                            style={styles.authorContainer}
+                        >
+                            {Parser.parse(`<@${selectedDecoration.authorId}>`, true)}
+                        </Pressable>
+                    </Text>
+                </View>
+            )}
+
+            {personalDecorations.length > 0 && (
+                <TableRowGroup title="Your Decorations">
+                    {personalDecorations.map(decoration => {
+                        const isSelected = selectedDecoration?.hash === decoration.hash;
+                        return (
+                            <TableRow
+                                key={decoration.hash}
+                                label={decoration.alt}
+                                icon={<TableRow.Icon source={findAssetId("ic_image_24px")} />}
+                                disabled={isDisabled}
+                                onPress={() => selectDecoration(isSelected ? null : decoration)}
+                                trailing={isSelected
+                                    ? () => <Text style={[TextStyleSheet["text-sm/normal"], { color: semanticColors.TEXT_MUTED }]}>Active</Text>
+                                    : TableRow.Arrow
+                                }
+                            />
+                        );
+                    })}
+                </TableRowGroup>
+            )}
 
             <TableRowGroup title="Decoration Actions">
 
@@ -156,7 +208,6 @@ export default function DecorationPicker() {
                 />
 
             </TableRowGroup>
-
-        </Stack>
+        </View>
     );
 }

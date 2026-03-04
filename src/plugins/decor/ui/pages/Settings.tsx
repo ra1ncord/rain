@@ -1,9 +1,6 @@
 import { findAssetId } from "@api/assets";
-import { semanticColors } from "@api/ui/components/color";
-import { createStyles } from "@api/ui/styles";
 import { TableRow, TableRowGroup } from "@metro/common/components";
-import { View } from "react-native";
-
+import { ScrollView } from "react-native";
 import { useAuthorizationStore } from "../../lib/stores/AuthorizationStore";
 import showAuthorizationModal from "../../lib/utils/showAuthorizationModal";
 import DecorationPicker from "../components/DecorationPicker";
@@ -13,11 +10,13 @@ export default function Settings() {
     const setToken = useAuthorizationStore(state => state.setToken);
 
     return (
-        <View style={{ flex: 1, paddingVertical: 24, paddingHorizontal: 12, gap: 24 }}>
+        <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingBottom: 40, paddingVertical: 24, paddingHorizontal: 12, gap: 24 }}
+        >
             {isAuthorized && (
                 <DecorationPicker />
             )}
-
             <TableRowGroup title="Authorization">
                 {!isAuthorized && (
                     <TableRow
@@ -25,7 +24,8 @@ export default function Settings() {
                         icon={<TableRow.Icon source={findAssetId("ic_link_24px")} />}
                         onPress={showAuthorizationModal}
                     />
-                )}{isAuthorized && (
+                )}
+                {isAuthorized && (
                     <>
                         <TableRow
                             label="Authorized"
@@ -43,6 +43,6 @@ export default function Settings() {
                     </>
                 )}
             </TableRowGroup>
-        </View>
+        </ScrollView>
     );
 }
