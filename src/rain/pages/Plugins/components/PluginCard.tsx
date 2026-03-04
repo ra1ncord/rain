@@ -18,7 +18,6 @@ import {
 import { isPluginCore } from "@plugins";
 import { CardWrapper } from "@rain/pages/Addon/AddonCard";
 import { UnifiedPluginModel } from "@rain/pages/Plugins/models";
-import { usePluginCardStyles } from "@rain/pages/Plugins/usePluginCardStyles";
 import chroma from "chroma-js";
 import { createContext, useContext, useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
@@ -58,7 +57,6 @@ function Title() {
 
 function Authors() {
     const { plugin, result } = useCardContext();
-    const styles = usePluginCardStyles();
 
     const allAuthors = [...(plugin.developers ?? []), ...(plugin.contributors ?? [])];
     if (!allAuthors.length) return null;

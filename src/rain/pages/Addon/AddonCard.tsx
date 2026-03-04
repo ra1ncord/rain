@@ -36,7 +36,7 @@ const useStyles = createStyles({
     },
     headerSubtitle: {
         ...TextStyleSheet["text-sm/semibold"],
-        color: "text-muted",
+        color: semanticColors.TEXT_MUTED,
     },
     descriptionLabel: {
         ...TextStyleSheet["text-md/semibold"],
