@@ -1,12 +1,16 @@
 import { useSettings } from "@api/settings";
 import { showSheet } from "@api/ui/sheets";
 import { navigation } from "@metro/common";
+import { applyMonetTheme } from "@plugins/_core/painter/monet";
 import { ThemeInfo,useThemes } from "@plugins/_core/painter/themes";
 import AddonCard, { CardWrapper } from "@rain/pages/Addon/AddonCard";
 import * as React from "react";
 
 async function selectAndApply(value: boolean, theme: ThemeInfo) {
     try {
+        if (value) {
+            applyMonetTheme(null);
+        }
         await useThemes.getState().selectTheme(value ? theme.id : null);
     } catch (e: any) {
         console.error("Error while selectAndApply,", e);

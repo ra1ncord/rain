@@ -14,16 +14,17 @@ export default function MonetCard() {
     const isMonetActive = hasMonetTheme();
     const { patches } = usePatches();
 
-    const hasUrlTheme = useThemes(
-        React.useCallback(
-            (state: any) => Object.values(state.themes).some((t: any) => t.selected),
-            [],
-        ),
+    const hasUrlTheme = useThemes((state: any) => 
+        Object.values(state.themes).some((t: any) => t.selected)
     );
+
     const isSelected = isMonetActive && !hasUrlTheme;
 
     // Only show on Android
     if (RN.Platform.OS !== "android") return null;
+
+    const [version, setVersion] = React.useState(0);
+    const forceUpdate = () => setVersion(v => v + 1);
 
     return (
         <AddonCard
@@ -39,33 +40,27 @@ export default function MonetCard() {
                 if (!v) {
                     applyMonetTheme(null);
                 } else {
-                    if (hasUrlTheme) {
-                        await useThemes.getState().selectTheme(null);
-                    }
+                    await useThemes.getState().selectTheme(null);
+                    
                     if (!patches) {
-                        showToast(
-                            "Patches not loaded yet, try again",
-                            findAssetId("CircleXIcon-primary"),
-                        );
+                        showToast("Patches not loaded yet", findAssetId("CircleXIcon-primary"));
                         return;
                     }
                     try {
                         const theme = build(patches);
                         applyMonetTheme(theme);
                     } catch (e) {
-                        showToast(
-                            "Failed to build theme",
-                            findAssetId("CircleXIcon-primary"),
-                        );
+                        showToast("Failed to build theme", findAssetId("CircleXIcon-primary"));
                     }
                 }
+                forceUpdate();
             }}
             actions={[
                 {
                     icon: "SettingsIcon",
                     onPress: () => {
                         navigation.push("RAIN_CUSTOM_PAGE", {
-                            title: "Material You",
+                            title: "MaterialYou",
                             render: Settings,
                         });
                     },
