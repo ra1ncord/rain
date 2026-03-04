@@ -3,6 +3,7 @@ import { findByProps, findByPropsLazy, findByStoreNameLazy } from "@metro";
 import initPlus from "../plus/stuff/loader";
 import { parseColorManifest } from "./parser";
 import { ColorManifest, InternalColorDefinition } from "./types";
+import { useColorsPref } from "./preferences";
 
 const tokenRef = findByProps("SemanticColor");
 const origRawColor = { ...tokenRef.RawColor };
@@ -38,7 +39,9 @@ export async function updateColor(colorManifest: ColorManifest | null, { update 
             : _colorRef.lastSetDiscordTheme
     });
 
-    await initPlus();
+    if (useColorsPref.getState().iconsEnabled) {
+        await initPlus();
+    }
 
     if (internalDef != null) {
         tokenRef.Theme[ref.key.toUpperCase()] = ref.key;
