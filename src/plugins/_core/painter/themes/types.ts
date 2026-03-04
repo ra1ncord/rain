@@ -22,7 +22,7 @@ export interface RainColorManifest extends RainManifest {
 }
 
 export interface ThemeManifest {
-    spec: 2;
+    spec: 2 | 3;
     name: string;
     description?: string;
     authors?: Author[];
@@ -45,6 +45,11 @@ export interface InternalColorDefinition {
     }>;
     raw: Record<string, string>;
     background?: BackgroundDefinition;
+    display?: {
+        name: string;
+        description?: string;
+        authors?: Author[];
+    };
 }
 
 export type ColorManifest = RainColorManifest | ThemeManifest;

@@ -51,10 +51,11 @@ export function parseColorManifest(manifest: ColorManifest): InternalColorDefini
 
         return {
             spec: 3,
-            reference: resolveType(manifest.type),
+            reference: resolveType(manifest.main.type),
             semantic: semanticColorDefinitions,
             raw: manifest.main.raw ?? {},
             background: manifest.main.background,
+            display: manifest.display,
         };
     }
 
