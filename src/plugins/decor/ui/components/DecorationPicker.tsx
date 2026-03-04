@@ -56,7 +56,6 @@ export default function DecorationPicker() {
     } = useCurrentUserDecorationsStore();
 
     const { isAuthorized } = useAuthorizationStore();
-    const styles = useStyles();
 
     React.useEffect(() => {
         if (isAuthorized()) {

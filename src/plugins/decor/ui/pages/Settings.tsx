@@ -8,21 +8,9 @@ import { useAuthorizationStore } from "../../lib/stores/AuthorizationStore";
 import showAuthorizationModal from "../../lib/utils/showAuthorizationModal";
 import DecorationPicker from "../components/DecorationPicker";
 
-const useStyles = createStyles(_ => ({
-    versionText: {
-        fontSize: 15,
-        color: semanticColors.TEXT_NORMAL,
-        textAlign: "center",
-        fontWeight: "600",
-        lineHeight: 22,
-    },
-}));
-
 export default function Settings() {
     const isAuthorized = useAuthorizationStore(state => !!state.token);
     const setToken = useAuthorizationStore(state => state.setToken);
-
-    const styles = useStyles();
 
     return (
         <View style={{ flex: 1, paddingVertical: 24, paddingHorizontal: 12, gap: 24 }}>
@@ -37,7 +25,7 @@ export default function Settings() {
                         icon={<TableRow.Icon source={findAssetId("ic_link_24px")} />}
                         onPress={showAuthorizationModal}
                     />
-                )} {isAuthorized && (
+                )}{isAuthorized && (
                     <>
                         <TableRow
                             label="Authorized"
