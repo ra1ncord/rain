@@ -8,10 +8,10 @@ const patches: (() => boolean)[] = [];
 
 export default definePlugin({
     name: "BypassUploadLimit",
-    description: "Bypass Discord's file size limit by uploading to Catbox, Litterbox, Pomf or Zipline",
-    author: [Developers.LampDelivery, Developers.SerStars],
+    description: "Bypass Discord's file size limit by uploading to Catbox, Litterbox, or Pomf",
+    author: [Developers.LampDelivery],
     id: "bypassuploadlimit",
-    version: "1.1.0",
+    version: "1.0.0",
     start() {
         patches.push(...getUploaderPatch());
     },

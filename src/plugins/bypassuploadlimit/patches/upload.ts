@@ -10,7 +10,6 @@ let getChatInputRef: ((channelId: string, idx?: number) => any) | null = null;
 import { uploadToCatbox } from "../api/catbox";
 import { uploadToLitterbox } from "../api/litterbox";
 import { uploadToUguu } from "../api/uguu";
-import { uploadToZipline } from "../api/zipline";
 import { formatBytes } from "../lib/utils";
 import { uploaderSettings } from "../storage";
 
@@ -52,7 +51,7 @@ export default function getUploaderPatch(): (() => boolean)[] {
         const size: number = file?.preCompressionSize ?? 0;
         const readableSize = formatBytes(size);
 
-        const { alwaysUpload, useHyperlink, selectedHost, userHash, uploadAction, litterboxDuration, ziplineServerURL, ziplineUserToken, ziplineDuration, ziplineFileNameFormat} = uploaderSettings;
+        const { alwaysUpload, selectedHost, userHash, uploadAction, litterboxDuration } = uploaderSettings;
         let useHost = selectedHost;
 
         // Automatically fall back to Litterbox when the file is too large for Catbox (200 MB)
@@ -95,9 +94,6 @@ export default function getUploaderPatch(): (() => boolean)[] {
                 case "uguu":
                     link = await uploadToUguu(file);
                     break;
-                case "zipline":
-                    link = await uploadToZipline(file, ziplineServerURL, ziplineUserToken, ziplineDuration, ziplineFileNameFormat)
-                    break
             }
         } catch (err) {
             uploadError = err;
@@ -112,9 +108,7 @@ export default function getUploaderPatch(): (() => boolean)[] {
         if (link) {
             const filename = file?.filename ?? "file";
             // Use a markdown hyperlink so the filename is shown in chat
-            const content = useHyperlink
-                ? `[${filename}](${link})`
-                : link;
+            const content = `[${filename}](${link})`;
 
             if (uploadAction === "clipboard") {
                 clipboard.setString(link);

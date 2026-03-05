@@ -10,24 +10,8 @@ const { Card } = findByProps("Card");
 const LITTERBOX_DURATIONS = [
     { label: "1 hour", value: "1" },
     { label: "12 hours", value: "12" },
-    { label: "1 day", value: "24" },
-    { label: "3 days", value: "72" },
-];
-
-const ZIPLINE_DURATIONS = [
-    { label: "Never (default)", value: "never" },
-    { label: "1 hour", value: "1h"},
-    { label: "12 hours", value: "12h" },
-    { label: "1 day", value: "1d" },
-    { label: "3 days", value: "3d" },
-];
-
-const ZIPLINE_FILENAMES = [
-    { label: "Date (default)", value: "date"},
-    { label: "Random", value: "random"},
-    { label: "UUID", value: "uuid" },
-    { label: "File name", value: "name" },
-    { label: "Gfycat-style name", value: "gfycat" },
+    { label: "24 hours", value: "24" },
+    { label: "72 hours", value: "72" },
 ];
 
 export default function UploaderSettings() {
@@ -43,12 +27,6 @@ export default function UploaderSettings() {
                         subLabel="Upload to the service even if under the limit"
                         value={settings.alwaysUpload}
                         onValueChange={(v: boolean) => updateSettings({ alwaysUpload: v })}
-                    />
-                    <TableSwitchRow
-                        label="Use hyperlink"
-                        subLabel="Use a markdown hyperlink so the filename is shown in chat"
-                        value={settings.useHyperlink}
-                        onValueChange={(v: boolean) => updateSettings({ useHyperlink: v })}
                     />
                 </TableRowGroup>
 
@@ -78,7 +56,7 @@ export default function UploaderSettings() {
                 <TableRadioGroup
                     title="File Host"
                     value={settings.selectedHost}
-                    onChange={(v: string) => updateSettings({ selectedHost: v as "catbox" | "litterbox" | "uguu" | "zipline" })}
+                    onChange={(v: string) => updateSettings({ selectedHost: v as "catbox" | "litterbox" | "uguu" })}
                 >
                     <TableRadioRow
                         label="Catbox"
@@ -95,11 +73,6 @@ export default function UploaderSettings() {
                         subLabel="Files are stored temporarily, max 128MB, expires in 3h"
                         value="uguu"
                     />
-                    <TableRadioRow
-                        label="Zipline"
-                        subLabel="Self-hosted file host instance, can be stored permanently or temporarily"
-                        value="zipline"
-                    />
                 </TableRadioGroup>
 
                 {settings.selectedHost === "litterbox" && (
@@ -114,63 +87,16 @@ export default function UploaderSettings() {
                     </TableRadioGroup>
                 )}
 
-                {settings.selectedHost === "catbox" && (
-                    <TableRowGroup title="Catbox User Hash">
-                        <Card>
-                            <SettingsTextInput
-                                placeholder="Your Catbox user hash (optional)"
-                                value={settings.userHash}
-                                onChange={(v: string) => updateSettings({ userHash: v })}
-                                isClearable
-                            />
-                        </Card>
-                    </TableRowGroup>
-                )}
-
-                {settings.selectedHost === "zipline" && (
-                    <>
-                        <TableRowGroup title="Zipline Auth Settings">
-                            <Stack spacing={5}>
-                                <Card>
-                                    <SettingsTextInput
-                                        placeholder="Server URL (e.g. https://your-zipline.com)"
-                                        value={settings.ziplineServerURL}
-                                        onChange={(v: string) => updateSettings({ ziplineServerURL: v })}
-                                        isClearable
-                                    />
-                                </Card>
-                                <Card>
-                                    <SettingsTextInput
-                                        placeholder="Your Zipline Token"
-                                        value={settings.ziplineUserToken}
-                                        onChange={(v: string) => updateSettings({ ziplineUserToken: v })}
-                                        isClearable
-                                    />
-                                </Card>
-                            </Stack>
-                        </TableRowGroup>
-                        
-                        <TableRadioGroup
-                            title="Zipline File Expiry"
-                            value={settings.ziplineDuration}
-                            onChange={(v: string) => updateSettings({ ziplineDuration: v })}
-                        >
-                            {ZIPLINE_DURATIONS.map(({ label, value }) => (
-                                <TableRadioRow key={value} label={label} value={value} />
-                            ))}
-                        </TableRadioGroup>
-                        
-                        <TableRadioGroup
-                            title="Zipline File Name"
-                            value={settings.ziplineFileNameFormat}
-                            onChange={(v: string) => updateSettings({ ziplineFileNameFormat: v })}
-                        >
-                            {ZIPLINE_FILENAMES.map(({ label, value }) => (
-                                <TableRadioRow key={value} label={label} value={value} />
-                            ))}
-                        </TableRadioGroup>
-                    </>
-                )}
+                <TableRowGroup title="Catbox User Hash">
+                    <Card>
+                        <SettingsTextInput
+                            placeholder="Your Catbox user hash (optional)"
+                            value={settings.userHash}
+                            onChange={(v: string) => updateSettings({ userHash: v })}
+                            isClearable
+                        />
+                    </Card>
+                </TableRowGroup>
             </Stack>
         </ScrollView>
     );
