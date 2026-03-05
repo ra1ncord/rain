@@ -133,7 +133,7 @@ export default function DecorationPicker() {
                             <TableRow
                                 key={decoration.hash}
                                 label={decoration.alt}
-                                icon={<TableRow.Icon source={findAssetId("ic_image_24px")} />}
+                                icon={<TableRow.Icon source={findAssetId("ic_reaction_smile")} />}
                                 disabled={isDisabled}
                                 onPress={() => selectDecoration(isSelected ? null : decoration)}
                                 trailing={isSelected
