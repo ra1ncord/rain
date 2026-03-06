@@ -4,12 +4,13 @@ import { omit } from "es-toolkit";
 import { Platform, processColor } from "react-native";
 
 import { colorsPref } from "./preferences";
-import { ColorManifest, InternalColorDefinition } from "./types";
+import { ColorManifest, InternalColorDefinition, RainColorManifest } from "./types";
 
 const tokenRef = findByProps("SemanticColor");
 
 export function parseColorManifest(manifest: ColorManifest): InternalColorDefinition {
     const resolveType = (type = "dark") => (colorsPref.type ?? type) === "dark" ? "darker" : "light";
+    const rainManifest = manifest as RainColorManifest;
 
     if (manifest.spec === 3) {
         const semanticColorDefinitions: InternalColorDefinition["semantic"] = {};
@@ -47,15 +48,15 @@ export function parseColorManifest(manifest: ColorManifest): InternalColorDefini
             }
         }
 
-        if (Platform.OS === "android") applyAndroidAlphaKeys(manifest.main.raw);
+        if (Platform.OS === "android") applyAndroidAlphaKeys(rainManifest.main.raw);
 
         return {
             spec: 3,
-            reference: resolveType(manifest.main.type),
+            reference: rainManifest.main.type === "light" ? "light" : "darker",
             semantic: semanticColorDefinitions,
-            raw: manifest.main.raw ?? {},
-            background: manifest.main.background,
-            display: manifest.display,
+            raw: rainManifest.main.raw ?? {},
+            background: rainManifest.main.background,
+            display: rainManifest.display,
         };
     }
 

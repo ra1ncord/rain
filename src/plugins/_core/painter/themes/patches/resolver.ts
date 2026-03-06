@@ -31,7 +31,7 @@ export default function patchDefinitionAndResolver() {
     if (themeTypes) {
         origDarker = themeTypes?.DARKER as string;
         origLight = themeTypes?.LIGHT as string;
-        
+
         Object.defineProperty(themeTypes, "DARKER", {
             configurable: true,
             enumerable: true,

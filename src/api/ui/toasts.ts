@@ -2,6 +2,7 @@ import { findAssetId } from "@api/assets";
 import { lazyDestructure } from "@lib/utils/lazy";
 import { toasts } from "@metro/common";
 import { findByProps } from "@metro/wrappers";
+import { Strings } from "@rain/i18n";
 
 const { uuid4 } = lazyDestructure(() => findByProps("uuid4"));
 
@@ -12,6 +13,6 @@ export const showToast = (content: string, asset?: number) => toasts.open({
     icon: asset,
 });
 
-showToast.showCopyToClipboard = (message = "Strings.COPIED_TO_CLIPBOARD") => {
+showToast.showCopyToClipboard = (message = Strings.COPIED_TO_CLIPBOARD) => {
     showToast(message, findAssetId("toast_copy_link"));
 };
