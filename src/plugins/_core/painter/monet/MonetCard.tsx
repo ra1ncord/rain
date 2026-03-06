@@ -14,7 +14,7 @@ export default function MonetCard() {
     const isMonetActive = hasMonetTheme();
     const { patches } = usePatches();
 
-    const hasUrlTheme = useThemes((state: any) => 
+    const hasUrlTheme = useThemes((state: any) =>
         Object.values(state.themes).some((t: any) => t.selected)
     );
 
@@ -41,7 +41,7 @@ export default function MonetCard() {
                     applyMonetTheme(null);
                 } else {
                     await useThemes.getState().selectTheme(null);
-                    
+
                     if (!patches) {
                         showToast("Patches not loaded yet", findAssetId("CircleXIcon-primary"));
                         return;

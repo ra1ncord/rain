@@ -2,8 +2,8 @@ import { findByProps, findByPropsLazy, findByStoreNameLazy } from "@metro";
 
 import initPlus from "../plus/stuff/loader";
 import { parseColorManifest } from "./parser";
-import { ColorManifest, InternalColorDefinition } from "./types";
 import { useColorsPref } from "./preferences";
+import { ColorManifest, InternalColorDefinition } from "./types";
 
 const tokenRef = findByProps("SemanticColor");
 const origRawColor = { ...tokenRef.RawColor };

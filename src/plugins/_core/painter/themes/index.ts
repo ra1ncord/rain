@@ -8,7 +8,6 @@ import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
 
 import initColors from "./colors";
-import { fixStatusBar } from "./devices";
 import { applyAndroidAlphaKeys, normalizeToHex } from "./parser";
 import { waitForColorsPrefHydration } from "./preferences";
 import { ThemeManifest } from "./types";
@@ -49,7 +48,7 @@ function processData(data: ThemeManifest) {
         data.description = data.display.description;
         data.authors = data.display.authors;
     }
-    
+
     if (data.semanticColors) {
         const { semanticColors } = data;
 
@@ -295,8 +294,6 @@ export async function initThemes() {
         }
 
         updateThemes().catch(e => console.error("Failed to update themes", e));
-
-        fixStatusBar();
 
     } catch (e) {
         console.error("Failed to initialize themes", e);

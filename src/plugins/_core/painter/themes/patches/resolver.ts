@@ -1,16 +1,16 @@
 import { NativeThemeModule } from "@api/native/modules";
 import { before, instead } from "@api/patcher";
 import { findByProps } from "@metro";
-import { byMutableProp } from "@metro/filters";
-import { createLazyModule } from "@metro/lazy";
 import chroma from "chroma-js";
 
 import { _colorRef } from "../updater";
 
 const tokenReference = findByProps("SemanticColor");
-const isThemeModule = createLazyModule(byMutableProp("isThemeDark"));
+const themeTypes = findByProps("ThemeTypes")?.ThemeTypes;
 
 const origRawColor = { ...tokenReference.RawColor };
+const origDarker = themeTypes.DARKER as string;
+const origLight = themeTypes.LIGHT as string;
 
 const SEMANTIC_FALLBACK_MAP: Record<string, string> = {
     "BG_BACKDROP": "BACKGROUND_FLOATING",
@@ -25,15 +25,19 @@ const SEMANTIC_FALLBACK_MAP: Record<string, string> = {
     "BG_SURFACE_RAISED": "BACKGROUND_MOBILE_PRIMARY"
 };
 
-const RAW_FALLBACK_MAP: Record<string, string> = {
-    "PRIMARY_700": origRawColor.PRIMARY_800 || origRawColor.PRIMARY_600,
-    "PRIMARY_300": origRawColor.PRIMARY_800 || origRawColor.PRIMARY_600,
-    "PRIMARY_230": origRawColor.PRIMARY_800 || origRawColor.PRIMARY_600,
-    "PRIMARY_100": origRawColor.PRIMARY_800 || origRawColor.PRIMARY_600,
-};
-
 export default function patchDefinitionAndResolver() {
     const callback = ([theme]: any[]) => theme === _colorRef.key ? [_colorRef.current!.reference] : void 0;
+
+    Object.defineProperty(themeTypes, "DARKER", {
+        configurable: true,
+        enumerable: true,
+        get: () => _colorRef.current?.reference === "darker" ? _colorRef.key : origDarker,
+    });
+    Object.defineProperty(themeTypes, "LIGHT", {
+        configurable: true,
+        enumerable: true,
+        get: () => _colorRef.current?.reference === "light" ? _colorRef.key : origLight,
+    });
 
     Object.keys(tokenReference.RawColor).forEach(key => {
         Object.defineProperty(tokenReference.RawColor, key, {
@@ -42,18 +46,12 @@ export default function patchDefinitionAndResolver() {
             get: () => {
                 const ret = _colorRef.current?.raw[key];
                 if (ret) return ret;
-
-                const fallback = RAW_FALLBACK_MAP[key];
-                if (fallback) return fallback;
-
                 return origRawColor[key];
             }
         });
     });
 
     const unpatches = [
-        before("isThemeDark", isThemeModule, callback),
-        before("isThemeLight", isThemeModule, callback),
         before("updateTheme", NativeThemeModule, callback),
         instead("resolveSemanticColor", tokenReference.default.meta ?? tokenReference.default.internal, (args: any[], orig: any) => {
             if (!_colorRef.current) return orig(...args);
@@ -69,8 +67,9 @@ export default function patchDefinitionAndResolver() {
             }
 
             if (semanticDef?.value) {
-                if (semanticDef.opacity === 1) return semanticDef.value;
-                return chroma(semanticDef.value).alpha(semanticDef.opacity).hex();
+                return semanticDef.opacity === 1
+                    ? semanticDef.value
+                    : chroma(semanticDef.value).alpha(semanticDef.opacity).hex();
             }
 
             const rawValue = _colorRef.current.raw[colorDef.raw];
@@ -79,15 +78,16 @@ export default function patchDefinitionAndResolver() {
                 return colorDef.opacity === 1 ? rawValue : chroma(rawValue).alpha(colorDef.opacity).hex();
             }
 
-            const fallbackValue = RAW_FALLBACK_MAP[colorDef.raw];
-            if (fallbackValue) {
-                return colorDef.opacity === 1 ? fallbackValue : chroma(fallbackValue).alpha(colorDef.opacity).hex();
-            }
-
             // Fallback to default
             return orig(...args);
         }),
         () => {
+            Object.defineProperty(themeTypes, "DARKER", {
+                configurable: true, writable: true, value: origDarker
+            });
+            Object.defineProperty(themeTypes, "LIGHT", {
+                configurable: true, writable: true, value: origLight
+            });
             Object.defineProperty(tokenReference, "RawColor", {
                 configurable: true,
                 writable: true,

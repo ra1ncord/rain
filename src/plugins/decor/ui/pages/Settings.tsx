@@ -1,6 +1,7 @@
 import { findAssetId } from "@api/assets";
 import { TableRow, TableRowGroup } from "@metro/common/components";
 import { ScrollView } from "react-native";
+
 import { useAuthorizationStore } from "../../lib/stores/AuthorizationStore";
 import showAuthorizationModal from "../../lib/utils/showAuthorizationModal";
 import DecorationPicker from "../components/DecorationPicker";

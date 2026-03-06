@@ -3,6 +3,7 @@ import { before, instead } from "@api/patcher";
 import { waitFor } from "@metro/internals/modules";
 import { findByName, findByProps } from "@metro/wrappers";
 
+import { useColorsPref } from "../../themes/preferences";
 import { PatchType } from "..";
 import { state } from "../stuff/active";
 import { getIconOverlay, getIconTint } from "../stuff/iconOverlays";
@@ -10,7 +11,6 @@ import { patches } from "../stuff/loader";
 import modIcons from "../stuff/modIcons";
 import { fixPath } from "../stuff/util";
 import type { IconpackConfig } from "../types";
-import { useColorsPref } from "../../themes/preferences";
 
 const Status = findByName("Status", false);
 const RN = findByProps("Image", "View");
@@ -22,7 +22,7 @@ export default function patchIcons(
     config: IconpackConfig,
 ) {
     const { iconpack } = state.iconpack;
-    
+
     if (config.biggerStatus) {
         patches.push(
             before("default", Status, ([props], ...args) => [
@@ -50,7 +50,7 @@ export default function patchIcons(
                         ? exports
                         : undefined,
                 (ReactJSX: any) => {
-                    if (!useColorsPref.getState().iconsEnabled) return
+                    if (!useColorsPref.getState().iconsEnabled) return;
                     function interceptJSX(args: any[], orig: Function) {
                         const [type, props, ...rest] = args;
 
@@ -72,7 +72,7 @@ export default function patchIcons(
                                     const useIconpack = tree.length
                                         ? tree.includes(assetIconpackLocation)
                                         : true;
-                                
+
                                     if (useIconpack) {
                                         return (orig as any)(
                                             type,

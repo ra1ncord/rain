@@ -102,7 +102,7 @@ export default function DecorationPicker() {
                         {selectedDecoration.alt}
                     </Text>
                     {decorPreset && (
-                        <Text style={[TextStyleSheet["eyebrow"], styles.presetLabel]}>
+                        <Text style={[TextStyleSheet.eyebrow, styles.presetLabel]}>
                             Part of the {decorPreset.name} Preset
                         </Text>
                     )}

@@ -12,6 +12,7 @@ import {
     TableSwitchRow,
 } from "@metro/common/components";
 import MonetCard from "@plugins/_core/painter/monet/MonetCard";
+import initPlus from "@plugins/_core/painter/plus/stuff/loader";
 import { getCurrentTheme, installTheme, ThemeInfo,useThemes } from "@plugins/_core/painter/themes";
 import { useColorsPref } from "@plugins/_core/painter/themes/preferences";
 import { Author } from "@plugins/_core/painter/themes/types";
@@ -21,7 +22,6 @@ import ThemeBrowser from "@rain/pages/Browser/Themes";
 import { View } from "react-native";
 
 import ThemeCard from "./ThemeCard";
-import initPlus from "@plugins/_core/painter/plus/stuff/loader";
 
 export default function Themes() {
     const themesMap = useThemes(s => s.themes);
