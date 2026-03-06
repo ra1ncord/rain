@@ -39,12 +39,12 @@ export default definePlugin({
     start() {
         if (intl && intlMap) {
             autoConfirmMessages = {
-                embed: intl.string(intlMap[KEYS.embed.hash]) || "Delete embed",
+                embed: intl.string(intlMap[KEYS.embed.hash]) || "Remove All Embeds",
                 message: intl.string(intlMap[KEYS.message.hash]) || "Delete Message",
             };
         } else {
             autoConfirmMessages = {
-                embed: "Delete embed",
+                embed: "Remove All Embeds",
                 message: "Delete Message",
             };
         }
@@ -55,7 +55,8 @@ export default definePlugin({
         unpatch = instead("show", Popup, (args, fn) => {
             const popup = args?.[0];
             const title = popup?.title;
-            const body = popup?.children?.props?.message?.content;
+            const confirmText = popup?.confirmText;
+            const body = popup?.children?.props?.message?.content ?? "";
 
             if (
                 !popup?.onConfirm ||
@@ -69,7 +70,11 @@ export default definePlugin({
                 const matcher = autoConfirmMessages[type];
                 if (!matcher) return false;
 
-                const match = title?.includes(matcher) || body?.includes(matcher);
+                const titleLower = title?.toLowerCase();
+                const confirmLower = confirmText?.toLowerCase();
+                const bodyLower = body?.toLowerCase();
+                const matcherLower = matcher.toLowerCase();
+                const match = titleLower?.includes(matcherLower) || confirmLower?.includes(matcherLower) || bodyLower?.includes(matcherLower);
                 return quickDeleteSettings[KEYS[type].storage] && match;
             };
 
