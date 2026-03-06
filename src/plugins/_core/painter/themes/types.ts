@@ -33,6 +33,11 @@ export interface ThemeManifest {
         blur?: number;
         alpha?: number;
     };
+    display: {
+        name: string;
+        description: string;
+        authors: Author[];
+    }
 }
 
 /** @internal */
