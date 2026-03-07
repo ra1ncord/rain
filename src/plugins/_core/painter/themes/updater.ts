@@ -1,11 +1,11 @@
-import { findByProps, findByPropsLazy, findByStoreNameLazy } from "@metro";
+import { findByPropsLazy, findByStoreNameLazy } from "@metro";
 
 import initPlus from "../plus/stuff/loader";
 import { parseColorManifest } from "./parser";
 import { useColorsPref } from "./preferences";
 import { ColorManifest, InternalColorDefinition } from "./types";
 
-const tokenRef = findByProps("SemanticColor");
+const tokenRef = findByPropsLazy("SemanticColor");
 const origRawColor = { ...tokenRef.RawColor };
 const AppearanceManager = findByPropsLazy("updateTheme");
 const ThemeStore = findByStoreNameLazy("ThemeStore");
@@ -28,7 +28,7 @@ export const _colorRef: InternalColorRef = {
     lastSetDiscordTheme: "darker"
 };
 
-export async function updateColor(colorManifest: ColorManifest | null, { update = true }) {
+export function updateColor(colorManifest: ColorManifest | null, { update = true }) {
 
     const internalDef = colorManifest ? parseColorManifest(colorManifest) : null;
     const ref = Object.assign(_colorRef, {
@@ -39,24 +39,39 @@ export async function updateColor(colorManifest: ColorManifest | null, { update 
             : _colorRef.lastSetDiscordTheme
     });
 
+    // todo: find a way to unsplit this, since await and .then cause an invalid theme crash?
     if (useColorsPref.getState().iconsEnabled) {
-        await initPlus();
-    }
+        initPlus();
+        if (internalDef != null) {
+            tokenRef.Theme[ref.key.toUpperCase()] = ref.key;
+            FormDivider.DIVIDER_COLORS[ref.key] = FormDivider.DIVIDER_COLORS[ref.current!.reference];
 
-    if (internalDef != null) {
-        tokenRef.Theme[ref.key.toUpperCase()] = ref.key;
-        FormDivider.DIVIDER_COLORS[ref.key] = FormDivider.DIVIDER_COLORS[ref.current!.reference];
+            Object.keys(tokenRef.Shadow).forEach(k => tokenRef.Shadow[k][ref.key] = tokenRef.Shadow[k][ref.current!.reference]);
+            Object.keys(tokenRef.SemanticColor).forEach(k => {
+                tokenRef.SemanticColor[k][ref.key] = {
+                    ...tokenRef.SemanticColor[k][ref.current!.reference]
+                };
+            });
+        }
+        if (update) {
+            AppearanceManager.setShouldSyncAppearanceSettings(false);
+            AppearanceManager.updateTheme(internalDef != null ? ref.key : ref.lastSetDiscordTheme);
+        }
+    } else {
+        if (internalDef != null) {
+            tokenRef.Theme[ref.key.toUpperCase()] = ref.key;
+            FormDivider.DIVIDER_COLORS[ref.key] = FormDivider.DIVIDER_COLORS[ref.current!.reference];
 
-        Object.keys(tokenRef.Shadow).forEach(k => tokenRef.Shadow[k][ref.key] = tokenRef.Shadow[k][ref.current!.reference]);
-        Object.keys(tokenRef.SemanticColor).forEach(k => {
-            tokenRef.SemanticColor[k][ref.key] = {
-                ...tokenRef.SemanticColor[k][ref.current!.reference]
-            };
-        });
-    }
-
-    if (update) {
-        AppearanceManager.setShouldSyncAppearanceSettings(false);
-        AppearanceManager.updateTheme(internalDef != null ? ref.key : ref.lastSetDiscordTheme);
+            Object.keys(tokenRef.Shadow).forEach(k => tokenRef.Shadow[k][ref.key] = tokenRef.Shadow[k][ref.current!.reference]);
+            Object.keys(tokenRef.SemanticColor).forEach(k => {
+                tokenRef.SemanticColor[k][ref.key] = {
+                    ...tokenRef.SemanticColor[k][ref.current!.reference]
+                };
+            });
+        }
+        if (update) {
+            AppearanceManager.setShouldSyncAppearanceSettings(false);
+            AppearanceManager.updateTheme(internalDef != null ? ref.key : ref.lastSetDiscordTheme);
+        }
     }
 }

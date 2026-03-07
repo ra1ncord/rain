@@ -10,7 +10,7 @@ async function initializeRain() {
         Object.freeze = Object.seal = Object;
 
         await require("@metro/internals/caches").initMetroCache();
-        require(".").default();
+        await require(".").default();
     } catch (e) {
         alert(e);
     }

@@ -11,7 +11,6 @@ export default async () => {
         patchLogHook(),
         patchJsx(),
         injectFluxInterceptor(),
-        window.rain = lib,
     ]);
 
     const core = await Promise.all([
