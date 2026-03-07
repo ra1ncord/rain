@@ -69,8 +69,6 @@ export default definePlugin({
                 })
             );
         }
-
-        useUsersDecorationsStore.getState().fetch(UserStore.getCurrentUser().id, true);
     },
     stop() {
         for (const unpatch of patches) unpatch();
