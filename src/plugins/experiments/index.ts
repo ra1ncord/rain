@@ -28,6 +28,7 @@ export default definePlugin({
     author: [Developers.cocobo1],
     id: "dummy",
     version: "1.0.0",
+    devOnly: true,
     start() {
         const targetModule = findByProps("isStaffEnv");
 
