@@ -3,6 +3,7 @@ import { semanticColors } from "@api/ui/components/color";
 import SettingsTextInput from "@api/ui/components/SettingsTextInput";
 import { showToast } from "@api/ui/toasts";
 import { findByProps, findByStoreName } from "@metro";
+import { ReactNative as RN } from "@metro/common";
 import React from "react";
 
 import { clearColorCache, publishToRegistry, unpublishFromRegistry } from "./api";
@@ -10,8 +11,6 @@ import { useProfileColorStore } from "./storage";
 
 const { TableRow, TableSwitchRow, TableRowGroup } = findByProps("TableRow");
 const { Card } = findByProps("Card");
-const { TextInput } = findByProps("TextInput");
-const { View } = findByProps("View");
 const UserStore = findByStoreName("UserStore");
 
 export default function ProfileColorSettings() {
@@ -52,7 +51,8 @@ export default function ProfileColorSettings() {
     }
 
     return (
-        <View style={{ flex: 1, paddingVertical: 24, paddingHorizontal: 12 }}>
+        <RN.ScrollView style={{ flex: 1 }}>
+            <RN.View style={{ paddingVertical: 24, paddingHorizontal: 12, gap: 24 }}>
             <TableRowGroup title="Settings">
                 <TableSwitchRow
                     label="Enable Profile Colors"
@@ -76,19 +76,20 @@ export default function ProfileColorSettings() {
                     />
                 </Card>
             </TableRowGroup>
-            <TableRowGroup>
-                <TableRow
-                    label="Reset Colors"
-                    variant="danger"
-                    arrow={false}
-                    onPress={() => {
-                        setPrimaryInput("");
-                        setAccentInput("");
-                        store.updateSettings({ primary: null, accent: null, enabled: false });
-                    }}
-                />
-            </TableRowGroup>
-
+            <RN.View style={{ marginVertical: -24, marginBottom: 12 }}>
+                <TableRowGroup>
+                    <TableRow
+                        label="Reset Colors"
+                        variant="danger"
+                        arrow={false}
+                        onPress={() => {
+                            setPrimaryInput("");
+                            setAccentInput("");
+                            store.updateSettings({ primary: null, accent: null, enabled: false });
+                        }}
+                    />
+                </TableRowGroup>
+            </RN.View>
             <TableRowGroup title="Other Users">
                 <TableSwitchRow
                     label="Show other users' colors"
@@ -161,6 +162,7 @@ export default function ProfileColorSettings() {
                     }}
                 />
             </TableRowGroup>
-        </View>
+            </RN.View>
+        </RN.ScrollView>
     );
 }
