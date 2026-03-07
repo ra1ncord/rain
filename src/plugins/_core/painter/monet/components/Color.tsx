@@ -65,7 +65,7 @@ export default function Color({ title, color, update }: ColorProps) {
                     showToast("Copied", findAssetId("toast_copy_link"));
                 }}
             />
-            <Text variant="text-xs/medium" color="TEXT_MUTED" style={{ textAlign: "center" }}>
+            <Text variant="text-xs/medium" style={{ textAlign: "center" }}>
                 {title}
             </Text>
         </RN.View>

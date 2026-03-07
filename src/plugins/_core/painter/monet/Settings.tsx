@@ -6,6 +6,7 @@ import { LoggerClass } from "@lib/utils/logger";
 import { React, ReactNative as RN } from "@metro/common";
 import {
     Button,
+    HelpMessage,
     PressableScale,
     Stack,
     TableRow,
@@ -85,21 +86,9 @@ export default function Settings() {
         <RN.ScrollView style={{ flex: 1 }}>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
                 {showMessage && (
-                    <RN.View
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "center",
-                        }}
-                    >
-                        <RN.Image
-                            source={findAssetId("CircleInformationIcon-primary")}
-                            style={styles.help}
-                        />
-                        <Text variant="text-md/semibold" color="TEXT_BRAND">
-                            {showMessage}
-                        </Text>
-                    </RN.View>
+                    <HelpMessage messageType={0}>
+                        {showMessage}
+                    </HelpMessage>
                 )}
 
                 <TableRowGroup title="Colors">
