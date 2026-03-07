@@ -10,7 +10,7 @@ import { initThemes } from "./themes";
 export default definePlugin({
     name: Strings.PLUGIN__CORE_PAINTER,
     description: Strings.PLUGIN__CORE_PAINTER_DESC,
-    author: [Developers.LampDelivery, Contributors.nexpid],
+    author: [Developers.cocobo1, Contributors.nexpid],
     id: "painter",
     version: "1.0.0",
     async start() {
