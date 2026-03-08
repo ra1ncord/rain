@@ -1,6 +1,8 @@
 import { findByPropsLazy, findByStoreNameLazy } from "@metro";
 
+import initPlus from "../plus/stuff/loader";
 import { parseColorManifest } from "./parser";
+import { useColorsPref } from "./preferences";
 import { ColorManifest, InternalColorDefinition } from "./types";
 
 const tokenRef = findByPropsLazy("SemanticColor");
@@ -36,6 +38,10 @@ export function updateColor(colorManifest: ColorManifest | null, { update = true
             ? ThemeStore.theme
             : _colorRef.lastSetDiscordTheme
     });
+
+    if (useColorsPref.getState().iconsEnabled) {
+        initPlus();
+    }
 
     if (internalDef != null) {
         tokenRef.Theme[ref.key.toUpperCase()] = ref.key;

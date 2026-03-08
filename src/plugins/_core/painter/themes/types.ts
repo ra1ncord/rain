@@ -11,7 +11,6 @@ interface BackgroundDefinition {
 }
 
 export interface RainColorManifest extends RainManifest {
-    type: "color";
     spec: 3;
     main: {
         type: "dark" | "light";
@@ -22,7 +21,7 @@ export interface RainColorManifest extends RainManifest {
 }
 
 export interface ThemeManifest {
-    spec: 2 | 3;
+    spec: 2;
     name: string;
     description?: string;
     authors?: Author[];
@@ -33,11 +32,6 @@ export interface ThemeManifest {
         blur?: number;
         alpha?: number;
     };
-    display: {
-        name: string;
-        description: string;
-        authors: Author[];
-    }
 }
 
 /** @internal */

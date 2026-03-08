@@ -43,12 +43,6 @@ export async function writeThemeToNative(theme: ThemeInfo | {}) {
 
 // Process data for some compatiblity with native side
 function processData(data: ThemeManifest) {
-    if (data.spec === 3 && data.display) {
-        data.name = data.display.name;
-        data.description = data.display.description;
-        data.authors = data.display.authors;
-    }
-
     if (data.semanticColors) {
         const { semanticColors } = data;
 

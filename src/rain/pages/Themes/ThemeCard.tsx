@@ -3,6 +3,7 @@ import { showSheet } from "@api/ui/sheets";
 import { navigation } from "@metro/common";
 import { applyMonetTheme } from "@plugins/_core/painter/monet";
 import { ThemeInfo,useThemes } from "@plugins/_core/painter/themes";
+import { ColorManifest } from "@plugins/_core/painter/themes/types";
 import AddonCard, { CardWrapper } from "@rain/pages/Addon/AddonCard";
 import * as React from "react";
 
@@ -32,20 +33,24 @@ export default function ThemeCard({ item: theme }: CardWrapper<ThemeInfo>) {
     if (removed) return null;
 
     const { authors } = theme.data;
+    const manifest = theme.data as ColorManifest;
+    const isSpec3 = manifest.spec === 3;
+    const name = isSpec3 ? (theme.data as any).display?.name : (theme.data as any).name;
+    const description = isSpec3 ? (theme.data as any).display?.description : (theme.data as any).description;
 
     return (
         <AddonCard
-            headerLabel={theme.data.name}
-            headerSublabel={authors ? `by ${authors.map(i => i.name).join(", ")}` : ""}
+            headerLabel={name}
+            headerSublabel={authors ? `by ${authors.map((i: any) => i.name).join(", ")}` : ""}
             headerLabelVariant="heading-lg/semibold"
             headerSublabelVariant="text-sm/semibold"
-            descriptionLabel={theme.data.description ?? "No description."}
+            descriptionLabel={description}
             toggleType={!safeModeEnabled ? "radio" : undefined}
             toggleValue={() => isSelected}
             onToggleChange={(v: boolean) => {
                 selectAndApply(v, theme);
             }}
-            overflowTitle={theme.data.name}
+            overflowTitle={name}
             actions={[
                 {
                     icon: "CircleInformationIcon-primary",
