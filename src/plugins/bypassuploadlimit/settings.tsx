@@ -16,15 +16,15 @@ const LITTERBOX_DURATIONS = [
 
 const ZIPLINE_DURATIONS = [
     { label: "Never (default)", value: "never" },
-    { label: "1 hour", value: "1h"},
+    { label: "1 hour", value: "1h" },
     { label: "12 hours", value: "12h" },
     { label: "1 day", value: "1d" },
     { label: "3 days", value: "3d" },
 ];
 
 const ZIPLINE_FILENAMES = [
-    { label: "Date (default)", value: "date"},
-    { label: "Random", value: "random"},
+    { label: "Date (default)", value: "date" },
+    { label: "Random", value: "random" },
     { label: "UUID", value: "uuid" },
     { label: "File name", value: "name" },
     { label: "Gfycat-style name", value: "gfycat" },
@@ -149,7 +149,7 @@ export default function UploaderSettings() {
                                 </Card>
                             </Stack>
                         </TableRowGroup>
-                        
+
                         <TableRadioGroup
                             title="Zipline File Expiry"
                             value={settings.ziplineDuration}
@@ -159,7 +159,7 @@ export default function UploaderSettings() {
                                 <TableRadioRow key={value} label={label} value={value} />
                             ))}
                         </TableRadioGroup>
-                        
+
                         <TableRadioGroup
                             title="Zipline File Name"
                             value={settings.ziplineFileNameFormat}

@@ -52,7 +52,7 @@ export default function getUploaderPatch(): (() => boolean)[] {
         const size: number = file?.preCompressionSize ?? 0;
         const readableSize = formatBytes(size);
 
-        const { alwaysUpload, useHyperlink, selectedHost, userHash, uploadAction, litterboxDuration, ziplineServerURL, ziplineUserToken, ziplineDuration, ziplineFileNameFormat} = uploaderSettings;
+        const { alwaysUpload, useHyperlink, selectedHost, userHash, uploadAction, litterboxDuration, ziplineServerURL, ziplineUserToken, ziplineDuration, ziplineFileNameFormat } = uploaderSettings;
         let useHost = selectedHost;
 
         // Automatically fall back to Litterbox when the file is too large for Catbox (200 MB)
@@ -96,8 +96,8 @@ export default function getUploaderPatch(): (() => boolean)[] {
                     link = await uploadToUguu(file);
                     break;
                 case "zipline":
-                    link = await uploadToZipline(file, ziplineServerURL, ziplineUserToken, ziplineDuration, ziplineFileNameFormat)
-                    break
+                    link = await uploadToZipline(file, ziplineServerURL, ziplineUserToken, ziplineDuration, ziplineFileNameFormat);
+                    break;
             }
         } catch (err) {
             uploadError = err;

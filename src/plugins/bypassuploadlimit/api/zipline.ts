@@ -14,8 +14,8 @@ import { logger } from "@lib/utils/logger";
 export type ZiplineDuration = "never" | "1h" | "12h" | "1d" | "3d";
 
 export async function uploadToZipline(
-    file: any, 
-    ziplineServerURL: string, 
+    file: any,
+    ziplineServerURL: string,
     ziplineUserToken: string,
     ziplineDuration: ZiplineDuration | string = "never",
     ziplineFileNameFormat: string | string = "date",
