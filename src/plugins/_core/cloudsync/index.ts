@@ -38,7 +38,7 @@ const autoSync = async () => {
 export default definePlugin({
     name: "CloudSync",
     description: "Sync your plugins, themes, and fonts to the cloud.",
-    author: [Developers.LampDelivery, Contributors.nexpid],
+    author: [Developers.cocobo1, Developers.LampDelivery, Contributors.nexpid],
     id: "cloudsync",
     version: "1.0.0",
     start() {
