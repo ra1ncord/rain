@@ -21,7 +21,7 @@
 
 - **rainTweak** (to be announced)
 
-### How can I support the project?
+## How can I support the project?
 
 rain can be supported in many ways, you can [contribute](#contributing), make a [bug report](#bug-reporting) or [donate](https://www.ko-fi.com/cocobo1)!
 
