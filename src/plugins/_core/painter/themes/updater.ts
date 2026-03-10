@@ -28,7 +28,7 @@ export const _colorRef: InternalColorRef = {
     lastSetDiscordTheme: "darker"
 };
 
-export function updateColor(colorManifest: ColorManifest | null, { update = true }) {
+export function updateColor(colorManifest: ColorManifest | null, { update = true }, { noCustomIcons }: { noCustomIcons?: boolean }) {
 
     const internalDef = colorManifest ? parseColorManifest(colorManifest) : null;
     const ref = Object.assign(_colorRef, {
@@ -39,7 +39,7 @@ export function updateColor(colorManifest: ColorManifest | null, { update = true
             : _colorRef.lastSetDiscordTheme
     });
 
-    if (useColorsPref.getState().iconsEnabled) {
+    if (useColorsPref.getState().iconsEnabled && noCustomIcons == false) {
         initPlus();
     }
 

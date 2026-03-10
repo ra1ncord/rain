@@ -1,5 +1,5 @@
 import { findAssetId } from "@api/assets";
-import { connectToDebugger, disconnectFromDebugger, isConnectedToDebugger } from "@api/debug";
+import { connectToDebugger, disconnectFromDebugger, hotReloadTheme, isConnectedToDebugger } from "@api/debug";
 import { getReactDevToolsProp, isLoaderConfigSupported, isReactDevToolsPreloaded } from "@api/native/loader";
 import { useLoaderConfig,useSettings } from "@api/settings";
 import { CheckState, useFileExists } from "@api/storage/useFS";
@@ -159,6 +159,35 @@ export default function Developer() {
                             )}
                         </TableRowGroup>
                     )}
+
+                    <TableRowGroup title={Strings.HOT_RELOAD_THEME}>
+                        <TextInput
+                            defaultValue={settings.hotReloadThemeUrl}
+                            size="md"
+                            placeholder="http://localhost:4040/theme.json"
+                            onChange={(v: string) => 
+                                settings.updateSettings({ hotReloadThemeUrl: v })
+                            }
+                        />
+                        <Stack style={{ marginTop: 4, borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: "hidden" }}>
+                            <TableSwitchRow
+                                label={Strings.HOT_RELOAD_THEME}
+                                subLabel={Strings.HOT_RELOAD_THEME_DESC}
+                                icon={<TableRow.Icon source={findAssetId("PaintPaletteIcon")} />}
+                                value={settings.hotReloadTheme}
+                                onValueChange={(v: boolean) => 
+                                    settings.updateSettings({ hotReloadTheme: v })
+                                }
+                            />
+                        </Stack>
+                        <TableRow
+                            label={Strings.CONNECT_TO_HOT_RELOAD_THEME}
+                            icon={<TableRow.Icon source={findAssetId("PaintPaletteIcon")} />}
+                            onPress={async () => {
+                                hotReloadTheme()
+                            }}
+                        />
+                    </TableRowGroup>
 
                     <TableRowGroup title={Strings.OTHER}>
                         <TableRow

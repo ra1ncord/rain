@@ -84,7 +84,7 @@ export function hasMonetTheme(): boolean {
 
 export function applyMonetTheme(theme: BuiltTheme | null): boolean {
     try {
-        updateColor(theme as ThemeManifest | null, { update: true });
+        updateColor(theme as ThemeManifest | null, { update: true }, { noCustomIcons: false });
         const isActive = !!theme;
         (window as any)[hasThemeKey] = isActive;
         // Persist the active state so the theme survives restarts
@@ -154,7 +154,7 @@ export async function initMonet() {
             return;
         }
 
-        updateColor(theme as ThemeManifest | null, { update: true });
+        updateColor(theme as ThemeManifest | null, { update: true }, { noCustomIcons: false });
         (window as any)[hasThemeKey] = true;
     };
 

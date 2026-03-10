@@ -7,9 +7,11 @@ import { createFileStorage, createFlattenedFileStorage } from "./storage";
 export interface Settings {
   debuggerUrl: string;
   devToolsUrl: string;
+  hotReloadThemeUrl: string;
   developerSettings: boolean;
   autoDebugger: boolean;
   autoDevTools: boolean;
+  hotReloadTheme: boolean;
   safeMode?: boolean;
   settingsPosition: string;
   pluginCard: {
@@ -40,9 +42,11 @@ export const useSettings = create<SettingsStore>()(
         set => ({
             debuggerUrl: "",
             devToolsUrl: "",
+            hotReloadThemeUrl: "",
             developerSettings: false,
             autoDebugger: false,
             autoDevTools: false,
+            hotReloadTheme: false,
             safeMode: false,
             settingsPosition: "TOP",
             pluginCard: {

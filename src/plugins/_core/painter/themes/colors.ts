@@ -6,7 +6,7 @@ import { updateColor } from "./updater";
 
 /** @internal */
 export default function initColors(manifest: ColorManifest | null) {
-    if (manifest) updateColor(manifest, { update: false });
+    if (manifest) updateColor(manifest, { update: false }, { noCustomIcons: false });
 
     const patches = [
         patchStorage(),

@@ -8,6 +8,7 @@ import { getLoaderName, getLoaderVersion, getReactDevToolsProp, isReactDevToolsP
 import { NativeClientInfoModule, NativeDeviceModule } from "./native/modules";
 import { after } from "./patcher";
 import { settings } from "./settings";
+import { useThemes } from "@plugins/_core/painter/themes";
 
 export interface RNConstants extends PlatformConstants {
     // Android
@@ -360,6 +361,17 @@ export function getDebugInfo() {
     };
 }
 
+export function hotReloadTheme() {
+    setInterval(async () => {
+        const currentSettings = settings();
+        if (currentSettings.hotReloadThemeUrl) {
+            try {
+                await useThemes.getState().hotFetchTheme(currentSettings.hotReloadThemeUrl, true);
+            } catch {}
+        }
+    }, 2000);
+}
+
 /**
  * @internal
  */
@@ -380,6 +392,15 @@ export function initDebugger() {
             }
         } catch (e) {
             logger.error("Failed to connect to ReactDevTools during startup:", e);
+        }
+    }
+    if (currentSettings.hotReloadTheme) {
+        try {
+            if (currentSettings.hotReloadThemeUrl) {
+                hotReloadTheme()
+            }
+        } catch (e) {
+            logger.error("Failed to run hotReloadThemes:", e);
         }
     }
 }

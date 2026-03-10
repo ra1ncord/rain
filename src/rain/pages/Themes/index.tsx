@@ -77,7 +77,7 @@ export default function Themes() {
 
                                     const currentTheme = getCurrentTheme();
                                     if (currentTheme?.data) {
-                                        updateColor(currentTheme.data, { update: true });
+                                        updateColor(currentTheme.data, { update: true }, { noCustomIcons: false });
                                     }
                                 }}
                             >
@@ -108,7 +108,7 @@ export default function Themes() {
 
                                         const currentTheme = getCurrentTheme();
                                         if (currentTheme?.data) {
-                                            updateColor(currentTheme.data, { update: true });
+                                            updateColor(currentTheme.data, { update: true }, { noCustomIcons: false });
                                         }
                                     }}
                                 />

@@ -25,6 +25,7 @@ interface ThemesStore {
     removeTheme: (id: string) => Promise<boolean>;
     selectTheme: (id: string | null, write?: boolean) => Promise<void>;
     fetchTheme: (url: string, selected?: boolean) => Promise<void>;
+    hotFetchTheme: (url: string, selected?: boolean) => Promise<void>;
     installTheme: (url: string) => Promise<void>;
     updateThemes: () => Promise<void>;
     _hasHydrated: boolean;
@@ -126,10 +127,10 @@ export const useThemes = create<ThemesStore>()(
                 });
 
                 if (theme == null && write) {
-                    updateColor(null, { update: true });
+                    updateColor(null, { update: true }, { noCustomIcons: false });
                     return await writeThemeToNative({});
                 } else if (theme) {
-                    updateColor(theme.data, { update: true });
+                    updateColor(theme.data, { update: true }, { noCustomIcons: false });
                     return await writeThemeToNative(theme);
                 }
             },
@@ -154,7 +155,31 @@ export const useThemes = create<ThemesStore>()(
 
                 if (selected) {
                     writeThemeToNative(themeInfo);
-                    updateColor(themeInfo.data, { update: true });
+                    updateColor(themeInfo.data, { update: true }, { noCustomIcons: false });
+                }
+            },
+            hotFetchTheme: async (url: string, selected = false) => {
+                let themeJSON: any;
+
+                try {
+                    themeJSON = await (await safeFetch(url, { cache: "no-store" })).json();
+                } catch {
+                    throw new Error(`Failed to fetch theme at ${url}`);
+                }
+
+                if (!validateTheme(themeJSON)) throw new Error(`Invalid theme at ${url}`);
+
+                const themeInfo: ThemeInfo = {
+                    id: url,
+                    selected: selected,
+                    data: processData(themeJSON),
+                };
+
+                get().setTheme(url, themeInfo);
+
+                if (selected) {
+                    writeThemeToNative(themeInfo);
+                    updateColor(themeInfo.data, { update: true }, { noCustomIcons: true });
                 }
             },
             installTheme: async (url: string) => {
@@ -284,7 +309,7 @@ export async function initThemes() {
         initColors(currentTheme?.data ?? null);
 
         if (currentTheme) {
-            updateColor(currentTheme.data, { update: true });
+            updateColor(currentTheme.data, { update: true }, { noCustomIcons: false });
         }
 
         updateThemes().catch(e => console.error("Failed to update themes", e));
