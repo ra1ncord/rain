@@ -362,13 +362,34 @@ export function getDebugInfo() {
 }
 
 export function hotReloadTheme() {
+    let lastHash: string | null = null;
+
+    const hashString = (str: string): string => {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = (Math.imul(31, hash) + str.charCodeAt(i)) | 0;
+        }
+        return hash.toString(16);
+    };
+
     setInterval(async () => {
         const currentSettings = settings();
-        if (currentSettings.hotReloadThemeUrl) {
-            try {
-                await useThemes.getState().hotFetchTheme(currentSettings.hotReloadThemeUrl, true);
-            } catch {}
-        }
+        if (!currentSettings.hotReloadThemeUrl) return;
+
+        try {
+            const response = await fetch(currentSettings.hotReloadThemeUrl, {
+                cache: "no-store",
+            });
+            if (!response.ok) return;
+
+            const text = await response.text();
+            const hash = hashString(text);
+
+            if (hash === lastHash) return;
+            lastHash = hash;
+
+            await useThemes.getState().hotFetchTheme(currentSettings.hotReloadThemeUrl, true);
+        } catch {}
     }, 2000);
 }
 
