@@ -13,7 +13,7 @@ const patches: any[] = [];
 export default definePlugin({
     name: "FakeNitro",
     description: "Gives you Client-Side Nitro",
-    author: [Developers.John, Developers.cocobo1, Developers.kmmiio99o, Developers.LampDelivery, Developers.j, Contributors.SerStars],
+    author: [Developers.John, Developers.cocobo1, Developers.kmmiio99o, Developers.LampDelivery, Developers.j, Developers.SerStars],
     id: "fakenitro",
     version: "1.1.1",
     start() {
