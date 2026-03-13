@@ -29,6 +29,10 @@ export const Developers = {
         name: "Bwlok",
         id: 501827585806827520n,
     },
+    SerStars: {
+        name: "SerStars",
+        id: 861631850681729045n,
+    }
 } satisfies Record<string, developer>;
 
 export const Contributors = {
@@ -135,9 +139,5 @@ export const Contributors = {
     Fiery: {
         name: "Fiery",
         id: 890228870559698955n,
-    },
-    SerStars: {
-        name: "SerStars",
-        id: 861631850681729045n,
     }
 } satisfies Record<string, developer>;
