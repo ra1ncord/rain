@@ -57,10 +57,10 @@ export function isLoaderConfigSupported() {
 
 export function getThemeFilePath() {
     if (isRainLoader()) {
-        return "rain/current-theme.json";
+        return "current-theme.json";
     }
     if (isPyonLoader()) {
-        return "pyon/current-theme.json";
+        return "current-theme.json";
     }
 
     return null;
