@@ -1,5 +1,5 @@
 import { definePlugin } from "@plugins";
-import { Contributors, Developers } from "@rain/Developers";
+import { Developers } from "@rain/Developers";
 
 import getUploaderPatch from "./patches/upload";
 import settings from "./settings";

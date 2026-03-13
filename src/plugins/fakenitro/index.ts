@@ -1,5 +1,5 @@
 import { definePlugin } from "@plugins";
-import { Contributors,Developers } from "@rain/Developers";
+import { Developers } from "@rain/Developers";
 
 import getAppIcons from "./patches/appIcons";
 import getNitroChecks from "./patches/nitroChecks";
