@@ -165,7 +165,7 @@ export default function Developer() {
                             defaultValue={settings.hotReloadThemeUrl}
                             size="md"
                             placeholder="http://localhost:4040/theme.json"
-                            onChange={(v: string) => 
+                            onChange={(v: string) =>
                                 settings.updateSettings({ hotReloadThemeUrl: v })
                             }
                         />
@@ -175,7 +175,7 @@ export default function Developer() {
                                 subLabel={Strings.HOT_RELOAD_THEME_DESC}
                                 icon={<TableRow.Icon source={findAssetId("PaintPaletteIcon")} />}
                                 value={settings.hotReloadTheme}
-                                onValueChange={(v: boolean) => 
+                                onValueChange={(v: boolean) =>
                                     settings.updateSettings({ hotReloadTheme: v })
                                 }
                             />
@@ -184,7 +184,7 @@ export default function Developer() {
                             label={Strings.CONNECT_TO_HOT_RELOAD_THEME}
                             icon={<TableRow.Icon source={findAssetId("PaintPaletteIcon")} />}
                             onPress={async () => {
-                                hotReloadTheme()
+                                hotReloadTheme();
                             }}
                         />
                     </TableRowGroup>

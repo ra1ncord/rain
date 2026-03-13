@@ -1,5 +1,6 @@
 import { showToast } from "@api/ui/toasts";
 import { logger } from "@lib/utils/logger";
+import { useThemes } from "@plugins/_core/painter/themes";
 import { version } from "rain-build-info";
 import { Platform, type PlatformConstants, StyleSheet } from "react-native";
 
@@ -8,7 +9,6 @@ import { getLoaderName, getLoaderVersion, getReactDevToolsProp, isReactDevToolsP
 import { NativeClientInfoModule, NativeDeviceModule } from "./native/modules";
 import { after } from "./patcher";
 import { settings } from "./settings";
-import { useThemes } from "@plugins/_core/painter/themes";
 
 export interface RNConstants extends PlatformConstants {
     // Android
@@ -418,7 +418,7 @@ export function initDebugger() {
     if (currentSettings.hotReloadTheme) {
         try {
             if (currentSettings.hotReloadThemeUrl) {
-                hotReloadTheme()
+                hotReloadTheme();
             }
         } catch (e) {
             logger.error("Failed to run hotReloadThemes:", e);

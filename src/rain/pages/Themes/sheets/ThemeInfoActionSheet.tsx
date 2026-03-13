@@ -3,16 +3,23 @@ import { showConfirmationAlert } from "@api/ui/alerts";
 import { semanticColors } from "@api/ui/components/color";
 import { hideSheet } from "@api/ui/sheets";
 import { showToast } from "@api/ui/toasts";
-import { formatString,Strings } from "@i18n";
-import { clipboard } from "@metro/common";
-import { ActionSheet, Card, IconButton, Text } from "@metro/common/components";
+import { formatString, Strings } from "@i18n";
+import { lazyDestructure } from "@lib/utils/lazy";
+import { findByNameLazy, findByProps } from "@metro";
+import { clipboard, FluxUtils } from "@metro/common";
+import { ActionSheet, Avatar, Card, IconButton, Text } from "@metro/common/components";
+import { UserStore } from "@metro/common/stores";
 import { fetchTheme, removeTheme, selectTheme, ThemeInfo } from "@plugins/_core/painter/themes";
+import { ColorManifest, RainColorManifest, ThemeManifest } from "@plugins/_core/painter/themes/types";
 import React, { ComponentProps, useEffect, useState } from "react";
-import { ScrollView, TouchableOpacity,View } from "react-native";
+import { ScrollView, View } from "react-native";
+
+const showUserProfileActionSheet = findByNameLazy("showUserProfileActionSheet");
+const { getUser: maybeFetchUser } = lazyDestructure(() => findByProps("getUser", "fetchProfile"));
 
 interface ThemeInfoActionSheetProps {
-  theme: ThemeInfo;
-  navigation: any;
+    theme: ThemeInfo;
+    navigation: any;
 }
 
 function ThemeInfoIconButton(props: ComponentProps<typeof IconButton>) {
@@ -25,35 +32,65 @@ function ThemeInfoIconButton(props: ComponentProps<typeof IconButton>) {
     return <IconButton {...props} label={props.label} />;
 }
 
-// theme title component for header
+function AuthorCard({ title, authors }: { title: string; authors: { name: string; id: bigint }[] }) {
+    if (!authors?.length) return null;
+
+    const users: any[] = FluxUtils.useStateFromStoresArray([UserStore], () => {
+        authors.forEach(a => a.id && maybeFetchUser(a.id));
+        return authors.map(a => UserStore.getUser(a.id));
+    });
+
+    return (
+        <Card>
+            <Text
+                variant="text-md/semibold"
+                style={{
+                    marginBottom: 8,
+                    color: semanticColors.MOBILE_TEXT_HEADING_PRIMARY,
+                }}
+            >
+                {title}
+            </Text>
+            <View style={{ gap: 3 }}>
+                {authors.map((author, index) => (
+                    <View
+                        key={index}
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 8,
+                            backgroundColor: semanticColors.BACKGROUND_TERTIARY,
+                            paddingVertical: 6,
+                            paddingHorizontal: 12,
+                            borderRadius: 8,
+                        }}
+                    >
+                        <Avatar
+                            size="small"
+                            user={users[index]}
+                        />
+                        <Text
+                            variant="text-md/medium"
+                            onPress={() => showUserProfileActionSheet({ userId: author.id })}
+                        >
+                            {author.name}
+                        </Text>
+                    </View>
+                ))}
+            </View>
+        </Card>
+    );
+}
+
 function TitleComponent({ theme }: { theme: ThemeInfo }) {
-    const { authors } = theme.data;
+    const manifest = theme.data as ColorManifest;
+    const isSpec3 = manifest.spec === 3;
+    const display = isSpec3 ? (manifest as RainColorManifest).display : (manifest as ThemeManifest);
+    const name = display?.name;
 
     return (
         <View style={{ gap: 4 }}>
-            <View>
-                <Text variant="heading-xl/semibold">{theme.data.name}</Text>
-            </View>
-            <View style={{ flexDirection: "row", flexShrink: 1 }}>
-                {authors && authors.length > 0 && (
-                    <TouchableOpacity
-                        style={{
-                            flexDirection: "row",
-                            gap: 8,
-                            alignItems: "center",
-                            paddingVertical: 4,
-                            paddingHorizontal: 8,
-                            backgroundColor: "#00000016",
-                            borderRadius: 32,
-                        }}
-                        disabled={!authors.some(a => a.id)}
-                    >
-                        <Text variant="text-md/medium">
-                            {Strings.AUTHOR_BY} {authors.map(a => a.name).join(", ")}
-                        </Text>
-                    </TouchableOpacity>
-                )}
-            </View>
+            <Text variant="heading-xl/semibold">{name}</Text>
         </View>
     );
 }
@@ -121,21 +158,27 @@ export default function ThemeInfoActionSheet({
         });
     };
 
+    const manifest = themeState.data as ColorManifest;
+    const isSpec3 = manifest.spec === 3;
+    const display = isSpec3 ? (manifest as RainColorManifest).display : (manifest as ThemeManifest);
+    const description = display?.description;
+    const authors = display?.authors || themeState.data.authors;
+
     return (
         <ActionSheet>
-            <ScrollView contentContainerStyle={{ gap: 12, marginBottom: 12 }}>
+            <ScrollView contentContainerStyle={{ gap: 12, marginBottom: 12, paddingTop: 16 }}>
                 <View
                     style={{
                         flexDirection: "row",
-                        alignItems: "center",
+                        alignItems: "flex-start",
                         gap: 8,
-                        paddingVertical: 24,
                         justifyContent: "space-between",
                         width: "100%",
                     }}
                 >
                     <TitleComponent theme={themeState} />
                 </View>
+
                 <View
                     style={{
                         flexDirection: "row",
@@ -166,6 +209,7 @@ export default function ThemeInfoActionSheet({
                         onPress={removeThemeHandler}
                     />
                 </View>
+
                 <Card>
                     <Text
                         variant="text-md/semibold"
@@ -177,9 +221,13 @@ export default function ThemeInfoActionSheet({
                         {Strings.DESCRIPTION}
                     </Text>
                     <Text variant="text-md/medium">
-                        {themeState.data.description || Strings.NO_DESCRIPTION}
+                        {description}
                     </Text>
                 </Card>
+
+                {authors?.length ? (
+                    <AuthorCard title="Themers" authors={authors} />
+                ) : null}
             </ScrollView>
         </ActionSheet>
     );

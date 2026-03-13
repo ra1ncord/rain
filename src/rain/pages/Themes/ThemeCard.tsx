@@ -3,7 +3,7 @@ import { showSheet } from "@api/ui/sheets";
 import { navigation } from "@metro/common";
 import { applyMonetTheme } from "@plugins/_core/painter/monet";
 import { ThemeInfo,useThemes } from "@plugins/_core/painter/themes";
-import { ColorManifest } from "@plugins/_core/painter/themes/types";
+import { ColorManifest, RainColorManifest, ThemeManifest } from "@plugins/_core/painter/themes/types";
 import AddonCard, { CardWrapper } from "@rain/pages/Addon/AddonCard";
 import * as React from "react";
 
@@ -32,11 +32,12 @@ export default function ThemeCard({ item: theme }: CardWrapper<ThemeInfo>) {
 
     if (removed) return null;
 
-    const { authors } = theme.data;
     const manifest = theme.data as ColorManifest;
     const isSpec3 = manifest.spec === 3;
-    const name = isSpec3 ? (theme.data as any).display?.name : (theme.data as any).name;
-    const description = isSpec3 ? (theme.data as any).display?.description : (theme.data as any).description;
+    const display = isSpec3 ? (manifest as RainColorManifest).display : (manifest as ThemeManifest);
+    const authors = display?.authors;
+    const name = display?.name;
+    const description = display?.description;
 
     return (
         <AddonCard
