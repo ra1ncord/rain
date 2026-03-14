@@ -16,10 +16,10 @@ const useStyles = createStyles({
         fontSize: 12,
         textAlignVertical: "center",
         backgroundColor: semanticColors.BACKGROUND_SECONDARY,
-        color: semanticColors.HEADER_PRIMARY,
+        color: semanticColors.TEXT_DEFAULT,
         borderWidth: 1,
         borderRadius: 12,
-        borderColor: semanticColors.BACKGROUND_TERTIARY,
+        borderColor: semanticColors.BACKGROUND_SECONDARY_ALT,
         padding: 10,
     },
 });
