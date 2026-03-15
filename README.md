@@ -11,7 +11,9 @@
   ![Codeberg Last Commit](https://img.shields.io/gitea/last-commit/raincord/rain?gitea_url=https%3A%2F%2Fwww.codeberg.org&logo=codeberg&logoColor=%23ffffffff)
 </div>
 
-## Install Rain (Rain is currently not released, the manager wont do anything)
+## Install Rain
+> [!NOTE]
+> rain is currently not released, the installers below won't do anything.
 
 ### Android
 

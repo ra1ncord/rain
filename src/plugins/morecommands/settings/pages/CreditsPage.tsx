@@ -20,12 +20,6 @@ export default function CreditsPage() {
             github: "https://github.com/jdev082",
         },
         {
-            command: "List Commands",
-            author: "Kitomanari",
-            avatar: "https://github.com/Kitosight.png",
-            github: "https://github.com/Kitosight",
-        },
-        {
             command: "PetPet",
             author: "wolfieeee",
             avatar: "https://github.com/WolfPlugs.png",
