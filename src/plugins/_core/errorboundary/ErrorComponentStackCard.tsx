@@ -20,7 +20,7 @@ export default function ErrorComponentStackCard(props: {
     }
 
     return <Card>
-        <View style={{ gap: 8, paddingBottom: 60}}>
+        <View style={{ gap: 8, paddingBottom: 60 }}>
             <Text variant="heading-lg/bold">
                     Component Stack
             </Text>
