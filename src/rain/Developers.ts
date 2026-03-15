@@ -139,5 +139,9 @@ export const Contributors = {
     Fiery: {
         name: "Fiery",
         id: 890228870559698955n,
+    },
+    mystravil: {
+        name: "MYSTRAVIL",
+        id: 319928470849454080n,
     }
 } satisfies Record<string, developer>;
