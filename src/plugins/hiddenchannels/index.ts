@@ -11,21 +11,33 @@ import Settings from "./settings";
 import { hiddenChannelsSettings } from "./storage";
 
 const Permissions = findByProps("getChannelPermissions", "can");
-const { ChannelTypes } = findByProps("ChannelTypes");
-const { getChannel } = findByProps("getChannel") || findByName("getChannel", false);
+const ChannelTypesModule = findByProps("ChannelTypes") ?? {};
+const ChannelTypes = ChannelTypesModule.ChannelTypes ?? {};
+const getChannelModule = findByProps("getChannel") || findByName("getChannel", false);
+const getChannel = getChannelModule?.getChannel ?? getChannelModule;
 
-const skipChannels = [ChannelTypes.DM, ChannelTypes.GROUP_DM, ChannelTypes.GUILD_CATEGORY];
+const skipChannels = [ChannelTypes?.DM, ChannelTypes?.GROUP_DM, ChannelTypes?.GUILD_CATEGORY].filter(Boolean);
 
+// Store original can function to avoid recursion
+const originalCan = Permissions?.can;
 
-
-function isHidden(channel: any | undefined) {
-    if (channel === undefined) return false;
-    if (typeof channel === "string") channel = getChannel(channel);
+function isHidden(channel: any): boolean {
+    if (!channel) return false;
+    if (typeof channel === "string") {
+        if (!getChannel) return false;
+        channel = getChannel(channel);
+    }
     if (!channel || skipChannels.includes(channel.type)) return false;
-    channel.realCheck = true;
-    const res = !Permissions.can(constants.Permissions.VIEW_CHANNEL, channel);
-    delete channel.realCheck;
-    return res;
+
+    try {
+        if (originalCan) {
+            const res = !originalCan(constants.Permissions.VIEW_CHANNEL, channel);
+            return res;
+        }
+    } catch {
+        return false;
+    }
+    return false;
 }
 
 const unpatches: (() => void)[] = [];
@@ -43,82 +55,104 @@ export default definePlugin({
     version: "1.0.0",
 
     start() {
-        const ChannelMessages = findByProps("ChannelMessages") || findByName("ChannelMessages", false);
-        if (!ChannelMessages) {
-            console.error("Hidden Channels plugin: 'ChannelMessages' module not found.");
-            return () => { };
+        // Patch Permissions.can to bypass hidden channel checks
+        if (Permissions && originalCan) {
+            unpatches.push(
+                after("can", Permissions, (args: any[], res: any) => {
+                    const permID = args[0];
+                    const channel = args[1];
+
+                    // Only bypass for VIEW_CHANNEL permission
+                    if (permID === constants.Permissions.VIEW_CHANNEL && channel) {
+                        // Check if channel is hidden
+                        if (isHidden(channel)) {
+                            return true;
+                        }
+                    }
+                    return res;
+                })
+            );
         }
 
-        unpatches.push(
-            after("can", Permissions, ([permID, channel], res) => {
-                // console.log("[HiddenChannels] Permissions.can called " + (!channel?.realCheck && permID === constants.Permissions.VIEW_CHANNEL));
-                if (!channel?.realCheck && permID === constants.Permissions.VIEW_CHANNEL) return true;
-                return res;
-            })
-        );
-
+        // Patch navigation to show popup for hidden channels
         const transitionToGuild = findByProps("transitionToGuild");
-        if (transitionToGuild) {
+        if (transitionToGuild && getChannel) {
             for (const key of Object.keys(transitionToGuild)) {
                 // Yes, all of them need to be patched. No, I don't know why. The key that's actually responsible is 'forward'
                 if (typeof transitionToGuild[key] === "function") {
                     unpatches.push(
-                        instead(key, transitionToGuild, (args, orig) => {
-                            if (typeof args[0] === "string") {
-                                const pathMatch = args[0].match(/(\d+)$/);
-                                if (pathMatch?.[1]) {
-                                    const channelId = pathMatch[1];
-                                    const channel = getChannel(channelId);
-                                    if (channel && isHidden(channel)) {
-                                        // console.log(key.toString())
-                                        if (hiddenChannelsSettings.showPopup) {
-                                            showConfirmationAlert({
-                                                title: "This channel is hidden.",
-                                                content: React.createElement(AlertContent, { channel }),
-                                                confirmText: "View Anyway",
-                                                cancelText: "Cancel",
-                                                onConfirm: () => { return orig(...args); },
-                                            });
-                                        } else { return orig(...args); }
-                                        return {};
+                        instead(key, transitionToGuild, (args: any[], orig: Function) => {
+                            try {
+                                if (typeof args[0] === "string") {
+                                    const pathMatch = args[0].match(/(\d+)$/);
+                                    if (pathMatch?.[1]) {
+                                        const channelId = pathMatch[1];
+                                        const channel = getChannel(channelId);
+                                        if (channel && isHidden(channel)) {
+                                            if (hiddenChannelsSettings.showPopup) {
+                                                showConfirmationAlert({
+                                                    title: "This channel is hidden.",
+                                                    content: React.createElement(AlertContent, { channel }),
+                                                    confirmText: "View Anyway",
+                                                    cancelText: "Cancel",
+                                                    onConfirm: () => { orig(...args); },
+                                                });
+                                                return;
+                                            } else {
+                                                return orig(...args);
+                                            }
+                                        }
                                     }
                                 }
+                            } catch (e) {
+                                console.error("[HiddenChannels] Error in transitionToGuild patch:", e);
                             }
                             return orig(...args);
                         })
                     );
                 }
             }
-        } else {
-            console.warn("[HiddenChannels] transitionToGuild not found.");
         }
 
+        // Show lock icon on hidden channels
         const ChannelInfo = findByName("ChannelInfo", false);
         if (ChannelInfo && hiddenChannelsSettings.showIcon) {
             unpatches.push(
-                after("default", ChannelInfo, ([{ channel }], ret) =>
-                    React.createElement(
-                        React.Fragment,
-                        {},
-                        channel && isHidden(channel)
-                            ? React.createElement(
-                                RN.Image,
-                                {
-                                    source: findAssetId("ic_lock"),
-                                    style: { width: 20, height: 20, marginRight: 4 },
-                                }
-                            )
-                            : null,
-                        ret,
-                    )
-                )
+                after("default", ChannelInfo, (args: any[], ret: any) => {
+                    try {
+                        const channel = args[0]?.channel;
+                        if (channel && isHidden(channel)) {
+                            return React.createElement(
+                                React.Fragment,
+                                {},
+                                React.createElement(
+                                    RN.Image,
+                                    {
+                                        source: findAssetId("ic_lock"),
+                                        style: { width: 20, height: 20, marginRight: 4 },
+                                    }
+                                ),
+                                ret,
+                            );
+                        }
+                    } catch (e) {
+                        console.error("[HiddenChannels] Error in ChannelInfo patch:", e);
+                    }
+                    return ret;
+                })
             );
         }
-
     },
 
     stop() {
-        for (const unpatch of unpatches) unpatch();
+        for (const unpatch of unpatches) {
+            try {
+                unpatch();
+            } catch (e) {
+                console.error("[HiddenChannels] Error during unpatch:", e);
+            }
+        }
+        unpatches.length = 0;
     },
     settings: Settings,
 });
