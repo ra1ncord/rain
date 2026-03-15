@@ -171,13 +171,13 @@ export default function PluginCard({
                     actions={
                         <AlertActions>
                             <AlertActionButton
-                                text="Restart Now"
+                                text={Strings.RESTART_NOW}
                                 variant="primary"
                                 onPress={() => {
                                     BundleUpdaterManager.reload();
                                 }}
                             />
-                            <AlertActionButton text="Later" variant="secondary" />
+                            <AlertActionButton text={Strings.RESTART_LATER} variant="secondary" />
                         </AlertActions>
                     }
                 />,

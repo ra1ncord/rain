@@ -1,5 +1,6 @@
 import { findAssetId } from "@api/assets";
 import { patchAssets } from "@api/assets/patches";
+import { getDebugInfo } from "@api/debug";
 import { useSettings } from "@api/settings";
 import { RainIcon } from "@assets";
 import { findByPropsLazy } from "@metro";
@@ -9,9 +10,12 @@ import { Strings } from "@rain/i18n";
 import { version } from "rain-build-info";
 import React, { lazy } from "react";
 import type { ImageURISource } from "react-native";
+import { Image } from "react-native";
 
 import { patchTabsUI } from "./patches/tabs";
 import settings from "./settings";
+import { resolveSemanticColor, semanticColors } from "@api/ui/components/color";
+import { checkForUpdate } from "@rain/pages/Rain/Updater";
 
 export default definePlugin({
     name: Strings.PLUGIN__CORE_SETTINGS,
@@ -37,7 +41,10 @@ function initSettings() {
                 title: () => Strings.RAIN,
                 icon: { uri: RainIcon },
                 render: () => import("@rain/pages/Rain"),
-                useTrailing: () => `(${version})`
+                useTrailing: () => {
+                    if (checkForUpdate()) return <Image source={findAssetId("ic_warning_24px")} style={{ width: 26, height: 26, tintColor: resolveSemanticColor(semanticColors.STATUS_WARNING) }} />;
+                    return `(${version})`;
+                }
             },
             {
                 key: "RAIN_PLUGINS",

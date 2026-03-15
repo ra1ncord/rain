@@ -5,6 +5,7 @@ import { Codeblock, ErrorBoundary } from "@api/ui/components";
 import { createStyles } from "@api/ui/styles";
 import { tokens } from "@metro/common";
 import { Button, Card, SafeAreaProvider, SafeAreaView, Text } from "@metro/common/components";
+import { checkForUpdate, downloadUpdate } from "@rain/pages/Rain/Updater";
 import { ScrollView, View } from "react-native";
 
 import ErrorComponentStackCard from "./ErrorComponentStackCard";
@@ -38,7 +39,7 @@ export default function ErrorBoundaryScreen(props: {
                     <Text variant="text-md/normal">A crash occurred while rendering a component. This could be caused by Rain or Discord itself.</Text>
                     <Text variant="text-sm/normal" color="text-muted">{debugInfo.os.name}; {debugInfo.discord.build} ({debugInfo.discord.version}); {debugInfo.rain.version}</Text>
                 </View>
-                <ScrollView fadingEdgeLength={56} contentContainerStyle={{ gap: 12 }} style={{ paddingTop: 30}}>
+                <ScrollView fadingEdgeLength={56} contentContainerStyle={{ gap: 12 }} style={{ paddingTop: 30 }}>
                     <Codeblock selectable={true}>{props.error.message}</Codeblock>
                     {hasStack(props.error) && <ErrorStackCard error={props.error} />}
                     {isComponentStack(props.error) ? <ErrorComponentStackCard componentStack={props.error.componentStack} /> : null}
@@ -46,6 +47,7 @@ export default function ErrorBoundaryScreen(props: {
                 <Card style={{ gap: 6 }}>
                     <Button text="Reload Discord" onPress={() => BundleUpdaterManager.reload()} />
                     {!safeMode && <Button text="Reload in Safe Mode" onPress={() => updateSettings({ safeMode: true })} />}
+                    {checkForUpdate() && <Button text="Download latest Rain update" onPress={() => { downloadUpdate(); BundleUpdaterManager.reload(); }} />}
                     <Button variant="destructive" text="Retry Render" onPress={() => props.rerender()} />
                 </Card>
             </SafeAreaView>

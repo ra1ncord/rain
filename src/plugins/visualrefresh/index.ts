@@ -3,7 +3,7 @@ import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
 
 const ExperimentManager = findByProps("overrideBucket");
-const EXPERIMENT_ID = "2026-01-you-bar";
+const EXPERIMENT_ID = "2026-02-mobile-visual-refresh";
 
 // this plugin is also kinda a demo on how to override apex experiments :P
 

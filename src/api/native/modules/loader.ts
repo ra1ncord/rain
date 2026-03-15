@@ -19,7 +19,7 @@ export async function callFunction(module: string, functionName: string, args: u
     }
 
     const promise: InteropReturn = ImageLoader.queryCache([
-        "__pyon_bridge",
+        "__rain_bridge",
         JSON.stringify({ m: module, f: functionName, a: args }),
     ]);
 
