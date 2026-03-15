@@ -1,12 +1,13 @@
 import { findAssetId } from "@api/assets";
 import { patchAssets } from "@api/assets/patches";
-import { getDebugInfo } from "@api/debug";
 import { useSettings } from "@api/settings";
+import { resolveSemanticColor, semanticColors } from "@api/ui/components/color";
 import { RainIcon } from "@assets";
 import { findByPropsLazy } from "@metro";
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
 import { Strings } from "@rain/i18n";
+import { checkForUpdate } from "@rain/pages/Rain/Updater";
 import { version } from "rain-build-info";
 import React, { lazy } from "react";
 import type { ImageURISource } from "react-native";
@@ -14,8 +15,6 @@ import { Image } from "react-native";
 
 import { patchTabsUI } from "./patches/tabs";
 import settings from "./settings";
-import { resolveSemanticColor, semanticColors } from "@api/ui/components/color";
-import { checkForUpdate } from "@rain/pages/Rain/Updater";
 
 export default definePlugin({
     name: Strings.PLUGIN__CORE_SETTINGS,

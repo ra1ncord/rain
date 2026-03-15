@@ -1,15 +1,15 @@
 import { findAssetId } from "@api/assets";
 import { getDebugInfo } from "@api/debug";
+import { BundleUpdaterManager } from "@api/native/modules";
 import UpdateModule from "@api/native/modules/update";
-import { CODEBERG } from "@lib/info";
-import { Strings } from "@i18n";
+import { useLoaderConfig } from "@api/settings";
+import { openAlert } from "@api/ui/alerts";
 import { CodebergIcon, RainIcon } from "@assets";
+import { Strings } from "@i18n";
+import { CODEBERG } from "@lib/info";
 import { AlertActionButton, AlertActions, AlertModal, Button, Stack, TableRow, TableRowGroup } from "@metro/common/components";
 import { useState } from "react";
 import { Linking, ScrollView, View } from "react-native";
-import { openAlert } from "@api/ui/alerts";
-import { BundleUpdaterManager } from "@api/native/modules";
-import { useLoaderConfig } from "@api/settings";
 
 let _setIsChecking: ((v: boolean) => void) | null = null;
 
@@ -30,15 +30,15 @@ export function downloadUpdate() {
 
 export function checkForUpdate() {
     const loaderConfig = useLoaderConfig();
-    if (loaderConfig.customLoadUrl.enabled) { return false }
-    
+    if (loaderConfig.customLoadUrl.enabled) { return false; }
+
     const [hasUpdate, setHasUpdate] = React.useState(false);
     React.useEffect(() => {
         fetch("https://codeberg.org/api/v1/repos/raincord/rain/releases?limit=1")
             .then(r => r.json())
             .then(([latestRelease]) => setHasUpdate(!!latestRelease && isNewerVersion(latestRelease.tag_name, getDebugInfo().rain.version)));
     }, []);
-    return(hasUpdate)
+    return(hasUpdate);
 }
 
 export default function Updater() {

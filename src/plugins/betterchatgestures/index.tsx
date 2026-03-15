@@ -2,11 +2,11 @@ import { after, instead } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
 import { findByProps, findByStoreName } from "@metro";
 import { definePlugin } from "@plugins";
+import { Contributors, Developers } from "@rain/Developers";
 
 import Settings from "./components/Settings";
 import { DefaultNativeEvent, DoubleTapStateProps } from "./def";
 import { useBetterChatGesturesSettings } from "./storage";
-import { Contributors, Developers } from "@rain/Developers";
 
 // Try to find modules with fallbacks
 const ChatInputRef = findByProps("insertText");
