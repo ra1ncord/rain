@@ -11,8 +11,27 @@ interface Badge {
     url: string;
 }
 
+interface CustomBadge {
+    label: string;
+    url: string;
+}
+
+interface UserBadgeData {
+    roles?: string[];
+    custom?: CustomBadge[];
+}
+
 interface BadgeData {
-    [userId: string]: Badge[];
+    [userId: string]: UserBadgeData;
+}
+
+interface RoleData {
+    label: string;
+    url: string;
+}
+
+interface RolesData {
+    [roleName: string]: RoleData;
 }
 
 const useBadgesModule = findByNameLazy("useBadges", false);
@@ -53,12 +72,39 @@ export default definePlugin({
             pendingRequests.add(userId);
 
             try {
-                const res = await fetch("https://codeberg.org/raincord/badges/raw/branch/main/badges.json");
-                const data: BadgeData = await res.json();
-                const userBadges = data[userId] || [];
-                badgesCache.set(userId, userBadges);
+                const [badgesRes, rolesRes] = await Promise.all([
+                    fetch("https://codeberg.org/raincord/badges/raw/branch/main/badges.json"),
+                    fetch("https://codeberg.org/raincord/badges/raw/branch/main/assets/roles/roles.json"),
+                ]);
 
-                userBadges.forEach((badge, i) => {
+                const badgesData: BadgeData = await badgesRes.json();
+                const rolesData: RolesData = await rolesRes.json();
+
+                const userBadgeData = badgesData[userId] || { roles: [], custom: [] };
+                
+                const allBadges: Badge[] = [];
+
+                // process role badges
+                if (userBadgeData.roles) {
+                    userBadgeData.roles.forEach((roleName) => {
+                        const roleData = rolesData[roleName];
+                        if (roleData) {
+                            allBadges.push({
+                                label: roleData.label,
+                                url: roleData.url,
+                            });
+                        }
+                    });
+                }
+
+                // process custom badges
+                if (userBadgeData.custom) {
+                    allBadges.push(...userBadgeData.custom);
+                }
+
+                badgesCache.set(userId, allBadges);
+
+                allBadges.forEach((badge, i) => {
                     const badgeId = `rain-${userId}-${i}`;
                     badgeProps.set(badgeId, {
                         id: badgeId,
