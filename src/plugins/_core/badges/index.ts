@@ -81,12 +81,12 @@ export default definePlugin({
                 const rolesData: RolesData = await rolesRes.json();
 
                 const userBadgeData = badgesData[userId] || { roles: [], custom: [] };
-                
+
                 const allBadges: Badge[] = [];
 
                 // process role badges
                 if (userBadgeData.roles) {
-                    userBadgeData.roles.forEach((roleName) => {
+                    userBadgeData.roles.forEach(roleName => {
                         const roleData = rolesData[roleName];
                         if (roleData) {
                             allBadges.push({

@@ -1,10 +1,6 @@
-// TODO:
-// - change the pull URL
-// - remove useless logging
-// - refactor for everything, its a total mess
 import { logger } from "@lib/utils/logger";
 import { FluxDispatcher } from "@metro/common";
-import { findByNameLazy, findByProps } from "@metro/wrappers";
+import { findByNameLazy, findByStoreName } from "@metro/wrappers";
 import { PrimitiveType } from "intl-messageformat";
 
 import langDefault from "./default.json";
@@ -33,16 +29,9 @@ export const Strings = new Proxy(
     },
 ) as Record<I18nKey, string>;
 
-// this is broken as hell, how en-PL??????????? But it somehow works
 const languageMap: Record<string, string> = {
-    "en-PL": "pl",
-    "es-ES": "es",
-    "es-419": "es_419",
-    "zh-TW": "zh-Hant",
-    "zh-CN": "zh-Hans",
-    "pt-PT": "pt",
-    "pt-BR": "pt_BR",
-    "sv-SE": "sv",
+    "nl-NL": "nl",
+    "de-DE": "de",
 };
 
 function fetchLocale(locale: string) {
@@ -50,31 +39,26 @@ function fetchLocale(locale: string) {
 
     logger.log("[i18n] fetchLocale called:", locale, "->", resolvedLocale);
 
-    // don't ask me. It was worse before
     if (!_loadedLocale.has(resolvedLocale)) {
         _loadedLocale.add(resolvedLocale);
 
-        fetch(
-            `https://codeberg.org/raincord/i18n/raw/branch/main/base/${resolvedLocale}.json`,
-        )
-            .then(r => {
-                logger.log("[i18n] Response status:", r.status);
-                return r.json();
-            })
-            .then(strings => {
-                logger.log("[i18n] Loaded strings for:", resolvedLocale);
-                _loadedStrings[resolvedLocale] = strings;
-            })
-            .then(
-                () =>
-                    resolvedLocale === _lastSetLocale &&
-            (_currentLocale = resolvedLocale),
-            )
-            .catch(e =>
-                logger.error(
-                    `[i18n] Error fetching strings for ${resolvedLocale}: ${e}`,
-                ),
-            );
+        if (resolvedLocale.toLowerCase().startsWith("en")) {
+            // use local default.json for english
+            logger.log("[i18n] Using local default.json for English locale");
+            _loadedStrings[resolvedLocale] = langDefault;
+            _currentLocale = resolvedLocale;
+        } else {
+            fetch(`https://codeberg.org/raincord/i18n/raw/branch/main/locales/${resolvedLocale}.json`)
+                .then(r => r.json())
+                .then(strings => {
+                    logger.log("[i18n] Loaded strings for:", resolvedLocale);
+                    _loadedStrings[resolvedLocale] = strings;
+                    _currentLocale = resolvedLocale;
+                })
+                .catch(e =>
+                    logger.error(`[i18n] Error fetching strings for ${resolvedLocale}: ${e}`),
+                );
+        }
     } else {
         _currentLocale = resolvedLocale;
     }
@@ -86,34 +70,33 @@ export function initFetchI18nStrings() {
         attempts++;
 
         try {
-            const intlModule = findByProps("intl");
-            logger.log("[i18n] Attempt", attempts, "- intlModule:", !!intlModule);
+            const LocaleStore = findByStoreName("LocaleStore");
+            logger.log("[i18n] Attempt", attempts, "- LocaleStore:", !!LocaleStore);
 
-            if (!intlModule) return false;
+            // debug log whats in localestore
+            // if (LocaleStore) {
+            //     logger.log("[i18n] LocaleStore on attempt", attempts, ":", LocaleStore);
+            // }
 
-            let locale = intlModule?.systemLocale;
-            logger.log("[i18n] systemLocale (device):", locale);
-
-            if (!locale) {
-                locale = intlModule?.intl?.systemLocale;
-                logger.log("[i18n] intl.systemLocale:", locale);
+            if (!LocaleStore) {
+                logger.log("[i18n] LocaleStore not found yet");
+                return false;
             }
 
-            if (!locale) {
-                locale = intlModule?.initialLocale;
-                logger.log("[i18n] initialLocale (Discord):", locale);
+            if (LocaleStore?._isInitialized !== true) {
+                logger.log("[i18n] LocaleStore not initialized yet");
+                return false;
             }
 
-            if (!locale) {
-                locale = intlModule?.intl?.initialLocale;
-                logger.log("[i18n] intl.initialLocale:", locale);
+            const locale = LocaleStore.locale;
+
+            if (locale) {
+                logger.log("[i18n] Using LocaleStore:", locale);
+                fetchLocale(locale);
+                return true;
             }
 
-            if (!locale) return false;
-
-            logger.log("[i18n] Using locale:", locale);
-            fetchLocale(locale);
-            return true;
+            // return false;
 
         } catch (e) {
             logger.log("[i18n] Error:", e);
@@ -130,20 +113,25 @@ export function initFetchI18nStrings() {
 
     tryTimes();
 
-    const cb = (data: any) => {
-        logger.log("[i18n] Flux event:", data?.type, data);
-        if (data?.locale) {
-            logger.log("[i18n] Found locale in event:", data.locale);
-            fetchLocale(data.locale);
+    const cb = (e: any) => {
+        // skip if the event is still loading or no locale data yet
+        if (e?.settings?.changes?.loading) {
+            logger.log("[i18n] Settings loading, skipping...");
+            return;
+        }
+
+        const locale = e?.settings?.changes?.protoToSave?.localization?.locale?.value;
+        logger.log("[i18n] Locale changed:", locale);
+        if (locale) {
+            logger.log("[i18n] Found locale in event:", locale);
+            fetchLocale(locale);
         }
     };
 
-    FluxDispatcher.subscribe("I18N_LOAD_SUCCESS", cb);
-    FluxDispatcher.subscribe("I18N_LOADED", cb);
+    FluxDispatcher.subscribe("USER_SETTINGS_PROTO_UPDATE_EDIT_INFO", cb);
 
     return () => {
-        FluxDispatcher.unsubscribe("I18N_LOAD_SUCCESS", cb);
-        FluxDispatcher.unsubscribe("I18N_LOADED", cb);
+        FluxDispatcher.unsubscribe("USER_SETTINGS_PROTO_UPDATE_EDIT_INFO", cb);
     };
 }
 type FormatStringRet<T> = T extends PrimitiveType
