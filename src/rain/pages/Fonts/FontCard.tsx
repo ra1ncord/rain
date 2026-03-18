@@ -80,7 +80,7 @@ function FontPreview({ font }: { font: FontDefinition; }) {
         family: fontUri,
         size: fontSize! * PixelRatio.getFontScale(),
         color: TEXT_DEFAULT,
-        text: Strings.PREVIEW_TEXT,
+        text: Strings.GENERAL.CORE.PREVIEW_TEXT,
     }), [fontUri, fontSize, TEXT_DEFAULT]);
 
     if (Platform.OS === "android" && isReady && WebView) {
@@ -102,7 +102,7 @@ function FontPreview({ font }: { font: FontDefinition; }) {
                 {!loaded && (
                     <View style={[styles.full, { justifyContent: "center", alignItems: "center" }]}>
                         <Text color="text-muted" variant="heading-lg/semibold">
-                            {Strings.LOADING}
+                            {Strings.GENERAL.CORE.LOADING}
                         </Text>
                     </View>
                 )}
@@ -113,7 +113,7 @@ function FontPreview({ font }: { font: FontDefinition; }) {
             <View style={{ width: "100%", height: 32 }}>
                 <View style={[styles.full, { justifyContent: "center", alignItems: "center" }]}>
                     <Text color="text-muted" variant="heading-lg/semibold">
-                        {Strings.LOADING_PREVIEW}
+                        {Strings.GENERAL.CORE.LOADING_PREVIEW}
                     </Text>
                 </View>
             </View>
@@ -124,7 +124,7 @@ function FontPreview({ font }: { font: FontDefinition; }) {
             <View style={{ width: "100%", height: 32 }}>
                 <View style={[styles.full, { justifyContent: "center", alignItems: "center" }]}>
                     <Text color="text-muted" variant="heading-lg/semibold">
-                        {Strings.PREVIEW_NOT_SUPPORTED}
+                        {Strings.GENERAL.CORE.PREVIEW_NOT_SUPPORTED_IOS}
                     </Text>
                 </View>
             </View>
@@ -155,7 +155,7 @@ export default function FontCard({ item: font }: CardWrapper<FontDefinition>) {
                             <IconButton
                                 onPress={() => {
                                     navigation.push("RAIN_CUSTOM_PAGE", {
-                                        title: Strings.EDIT_FONT,
+                                        title: Strings.GENERAL.CORE.EDIT_FONT,
                                         render: () => <FontEditor name={font.name} />
                                     });
                                 }}
@@ -167,14 +167,14 @@ export default function FontCard({ item: font }: CardWrapper<FontDefinition>) {
                             <Button
                                 size="sm"
                                 variant={selected ? "secondary" : "primary"}
-                                text={selected ? Strings.UNAPPLY : Strings.APPLY}
+                                text={selected ? Strings.GENERAL.CORE.UNAPPLY : Strings.GENERAL.CORE.APPLY}
                                 onPress={async () => {
                                     await selectFont(selected ? null : font.name);
                                     showConfirmationAlert({
-                                        title: Strings.HOLD_UP,
-                                        content: Strings.RELOAD_DISCORD,
-                                        confirmText: Strings.RELOAD,
-                                        cancelText: Strings.CANCEL,
+                                        title: Strings.GENERAL.CORE.HOLD_UP,
+                                        content: Strings.GENERAL.CORE.RELOAD_DISCORD,
+                                        confirmText: Strings.GENERAL.CORE.RELOAD,
+                                        cancelText: Strings.GENERAL.CORE.CANCEL,
                                         confirmColor: "red",
                                         onConfirm: BundleUpdaterManager.reload
                                     });

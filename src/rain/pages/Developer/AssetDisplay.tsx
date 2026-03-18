@@ -99,7 +99,7 @@ export default function AssetDisplay({ asset }: AssetDisplayProps) {
                                                 color="text-warning"
                                                 style={{ width: "100%", textAlign: "center" }}
                                             >
-                                                {Strings.COULD_NOT_LOAD_PREVIEW} {type.toUpperCase()}.
+                                                {Strings.GENERAL.CORE.COULD_NOT_LOAD_PREVIEW} {type.toUpperCase()}.
                                             </Text>
                                         );
                                     }
@@ -110,19 +110,19 @@ export default function AssetDisplay({ asset }: AssetDisplayProps) {
                                     color="text-danger"
                                     style={{ width: "100%", textAlign: "center" }}
                                 >
-                                    {Strings.ASSET_TYPE} {String(asset.type).toUpperCase()} {Strings.NOT_SUPPORTED_FOR_PREVIEW}
+                                    {Strings.GENERAL.DEVELOPER.ASSET_TYPE} {String(asset.type).toUpperCase()} {Strings.GENERAL.CORE.NOT_SUPPORTED_FOR_PREVIEW}
                                 </Text>
                             )
                         }
                         actions={
                             <Stack>
                                 <AlertActionButton
-                                    text={Strings.COPY_ASSET_NAME}
+                                    text={Strings.GENERAL.DEVELOPER.COPY_ASSET_NAME}
                                     variant="primary"
                                     onPress={() => copyToClipboard(asset.name)}
                                 />
                                 <AlertActionButton
-                                    text={Strings.COPY_ASSET_INDEX}
+                                    text={Strings.GENERAL.DEVELOPER.COPY_ASSET_INDEX}
                                     variant="secondary"
                                     onPress={() => copyToClipboard(asset.id.toString())}
                                 />

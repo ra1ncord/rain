@@ -1,0 +1,664 @@
+{
+    "CORE": {
+        "RESTART_MESSAGE": "This plugin requires a restart to take effect. Do you want to restart now?",
+        "BADGES": {
+            "NAME": "Badges",
+            "DESCRIPTION": "Adds raincord badges to raincord devs and supporters"
+        },
+        "CORECOMMANDS": {
+            "NAME": "Core Commands",
+            "DESCRIPTION": "Provides core commands",
+            "COMMANDS": {
+                "DEBUG": {
+                    "NAME": "Debug",
+                    "DESCRIPTION": "Send debug info about rain to the current channel"
+                },
+                "PLUGINS": {
+                    "NAME": "Plugins",
+                    "DESCRIPTION": "Send your plugin info to the current channel"
+                },
+                "THEMES": {
+                    "NAME": "Themes",
+                    "DESCRIPTION": "Send your theme info to the current channel"
+                }
+            }
+        },
+        "ERRORBOUNDARY": {
+            "NAME": "ErrorBoundary",
+            "DESCRIPTION": "Patches ErrorBoundaries to show recovery options",
+            "UH_OH": "Uh oh.",
+            "CRASHED": "A crash occurred while rendering a component. This could be caused by Rain or Discord itself.",
+            "RELOAD_DISCORD": "Reload Discord",
+            "RELOAD_SAFE_MODE": "Reload in Safe Mode",
+            "DOWNLOAD_RAIN_UPDATE": "Download latest Rain update",
+            "RETRY_RENDER": "Retry Render",
+            "DETAILS": "Details",
+            "SHOW": "Show",
+            "LESS": "Less",
+            "MORE": "More",
+            "COPY": "Copy",
+            "COMPONENT_STACK": "Component Stack",
+            "ERROR": "Error",
+            "CALL_STACK": "Call Stack"
+        },
+        "PAINTER": {
+            "NAME": "Painter",
+            "DESCRIPTION": "Customize Discord's appearance with themes and fonts"
+        },
+        "RAINENHANCEMENTS": {
+            "NAME": "RainEnhancements",
+            "DESCRIPTION": "Combines many plugins into one to improve your experience",
+            "REALMOJI": "Realmoji",
+            "REALMOJI_DESC": "Transform fake emojis into real ones",
+            "REALSTICKER_DESC": "Transform fake stickers into real ones"
+        },
+        "SETTINGS": {
+            "NAME": "Settings",
+            "DESCRIPTION": "Injects the settings menu",
+            "RAIN_POSITIONS": {
+                "TITLE": "Settings Position",
+                "TOP": "At the top of the settings page",
+                "ACCOUNT": "Above Payment Settings",
+                "APPEARANCE": "Above Support Settings"
+            },
+            "INFO_OPTIONS": {
+                "TITLE": "Plugin Card Info",
+                "PRESS": "Open Info on Card Press",
+                "BUTTON": "Show Plugin Info Button"
+            }
+        },
+        "CLOUDSYNC": {
+            "NAME": "CloudSync",
+            "DESCRIPTION": "Sync your plugins, themes, and fonts to the cloud.",
+            "AUTHORIZE_WITH_DISCORD": "Authorize with Discord",
+            "AUTHORIZE_WITH_DISCORD_DESC": "Required to sync your data to the cloud",
+            "AUTHORIZED": "Authorized",
+            "AUTHORIZED_DESC": "You are logged in and ready to sync your data",
+            "AUTHORIZATION_FAILED": "Authorization failed!",
+            "LOG_OUT": "Log out",
+            "LOG_OUT_DESC": "Disconnect your account from Cloud Sync",
+            "SYNC_ACTIONS": "Sync Actions",
+            "SYNC_TO_CLOUD": "Sync to Cloud",
+            "SYNC_TO_CLOUD_DESC": "Upload your current plugins, themes, and fonts",
+            "IMPORT_FROM_CLOUD": "Import from Cloud",
+            "IMPORT_FROM_CLOUD_DESC": "Download and apply your saved data",
+            "IMPORTING_DATA": "Importing data...",
+            "IMPORTING_DATA_SUCCESS": "Imported {plugins} plugins, {themes} themes, and {fonts} fonts.",
+            "SETTINGS": "Settings",
+            "AUTO_SYNC": "Auto Sync",
+            "AUTO_SYNC_DESC": "Automatically sync changes to the cloud",
+            "CUSTOM_HOSTING": "Custom Hosting",
+            "CUSTOM_HOST_URL": "Custom Host URL",
+            "CUSTOM_CLIENT_ID": "Custom Client ID"
+        }
+    },
+    "CUSTOM": {
+        "ACCOUNTSWITCHER": {
+            "NAME": "AccountSwitcher",
+            "DESCRIPTION": "Enables account switcher because discord got rid of experiment"
+        },
+        "ACTIONSHEETFINDER": {
+            "NAME": "ActionSheetFinder",
+            "DESCRIPTION": "Utility plugin to find ActionSheet key of pressed sheet. Mostly used by developers to find action sheet keys.",
+            "SETTINGS": {
+                "ACTIONSHEET_FOUND": "[ActionSheetFinder] Found ActionSheet: ",
+                "LOGS": "Logs",
+                "SEARCH_LOGS": "Search logs...",
+                "NO_MATCHING_LOGS_FOUND": "No matching logs found.",
+                "NO_LOGS_YET": "No logs yet.",
+                "PRESS_ACTIONSHEET": "Press an action sheet to see its key here."
+            }
+        },
+        "ALWAYSTRUST": {
+            "NAME": "AlwaysTrust",
+            "DESCRIPTION": "Disable the untrusted link popup for every link"
+        },
+        "ANIMATEDKEYBOARD": {
+            "NAME": "AnimatedKeyboard",
+            "DESCRIPTION": "Enables animated keyboard via experiment override"
+        },
+        "ANIMATEDPROFILES": {
+            "NAME": "Animated Profiles",
+            "DESCRIPTION": "Custom animated profile pictures and backgrounds using UserPFP and UserBG",
+            "SETTINGS": {
+                "CHOOSE_PREFERED_MODE": "Choose your prefered mode",
+                "PREFERED_MODE_BOTH": "Both Enabled",
+                "PREFERED_MODE_BOTH_DESC": "Use both UserPFP and UserBG",
+                "PREFERED_MODE_USERPFP": "UserPFP Only",
+                "PREFERED_MODE_USERPFP_DESC": "Only use UserPFP",
+                "PREFERED_MODE_USERBG": "UserBG Only",
+                "PREFERED_MODE_USERBG_DESC": "Only use UserBG",
+                "INFO": "Info",
+                "REQUEST_USERBG": "Request your own UserBG",
+                "REQUEST_USERPFP": "Request your own UserPFP",
+                "RELOAD_DB": "Reload DB",
+                "RELOADED_DB": "Reloaded DB"
+            }
+        },
+        "BETTERCHATBUTTONS": {
+            "NAME": "BetterChatButtons",
+            "DESCRIPTION": "Customize all the annoying chat buttons",
+            "SETTINGS": {
+                "HIDE_ACTION_BUTTONS": "Hide Action Buttons",
+                "HIDE_APPS_COMMANDS_BUTTON": "Hide Apps & Commands",
+                "HIDE_GIFT_BUTTON": "Hide Gift",
+                "HIDE_NEW_THREAD_BUTTON": "Hide New Thread",
+                "HIDE_VOICE_MESSAGE_BUTTON": "Hide Voice Message",
+                "FORCE_SHOW_BUTTONS": "Force Show Buttons",
+                "FORCE_SHOW_NEW_THREAD_BUTTON": "Force show New Thread button",
+                "FORCE_SHOW_NEW_THREAD_BUTTON_DESC": "Show the thread button even when you can't start threads, or when the chat input is not focused",
+                "ACTION_BUTTON_COLLAPSE_BEHAVIOR": "Action Buttons Collapse Behavior",
+                "ACTION_BUTTON_NEVER_COLLAPSE": "Never collapse",
+                "ACTION_BUTTON_COLLAPSE_TYPING": "Collapse while typing",
+                "ACTION_BUTTON_COLLAPSE_TYPING_DESC": "Collapse action buttons when you start typing.",
+                "SEND_BUTTON_COLLAPSE_BEHAVIOR": "Action Buttons Collapse Behavior",
+                "SEND_BUTTON_NEVER_COLLAPSE": "Never collapse",
+                "SEND_BUTTONCOLLAPSE_TYPING": "Collapse when no text",
+                "SEND_BUTTONCOLLAPSE_TYPING_DESC": "Collapse the Send button when the message box is empty."
+            }
+        },
+        "BETTERSILENTLEAVE": {
+            "NAME": "SilentLeave",
+            "DESCRIPTION": "Adds a button to leave groups silently.",
+            "LEAVE_SILENTLY": "Leave Silently",
+            "LEAE_GROUP": "Leave Group",
+            "ARE_YOU_SURE": "Are you sure you want to leave this group silently?",
+            "LEFT_SILENTLY": "Left silently",
+            "FAILED_LEAVE_SILENTLY": "Failed to leave silently",
+            "CANCEL": "Cancel"
+        },
+        "BLUETOOTHAUDIOFIX": {
+            "NAME": "BluetoothAudioFix",
+            "DESCRIPTION": "Prevents Discord from enabling handsfree mode while in a call",
+            "NOTHING_ON_IOS": "This plugin does not do anything on iOS"
+        },
+        "BYPASSUPLOADLIMIT": {
+            "NAME": "BypassUploadLimit",
+            "DESCRIPTION": "Bypass Discord's file size limit by uploading to Catbox, Litterbox or Zipline",
+            "UPLOAD_FAILED": "Upload failed",
+            "UPLOAD_FAILED_CONSOLE": "Upload failed — check the console for details.",
+            "SETTINGS": {
+                "DURATIONS": {
+                    "NEVER": "Never (default)",
+                    "1HOUR": "1 hour",
+                    "12HOURS": "12 hours",
+                    "1DAY": "1 day",
+                    "3DAYS": "3 days"
+                },
+                "ZIPLINE_FILENAMES": {
+                    "DATE": "Date (default)",
+                    "RANDOM": "Random",
+                    "UUID": "UUID",
+                    "FILENAME": "File Name",
+                    "GFYCAT": "Gfycat-Style Name"
+                },
+                "UPLOAD_BEHAVIOR": {
+                    "TITLE": "Behavior",
+                    "ALWAYS_UPLOAD": "Always upload",
+                    "ALWAYS_UPLOAD_DESC": "Upload to the service even if under the limit",
+                    "USE_HYPERLINK": "Use hyperlink",
+                    "USE_HYPERLINK_DESC": "Use a markdown hyperlink so the filename is shown in chat"
+                },
+                "UPLOAD_ACTION": {
+                    "TITLE": "Upload Action",
+                    "COPY_LINK": "Copy link to clipboard",
+                    "LINK_COPIED": "Uploaded and link copied to clipboard!",
+                    "INSERT_TO_INPUT": "Insert into input only",
+                    "INSERTED_TO_INPUT": "Link inserted into chat box!",
+                    "INSERTED_TO_INPUT_FALLBACK": "Link inserted into chat box! (fallback)",
+                    "INSERT_TO_INPUT_FAILED": "Could not insert into chat box.",
+                    "INSERT_TO_INPUT_SEND": "Insert into input and send",
+                    "INSERT_TO_INPUT_SENT": "Uploaded and link sent to chat!",
+                    "INSERT_TO_INPUT_SEND_UPLOADED": "Upload succeeded but failed to send message.",
+                    "INSERT_TO_INPUT_SEND_FAILED": "Could not send message to chat.",
+                    "SEND_ON_NEXT_MESSAGE": "Send on next message"
+                },
+                "FILE_HOST": {
+                    "TITLE": "File Host",
+                    "UPLOADING": "Uploading {filesize} to {filehost}",
+                    "CATBOX": {
+                        "NAME": "Catbox",
+                        "DESCRIPTION": "Files are stored permanently, max 200MB",
+                        "USERHASH": "Catbox User Hash",
+                        "USERHASH_DESC": "Your Catbox user hash (optional)"
+                    },
+                    "LITTERBOX": {
+                        "NAME": "Litterbox",
+                        "DESCRIPTION": "Files expire after a set duration, max 1GB",
+                        "EXPIRY": "Litterbox Expiry",
+                        "FILE_TOO_LARGE_LITTERBOX": "File too large — maximum supported size is 1 GB"
+                    },
+                    "UGUU": {
+                        "NAME": "Uguu",
+                        "DESCRIPTION": "Files are stored temporarily, max 128MB, expires in 3h"
+                    },
+                    "ZIPLINE": {
+                        "NAME": "Zipline",
+                        "DESCRIPTION": "Self-hosted file host instance, can be stored permanently or temporarily",
+                        "AUTH_SETTINGS": "Zipline Auth Settings",
+                        "SERVER_URL": "Server URL (e.g. https://your-zipline.com)",
+                        "TOKEN": "Your Zipline Token",
+                        "EXPIRY": "Zipline File Expiry",
+                        "FILENAME": "Zipline File Name"
+                    }
+                },
+                "FILE_SIZES": {
+                    "BYTES": "Bytes",
+                    "KB": "KB",
+                    "MB": "MB",
+                    "GB": "GB",
+                    "TB": "TB"
+                }
+            }
+        },
+        "CHATBOXAVATAR": {
+            "NAME": "ChatboxAvatar",
+            "DESCRIPTION": "Adds your avatar to the chatbox.",
+            "SETTINGS": {
+                "AVATAR_PRESS_ACTION": "Avatar Press Action",
+                "AVATAR_LONG_PRESS_ACTION": "Avatar Long-Press Action",
+                "OPEN_PROFILE": "Open Profile",
+                "OPEN_STATUS_PICKER": "Open Status Picker",
+                "STATUS_ICON": "Status Icon",
+                "TRUE": "True",
+                "FALSE": "False",
+                "COLLAPSE_TYPING": "Collapse While Typing",
+                "COLLAPSE_AVATAR_TYPING": "Collapse avatar while typing",
+                "ALWAYS_SHOW_AVATAR": "Always show avatar"
+            }
+        },
+        "CHATBUBBLES": {
+            "NAME": "ChatBubbles",
+            "DESCRIPTION": "Adds customizable chat bubbles to the chat, similar to Flowercord",
+            "SETTINGS": {
+                "APPEARANCE": "Appearance",
+                "AVATAR_RADIUS": "Avatar Radius",
+                "BUBBLE_RADIUS": "Bubble Radius",
+                "BUBBLE_COLOR": "Bubble Color",
+                "BUBBLE_COLOR_DESC": "#rrggbb or leave empty for theme default"
+            }
+        },
+        "CLEANURLS": {
+            "NAME": "CleanURLs",
+            "DESCRIPTION": "Remove tracking parameters and redirect wrappers from URLs",
+            "SETTINGS": {
+                "TITLE": "Settings",
+                "REMOVE_LINK_WRAPPING": "Remove link wrapping",
+                "REMOVE_REF_PARAMS": "Remove referral parameters",
+                "VISIT_SOURCE": "Visit source"
+            }
+        },
+        "CLEARMENUS": {
+            "NAME": "ClearMenus",
+            "DESCRIPTION": "Hide unwanted buttons and settings",
+            "SETTINGS": {
+                "MESSAGE_ACTION_SHEET": "Message Action Sheet",
+                "MANAGE_BUTTONS": "Manage Buttons",
+                "CATEGORIES": {
+                    "ACCOUNT": "Account",
+                    "BILLING": "Billing",
+                    "APP": "App",
+                    "SUPPORT": "Support",
+                    "WHATS_NEW": "What's New",
+                    "DEVELOPER": "Developer",
+                    "BUILD": "Build",
+                    "STAFF": "Staff"
+                },
+                "MESSAGE_ACTION_LABELS": {
+                    "REPLY": "Reply",
+                    "FORWARD": "Forward",
+                    "COPY_TEXT": "Copy Text",
+                    "COPY_MESSAGE_LINK": "Copy Message Link",
+                    "COPY_ID": "Copy ID",
+                    "MARK_UNREAD": "Mark Unread",
+                    "PIN_MESSAGE": "Pin Message",
+                    "UNPIN_MESSAGE": "Unpin Message",
+                    "ADD_REACTION": "Add Reaction",
+                    "CREATE_THREAD": "Create Thread",
+                    "OPEN_THREAD": "Open Thread",
+                    "APPS": "Apps",
+                    "MESSAGE": "Message",
+                    "MENTION": "Mention",
+                    "EDIT_MESSAGE": "Edit Message",
+                    "REMOVE_EMBED": "Remove Embed",
+                    "REPORT": "Report",
+                    "DELETE_MESSAGE": "Delete Message",
+                    "SHARE": "Share",
+                    "SAVE_IMAGE": "Save Image",
+                    "SAVE_VIDEO": "Save Video",
+                    "SAVE_STICKER": "Save Sticker",
+                    "DOWNLOAD": "Download"
+                },
+                "PAGES": {
+                    "ACCOUNT": {
+                        "TITLE": "Account Settings",
+                        "HIDE_ALL": "Hide All",
+                        "HIDE_ACCOUNT": "Hide Account",
+                        "HIDE_CONTENT_SOCIAL": "Hide Content & Social",
+                        "HIDE_DATA_PRIVACY": "Hide Data & Privacy",
+                        "HIDE_FAMILY_CENTER": "Hide Family Center",
+                        "HIDE_AUTHORIZED_APPS": "Hide Authorized Apps",
+                        "HIDE_DEVICES": "Hide Devices",
+                        "HIDE_CONNECTIONS": "Hide Connections",
+                        "HIDE_CLIPS": "Hide Clips",
+                        "HIDE_SCAN_QR_CODE": "Hide Scan QR Code"
+                    },
+                    "APP": {
+                        "TITLE": "App Settings",
+                        "HIDE_ALL": "Hide All",
+                        "HIDE_VOICE": "Hide Voice",
+                        "HIDE_APPEARANCE": "Hide Appearance",
+                        "HIDE_ACCESSIBILITY": "Hide Accessibility",
+                        "HIDE_LANGUAGE": "Hide Language",
+                        "HIDE_CHAT": "Hide Chat",
+                        "HIDE_WEB_BROWSER": "Hide Web Browser",
+                        "HIDE_NOTIFICATIONS": "Hide Notifications",
+                        "HIDE_APP_ICONS": "Hide App Icons",
+                        "HIDE_ADVANCED": "Hide Advanced"
+                    },
+                    "BILLING": {
+                        "TITLE": "Billing Settings",
+                        "HIDE_ALL": "Hide All",
+                        "HIDE_SHOP": "Hide Shop",
+                        "HIDE_QUESTS": "Hide Quests",
+                        "HIDE_MANAGE_NITRO": "Hide Manage Nitro",
+                        "HIDE_SERVER_BOOSTS": "Hide Server Boosts",
+                        "HIDE_NITRO_GIFTING": "Hide Nitro Gifting",
+                        "HIDE_GUILD_ROLE_SUBS": "Hide Guild Role Subscriptions",
+                        "HIDE_PREMIUM_RESTORE_SUB": "Hide Premium Restore Subscription"
+                    },
+                    "BUILD": {
+                        "TITLE": "Build Status",
+                        "HIDE_ALL": "Hide All",
+                        "HIDE_INTERNAL_BUILD_ACTIVE": "Hide Internal Build Active",
+                        "HIDE_INTERNAL_BUILD_UPDATE": "Hide Internal Build Update",
+                        "HIDE_BUILD_OVERRIDE_ACTIVE": "Hide Build Override Active",
+                        "HIDE_EXPERIMENT_OVERRIDE_ACTIVE": "Hide Experiment Override Active"
+                    },
+                    "DEVELOPER": {
+                        "TITLE": "Developer Settings",
+                        "HIDE_ALL": "Hide All",
+                        "HIDE_APP_VERSION": "Hide App Version",
+                        "HIDE_DEVICE_INFO": "Hide Device Info",
+                        "HIDE_COPY_CLIENT_INFO": "Hide Copy Client Info",
+                        "HIDE_VIEW_DEBUG_LOGS": "Hide View Debug Logs",
+                        "HIDE_CACHE_ACTIONS": "Hide Cache Actions",
+                        "HIDE_REACT_COMPILER": "Hide React Compiler",
+                        "HIDE_UPLOAD_INTL_DATA": "Hide Upload Intl Data"
+                    },
+                    "MANAGE_BUTTONS": {
+                        "TITLE": "Manage Buttonss",
+                        "HIDE_LABEL": "Hide {label}",
+                        "ADVANCED": "ADVANCED",
+                        "HIDE_UNKNOWN_BUTTONS": "Hide Unknown Buttons",
+                        "HIDE_UNKNOWN_BUTTONS_DESC": "Hide action sheet rows not in the list above",
+                        "HIDE_CUSTOM_LABELS": "Custom labels to hide (comma-separated)"
+                    },
+                    "STAFF": {
+                        "TITLE": "Staff Settings",
+                        "HIDE_ALL": "Hide All",
+                        "HIDE_SHOW_DEV_WIDGET": "Hide Show Dev Widget",
+                        "HIDE_SHOW_DEV_TOOLS": "Hide Show Dev Tools",
+                        "HIDE_DESIGN_SYSTEMS": "Hide Design Systems"
+                    },
+                    "SUPPORT": {
+                        "TITLE": "Support",
+                        "HIDE_ALL": "Hide All",
+                        "HIDE_SUPPORT_CENTER": "Hide Support Center",
+                        "HIDE_SUBMIT_TICKET": "Hide Submit Ticket",
+                        "HIDE_HELP_ARTICLES": "Hide Help Articles"
+                    },
+                    "WHATS_NEW": {
+                        "TITLE": "What's New",
+                        "HIDE_ALL": "Hide All",
+                        "HIDE_WHATS_NEW": "Hide What's New"
+                    }
+                }
+            }
+        },
+        "DASHLESS": {
+            "NAME": "Dashless",
+            "DESCRIPTION": "Changes dashes in text channel names to spaces"
+        },
+        "DECOR": {
+            "NAME": "Decor",
+            "DESCRIPTION": "Create and use your own custom avatar decorations, or pick your favorite from the presets.",
+            "COPY_DECORATION_HASH": "Copy Decoration Hash",
+            "COPIED_DECORATION_HASH": "Copied Decoration Hash!",
+            "DELETE": "Delete",
+            "CANCEL": "Cancel",
+            "DELETE_DECORATION": "Delete Decoration",
+            "ARE_YOU_SURE": "Are you sure you want to delete {decorationName}?",
+            "ARE_YOU_SURE_THIS_DECORATION": "Are you sure you want to delete this decoration?",
+            "PART_OF_PRESET": "Part of the {presetName} Preset",
+            "CREATED_BY": "Created by ",
+            "YOUR_DECORATIONS": "Your Decorations",
+            "ACTIVE": "Active",
+            "DECORATION_ACTIONS": "Decoration Actions",
+            "REMOVE_DECORATION": "Remove Decoration",
+            "CURRENTLY_USING": "Currently using: {decorationName}",
+            "NO_DECORATION_SELECTED": "No decoration selected",
+            "BROWSER_PRESETS": "Browse Presets",
+            "CURRENT_PRESET": "Current preset: {decorPresetName}",
+            "UNKNOWN": "Unknown",
+            "EXPLORE_DECORATION_PRESETS": "Explore decoration presets",
+            "PRESETS": "Presets",
+            "DECORATION_PENDING_REVIEW": "Decoration Pending Review",
+            "DECORATION_PENDING_REVIEW_DESC": "Your submission is awaiting approval. You cannot submit another until it's reviewed.",
+            "SUBMIT_NEW_DECORATION": "Submit New Decoration",
+            "SUBMIT_NEW_DECORATION_DESC": "Submit your own custom decoration for review",
+            "SUBMIT_A_DECORATION": "Submit a Decoration",
+            "CREATE_DECORATION": "Create Decoration",
+            "IMAGE": "Image",
+            "SELECT_IMAGE": "Select Image",
+            "NO_IMAGE_SELECTED": "No image selected — tap to browse",
+            "FILE_MUST_BE_PNG_OR_APNG": "File must be a PNG or APNG.",
+            "APNG_PREVIEW_NOT_ANIMATED_ON_ANDROID": "APNGs will not animate in the preview on Android.",
+            "DECORATION_NAME": "Decoration Name",
+            "DECORATION_NAME_DESC": "e.g. Companion Dude",
+            "MAKE_SURE_DECORATION_FOLLOWS_GUIDELINES": "Make sure your decoration does not violate [the guidelines](https://github.com/decor-discord/.github/blob/main/GUIDELINES.md) before submitting.",
+            "CREATING": "Creating...",
+            "DECORATION_CREATED_PENDING_REVIEW": "Decoration created and pending review.",
+            "AUTHORIZATION": "Authorization",
+            "AUTHORIZE_WITH_DECOR": "Authorize with Decor",
+            "AUTHORIZED": "Authorized",
+            "AUTHORIZED_DESC": "You are logged in",
+            "LOG_OUT": "Log out",
+            "LOG_OUT_DESC": "Disconnect your account from Decor"
+        },
+        "EXPERIMENTS": {
+            "NAME": "Experiments",
+            "DESCRIPTION": "Enables Discord Staff settings, continue with caution"
+        },
+        "EXPRESSIONUTILS_TODO": {
+            "NAME": "ExpressionUtils",
+            "DESCRIPTION": "Manage emojis and stickers with ease. Adds context menu options to emojis and stickers."
+        },
+        "FAKENITRO": {
+            "NAME": "FakeNitro",
+            "DESCRIPTION": "Gives you Client-Side Nitro",
+            "SETTINGS": {
+                "EMOJI_SIZE": "Emoji Size",
+                "PREVIEW": "Preview",
+                "EMOJIS": "Emojis",
+                "STICKERS": "Stickers",
+                "USE_HYPERLINK_EMOJIS": "Use hyperlinks when sending fake emojis",
+                "USE_HYPERLINK_STICKERS": "Use hyperlinks when sending fake stickers"
+            }
+        },
+        "GLOBALBADGES": {
+            "NAME": "GlobalBadges",
+            "DESCRIPTION": "Display custom badges from various Discord mod clients",
+            "SETTINGS": {
+                "BADGE_DISPLAY": "Badge Display",
+                "LOAD_BADGES_ON_LEFT": "Load badges on left",
+                "LOAD_BADGES_ON_LEFT_DESC": "If enabled, custom badges will load up first than the original badges.",
+                "DISABLE_MOD_BADGES": "Disable Mod Badges",
+                "DISABLE_MOD_BADGES_DESC": "If enabled, it will disable mod client badges but not custom badges.",
+                "DISABLE_CUSTOM_BADGES": "Disable Custom Badges",
+                "DISABLE_CUSTOM_BADGES_DESC": "If enabled, it will disable custom badges but not mod client badges.",
+                "ADD_CUSTOM_BADGE": "Add Custom badges (not affiliated)"
+            }
+        },
+        "HIDDENCHANNELS": {
+            "NAME": "HiddenChannels",
+            "DESCRIPTION": "View hidden channels with permission bypass",
+            "CHANNEL_IS_HIDDEN": "This channel is hidden.",
+            "VIEW_ANYWAY": "View Anyway",
+            "CANCEL": "Cancel",
+            "COPIED_TIMESTAMP": "Copied Timestamp to Clipboard",
+            "NO_TOPIC": "No topic.",
+            "CREATION_DATE": "Creation date:",
+            "LAST_MESSAGE": "Last message",
+            "LAST_PIN": "Last pin:",
+            "OPTIONS": "Options",
+            "SHOW_LOCK_ICON": "Show Lock Icon",
+            "SHOW_LOCK_ICON_DESC": "Show a lock icon to the right of hidden channel names.",
+            "SHOW_POPUP": "Show Popup on Hidden Channels",
+            "SHOW_POPUP_DESC": "Toggle the information popup that appears when selecting hidden channels."
+        },
+        "HIDEBLOCKEDANDIGNOREDMESSAGES": {
+            "NAME": "HideBlockedAndIgnoredMessages",
+            "DESCRIPTION": "A plugin that removes the `X blocked or ignored message/s` prompt and replies to the blocked or ignored messages from chat.",
+            "REMOVE_BLOCKED_MESSAGES": "Remove blocked messages",
+            "REMOVE_IGNORED_MESSAGES": "Remove ignored messages",
+            "REMOVE_REPLIES_TO_MESSAGES": "Remove replies to blocked/ignored users",
+            "REMOVE_REPLIES_TO_MESSAGES_DESC": "Filters messages replying to blocked or ignored users."
+        },
+        "HIDECALLBUTTONS": {
+            "NAME": "HideCallButtons",
+            "DESCRIPTION": "Hides call buttons from dms, user profiles and vcs",
+            "USER_PROFILE": "User Profile",
+            "HIDE_CALL_BUTTON": "Hide call button",
+            "HIDE_VIDEO_BUTTON": "Hide video button",
+            "DM": "DM",
+            "OTHER": "Other",
+            "HIDE_VIDEO_BUTTON_IN_VC": "Hide video button in vc"
+        },
+        "LETITRAIN": {
+            "NAME": "LetItRain",
+            "DESCRIPTION": "rain tomorrow btw",
+            "RAIN_AMOUNT": "Rain Amount",
+            "RAINDROP_SIZE": "Raindrop Size",
+            "TRANSPARENCY": "Transparency",
+            "SPEED_MULTIPLIER": "Speed Multiplier"
+        },
+        "MESSAGELOGGER_WIP": {
+            "NAME": "MessageLogger",
+            "DESCRIPTION": "Prevents deleted messages from being lost by storing them in memory"
+        },
+        "MORECOMMANDS_WIP": {
+            "NAME": "MoreCommands",
+            "DESCRIPTION": "Additional commands for Discord"
+        },
+        "MORECONFIRM": {
+            "NAME": "MoreConfirm",
+            "DESCRIPTION": "Prompts confirmations before making irreversible actions.",
+            "START_A_GROUP_CALL": "Start a group call",
+            "START_A_GROUP_VIDEO_CALL": "Start a group video call",
+            "START_A_CALL_WITH_USER": "Start a call with {username}#{discriminator}?",
+            "START_A_VIDEO_CALL_WITH_USER": "Start a video call with {username}#{discriminator}?",
+            "ARE_YOU_SURE_START_A_GROUP_CALL": "Are you sure you want to start the group call?",
+            "ARE_YOU_SURE_START_A_GROUP_VIDEO_CALL": "Are you sure you want to start the group video call?",
+            "ARE_YOU_SURE_START_A_CALL_WITH_USER": "Are you sure you want to call {username}#{discriminator}?",
+            "ARE_YOU_SURE_START_A_VIDEO_CALL_WITH_USER": "Are you sure you want to video call {username}#{discriminator}?",
+            "YES": "Yes",
+            "CANCEL": "Cancel",
+            "ARE_YOU_SURE_BLOCK_USER": "Are you sure you want to block {username}#{discriminator}?",
+            "ARE_YOU_SURE_FRIEND_USER": "Are you sure you want to friend {username}#{discriminator}?"
+        },
+        "MOYAI": {
+            "NAME": "Moyai",
+            "DESCRIPTION": "Play a sound when 🗿 emoji is sent or when reaction is added.",
+            "BEHAVIOR": "Behavior",
+            "PLAY_ON_REACTIONS": "Play on reactions"
+        },
+        "MULTISCROBBLER_WIP": {
+            "NAME": "MultiScrobbler",
+            "DESCRIPTION": "Show off your music status from Last.fm, Libre.fm, or ListenBrainz on your Discord profile."
+        },
+        "PICTURELINKS": {
+            "NAME": "PictureLinks",
+            "DESCRIPTION": "Allows you to click on profile pictures and banners."
+        },
+        "PLATFORMINDICATORS_WIP": {
+            "NAME": "PlatformIndicators",
+            "DESCRIPTION": "Shows platform indicators on users"
+        },
+        "QUICKDELETE_WIP?": {
+            "NAME": "QuickDelete",
+            "DESCRIPTION": "Automatically confirm delete popups for messages and embeds",
+            "MESSAGES": "Messages",
+            "MESSAGES_DESC": "Deletes messages without confirmation",
+            "EMBEDS": "Embeds",
+            "EMBEDS_DESC": "Deletes embeds without confirmation",
+            "SETTINGS": "Settings"
+        },
+        "REVIEWDB_WIP": {
+            "NAME": "ReviewDB",
+            "DESCRIPTION": "Display and post reviews on user profiles."
+        },
+        "SHOWIMAGELINKS": {
+            "NAME": "ShowImageLinks",
+            "DESCRIPTION": "Shows image links if the message is just a linked image."
+        },
+        "SILLENTTYPING": {
+            "NAME": "SilentTyping",
+            "DESCRIPTION": "Hides your typing status from others"
+        },
+        "STAFFTAGS": {
+            "NAME": "StaffTags",
+            "DESCRIPTION": "Shows extra tags for staff members.",
+            "TAG_STYLE": "Tag Style",
+            "TAG_STYLE_DESC": "Use top role color for tag backgrounds",
+            "WEBHOOK": "WEBHOOK",
+            "OWNER": "OWNER",
+            "ADMIN": "ADMIN",
+            "STAFF": "STAFF",
+            "MOD": "MOD",
+            "VC_MOD": "VC Mod",
+            "CHAT_MOD": "Chat Mod"
+        },
+        "TAPTAP": {
+            "NAME": "TapTap",
+            "DESCRIPTION": "Double-tap others to reply, Double-tap self to edit",
+            "BEHAVIOR": "Behavior",
+            "REPLY_ON_DOUBLE_TAP": "Reply on double-tap",
+            "REPLY_ON_DOUBLE_TAP_DESC": "Creates a pending reply when double-tapping messages",
+            "EDIT_OWN_MESSAGES": "Edit own messages",
+            "EDIT_OWN_MESSAGES_DESC": "Double-tap your own messages to edit",
+            "TAP_USERNAME_TO_MENTION": "Tap username to mention",
+            "TAP_USERNAME_TO_MENTION_DESC": "Tap a username to insert an @mention into the chat input",
+            "OPEN_KEYBOARD_AFTER_ACTION": "Open keyboard after action",
+            "DEBUG": "Debug",
+            "DEBUG_LOGGING": "Debug logging",
+            "DEBUG_LOGGING_DESC": "Log gesture state to console"
+        },
+        "TEXTREPLACE_WIP": {
+            "NAME": "TextReplace",
+            "DESCRIPTION": "Replace text in messages with custom rules"
+        },
+        "TRANSLATOR_WIP": {
+            "NAME": "Translator",
+            "DESCRIPTION": "Translate messages using DeepL or Google Translate"
+        },
+        "VIEWRAW": {
+            "NAME": "ViewRaw",
+            "DESCRIPTION": "View raw message data",
+            "ACTIONS": "Actions",
+            "COPY_RAW_CONTENT": "Copy Raw Content",
+            "COPY_RAW_DATA": "Copy Raw Data",
+            "COPIED_RAW_CONTENT": "Copied content to clipboard",
+            "COPIED_RAW_DATA": "Copied data to clipboard",
+            "VIEW_RAW": "View Raw"
+        },
+        "VISUALREFRESH": {
+            "NAME": "VisualRefresh",
+            "DESCRIPTION": "Enables an experimental new appearance"
+        },
+        "YOUBAR": {
+            "NAME": "YouBar",
+            "DESCRIPTION": "Enables YouBar via experiment override"
+        }
+    }
+}

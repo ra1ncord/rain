@@ -77,7 +77,7 @@ function Authors() {
             style={{ flexDirection: "row", flexWrap: "wrap", flexShrink: 1, gap: 4 }}
         >
             <Text variant="text-sm/semibold" color="text-muted">
-                {Strings.AUTHOR_BY} {authorText}
+                {Strings.GENERAL.CORE.AUTHOR_BY} {authorText}
             </Text>
         </View>
     );
@@ -166,18 +166,18 @@ export default function PluginCard({
             openAlert(
                 "plugin-restart-alert",
                 <AlertModal
-                    title={Strings.RELOAD_DISCORD}
-                    content={Strings.PLUGIN_RESTART_MESSAGE}
+                    title={Strings.GENERAL.CORE.RELOAD_DISCORD}
+                    content={Strings.PLUGINS.CORE.RESTART_MESSAGE}
                     actions={
                         <AlertActions>
                             <AlertActionButton
-                                text={Strings.RESTART_NOW}
+                                text={Strings.GENERAL.CORE.RESTART_NOW}
                                 variant="primary"
                                 onPress={() => {
                                     BundleUpdaterManager.reload();
                                 }}
                             />
-                            <AlertActionButton text={Strings.RESTART_LATER} variant="secondary" />
+                            <AlertActionButton text={Strings.GENERAL.CORE.RESTART_LATER} variant="secondary" />
                         </AlertActions>
                     }
                 />,

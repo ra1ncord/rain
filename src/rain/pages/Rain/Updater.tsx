@@ -49,15 +49,15 @@ export default function Updater() {
     return (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 38 }}>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
-                <TableRowGroup title={Strings.INFO}>
+                <TableRowGroup title={Strings.GENERAL.CORE.INFO}>
                     <TableRow
-                        label={Strings.RAIN}
+                        label={Strings.GENERAL.CORE.RAIN}
                         icon={<TableRow.Icon source={{ uri: RainIcon }} />}
                         trailing={<TableRow.TrailingText text={debugInfo.rain.version} />}
                     />
                     <TableRow
                         arrow
-                        label={Strings.CODEBERG}
+                        label={Strings.GENERAL.CORE.CODEBERG}
                         icon={<TableRow.Icon source={{ uri: CodebergIcon }} />}
                         trailing={<TableRow.TrailingText text="raincord/rain" />}
                         onPress={() => Linking.openURL(CODEBERG)}
@@ -65,7 +65,7 @@ export default function Updater() {
                 </TableRowGroup>
                 {checkForUpdate() && <View style={{ flexShrink: 1 }}>
                     <Button
-                        text={Strings.UPDATE}
+                        text={Strings.GENERAL.CORE.UPDATE}
                         icon={findAssetId("DownloadIcon")}
                         disabled={isCheckingForUpdates}
                         loading={isCheckingForUpdates}
@@ -74,18 +74,18 @@ export default function Updater() {
                             openAlert(
                                 "update-restart-alert",
                                 <AlertModal
-                                    title={Strings.RELOAD_DISCORD}
-                                    content={Strings.UPDATE_RESTART_MESSAGE}
+                                    title={Strings.GENERAL.CORE.RELOAD_DISCORD}
+                                    content={Strings.GENERAL.CORE.UPDATE_RESTART_MESSAGE}
                                     actions={
                                         <AlertActions>
                                             <AlertActionButton
-                                                text={Strings.RESTART_NOW}
+                                                text={Strings.GENERAL.CORE.RESTART_NOW}
                                                 variant="primary"
                                                 onPress={() => {
                                                     BundleUpdaterManager.reload();
                                                 }}
                                             />
-                                            <AlertActionButton text={Strings.RESTART_LATER} variant="secondary" />
+                                            <AlertActionButton text={Strings.GENERAL.CORE.RESTART_LATER} variant="secondary" />
                                         </AlertActions>
                                     }
                                 />,

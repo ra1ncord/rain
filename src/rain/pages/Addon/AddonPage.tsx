@@ -73,7 +73,7 @@ function InputAlert(props: { label: string, fetchFn: (url: string) => Promise<vo
 
     return <AlertModal
         title={props.label}
-        content={Strings.SOURCE_URL_PROMPT}
+        content={Strings.GENERAL.CORE.SOURCE_URL_PROMPT}
         extraContent={
             <Stack style={{ marginTop: -12 }}>
                 <TextInput
@@ -97,7 +97,7 @@ function InputAlert(props: { label: string, fetchFn: (url: string) => Promise<vo
                     <Button
                         size="sm"
                         variant="tertiary"
-                        text={Strings.IMPORT_FROM_CLIPBOARD}
+                        text={Strings.GENERAL.CORE.IMPORT_FROM_CLIPBOARD}
                         icon={findAssetId("ClipboardListIcon")}
                         onPress={() => clipboard.getString().then((str: string) => setValue(str))}
                     />
@@ -109,14 +109,14 @@ function InputAlert(props: { label: string, fetchFn: (url: string) => Promise<vo
                 {/* Manual button as we don't want alert to immediately dismiss when we tap on it */}
                 <Button
                     loading={isFetching}
-                    text={Strings.INSTALL}
+                    text={Strings.GENERAL.CORE.INSTALL}
                     variant="primary"
                     disabled={!value || !isValidHttpUrl(value)}
                     onPress={onConfirmWrapper}
                 />
                 <AlertActionButton
                     disabled={isFetching}
-                    text={Strings.CANCEL}
+                    text={Strings.GENERAL.CORE.CANCEL}
                     variant="secondary"
                 />
             </Stack>
@@ -172,7 +172,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
         if (!props.installAction) return () => { };
         const { label, onPress, fetchFn } = props.installAction;
         if (fetchFn) {
-            openAlert("AddonInputAlert", <InputAlert label={label ?? Strings.INSTALL} fetchFn={fetchFn} />);
+            openAlert("AddonInputAlert", <InputAlert label={label ?? Strings.GENERAL.CORE.INSTALL} fetchFn={fetchFn} />);
         } else {
             onPress?.();
         }
@@ -182,7 +182,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
         if (!props.installBrowserAction) return () => { };
         const { label, onPress, fetchFn } = props.installBrowserAction;
         if (fetchFn) {
-            openAlert("AddonInputAlert", <InputAlert label={label ?? Strings.INSTALL} fetchFn={fetchFn} />);
+            openAlert("AddonInputAlert", <InputAlert label={label ?? Strings.GENERAL.CORE.INSTALL} fetchFn={fetchFn} />);
         } else {
             onPress?.();
         }
@@ -193,20 +193,20 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
             <View style={{ gap: 8, alignItems: "center" }}>
                 <Image source={findAssetId("empty_quick_switcher")!} />
                 <Text variant="text-lg/semibold" color="text-strong">
-                    {Strings.NOTHING_TO_SEE}
+                    {Strings.GENERAL.CORE.NOTHING_TO_SEE}
                 </Text>
             </View>
             {props.installAction && <Button
                 size="lg"
                 icon={findAssetId("CompassIcon")}
                 // @ts-expect-error
-                text={props.installBrowserAction.label ?? Strings.INSTALL}
+                text={props.installBrowserAction.label ?? Strings.GENERAL.CORE.INSTALL}
                 onPress={onInstallBrowserPress}
             />}
             {props.installAction && <Button
                 size="lg"
                 icon={findAssetId("DownloadIcon")}
-                text={props.installAction.label ?? Strings.INSTALL}
+                text={props.installAction.label ?? Strings.GENERAL.CORE.INSTALL}
                 onPress={onInstallPress}
             />}
         </View>;
@@ -248,7 +248,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
                     onPress={() => showSimpleActionSheet({
                         key: "AddonListSortAndFilterOptions",
                         header: {
-                            title: Strings.LIST_OPTIONS,
+                            title: Strings.GENERAL.CORE.LIST_OPTIONS,
                             onClose: () => hideActionSheet("AddonListSortAndFilterOptions"),
                         },
                         options: actionSheetOptions,
@@ -269,7 +269,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
                 ListEmptyComponent={() => <View style={{ gap: 12, padding: 12, alignItems: "center" }}>
                     <Image source={findAssetId("devices_not_found")!} />
                     <Text variant="text-lg/semibold" color="text-normal">
-                        {Strings.COULD_NOT_FIND}
+                        {Strings.GENERAL.CORE.COULD_NOT_FIND}
                     </Text>
                 </View>}
                 contentContainerStyle={{ padding: 8, paddingHorizontal: 12, paddingBottom: 90 }}

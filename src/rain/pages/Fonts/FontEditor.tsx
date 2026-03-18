@@ -18,17 +18,17 @@ const { AlertModal, AlertActionButton } = lazyDestructure(() => findByProps("Ale
 function promptDetachConfirmationForThen(fontName: string | undefined, cb: () => void) {
     const currentFonts = useFonts.getState().fonts;
     if (fontName && currentFonts[fontName].source) openAlert("rain-fonts-detach-source-confirmation", <AlertModal
-        title={Strings.FONTS_DETACH_URL}
-        content={Strings.FONTS_DETACH_URL_DESC}
+        title={Strings.GENERAL.CORE.FONTS_DETACH_URL}
+        content={Strings.GENERAL.CORE.FONTS_DETACH_URL_DESC}
         actions={
             <Stack>
-                <AlertActionButton text={Strings.FONTS_DETACH} variant="destructive" onPress={() => {
+                <AlertActionButton text={Strings.GENERAL.CORE.FONTS_DETACH} variant="destructive" onPress={() => {
                     const font = { ...currentFonts[fontName!] };
                     delete font.source;
                     useFonts.getState().setFont(fontName!, font);
                     cb();
                 }} />
-                <AlertActionButton text={Strings.CANCEL} variant="secondary" />
+                <AlertActionButton text={Strings.GENERAL.CORE.CANCEL} variant="secondary" />
             </Stack>
         }
     />);
@@ -63,7 +63,7 @@ function FontsExtractor({ fonts, setName }: {
         <TextInput
             autoFocus
             size="md"
-            label={Strings.FONT_NAME}
+            label={Strings.GENERAL.CORE.FONT_NAME}
             value={fontName}
             placeholder={fontName || "Whitney"}
             onChange={setFontName}
@@ -76,7 +76,7 @@ function FontsExtractor({ fonts, setName }: {
         <Button
             size="md"
             variant="primary"
-            text={Strings.EXTRACT}
+            text={Strings.GENERAL.CORE.EXTRACT}
             disabled={!fontName}
             onPress={() => {
                 if (!fontName) return;
@@ -111,7 +111,7 @@ function JsonFontImporter({ fonts, setName, setSource }: {
         <TextInput
             autoFocus
             size="md"
-            label={Strings.FONT_LINK}
+            label={Strings.GENERAL.CORE.FONT_LINK}
             value={fontLink}
             placeholder="https://link.to/font/pack.json"
             onChange={setFontLink}
@@ -121,7 +121,7 @@ function JsonFontImporter({ fonts, setName, setSource }: {
         <Button
             size="md"
             variant="primary"
-            text={Strings.IMPORT}
+            text={Strings.GENERAL.CORE.IMPORT}
             disabled={!fontLink || saving}
             loading={saving}
             onPress={() => {
@@ -161,14 +161,14 @@ function EntryEditorActionSheet(props: {
         <TextInput
             autoFocus
             size="md"
-            label={Strings.FAMILY_NAME}
+            label={Strings.GENERAL.CORE.FAMILY_NAME}
             value={familyName}
             placeholder="ggsans-Bold"
             onChange={setFamilyName}
         />
         <TextInput
             size="md"
-            label={Strings.FONT_URL}
+            label={Strings.GENERAL.CORE.FONT_URL}
             value={fontUrl}
             placeholder="https://link.to/the/font.ttf"
             onChange={setFontUrl}
@@ -176,7 +176,7 @@ function EntryEditorActionSheet(props: {
         <Button
             size="md"
             variant="primary"
-            text={Strings.APPLY}
+            text={Strings.GENERAL.CORE.APPLY}
             onPress={() => {
                 delete props.fontEntries[props.name];
                 props.fontEntries[familyName] = fontUrl;
@@ -197,7 +197,7 @@ function promptActionSheet(
             default: () => (
                 <ErrorBoundary>
                     <ActionSheet>
-                        <BottomSheetTitleHeader title={Strings.IMPORT_TITLE} />
+                        <BottomSheetTitleHeader title={Strings.GENERAL.CORE.IMPORT_TITLE} />
                         <Component fonts={fontEntries} {...props} />
                     </ActionSheet>
                 </ErrorBoundary>
@@ -286,23 +286,23 @@ export default function FontEditor(props: {
     return <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 38 }}>
         <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={12}>
             {!props.name
-                ? <TableRowGroup title={Strings.IMPORT}>
+                ? <TableRowGroup title={Strings.GENERAL.CORE.IMPORT}>
                     {Object.keys(currentFonts).length > 0 && <TableRow
-                        label={Strings.EXTRACT_FROM_THEME}
-                        subLabel={Strings.EXTRACT_FROM_THEME_DESC}
+                        label={Strings.GENERAL.CORE.EXTRACT_FROM_THEME}
+                        subLabel={Strings.GENERAL.CORE.EXTRACT_FROM_THEME_DESC}
                         icon={<TableRow.Icon source={findAssetId("HammerIcon")} />}
                         onPress={() => promptActionSheet(FontsExtractor, fontEntries, { setName })}
                     />}
                     <TableRow
-                        label={Strings.IMPORT_ENTRIES_TITLE}
-                        subLabel={Strings.IMPORT_ENTRIES_TITLE_DESC}
+                        label={Strings.GENERAL.CORE.IMPORT_ENTRIES_TITLE}
+                        subLabel={Strings.GENERAL.CORE.IMPORT_ENTRIES_TITLE_DESC}
                         icon={<TableRow.Icon source={findAssetId("LinkIcon")} />}
                         onPress={() => promptActionSheet(JsonFontImporter, fontEntries, { setName, setSource })}
                     />
                 </TableRowGroup>
-                : <TableRowGroup title={Strings.ACTIONS}>
+                : <TableRowGroup title={Strings.GENERAL.CORE.ACTIONS}>
                     <TableRow
-                        label={Strings.REFETCH_FONTS}
+                        label={Strings.GENERAL.CORE.REFETCH_FONTS}
                         icon={<TableRow.Icon source={findAssetId("RetryIcon")} />}
                         onPress={async () => {
                             await updateFont(currentFonts[props.name!]);
@@ -311,7 +311,7 @@ export default function FontEditor(props: {
                     />
                     <TableRow
                         variant="danger"
-                        label={Strings.DELETE_FONT_PACK}
+                        label={Strings.GENERAL.CORE.DELETE_FONT_PACK}
                         icon={<TableRow.Icon variant="danger" source={findAssetId("TrashIcon")} />}
                         onPress={() => removeFont(props.name!).then(() => navigation.goBack())}
                     />
@@ -319,17 +319,17 @@ export default function FontEditor(props: {
             <TextInput
                 size="lg"
                 value={name}
-                label={Strings.FONT_NAME}
+                label={Strings.GENERAL.CORE.FONT_NAME}
                 placeholder="Whitney"
                 onChange={setName}
             />
             {props.name && currentFonts[props.name]?.source && <TextInput
                 size="lg"
                 value={source}
-                label={Strings.FONT_PACK_URL}
+                label={Strings.GENERAL.CORE.FONT_PACK_URL}
                 onChange={setSource}
             />}
-            <TableRowGroup title={Strings.FONT_ENTRIES}>
+            <TableRowGroup title={Strings.GENERAL.CORE.FONT_ENTRIES}>
                 {Object.entries(fontEntries).map(([name, url], index) => {
                     const error = errors?.[index];
 
@@ -367,14 +367,14 @@ export default function FontEditor(props: {
                 })}
                 <TableRow label={<NewEntryRow fontName={props.name} fontEntry={fontEntries} />} />
             </TableRowGroup>
-            {errors && <Text variant="text-sm/medium" color="text-danger">{Strings.SOME_ENTRIES_ERROR}</Text>}
+            {errors && <Text variant="text-sm/medium" color="text-danger">{Strings.GENERAL.CORE.SOME_ENTRIES_ERROR}</Text>}
             <View style={{ flexDirection: "row", justifyContent: "flex-end", bottom: 0, left: 0 }}>
                 <Button
                     size="lg"
                     loading={importing}
                     disabled={importing || !name || Object.keys(fontEntries).length === 0}
                     variant="primary"
-                    text={props.name ? Strings.SAVE : Strings.IMPORT}
+                    text={props.name ? Strings.GENERAL.CORE.SAVE : Strings.GENERAL.CORE.IMPORT}
                     onPress={async () => {
                         if (!name) return;
 

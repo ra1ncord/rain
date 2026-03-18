@@ -8,8 +8,8 @@ import { initMonet } from "./monet";
 import { initThemes } from "./themes";
 
 export default definePlugin({
-    name: Strings.PLUGIN__CORE_PAINTER,
-    description: Strings.PLUGIN__CORE_PAINTER_DESC,
+    name: Strings.PLUGINS.CORE.PAINTER.NAME,
+    description: Strings.PLUGINS.CORE.PAINTER.DESCRIPTION,
     author: [Developers.cocobo1, Contributors.nexpid],
     id: "painter",
     version: "1.0.0",

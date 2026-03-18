@@ -19,8 +19,8 @@ enum Sort {
 }
 
 const SortLabels: Record<Sort, string> = {
-    [Sort.NameAZ]: Strings.SORT_NAME_AZ,
-    [Sort.NameZA]: Strings.SORT_NAME_ZA,
+    [Sort.NameAZ]: Strings.GENERAL.CORE.SORT_NAME_AZ,
+    [Sort.NameZA]: Strings.GENERAL.CORE.SORT_NAME_ZA,
 };
 
 interface Addon {
@@ -60,11 +60,11 @@ function AddonCard({ item, identityKey, installFn, removeFn, isInstalled }: Card
             const id = item[identityKey];
             if (isInstalled) {
                 await removeFn(id);
-                showToast(formatString("REMOVED", { name: item.name }), findAssetId("TrashIcon"));
+                showToast(formatString("GENERAL.CORE.REMOVED", { name: item.name }), findAssetId("TrashIcon"));
             } else {
                 setIsBusy(true);
                 await installFn(item.installUrl);
-                showToast(formatString("INSTALLED", { name: item.name }), findAssetId("CheckIcon"));
+                showToast(formatString("GENERAL.CORE.REMOVED", { name: item.name }), findAssetId("CheckIcon"));
             }
         } catch (e) {
             showToast(e instanceof Error ? e.message : String(e), findAssetId("CircleXIcon-primary"));
@@ -77,9 +77,9 @@ function AddonCard({ item, identityKey, installFn, removeFn, isInstalled }: Card
         const sheetKey = "addon-menu";
         showSheet(sheetKey, () => (
             <ActionSheet>
-                <TableRowGroup title={Strings.INFO}>
+                <TableRowGroup title={Strings.GENERAL.CORE.INFO}>
                     <TableRow
-                        label={Strings.COPY_SOURCE_URL}
+                        label={Strings.GENERAL.CORE.COPY_SOURCE_URL}
                         icon={<TableRow.Icon source={findAssetId("CopyIcon")} />}
                         onPress={() => {
                             clipboard.setString(item.installUrl);
@@ -100,7 +100,7 @@ function AddonCard({ item, identityKey, installFn, removeFn, isInstalled }: Card
                             {item.name}
                         </Text>
                         <Text variant="text-md/semibold" color="text-muted">
-                            by {item.authors?.join(", ") || Strings.UNKNOWN_AUTHOR}
+                            by {item.authors?.join(", ") || Strings.GENERAL.CORE.UNKNOWN_AUTHOR}
                         </Text>
                     </View>
                     <View>
@@ -117,7 +117,7 @@ function AddonCard({ item, identityKey, installFn, removeFn, isInstalled }: Card
                                 icon={findAssetId(isInstalled ? "TrashIcon" : "DownloadIcon")}
                                 loading={isBusy}
                                 disabled={isBusy}
-                                text={isInstalled ? Strings.UNINSTALL : Strings.INSTALL}
+                                text={isInstalled ? Strings.GENERAL.CORE.UNINSTALL : Strings.GENERAL.CORE.INSTALL}
                                 onPress={handleAction}
                             />
                         </Stack>
@@ -149,7 +149,7 @@ export default function AddonBrowser({ type, url, useStore, installFn, removeFn,
         setError(null);
         try {
             const response = await safeFetch(url);
-            if (!response.ok) throw new Error(Strings.FAILED_TO_FETCH);
+            if (!response.ok) throw new Error(Strings.GENERAL.CORE.FAILED_TO_FETCH);
             const data = await response.json();
             const parsed = Array.isArray(data) ? data : (data.fonts || data.themes || []);
             cache.data = parsed;
@@ -178,9 +178,9 @@ export default function AddonBrowser({ type, url, useStore, installFn, removeFn,
     if (error) {
         return (
             <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
-                <Text variant="heading-lg/bold">{formatString("FAILED_TO_LOAD", { type })}</Text>
+                <Text variant="heading-lg/bold">{formatString("GENERAL.CORE.FAILED_TO_LOAD", { type })}</Text>
                 <Text color="text-muted">{error}</Text>
-                <Button size="md" text={Strings.RETRY} onPress={() => fetchAddons(true)} style={{ marginTop: 10 }} />
+                <Button size="md" text={Strings.GENERAL.CORE.RETRY} onPress={() => fetchAddons(true)} style={{ marginTop: 10 }} />
             </View>
         );
     }
@@ -191,7 +191,7 @@ export default function AddonBrowser({ type, url, useStore, installFn, removeFn,
                 <Stack spacing={12}>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                         <Search
-                            placeholder={formatString("SEARCH_PLACEHOLDER", { type })}
+                            placeholder={formatString("GENERAL.CORE.SEARCH_PLACEHOLDER", { type })}
                             onChangeText={setSearchQuery}
                             style={{ flex: 1 }}
                             isRound={true}
@@ -202,7 +202,7 @@ export default function AddonBrowser({ type, url, useStore, installFn, removeFn,
                             icon={findAssetId("MoreVerticalIcon")}
                             onPress={() => showSimpleActionSheet({
                                 key: "SortOptions",
-                                header: { title: Strings.SORT_BY, onClose: () => hideActionSheet("SortOptions") },
+                                header: { title: Strings.GENERAL.CORE.SORT_BY, onClose: () => hideActionSheet("SortOptions") },
                                 options: Object.values(Sort).map(value => ({
                                     label: SortLabels[value],
                                     onPress: () => setSort(value)

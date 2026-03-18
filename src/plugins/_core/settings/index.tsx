@@ -16,8 +16,8 @@ import { patchTabsUI } from "./patches/tabs";
 import settings from "./settings";
 
 export default definePlugin({
-    name: Strings.PLUGIN__CORE_SETTINGS,
-    description: Strings.PLUGIN__CORE_SETTINGS_DESC,
+    name: Strings.PLUGINS.CORE.SETTINGS.NAME,
+    description: Strings.PLUGINS.CORE.SETTINGS.DESCRIPTION,
     author: [Developers.cocobo1],
     id: "settings",
     version: "1.0.0",
@@ -36,7 +36,7 @@ function initSettings() {
         items: [
             {
                 key: "RAIN",
-                title: () => Strings.RAIN,
+                title: () => Strings.GENERAL.CORE.RAIN,
                 icon: { uri: RainIcon },
                 render: () => import("@rain/pages/Rain"),
                 useTrailing: () => {
@@ -46,19 +46,19 @@ function initSettings() {
             },
             {
                 key: "RAIN_PLUGINS",
-                title: () => Strings.PLUGINS,
+                title: () => Strings.GENERAL.CORE.PLUGINS,
                 icon: findAssetId("PuzzlePieceIcon"),
                 render: () => import("@rain/pages/Plugins"),
             },
             {
                 key: "RAIN_THEMES",
-                title: () => Strings.THEMES,
+                title: () => Strings.GENERAL.CORE.THEMES,
                 icon: findAssetId("PaintPaletteIcon"),
                 render: () => import("@rain/pages/Themes"),
             },
             {
                 key: "RAIN_FONTS",
-                title: () => Strings.FONTS,
+                title: () => Strings.GENERAL.CORE.FONTS,
                 icon: findAssetId("LettersIcon"),
                 render: () => import("@rain/pages/Fonts"),
             },
@@ -70,7 +70,7 @@ function initSettings() {
             },
             {
                 key: "RAIN_DEVELOPER",
-                title: () => Strings.DEVELOPER,
+                title: () => Strings.GENERAL.CORE.DEVELOPER,
                 icon: findAssetId("WrenchIcon"),
                 render: () => import("@rain/pages/Developer"),
                 usePredicate: () => {

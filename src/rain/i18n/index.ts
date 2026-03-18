@@ -3,13 +3,27 @@ import { FluxDispatcher } from "@metro/common";
 import { findByNameLazy, findByStoreName } from "@metro/wrappers";
 import { PrimitiveType } from "intl-messageformat";
 
-import langDefault from "./default.json";
+import general from "./default/general.json";
+import plugins from "./default/plugins.json";
+
+const langDefault = {
+    GENERAL: general,
+    PLUGINS: plugins,
+};
 
 const IntlMessageFormat = findByNameLazy(
     "MessageFormat",
 ) as typeof import("intl-messageformat").default;
 
-type I18nKey = keyof typeof langDefault;
+type NestedKeys<T, Prev extends string = ""> = {
+    [K in keyof T]: T[K] extends object
+        ? T[K] extends any[]
+            ? `${Prev}${K & string}`
+            : NestedKeys<T[K], `${Prev}${K & string}.`>
+        : `${Prev}${K & string}`;
+}[keyof T];
+
+type I18nKey = NestedKeys<typeof langDefault>;
 
 let _currentLocale: string | null = null;
 let _lastSetLocale: string | null = null;
@@ -17,17 +31,58 @@ let _lastSetLocale: string | null = null;
 const _loadedLocale = new Set<string>();
 const _loadedStrings = {} as Record<string, typeof langDefault>;
 
-export const Strings = new Proxy(
-    {},
-    {
-        get: (_t, prop: keyof typeof langDefault) => {
-            if (_currentLocale && _loadedStrings[_currentLocale]?.[prop]) {
-                return _loadedStrings[_currentLocale]?.[prop];
+function getNested(
+    obj: any,
+    path: string,
+    fallbackObj?: any
+): any {
+    const parts = path.split(".");
+    let result = obj;
+
+    for (const part of parts) {
+        if (result && part in result) {
+            result = result[part];
+        } else {
+            result = undefined;
+            break;
+        }
+    }
+
+    // treat undefined or empty string as missing
+    if (result === undefined || result === "") {
+        if (fallbackObj) {
+            const fallback = getNested(fallbackObj, path);
+            if (fallback !== undefined && fallback !== "") return fallback;
+        }
+
+        logger.warn(`[i18n] Missing or empty key: ${path}, falling back to path`);
+        return path;
+    }
+
+    return result;
+}
+
+function createProxy(path: string[] = []): any {
+    return new Proxy({}, {
+        get(_target, prop: string) {
+            const newPath = [...path, prop];
+            const value = getNested(
+                _currentLocale ? _loadedStrings[_currentLocale] : {},
+                newPath.join("."),
+                langDefault
+            );
+
+            if (typeof value === "object" && value !== null) {
+                return createProxy(newPath);
             }
-            return langDefault[prop];
-        },
-    },
-) as Record<I18nKey, string>;
+
+            // if somehow still empty string, fallback to path
+            return value || newPath.join(".");
+        }
+    });
+}
+
+export const Strings = createProxy();
 
 const languageMap: Record<string, string> = {
     "nl-NL": "nl",
@@ -42,17 +97,24 @@ function fetchLocale(locale: string) {
     if (!_loadedLocale.has(resolvedLocale)) {
         _loadedLocale.add(resolvedLocale);
 
+        // use local defaults for english
         if (resolvedLocale.toLowerCase().startsWith("en")) {
-            // use local default.json for english
             logger.log("[i18n] Using local default.json for English locale");
             _loadedStrings[resolvedLocale] = langDefault;
             _currentLocale = resolvedLocale;
         } else {
-            fetch(`https://codeberg.org/raincord/i18n/raw/branch/main/locales/${resolvedLocale}.json`)
-                .then(r => r.json())
-                .then(strings => {
+            Promise.all([
+                fetch(`https://codeberg.org/raincord/i18n/raw/branch/main/locales/${resolvedLocale}/general.json`).then(r => r.json()),
+                fetch(`https://codeberg.org/raincord/i18n/raw/branch/main/locales/${resolvedLocale}/plugins.json`).then(r => r.json()),
+            ])
+                .then(([general, plugins]) => {
                     logger.log("[i18n] Loaded strings for:", resolvedLocale);
-                    _loadedStrings[resolvedLocale] = strings;
+
+                    _loadedStrings[resolvedLocale] = {
+                        GENERAL: general,
+                        PLUGINS: plugins,
+                    };
+
                     _currentLocale = resolvedLocale;
                 })
                 .catch(e =>
@@ -140,9 +202,19 @@ type FormatStringRet<T> = T extends PrimitiveType
 
 export function formatString<T = void>(
     key: I18nKey,
-    val: Record<string, T>,
+    val?: Record<string, T>
 ): FormatStringRet<T> {
-    const str = Strings[key];
-    // @ts-ignore
-    return new IntlMessageFormat(str).format(val);
+    const str = getNested(
+        _currentLocale ? _loadedStrings[_currentLocale] : {},
+        key,
+        langDefault
+    );
+
+    try {
+        // @ts-ignore
+        return new IntlMessageFormat(str).format(val ?? {});
+    } catch (e) {
+        logger.error(`[i18n] Failed formatting key "${key}":`, e);
+        return str || key; // fallback to key if string is empty
+    }
 }

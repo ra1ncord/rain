@@ -30,7 +30,7 @@ export default function AssetBrowser() {
     const navigation = NavigationNative.useNavigation();
 
     useEffect(() => {
-        navigation.setOptions({ title: Strings.ASSET_BROWSER });
+        navigation.setOptions({ title: Strings.GENERAL.DEVELOPER.ASSET_BROWSER });
     }, [navigation]);
 
     const settings = useAssetBrowserSettings();
@@ -71,8 +71,8 @@ export default function AssetBrowser() {
 
             return (
                 <ActionSheet>
-                    <BottomSheetTitleHeader title={Strings.ASSET_TYPES} />
-                    <TableRowGroup title={Strings.IMAGE_FILES}>
+                    <BottomSheetTitleHeader title={Strings.GENERAL.DEVELOPER.ASSET_TYPES} />
+                    <TableRowGroup title={Strings.GENERAL.DEVELOPER.IMAGE_FILES}>
                         {IMAGE_FILES.map(fileType => (
                             <TableCheckboxRow
                                 key={fileType.id}
@@ -82,7 +82,7 @@ export default function AssetBrowser() {
                             />
                         ))}
                     </TableRowGroup>
-                    <TableRowGroup title={Strings.TEXT_FILES}>
+                    <TableRowGroup title={Strings.GENERAL.DEVELOPER.TEXT_FILES}>
                         {TEXT_FILES.map(fileType => (
                             <TableCheckboxRow
                                 key={fileType.id}
