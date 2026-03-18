@@ -134,7 +134,7 @@ export default definePlugin({
     id: "chatboxavatar",
     version: "v1.0.0",
     settings: ChatboxAvatarSettings,
-    start() {
+    async start() {
         if (!ChatInputActions?.type || !ChatInputSendButton?.type) return;
         unpatches.push(
             after("render", ChatInputSendButton.type, (args, ret) => {
@@ -155,6 +155,10 @@ export default definePlugin({
                 });
             })
         );
+
+    },
+    async eagerStart() {
+        if (!ChatInputActions?.type || !ChatInputSendButton?.type) return;
         unpatches.push(
             after("render", ChatInputActions.type, (args, ret) => {
                 return React.createElement(
