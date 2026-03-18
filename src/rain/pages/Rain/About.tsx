@@ -11,27 +11,27 @@ export default function About() {
 
     const versions = [
         {
-            label: Strings.RAIN,
+            label: Strings.GENERAL.CORE.RAIN,
             version: debugInfo.rain.version,
             icon: { uri: RainIcon },
         },
         {
-            label: Strings.DISCORD,
+            label: Strings.GENERAL.CORE.DISCORD,
             version: `${debugInfo.discord.version} (${debugInfo.discord.build})`,
             icon: "Discord",
         },
         {
-            label: Strings.REACT,
+            label: Strings.GENERAL.CORE.REACT,
             version: debugInfo.react.version,
             icon: "ScienceIcon",
         },
         {
-            label: Strings.REACT_NATIVE,
+            label: Strings.GENERAL.CORE.REACT_NATIVE,
             version: debugInfo.react.nativeVersion,
             icon: "MobilePhoneIcon",
         },
         {
-            label: Strings.HERMES_BYTECODE,
+            label: Strings.GENERAL.CORE.HERMES_BYTECODE,
             version: debugInfo.hermes.bytecodeVersion,
             icon: "TopicsIcon",
         },
@@ -39,38 +39,38 @@ export default function About() {
 
     const platformInfo = [
         {
-            label: Strings.LOADER,
+            label: Strings.GENERAL.CORE.LOADER,
             version: `${debugInfo.rain.loader.name} (${debugInfo.rain.loader.version})`,
             icon: "DownloadIcon",
         },
         {
-            label: Strings.OPERATING_SYSTEM,
+            label: Strings.GENERAL.CORE.OPERATING_SYSTEM,
             version: `${debugInfo.os.name} ${debugInfo.os.version}`,
             icon: "ScreenIcon"
         },
         ...(debugInfo.os.sdk ? [{
-            label: Strings.SDK,
+            label: Strings.GENERAL.CORE.SDK,
             version: debugInfo.os.sdk,
             icon: "StaffBadgeIcon"
         }] : []),
         {
-            label: Strings.MANUFACTURER,
+            label: Strings.GENERAL.CORE.MANUFACTURER,
             version: debugInfo.device.manufacturer,
             icon: "WrenchIcon"
         },
         ...(Platform.OS !== "ios" ? [{
-            label: Strings.BRAND,
+            label: Strings.GENERAL.CORE.BRAND,
             version: debugInfo.device.brand,
             icon: "MagicWandIcon"
         }] : []),
         {
-            label: Strings.MODEL,
+            label: Strings.GENERAL.CORE.MODEL,
             version: debugInfo.device.model,
             icon: "MobilePhoneIcon"
         },
         {
             ...(Platform.OS === "ios" ? [{
-                label: Strings.MODEL_ID,
+                label: Strings.GENERAL.CORE.MODEL_ID,
                 version: debugInfo.device.codename,
                 icon: "TagIcon"
             }] : []),
@@ -80,10 +80,10 @@ export default function About() {
     return (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 38 }}>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
-                <TableRowGroup title={Strings.VERSIONS}>
+                <TableRowGroup title={Strings.GENERAL.CORE.VERSIONS}>
                     {versions.map(v => <Version label={v.label} version={v.version} icon={v.icon} />)}
                 </TableRowGroup>
-                <TableRowGroup title={Strings.PLATFORMS}>
+                <TableRowGroup title={Strings.GENERAL.CORE.PLATFORMS}>
                     {platformInfo.filter((p): p is typeof p & { version: string; icon: string } => p.version !== undefined && p.icon !== undefined).map(p => <Version key={p.label} label={p.label} version={p.version} icon={p.icon} />)}
                 </TableRowGroup>
             </Stack>

@@ -15,28 +15,28 @@ export default function Fonts() {
 
     return (
         <AddonPage<FontDefinition>
-            title={Strings.FONTS}
+            title={Strings.GENERAL.CORE.FONTS}
             searchKeywords={["name", "description"]}
             sortOptions={{
-                [Strings.SORT_NAME_AZ]: (a, b) => a.name.localeCompare(b.name),
-                [Strings.SORT_NAME_ZA]: (a, b) => b.name.localeCompare(a.name)
+                [Strings.GENERAL.CORE.SORT_NAME_AZ]: (a, b) => a.name.localeCompare(b.name),
+                [Strings.GENERAL.CORE.SORT_NAME_ZA]: (a, b) => b.name.localeCompare(a.name)
             }}
             items={Object.values(fonts)}
             CardComponent={FontCard}
             installBrowserAction={{
-                label: Strings.IMPORT_FROM_BROWSER,
+                label: Strings.GENERAL.CORE.IMPORT_FROM_BROWSER,
                 onPress: () => {
                     navigation.push("RAIN_CUSTOM_PAGE", {
-                        title: Strings.ADDON_BROWSER,
+                        title: Strings.GENERAL.CORE.ADDON_BROWSER,
                         render: () => <FontBrowser />
                     });
                 }
             }}
             installAction={{
-                label: Strings.IMPORT_FROM_URL,
+                label: Strings.GENERAL.CORE.IMPORT_FROM_URL,
                 onPress: () => {
                     navigation.push("RAIN_CUSTOM_PAGE", {
-                        title: Strings.IMPORT_FONT,
+                        title: Strings.GENERAL.CORE.IMPORT_FONT,
                         render: () => <FontEditor />
                     });
                 }

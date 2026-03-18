@@ -23,22 +23,22 @@ function PluginPage(props: PluginPageProps) {
     const isCore = (id: string) => id.startsWith("core");
 
     const sortOptions = {
-        [Strings.SORT_NAME_AZ]: (a: UnifiedPluginModel, b: UnifiedPluginModel) => {
+        [Strings.GENERAL.CORE.SORT_NAME_AZ]: (a: UnifiedPluginModel, b: UnifiedPluginModel) => {
             if (isCore(a.id) !== isCore(b.id)) return isCore(a.id) ? -1 : 1;
             if (isPinned(a.id) !== isPinned(b.id)) return isPinned(b.id) ? 1 : -1;
             return a.name.localeCompare(b.name);
         },
-        [Strings.SORT_NAME_ZA]: (a: UnifiedPluginModel, b: UnifiedPluginModel) => {
+        [Strings.GENERAL.CORE.SORT_NAME_ZA]: (a: UnifiedPluginModel, b: UnifiedPluginModel) => {
             if (isCore(a.id) !== isCore(b.id)) return isCore(a.id) ? -1 : 1;
             if (isPinned(a.id) !== isPinned(b.id)) return isPinned(b.id) ? 1 : -1;
             return b.name.localeCompare(a.name);
         },
-        [Strings.ENABLED]: (a: UnifiedPluginModel, b: UnifiedPluginModel) => {
+        [Strings.GENERAL.CORE.ENABLED]: (a: UnifiedPluginModel, b: UnifiedPluginModel) => {
             if (isCore(a.id) !== isCore(b.id)) return isCore(a.id) ? -1 : 1;
             if (isPinned(a.id) !== isPinned(b.id)) return isPinned(b.id) ? 1 : -1;
             return Number(b.isEnabled()) - Number(a.isEnabled());
         },
-        [Strings.DISABLED]: (a: UnifiedPluginModel, b: UnifiedPluginModel) => {
+        [Strings.GENERAL.CORE.DISABLED]: (a: UnifiedPluginModel, b: UnifiedPluginModel) => {
             if (isCore(a.id) !== isCore(b.id)) return isCore(a.id) ? -1 : 1;
             if (isPinned(a.id) !== isPinned(b.id)) return isPinned(b.id) ? 1 : -1;
             return Number(a.isEnabled()) - Number(b.isEnabled());
@@ -63,7 +63,7 @@ function PluginPage(props: PluginPageProps) {
     return (
         <AddonPage<UnifiedPluginModel>
             CardComponent={PluginCard}
-            title={Strings.PLUGINS}
+            title={Strings.GENERAL.CORE.PLUGINS}
             searchKeywords={[
                 "name",
                 "description",
@@ -75,11 +75,11 @@ function PluginPage(props: PluginPageProps) {
             sortOptions={sortOptions}
             defaultSortKey="Name (A-Z)"
             filterOptions={{
-                [Strings.HIDE_CORE]: p => !p.id.startsWith("core"),
-                [Strings.SHOW_CORE]: () => true,
+                [Strings.GENERAL.CORE.HIDE_CORE]: p => !p.id.startsWith("core"),
+                [Strings.GENERAL.CORE.SHOW_CORE]: () => true,
             }}
-            safeModeHint={{ message: Strings.HINT_SAFE_MODE }}
-            defaultFilterKey={Strings.HIDE_CORE}
+            safeModeHint={{ message: Strings.GENERAL.CORE.HINT_SAFE_MODE }}
+            defaultFilterKey={Strings.GENERAL.CORE.HIDE_CORE}
             items={filteredItems}
             {...props}
         />

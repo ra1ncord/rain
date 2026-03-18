@@ -118,7 +118,7 @@ export default function ThemeInfoActionSheet({
         if (typeof showToast?.showCopyToClipboard === "function") {
             showToast.showCopyToClipboard();
         } else {
-            showToast(Strings.COPIED_TO_CLIPBOARD);
+            showToast(Strings.GENERAL.CORE.COPIED_TO_CLIPBOARD);
         }
     };
 
@@ -126,10 +126,10 @@ export default function ThemeInfoActionSheet({
         setLoading(true);
         try {
             await fetchTheme(themeState.id, themeState.selected);
-            showToast(Strings.THEME_REFRESHED);
+            showToast(Strings.GENERAL.CORE.THEME_REFRESHED);
         } catch (e) {
             console.error("Failed to refresh theme:", e);
-            showToast(Strings.FAILED_TO_REFRESH_THEME);
+            showToast(Strings.GENERAL.CORE.FAILED_TO_REFRESH_THEME);
         } finally {
             setLoading(false);
         }
@@ -137,22 +137,22 @@ export default function ThemeInfoActionSheet({
 
     const removeThemeHandler = () => {
         showConfirmationAlert({
-            title: Strings.HOLD_UP,
-            content: formatString("ARE_YOU_SURE_TO_DELETE_THEME", {
+            title: Strings.GENERAL.CORE.HOLD_UP,
+            content: formatString("GENERAL.CORE.ARE_YOU_SURE_TO_DELETE", {
                 name: themeState.data.name,
             }),
-            confirmText: Strings.DELETE,
-            cancelText: Strings.CANCEL,
+            confirmText: Strings.GENERAL.CORE.DELETE,
+            cancelText: Strings.GENERAL.CORE.CANCEL,
             confirmColor: "red",
             onConfirm: async () => {
                 hideSheet("ThemeInfoActionSheet");
                 try {
                     const wasSelected = await removeTheme(themeState.id);
                     if (wasSelected) selectTheme(null);
-                    showToast(Strings.THEME_REMOVED);
+                    showToast(Strings.GENERAL.CORE.THEME_REMOVED);
                 } catch (e) {
                     console.error("Failed to remove theme:", e);
-                    showToast(Strings.FAILED_TO_REMOVE_THEME);
+                    showToast(Strings.GENERAL.CORE.FAILED_TO_REMOVE_THEME);
                 }
             },
         });
@@ -190,20 +190,20 @@ export default function ThemeInfoActionSheet({
                     }}
                 >
                     <ThemeInfoIconButton
-                        label={Strings.REFETCH}
+                        label={Strings.GENERAL.CORE.REFETCH}
                         variant="secondary"
                         icon={findAssetId("RetryIcon")}
                         onPress={refetchTheme}
                         disabled={loading}
                     />
                     <ThemeInfoIconButton
-                        label={Strings.COPY_URL}
+                        label={Strings.GENERAL.CORE.COPY_URL}
                         variant="secondary"
                         icon={findAssetId("LinkIcon")}
                         onPress={copyThemeUrl}
                     />
                     <ThemeInfoIconButton
-                        label={Strings.UNINSTALL}
+                        label={Strings.GENERAL.CORE.UNINSTALL}
                         variant="secondary"
                         icon={findAssetId("TrashIcon")}
                         onPress={removeThemeHandler}
@@ -218,7 +218,7 @@ export default function ThemeInfoActionSheet({
                             color: semanticColors.MOBILE_TEXT_HEADING_PRIMARY,
                         }}
                     >
-                        {Strings.DESCRIPTION}
+                        {Strings.GENERAL.CORE.DESCRIPTION}
                     </Text>
                     <Text variant="text-md/medium">
                         {description}

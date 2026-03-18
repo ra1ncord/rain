@@ -62,7 +62,7 @@ export default function Developer() {
             <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 38 }}>
                 <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
 
-                    <TableRowGroup title={Strings.DEBUGGER_URL}>
+                    <TableRowGroup title={Strings.GENERAL.DEVELOPER.DEBUGGER_URL}>
                         <TextInput
                             placeholder="127.0.0.1:9090"
                             size="md"
@@ -72,22 +72,22 @@ export default function Developer() {
                         />
                         <Stack style={{ marginTop: 4, borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: "hidden" }}>
                             <TableSwitchRow
-                                label={Strings.AUTO_DEBUGGER}
-                                subLabel={isDebuggerConnected ? Strings.CONNECTED : undefined}
+                                label={Strings.GENERAL.DEVELOPER.AUTO_DEBUGGER}
+                                subLabel={isDebuggerConnected ? Strings.GENERAL.DEVELOPER.CONNECTED : undefined}
                                 icon={<TableRow.Icon source={findAssetId("copy")} />}
                                 value={settings.autoDebugger}
                                 onValueChange={(v: boolean) => settings.updateSettings({ autoDebugger: v })}
                             />
                         </Stack>
                         <TableRow
-                            label={isDebuggerConnected ? Strings.DISCONNECT_FROM_DEBUGGER : Strings.CONNECT_TO_DEBUG_WEBSOCKET}
+                            label={isDebuggerConnected ? Strings.GENERAL.DEVELOPER.DISCONNECT_FROM_DEBUGGER : Strings.GENERAL.DEVELOPER.CONNECT_TO_DEBUG_WEBSOCKET}
                             icon={<TableRow.Icon source={findAssetId(isDebuggerConnected ? "ic_message_delete" : "copy")} />}
                             onPress={handleDebuggerConnect}
                         />
                     </TableRowGroup>
 
                     {isReactDevToolsPreloaded() && (
-                        <TableRowGroup title={Strings.DEVTOOLS_URL}>
+                        <TableRowGroup title={Strings.GENERAL.DEVELOPER.DEVTOOLS_URL}>
                             <TextInput
                                 placeholder="127.0.0.1:8097"
                                 size="md"
@@ -97,24 +97,24 @@ export default function Developer() {
                             />
                             <Stack style={{ marginTop: 4, borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: "hidden" }}>
                                 <TableSwitchRow
-                                    label={Strings.AUTO_DEVTOOLS}
+                                    label={Strings.GENERAL.DEVELOPER.AUTO_DEVTOOLS}
                                     icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
                                     value={settings.autoDevTools}
                                     onValueChange={(v: boolean) => settings.updateSettings({ autoDevTools: v })}
                                 />
                             </Stack>
                             <TableRow
-                                label={Strings.CONNECT_TO_REACT_DEVTOOLS}
+                                label={Strings.GENERAL.DEVELOPER.CONNECT_TO_REACT_DEVTOOLS}
                                 icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
                                 onPress={async () => {
                                     if (!settings.devToolsUrl?.trim()) {
-                                        showToast(Strings.INVALID_DEVTOOLS_URL, findAssetId("Small"));
+                                        showToast(Strings.GENERAL.DEVELOPER.INVALID_DEVTOOLS_URL, findAssetId("Small"));
                                         return;
                                     }
                                     try {
                                         const devTools = window[getReactDevToolsProp() || "__vendetta_rdc"];
                                         if (!devTools?.connectToDevTools) {
-                                            showToast(Strings.INVALID_DEVTOOLS_URL, findAssetId("Small"));
+                                            showToast(Strings.GENERAL.DEVELOPER.INVALID_DEVTOOLS_URL, findAssetId("Small"));
                                             return;
                                         }
                                         await devTools.connectToDevTools({
@@ -122,7 +122,7 @@ export default function Developer() {
                                             resolveRNStyle: StyleSheet.flatten,
                                         });
                                     } catch (error) {
-                                        showToast(Strings.INVALID_DEVTOOLS_URL, findAssetId("Small"));
+                                        showToast(Strings.GENERAL.DEVELOPER.INVALID_DEVTOOLS_URL, findAssetId("Small"));
                                     }
                                 }}
                             />
@@ -130,10 +130,10 @@ export default function Developer() {
                     )}
 
                     {isLoaderConfigSupported() && (
-                        <TableRowGroup title={Strings.LOADER_CONFIG}>
+                        <TableRowGroup title={Strings.GENERAL.DEVELOPER.LOADER_CONFIG}>
                             <TableSwitchRow
-                                label={Strings.LOAD_FROM_CUSTOM_URL}
-                                subLabel={Strings.LOAD_FROM_CUSTOM_URL_DEC}
+                                label={Strings.GENERAL.DEVELOPER.LOAD_FROM_CUSTOM_URL}
+                                subLabel={Strings.GENERAL.DEVELOPER.LOAD_FROM_CUSTOM_URL_DEC}
                                 icon={<TableRow.Icon source={findAssetId("copy")} />}
                                 value={loaderConfig.customLoadUrl.enabled}
                                 onValueChange={(v: boolean) =>
@@ -153,14 +153,14 @@ export default function Developer() {
                                             })
                                         }
                                         placeholder="http://localhost:4040/rain.js"
-                                        label={Strings.RAIN_URL}
+                                        label={Strings.GENERAL.DEVELOPER.CUSTOM_RAIN_URL}
                                     />
                                 } />
                             )}
                         </TableRowGroup>
                     )}
 
-                    <TableRowGroup title={Strings.HOT_RELOAD_THEME}>
+                    <TableRowGroup title={Strings.GENERAL.DEVELOPER.HOT_RELOAD_THEME}>
                         <TextInput
                             defaultValue={settings.hotReloadThemeUrl}
                             size="md"
@@ -171,8 +171,8 @@ export default function Developer() {
                         />
                         <Stack style={{ marginTop: 4, borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: "hidden" }}>
                             <TableSwitchRow
-                                label={Strings.HOT_RELOAD_THEME}
-                                subLabel={Strings.HOT_RELOAD_THEME_DESC}
+                                label={Strings.GENERAL.DEVELOPER.HOT_RELOAD_THEME}
+                                subLabel={Strings.GENERAL.DEVELOPER.HOT_RELOAD_THEME_DESC}
                                 icon={<TableRow.Icon source={findAssetId("PaintPaletteIcon")} />}
                                 value={settings.hotReloadTheme}
                                 onValueChange={(v: boolean) =>
@@ -181,7 +181,7 @@ export default function Developer() {
                             />
                         </Stack>
                         <TableRow
-                            label={Strings.CONNECT_TO_HOT_RELOAD_THEME}
+                            label={Strings.GENERAL.DEVELOPER.CONNECT_TO_HOT_RELOAD_THEME}
                             icon={<TableRow.Icon source={findAssetId("PaintPaletteIcon")} />}
                             onPress={async () => {
                                 hotReloadTheme();
@@ -189,34 +189,34 @@ export default function Developer() {
                         />
                     </TableRowGroup>
 
-                    <TableRowGroup title={Strings.OTHER}>
+                    <TableRowGroup title={Strings.GENERAL.CORE.OTHER}>
                         <TableRow
                             arrow
-                            label={Strings.ASSET_BROWSER}
+                            label={Strings.GENERAL.DEVELOPER.ASSET_BROWSER}
                             icon={<TableRow.Icon source={findAssetId("ImageIcon")} />}
                             onPress={() => navigation.push("RAIN_CUSTOM_PAGE", { render: () => <AssetBrowser /> })}
                         />
                         <TableRow
                             arrow
-                            label={Strings.ERROR_BOUNDARY_TOOLS_LABEL}
+                            label={Strings.GENERAL.DEVELOPER.ERROR_BOUNDARY_TOOLS_LABEL}
                             icon={<TableRow.Icon source={findAssetId("ic_warning_24px")} />}
                             onPress={() => showSimpleActionSheet({
                                 key: "ErrorBoundaryTools",
                                 header: {
-                                    title: Strings.ERROR_BOUNDARY_QUESTION,
+                                    title: Strings.GENERAL.DEVELOPER.ERROR_BOUNDARY_QUESTION,
                                     icon: <TableRow.Icon style={{ marginRight: 8 }} source={findAssetId("ic_warning_24px")} />,
                                     onClose: () => hideActionSheet(),
                                 },
                                 options: [
                                     // @ts-expect-error this needs to be an error so it crashes duh
-                                    { label: Strings.RAIN, onPress: () => navigation.push("RAIN_CUSTOM_PAGE", { render: () => <undefined /> }) },
-                                    { label: Strings.DISCORD, isDestructive: true, onPress: () => navigation.push("RAIN_CUSTOM_PAGE", { noErrorBoundary: true }) },
+                                    { label: Strings.GENERAL.CORE.RAIN, onPress: () => navigation.push("RAIN_CUSTOM_PAGE", { render: () => <undefined /> }) },
+                                    { label: Strings.GENERAL.CORE.DISCORD, isDestructive: true, onPress: () => navigation.push("RAIN_CUSTOM_PAGE", { noErrorBoundary: true }) },
                                 ],
                             })}
                         />
                         <TableRow
-                            label={Strings.INSTALL_REACT_DEVTOOLS}
-                            subLabel={Strings.RESTART_REQUIRED_TO_TAKE_EFFECT}
+                            label={Strings.GENERAL.DEVELOPER.INSTALL_REACT_DEVTOOLS}
+                            subLabel={Strings.GENERAL.CORE.RESTART_REQUIRED_TO_TAKE_EFFECT}
                             icon={<TableRow.Icon source={findAssetId("DownloadIcon")} />}
                             trailing={
                                 <Button
@@ -224,7 +224,7 @@ export default function Developer() {
                                     loading={rdtFileExists === CheckState.LOADING}
                                     disabled={rdtFileExists === CheckState.LOADING}
                                     variant={rdtFileExists === CheckState.TRUE ? "secondary" : "primary"}
-                                    text={rdtFileExists === CheckState.TRUE ? Strings.UNINSTALL : Strings.INSTALL}
+                                    text={rdtFileExists === CheckState.TRUE ? Strings.GENERAL.CORE.UNINSTALL : Strings.GENERAL.CORE.INSTALL}
                                     onPress={async () => {
                                         if (rdtFileExists === CheckState.FALSE) {
                                             fs.downloadFile(RDT_EMBED_LINK, "preloads/reactDevtools.js");

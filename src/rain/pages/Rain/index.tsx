@@ -40,14 +40,14 @@ export default function General() {
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 38 }}>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
                 <View style={{ gap: 10 }}>
-                    <Text color="text-strong" variant="text-sm/semibold">{Strings.UPDATER}</Text>
+                    <Text color="text-strong" variant="text-sm/semibold">{Strings.GENERAL.CORE.UPDATER}</Text>
                     <InfoCard
-                        title={Strings.UPDATER}
+                        title={Strings.GENERAL.CORE.UPDATER}
                         style={{ flex: 1 }}
                         icon={<TableRow.Icon source={{ uri: RainIcon }} />}
                         onPress={() =>
                             navigation.push("RAIN_CUSTOM_PAGE", {
-                                title: Strings.UPDATER,
+                                title: Strings.GENERAL.CORE.UPDATER,
                                 render: () => <Updater />,
                             })
                         }
@@ -68,30 +68,30 @@ export default function General() {
                         }
                     />
                 </View>
-                <TableRowGroup title={Strings.INFO}>
+                <TableRowGroup title={Strings.GENERAL.CORE.INFO}>
                     <TableRow
-                        label={Strings.RAIN}
+                        label={Strings.GENERAL.CORE.RAIN}
                         icon={<TableRow.Icon source={{ uri: RainIcon }} />}
                         trailing={<TableRow.TrailingText text={debugInfo.rain.version} />}
                     />
                     <TableRow
-                        label={Strings.DISCORD}
+                        label={Strings.GENERAL.CORE.DISCORD}
                         icon={<TableRow.Icon source={findAssetId("Discord")!} />}
                         trailing={<TableRow.TrailingText text={`${debugInfo.discord.version} (${debugInfo.discord.build})`} />}
                     />
                     <TableRow
                         arrow
-                        label={Strings.ABOUT}
+                        label={Strings.GENERAL.CORE.ABOUT}
                         icon={<TableRow.Icon source={findAssetId("CircleInformationIcon-primary")!} />}
                         onPress={() => navigation.push("RAIN_CUSTOM_PAGE", {
-                            title: Strings.ABOUT,
+                            title: Strings.GENERAL.CORE.ABOUT,
                             render: () => <About />,
                         })}
                     />
                 </TableRowGroup>
-                <TableRowGroup title={Strings.SETTINGS}>
+                <TableRowGroup title={Strings.GENERAL.CORE.SETTINGS}>
                     <TableSwitchRow
-                        label={Strings.SAFE_MODE}
+                        label={Strings.GENERAL.CORE.SAFE_MODE}
                         icon={<TableRow.Icon source={findAssetId("ShieldIcon")!} />}
                         // @ts-expect-error
                         value={safeMode}
@@ -100,22 +100,22 @@ export default function General() {
                             openAlert(
                                 "rain-reload-safe-mode",
                                 <AlertModal
-                                    title={Strings.RELOAD_DISCORD}
-                                    content={Strings.SAFE_MODE_REQUIRES_RELOAD}
+                                    title={Strings.GENERAL.CORE.RELOAD_DISCORD}
+                                    content={Strings.GENERAL.CORE.SAFE_MODE_REQUIRES_RELOAD}
                                     actions={<AlertActions>
                                         <AlertActionButton
-                                            text={Strings.RELOAD}
+                                            text={Strings.GENERAL.CORE.RELOAD}
                                             variant="destructive"
                                             onPress={() => BundleUpdaterManager.reload()}
                                         />
-                                        <AlertActionButton text={Strings.LATER} variant="secondary" />
+                                        <AlertActionButton text={Strings.GENERAL.CORE.LATER} variant="secondary" />
                                     </AlertActions>}
                                 />
                             );
                         }}
                     />
                     <TableSwitchRow
-                        label={Strings.DEVELOPER_SETTINGS}
+                        label={Strings.GENERAL.DEVELOPER.DEVELOPER_SETTINGS}
                         icon={<TableRow.Icon source={findAssetId("WrenchIcon")!} />}
                         value={developerSettings}
                         onValueChange={async (v: boolean) => {
@@ -126,34 +126,34 @@ export default function General() {
                         }}
                     />
                 </TableRowGroup>
-                <TableRowGroup title={Strings.RAIN_LINKS}>
+                <TableRowGroup title={Strings.GENERAL.CORE.RAIN_LINKS}>
                     <TableRow
                         arrow={true}
-                        label={Strings.DISCORD_SERVER}
+                        label={Strings.GENERAL.CORE.DISCORD_SERVER}
                         icon={<TableRow.Icon source={findAssetId("Discord")!} />}
                         onPress={() => Linking.openURL(DISCORD_SERVER)}
                     />
                     <TableRow
                         arrow={true}
-                        label={Strings.CODEBERG}
+                        label={Strings.GENERAL.CORE.CODEBERG}
                         icon={<TableRow.Icon source={{ uri: CodebergIcon }} />}
                         onPress={() => Linking.openURL(CODEBERG)}
                     />
                     <TableRow
                         arrow={true}
-                        label={Strings.GITHUB}
+                        label={Strings.GENERAL.CORE.GITHUB}
                         icon={<TableRow.Icon source={findAssetId("img_account_sync_github_white")!} />}
                         onPress={() => Linking.openURL(GITHUB)}
                     />
                     <TableRow
                         arrow={true}
-                        label={Strings.KOFI}
+                        label={Strings.GENERAL.CORE.KOFI}
                         icon={<TableRow.Icon source={{ uri: KofiIcon }} />}
                         onPress={() => Linking.openURL(KOFI)}
                     />
                     <TableRow
                         arrow={true}
-                        label={Strings.DEVELOPERS}
+                        label={Strings.GENERAL.CORE.DEVELOPERS}
                         icon={<TableRow.Icon source={findAssetId("CircleInformationIcon-primary")!} />}
                         onPress={() => Linking.openURL(DEVELOPERS)}
                     />

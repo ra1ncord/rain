@@ -31,32 +31,32 @@ export default function Themes() {
 
     return (
         <AddonPage<ThemeInfo>
-            title={Strings.THEMES}
+            title={Strings.GENERAL.CORE.THEMES}
             searchKeywords={[
                 "data.name",
                 "data.description",
                 p => p.data.authors?.map((a: Author) => a.name).join(", ") ?? "",
             ]}
             sortOptions={{
-                [Strings.SORT_NAME_AZ]: (a, b) => a.data.name.localeCompare(b.data.name),
-                [Strings.SORT_NAME_ZA]: (a, b) => b.data.name.localeCompare(a.data.name),
+                [Strings.GENERAL.CORE.SORT_NAME_AZ]: (a, b) => a.data.name.localeCompare(b.data.name),
+                [Strings.GENERAL.CORE.SORT_NAME_ZA]: (a, b) => b.data.name.localeCompare(a.data.name),
             }}
             installBrowserAction={{
-                label: Strings.INSTALL_FROM_BROWSER,
+                label: Strings.GENERAL.CORE.INSTALL_FROM_BROWSER,
                 onPress: () => {
                     navigation.push("RAIN_CUSTOM_PAGE", {
-                        title: Strings.ADDON_BROWSER,
+                        title: Strings.GENERAL.CORE.ADDON_BROWSER,
                         render: () => <ThemeBrowser />
                     });
                 }
             }}
             installAction={{
-                label: Strings.INSTALL_FROM_URL,
+                label: Strings.GENERAL.CORE.INSTALL_FROM_URL,
                 fetchFn: installTheme,
             }}
             items={themesList}
             safeModeHint={{
-                message: Strings.THEMES_DISABLED_IN_SAFE_MODE,
+                message: Strings.GENERAL.CORE.THEMES_DISABLED_IN_SAFE_MODE,
             }}
             CardComponent={ThemeCard}
             ListHeaderComponent={MonetCard}
@@ -66,10 +66,10 @@ export default function Themes() {
 
                 return (
                     <ActionSheet>
-                        <BottomSheetTitleHeader title={Strings.OPTIONS} />
+                        <BottomSheetTitleHeader title={Strings.GENERAL.CORE.OPTIONS} />
                         <View style={{ paddingVertical: 20, gap: 12 }}>
                             <TableRadioGroup
-                                title={Strings.OVERRIDE_THEME_TYPE}
+                                title={Strings.GENERAL.CORE.OVERRIDE_THEME_TYPE}
                                 value={type ?? "auto"}
                                 onChange={(value: string) => {
                                     const newType = value === "auto" ? undefined : (value as "dark" | "light");
@@ -82,25 +82,25 @@ export default function Themes() {
                                 }}
                             >
                                 <TableRadioRow
-                                    label={Strings.AUTO}
+                                    label={Strings.GENERAL.CORE.AUTO}
                                     value="auto"
                                     icon={<TableRowIcon source={findAssetId("RobotIcon")} />}
                                 />
                                 <TableRadioRow
-                                    label={Strings.DARK}
+                                    label={Strings.GENERAL.CORE.DARK}
                                     value="dark"
                                     icon={<TableRowIcon source={findAssetId("ThemeDarkIcon")} />}
                                 />
                                 <TableRadioRow
-                                    label={Strings.LIGHT}
+                                    label={Strings.GENERAL.CORE.LIGHT}
                                     value="light"
                                     icon={<TableRowIcon source={findAssetId("ThemeLightIcon")} />}
                                 />
                             </TableRadioGroup>
-                            <TableRowGroup title={Strings.CUSTOMISATION}>
+                            <TableRowGroup title={Strings.GENERAL.CORE.CUSTOMISATION}>
                                 <TableSwitchRow
-                                    label={Strings.SHOW_BACKGROUND}
-                                    subLabel={Strings.SHOW_BACKGROUND_DESC}
+                                    label={Strings.GENERAL.CORE.SHOW_BACKGROUND}
+                                    subLabel={Strings.GENERAL.CORE.SHOW_BACKGROUND_DESC}
                                     icon={<TableRowIcon source={findAssetId("ImageIcon")} />}
                                     value={!customBackground}
                                     onValueChange={() => {
@@ -113,8 +113,8 @@ export default function Themes() {
                                     }}
                                 />
                                 <TableSwitchRow
-                                    label={Strings.USE_CUSTOM_ICONS}
-                                    subLabel={Strings.USE_CUSTOM_ICONS_DESC}
+                                    label={Strings.GENERAL.CORE.USE_CUSTOM_ICONS}
+                                    subLabel={Strings.GENERAL.CORE.USE_CUSTOM_ICONS_DESC}
                                     icon={<TableRowIcon source={findAssetId("PlusSmallIcon")} />}
                                     value={iconsEnabled}
                                     onValueChange={() => {

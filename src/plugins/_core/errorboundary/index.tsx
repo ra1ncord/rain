@@ -9,8 +9,8 @@ import { Strings } from "@rain/i18n";
 import ErrorBoundaryScreen from "./ErrorBoundaryScreen";
 
 export default definePlugin({
-    name: Strings.PLUGIN__CORE_ERRORBOUNDARY,
-    description: Strings.PLUGIN__CORE_ERRORBOUNDARY_DESC,
+    name: Strings.PLUGINS.CORE.ERRORBOUNDARY.NAME,
+    description: Strings.PLUGINS.CORE.ERRORBOUNDARY.NAME,
     author: [Developers.cocobo1],
     id: "errorboundary",
     version: "1.0.0",

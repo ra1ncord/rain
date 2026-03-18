@@ -13,6 +13,6 @@ export const showToast = (content: string, asset?: number) => toasts.open({
     icon: asset,
 });
 
-showToast.showCopyToClipboard = (message = Strings.COPIED_TO_CLIPBOARD) => {
+showToast.showCopyToClipboard = (message = Strings.GENERAL.CORE.COPIED_TO_CLIPBOARD) => {
     showToast(message, findAssetId("toast_copy_link"));
 };

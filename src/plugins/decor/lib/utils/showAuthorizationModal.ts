@@ -25,7 +25,7 @@ export default () =>
                 callback: async ({ location }) => {
                     const url = new URL(location);
                     // We use i18n for the client because it doesnt change across translations and it makes it better for people who make bad forks and wont change it :P
-                    url.searchParams.append("client", Strings.RAIN);
+                    url.searchParams.append("client", Strings.GENERAL.CORE.RAIN);
 
                     const req = await fetch(url);
 

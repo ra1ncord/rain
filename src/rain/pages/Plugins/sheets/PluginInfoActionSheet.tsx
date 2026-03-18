@@ -113,7 +113,7 @@ export default function PluginInfoActionSheet({
                             color: semanticColors.MOBILE_TEXT_HEADING_PRIMARY,
                         }}
                     >
-                        {Strings.DESCRIPTION}
+                        {Strings.GENERAL.CORE.DESCRIPTION}
                     </Text>
                     <Text variant="text-md/medium">{plugin.description}</Text>
                 </Card>

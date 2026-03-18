@@ -41,8 +41,8 @@ const badgeProps = new Map<string, Record<string, any>>();
 const pendingRequests = new Set<string>();
 
 export default definePlugin({
-    name: Strings.PLUGIN__CORE_BADGES,
-    description: Strings.PLUGIN__CORE_BADGES_DESC,
+    name: Strings.PLUGINS.CORE.BADGES.NAME,
+    description: Strings.PLUGINS.CORE.BADGES.DESCRIPTION,
     author: [Developers.cocobo1],
     id: "badges",
     version: "1.1.0",
