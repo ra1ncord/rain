@@ -68,10 +68,7 @@
         "LATER": "Later",
         "LIGHT": "Light",
         "LIST_OPTIONS": "List Options",
-        "LOAD_FROM_CUSTOM_URL": "Load from custom URL",
-        "LOAD_FROM_CUSTOM_URL_DESC": "Load Rain from a custom URL instead of the default one",
         "LOADER": "Loader",
-        "LOADER_CONFIG": "Loader config",
         "LOADING": "Loading...",
         "LOADING_PREVIEW": "Loading preview...",
         "MANUFACTURER": "Manufacturer",
@@ -156,6 +153,9 @@
         "HOT_RELOAD_THEME_DESC": "Automatically refetch your theme upon update",
         "INSTALL_REACT_DEVTOOLS": "Install React DevTools",
         "INVALID_DEVTOOLS_URL": "Invalid DevTools URL!",
-        "CUSTOM_RAIN_URL": "Custom URL"
+        "CUSTOM_RAIN_URL": "Custom URL",
+        "LOAD_FROM_CUSTOM_URL": "Load from custom URL",
+        "LOAD_FROM_CUSTOM_URL_DESC": "Load Rain from a custom URL instead of the default one",
+        "LOADER_CONFIG": "Loader config"
     }
 }
