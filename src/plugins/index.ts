@@ -2,19 +2,25 @@ import { useSettings } from "@api/settings";
 import { createFileStorage, waitForHydration } from "@api/storage";
 import { showToast } from "@api/ui/toasts";
 import { logger } from "@lib/utils/logger";
+import { JSX } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 import * as t from "./types";
 
 export const pluginInstances = new Map<string, t.rainPlugin>();
+let _setupPromise: Promise<void> | null = null;
+
+// these are the things we use to set how quickly plugins start
+const BATCH_SIZE = 5;
+const BATCH_DELAY_MS = 32;
 
 interface PluginSettingsStore {
-  settings: t.PluginSettingsStorage;
-  _hasHydrated: boolean;
-  updatePluginSetting: (id: string, enabled: boolean) => void;
-  getPluginSetting: (id: string) => { enabled: boolean } | undefined;
-  setHasHydrated: (state: boolean) => void;
+    settings: t.PluginSettingsStorage;
+    _hasHydrated: boolean;
+    updatePluginSetting: (id: string, enabled: boolean) => void;
+    getPluginSetting: (id: string) => { enabled: boolean } | undefined;
+    setHasHydrated: (state: boolean) => void;
 }
 
 export const usePluginSettings = create<PluginSettingsStore>()(
@@ -100,32 +106,65 @@ export function isPluginEnabled(id: string): boolean {
     return setting?.enabled ?? isPluginCore(id);
 }
 
-async function loadAndInitialize(method: "start" | "eagerStart"): Promise<void> {
-    await waitForHydration(usePluginSettings);
+function ensureSetup(): Promise<void> {
+    if (_setupPromise) return _setupPromise;
 
-    const { default: rainPlugins } = await import("#rain-plugins");
+    _setupPromise = (async () => {
+        const [{ default: rainPlugins }] = await Promise.all([
+            import("#rain-plugins"),
+            waitForHydration(usePluginSettings),
+        ]);
 
-    for (const [id, plugin] of Object.entries(rainPlugins)) {
-        const instance = plugin as t.rainPlugin;
-        instance.id = id;
-        pluginInstances.set(id, instance);
-    }
+        for (const [id, plugin] of Object.entries(rainPlugins)) {
+            const instance = plugin as t.rainPlugin;
+            instance.id = id;
 
-    const tasks = Array.from(pluginInstances.keys())
-        .filter(isPluginEnabled)
-        .map(async id => {
-            try {
-                await (method === "start" ? startPlugin(id) : startEagerPlugin(id));
-            } catch (error) {
-                logger.log(`Failed to ${method} ${id}:`, error);
-            }
-        });
+            pluginInstances.set(id, instance);
+        }
+    })();
 
-    await Promise.allSettled(tasks);
+    return _setupPromise;
 }
 
-export const initPlugins = (): Promise<void> => loadAndInitialize("start");
-export const initEagerPlugins = (): Promise<void> => loadAndInitialize("eagerStart");
+// tldr: plugins were causing discord to start slow as they made the load take longer even though they technically were lazy, so we now do this to let the app render :P
+async function startBatched(ids: string[], method: "start" | "eagerStart"): Promise<void> {
+    for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        const batch = ids.slice(i, i + BATCH_SIZE);
+
+        await Promise.allSettled(
+            batch.map(async id => {
+                try {
+                    await (method === "start" ? startPlugin(id) : startEagerPlugin(id));
+                } catch (error) {
+                    logger.log(`Failed to ${method} ${id}:`, error);
+                }
+            })
+        );
+
+        if (i + BATCH_SIZE < ids.length) {
+            await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_MS));
+        }
+    }
+}
+
+export async function initPlugins(): Promise<void> {
+    await ensureSetup();
+
+    const ids = Array.from(pluginInstances.keys()).filter(isPluginEnabled);
+    await startBatched(ids, "start");
+}
+
+export async function initEagerPlugins(): Promise<void> {
+    await ensureSetup();
+
+    const ids = Array.from(pluginInstances.keys()).filter(isPluginEnabled);
+    await Promise.allSettled(
+        ids.map(async id => {
+            try { await startEagerPlugin(id); }
+            catch (error) { logger.log(`Failed to eagerStart ${id}:`, error); }
+        })
+    );
+}
 
 export function definePlugin(instance: t.rainPlugin): t.rainPlugin {
     // @ts-expect-error
