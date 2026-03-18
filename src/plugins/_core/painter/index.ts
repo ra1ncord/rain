@@ -5,7 +5,6 @@ import { Strings } from "@rain/i18n";
 
 import { initFonts } from "./fonts";
 import { initMonet } from "./monet";
-import initPlus from "./plus/stuff/loader";
 import { initThemes } from "./themes";
 
 export default definePlugin({
@@ -15,7 +14,6 @@ export default definePlugin({
     id: "painter",
     version: "1.0.0",
     async eagerStart() {
-        await initPlus();
         initThemes();
         initMonet();
 

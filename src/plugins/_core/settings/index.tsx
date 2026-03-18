@@ -10,8 +10,7 @@ import { Strings } from "@rain/i18n";
 import { checkForUpdate } from "@rain/pages/Rain/Updater";
 import { version } from "rain-build-info";
 import React, { lazy } from "react";
-import type { ImageURISource } from "react-native";
-import { Image } from "react-native";
+import { Image, type ImageURISource } from "react-native";
 
 import { patchTabsUI } from "./patches/tabs";
 import settings from "./settings";
