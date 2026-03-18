@@ -535,14 +535,6 @@
             "OTHER": "Other",
             "HIDE_VIDEO_BUTTON_IN_VC": "Hide video button in vc"
         },
-        "LETITRAIN": {
-            "NAME": "LetItRain",
-            "DESCRIPTION": "rain tomorrow btw",
-            "RAIN_AMOUNT": "Rain Amount",
-            "RAINDROP_SIZE": "Raindrop Size",
-            "TRANSPARENCY": "Transparency",
-            "SPEED_MULTIPLIER": "Speed Multiplier"
-        },
         "MESSAGELOGGER_WIP": {
             "NAME": "MessageLogger",
             "DESCRIPTION": "Prevents deleted messages from being lost by storing them in memory"
