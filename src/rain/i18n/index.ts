@@ -104,8 +104,8 @@ function fetchLocale(locale: string) {
             _currentLocale = resolvedLocale;
         } else {
             Promise.all([
-                fetch(`https://codeberg.org/raincord/i18n/raw/branch/main/locales/${resolvedLocale}/general.json`).then(r => r.json()),
-                fetch(`https://codeberg.org/raincord/i18n/raw/branch/main/locales/${resolvedLocale}/plugins.json`).then(r => r.json()),
+                fetch(`https://codeberg.org/raincord/i18n/raw/branch/patch/locales/${resolvedLocale}/general.json`).then(r => r.json()),
+                fetch(`https://codeberg.org/raincord/i18n/raw/branch/patch/locales/${resolvedLocale}/plugins.json`).then(r => r.json()),
             ])
                 .then(([general, plugins]) => {
                     logger.log("[i18n] Loaded strings for:", resolvedLocale);
