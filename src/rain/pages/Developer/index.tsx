@@ -133,7 +133,7 @@ export default function Developer() {
                         <TableRowGroup title={Strings.GENERAL.DEVELOPER.LOADER_CONFIG}>
                             <TableSwitchRow
                                 label={Strings.GENERAL.DEVELOPER.LOAD_FROM_CUSTOM_URL}
-                                subLabel={Strings.GENERAL.DEVELOPER.LOAD_FROM_CUSTOM_URL_DEC}
+                                subLabel={Strings.GENERAL.DEVELOPER.LOAD_FROM_CUSTOM_URL_DESC}
                                 icon={<TableRow.Icon source={findAssetId("copy")} />}
                                 value={loaderConfig.customLoadUrl.enabled}
                                 onValueChange={(v: boolean) =>
