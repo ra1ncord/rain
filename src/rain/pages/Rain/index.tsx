@@ -91,6 +91,11 @@ export default function General() {
                     />
                 </TableRowGroup>
                 <TableRowGroup title={Strings.GENERAL.CORE.SETTINGS}>
+                    <TableRow
+                        label="Reload App"
+                        icon={<TableRow.Icon source={findAssetId("RetryIcon")!} />}
+                        onPress={() => BundleUpdaterManager.reload()}
+                    />
                     <TableSwitchRow
                         label={Strings.GENERAL.CORE.SAFE_MODE}
                         icon={<TableRow.Icon source={findAssetId("ShieldIcon")!} />}
