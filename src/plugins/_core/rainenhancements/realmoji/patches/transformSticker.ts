@@ -8,8 +8,8 @@ import { rainenhancementsSettings } from "../../storage";
 const { getStickerById } = findByStoreName("StickersStore");
 const RowManager = findByName("RowManager");
 
-const staticStickerRegex = /https:\/\/media\.discordapp\.net\/stickers\/(\d+)\.(?!gif)\w+/;
-const animatedGifRegex = /https:\/\/media\.discordapp\.net\/stickers\/(\d+)\.gif/;
+const staticStickerRegex = /https:\/\/(?:media|cdn)\.discordapp\.(?:net|com)\/stickers\/(\d+)\.(?!gif)\w+/;
+const animatedGifRegex = /https:\/\/(?:media|cdn)\.discordapp\.(?:net|com)\/stickers\/(\d+)\.gif/;
 const attachmentGifRegex = /https:\/\/media\.discordapp\.net\/attachments\/\d+\/\d+\/(\d+)\.gif/;
 
 function makeStickerItem(id: string, format: number) {
