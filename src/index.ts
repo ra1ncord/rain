@@ -21,6 +21,8 @@ export default async () => {
     critical.forEach(f => { if (f !== undefined) lib.unload.push(f); });
     core.forEach(f => { if (f !== undefined) lib.unload.push(f); });
 
+    window.rain = lib
+
     initDebugger();
 };
 
