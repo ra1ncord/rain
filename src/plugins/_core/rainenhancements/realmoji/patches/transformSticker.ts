@@ -25,24 +25,32 @@ export default [
     before("generate", RowManager.prototype, ([data]) => {
         if (data.rowType !== 1 || !rainenhancementsSettings.transformSticker) return;
 
-        const { content } = data.message;
-        if (!content) return;
+        // normal msg
+        const msg = data.message;
+        if (msg.content) {
+            let match = msg.content.match(animatedGifRegex);
+            if (match) msg.stickerItems = makeStickerItem(match[1], 4);
+            else if ((match = msg.content.match(attachmentGifRegex))) msg.stickerItems = makeStickerItem(match[1], 2);
+            else if ((match = msg.content.match(staticStickerRegex))) msg.stickerItems = makeStickerItem(match[1], 1);
 
-        let match = content.match(animatedGifRegex);
-        if (match) {
-            data.message.stickerItems = makeStickerItem(match[1], 4); // discord mobile moment lol (should be 2)
-        }
-        else if ((match = content.match(attachmentGifRegex))) {
-            data.message.stickerItems = makeStickerItem(match[1], 2);
-        }
-        else if ((match = content.match(staticStickerRegex))) {
-            data.message.stickerItems = makeStickerItem(match[1], 1);
-        }
-        else {
-            return;
+            if (match) {
+                msg.content = "";
+                msg.embeds = [];
+            }
         }
 
-        data.message.content = "";
-        data.message.embeds = [];
+        // forwarded msg
+        const snapshot = msg.messageSnapshots?.[0]?.message;
+        if (snapshot?.content) {
+            let match = snapshot.content.match(animatedGifRegex);
+            if (match) snapshot.stickerItems = makeStickerItem(match[1], 4);
+            else if ((match = snapshot.content.match(attachmentGifRegex))) snapshot.stickerItems = makeStickerItem(match[1], 2);
+            else if ((match = snapshot.content.match(staticStickerRegex))) snapshot.stickerItems = makeStickerItem(match[1], 1);
+
+            if (match) {
+                snapshot.content = "";
+                snapshot.embeds = [];
+            }
+        }
     })
 ];

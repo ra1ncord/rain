@@ -1,7 +1,6 @@
 import { after, before } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
 import { findByTypeDisplayName } from "@metro";
-import { ReactNative } from "@metro/common";
 import { definePlugin } from "@plugins";
 import { Contributors } from "@rain/Developers";
 import React from "react";
