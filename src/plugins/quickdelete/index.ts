@@ -11,12 +11,12 @@ const { intl, t: intlMap } = findByProps("intl");
 
 const KEYS = {
     message: {
-        hash: "AMvpS4",
+        hash: "xwMqD7",
         storage: "autoConfirmMessage",
         default: true,
     },
     embed: {
-        hash: "vXZ+Fo",
+        hash: "GT3fNz",
         storage: "autoConfirmEmbed",
         default: true,
     },
@@ -32,10 +32,11 @@ export default definePlugin({
     author: [
         Contributors.TheSun,
         Contributors.PurpleEye,
-        Developers.kmmiio99o
+        Developers.kmmiio99o,
+        Developers.SerStars
     ],
     id: "quickdelete",
-    version: "1.0.0",
+    version: "1.0.1",
     settings: Settings,
     start() {
         if (intl && intlMap) {
