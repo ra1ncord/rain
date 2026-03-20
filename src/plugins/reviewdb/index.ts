@@ -5,9 +5,9 @@ import { Contributors,Developers } from "@rain/Developers";
 import { getAdmins } from "./lib/api";
 import patchContextMenu from "./patches/patchContextMenu";
 import patchProfile from "./patches/patchProfile";
+import patchSegmentedProfile from "./patches/patchSegmentedProfile";
 import patchServer from "./patches/patchServer";
 import patchSimplifiedProfile from "./patches/patchSimplifiedProfile";
-import patchSegmentedProfile from "./patches/patchSegmentedProfile";
 import Settings from "./Settings";
 import { useReviewDBSettings } from "./storage";
 
@@ -29,7 +29,7 @@ export default definePlugin({
         patches.push(patchSimplifiedProfile());
         patches.push(patchServer());
         patches.push(patchContextMenu());
-		patches.push(patchSegmentedProfile())
+        patches.push(patchSegmentedProfile());
 
         getAdmins().then(i => admins.push(...i));
     },

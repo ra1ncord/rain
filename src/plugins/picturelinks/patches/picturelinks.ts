@@ -65,7 +65,7 @@ export function unpatchAvatar() {
             Pressable,
             {
                 onPress: ({ nativeEvent }: any) => guildSpecific ? openModal(guildSpecific, nativeEvent) : openModal(url, nativeEvent),
-                onLongPress: ({nativeEvent}: any) => openModal(url, nativeEvent),
+                onLongPress: ({ nativeEvent }: any) => openModal(url, nativeEvent),
                 style
             },
             res
