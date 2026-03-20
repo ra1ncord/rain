@@ -9,7 +9,7 @@ import { AnimatedProfilesMode,useAnimatedProfilesSettings } from "./storage";
 let unpatches: (() => void)[] = [];
 
 export default definePlugin({
-    name: "Animated Profiles",
+    name: "AnimatedProfiles",
     description: "Custom animated profile pictures and backgrounds using UserPFP and UserBG",
     author: [Contributors.sapphire, Contributors.rico040, Developers.kmmiio99o, Developers.SerStars],
     id: "animatedprofiles",
