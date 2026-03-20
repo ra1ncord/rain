@@ -70,7 +70,7 @@ export default function Updater() {
                         disabled={isCheckingForUpdates}
                         loading={isCheckingForUpdates}
                         onPress={() => {
-                            downloadUpdate;
+                            downloadUpdate()
                             openAlert(
                                 "update-restart-alert",
                                 <AlertModal
