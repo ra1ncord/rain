@@ -12,15 +12,13 @@ export default definePlugin({
     author: [Contributors.Awesomegamergame],
     id: "dashless",
     version: "1.0.0",
-
-    start() {
+    eagerStart() {
         patches.push(
             after("render", View.prototype || View, (_, res) => {
                 return traverseAndModify(res);
             })
         );
     },
-
     stop() {
         for (const unpatch of patches) unpatch();
         patches.length = 0;
