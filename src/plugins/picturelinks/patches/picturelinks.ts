@@ -64,8 +64,8 @@ export function unpatchAvatar() {
         return React.createElement(
             Pressable,
             {
-                onPress: ({ nativeEvent }: any) => openModal(url, nativeEvent),
-                onLongPress: ({ nativeEvent }: any) => guildSpecific && openMediaModal(guildSpecific, nativeEvent),
+                onPress: ({ nativeEvent }: any) => guildSpecific ? openModal(guildSpecific, nativeEvent) : openModal(url, nativeEvent),
+                onLongPress: ({nativeEvent}: any) => openModal(url, nativeEvent),
                 style
             },
             res
