@@ -19,9 +19,7 @@ export default () =>
 						i?.type?.name === "UserProfileAboutMeCard"
 				) !== -1,
 		)?.props?.children;
-
-		let userId = args[0]?.userId;
-		if (userId === undefined) userId = args[0]?.user?.id;
+		let userId = profileSections?.[profileSections?.length - 1]?.props?.userId;
 
 		profileSections?.push(React.createElement(ReviewSection, { userId }));
 	}) : (): boolean => {
