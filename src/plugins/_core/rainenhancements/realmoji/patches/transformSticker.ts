@@ -26,31 +26,17 @@ export default [
         if (data.rowType !== 1 || !rainenhancementsSettings.transformSticker) return;
 
         // normal msg
-        const msg = data.message;
-        if (msg.content) {
-            let match = msg.content.match(animatedGifRegex);
-            if (match) msg.stickerItems = makeStickerItem(match[1], 4);
-            else if ((match = msg.content.match(attachmentGifRegex))) msg.stickerItems = makeStickerItem(match[1], 2);
-            else if ((match = msg.content.match(staticStickerRegex))) msg.stickerItems = makeStickerItem(match[1], 1);
+        let msg = data.message;
+        if (!msg.content) msg = msg.messageSnapshots?.[0]?.message;
+        if (!msg?.content) return;
+        let match = msg.content.match(animatedGifRegex);
+        if (match) msg.stickerItems = makeStickerItem(match[1], 4);
+        else if ((match = msg.content.match(attachmentGifRegex))) msg.stickerItems = makeStickerItem(match[1], 2);
+        else if ((match = msg.content.match(staticStickerRegex))) msg.stickerItems = makeStickerItem(match[1], 1);
 
-            if (match) {
-                msg.content = "";
-                msg.embeds = [];
-            }
-        }
-
-        // forwarded msg
-        const snapshot = msg.messageSnapshots?.[0]?.message;
-        if (snapshot?.content) {
-            let match = snapshot.content.match(animatedGifRegex);
-            if (match) snapshot.stickerItems = makeStickerItem(match[1], 4);
-            else if ((match = snapshot.content.match(attachmentGifRegex))) snapshot.stickerItems = makeStickerItem(match[1], 2);
-            else if ((match = snapshot.content.match(staticStickerRegex))) snapshot.stickerItems = makeStickerItem(match[1], 1);
-
-            if (match) {
-                snapshot.content = "";
-                snapshot.embeds = [];
-            }
+        if (match) {
+            msg.content = "";
+            msg.embeds = [];
         }
     })
 ];
