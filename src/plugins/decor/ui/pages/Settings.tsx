@@ -22,7 +22,7 @@ export default function Settings() {
                 {!isAuthorized && (
                     <TableRow
                         label="Authorize with Decor"
-                        icon={<TableRow.Icon source={findAssetId("ic_link_24px")} />}
+                        icon={<TableRow.Icon source={findAssetId("LinkIcon")} />}
                         onPress={showAuthorizationModal}
                     />
                 )}

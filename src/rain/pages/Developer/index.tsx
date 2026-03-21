@@ -98,7 +98,7 @@ export default function Developer() {
                             <Stack style={{ marginTop: 4, borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: "hidden" }}>
                                 <TableSwitchRow
                                     label={Strings.AUTO_DEVTOOLS}
-                                    icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
+                                    icon={<TableRow.Icon source={findAssetId("StaffBadgeIcon")} />}
                                     value={settings.autoDevTools}
                                     onValueChange={(v: boolean) => settings.updateSettings({ autoDevTools: v })}
                                 />

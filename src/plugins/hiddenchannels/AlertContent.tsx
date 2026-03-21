@@ -45,13 +45,13 @@ function FancyDate({ date }: { date: Date }) {
         <Text
             onPress={() => {
                 showToast(
-                    moment(date).toLocaleString(), findAssetId("ic_clock")
+                    moment(date).toLocaleString(), findAssetId("ClockIcon")
                 );
             }}
             onLongPress={() => {
                 clipboard.setString(date.getTime().toString());
                 showToast(
-                    "Copied Timestamp to Clipboard", findAssetId("ic_message_copy")
+                    "Copied Timestamp to Clipboard", findAssetId("CopyIcon")
                 );
             }}
             style={[MessageStyles.highlight]}

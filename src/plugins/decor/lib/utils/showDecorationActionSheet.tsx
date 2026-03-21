@@ -30,7 +30,7 @@ export default (decoration: Decoration) =>
         },
         options: [
             {
-                icon: findAssetId("ic_message_copy"),
+                icon: findAssetId("CopyIcon"),
                 label: "Copy Decoration Hash",
                 onPress: () => {
                     clipboard.setString(decoration.hash);

@@ -50,7 +50,7 @@ export default function BetterChatButtonsSettings() {
                         onValueChange={v => updateHide("app", v)}
                     />
                     <TableSwitchRow
-                        icon={<TableRow.Icon source={findAssetId("ic_gift")} />}
+                        icon={<TableRow.Icon source={findAssetId("GiftIcon")} />}
                         label="Hide Gift"
                         value={settings.hide.gift}
                         onValueChange={v => updateHide("gift", v)}

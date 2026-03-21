@@ -61,7 +61,7 @@ export default () => before("openLazy", LazyActionSheet, ([component, key, msg])
             const existingCachedObject = cachedData.find((o: any) => Object.keys(o)[0] === messageId);
 
             const translateType = existingCachedObject ? "Revert" : "Translate";
-            const icon = translateType === "Translate" ? findAssetId("LanguageIcon") : findAssetId("ic_highlight");
+            const icon = translateType === "Translate" ? findAssetId("LanguageIcon") : findAssetId("StarIcon");
 
             const translate = async () => {
                 LazyActionSheet.hideActionSheet();

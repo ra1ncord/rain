@@ -56,7 +56,7 @@ export default function AnimatedProfilesSettings() {
                     />
                     <TableRow
                         label="Reload DB"
-                        icon={<TableRow.Icon source={findAssetId("ic_message_retry")} />}
+                        icon={<TableRow.Icon source={findAssetId("RetryIcon")} />}
                         onPress={async () => {
                             if (mode === AnimatedProfilesMode.Both) {
                                 await fetchUserBgData();
