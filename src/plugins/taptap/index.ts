@@ -5,6 +5,7 @@ import { ReactNative } from "@metro/common";
 import { findByProps, findByStoreName } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 import TapTapSettings from "./settings";
 import { taptapSettings, useTapTapSettings } from "./storage";
@@ -350,8 +351,8 @@ function resolveRuntimeModules() {
 }
 
 export default definePlugin({
-    name: "TapTap",
-    description: "Double-tap others to reply, Double-tap self to edit",
+    name: Strings.PLUGINS.CUSTOM.TAPTAP.NAME,
+    description: Strings.PLUGINS.CUSTOM.TAPTAP.DESCRIPTION,
     author: [Developers.LampDelivery],
     id: "taptap",
     version: "1.0.0",

@@ -3,6 +3,7 @@ import { Codeblock } from "@api/ui/components";
 import { showToast } from "@api/ui/toasts";
 import { clipboard, React,ReactNative } from "@metro/common";
 import { Stack, TableRow, TableRowGroup } from "@metro/common/components";
+import { Strings } from "@rain/i18n";
 
 import { cleanMessage } from "./cleanmessage";
 
@@ -14,22 +15,22 @@ export default function RawPage({ message }: any) {
     return (<>
         <ScrollView style={{ flex: 1, marginVertical: 10 }}>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }}>
-                <TableRowGroup title="Actions">
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.VIEWRAW.ACTIONS}>
                     <TableRow
-                        label="Copy Raw Content"
+                        label={Strings.PLUGINS.CUSTOM.VIEWRAW.COPY_RAW_CONTENT}
                         icon={<TableRow.Icon source={findAssetId("ClipboardListIcon")}/>}
                         disabled={!message.content}
                         onPress={() => {
                             clipboard.setString(message.content);
-                            showToast("Copied content to clipboard", findAssetId("ClipboardCheckIcon"));
+                            showToast(Strings.PLUGINS.CUSTOM.VIEWRAW.COPIED_RAW_CONTENT, findAssetId("ClipboardCheckIcon"));
                         }}
                     />
                     <TableRow
-                        label="Copy Raw Data"
+                        label={Strings.PLUGINS.CUSTOM.VIEWRAW.COPY_RAW_DATA}
                         icon={<TableRow.Icon source={findAssetId("ClipboardListIcon")}/>}
                         onPress={() => {
                             clipboard.setString(stringMessage);
-                            showToast("Copied data to clipboard", findAssetId("ClipboardCheckIcon"));
+                            showToast(Strings.PLUGINS.CUSTOM.VIEWRAW.COPIED_RAW_DATA, findAssetId("ClipboardCheckIcon"));
                         }}
                     />
                 </TableRowGroup>

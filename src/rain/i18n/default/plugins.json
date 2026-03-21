@@ -546,18 +546,17 @@
         "MORECONFIRM": {
             "NAME": "MoreConfirm",
             "DESCRIPTION": "Prompts confirmations before making irreversible actions.",
-            "START_A_GROUP_CALL": "Start a group call",
-            "START_A_GROUP_VIDEO_CALL": "Start a group video call",
-            "START_A_CALL_WITH_USER": "Start a call with {username}#{discriminator}?",
-            "START_A_VIDEO_CALL_WITH_USER": "Start a video call with {username}#{discriminator}?",
+            "ACTIONS_CALL": "call",
+            "ACTIONS_VIDEO_CALL": "video call",
+            "START_A_GROUP_ACTION": "Start a group {action}?",
+            "START_A_ACTION_USER": "Start a {action} with {username}#{discriminator}?",
             "ARE_YOU_SURE_START_A_GROUP_CALL": "Are you sure you want to start the group call?",
-            "ARE_YOU_SURE_START_A_GROUP_VIDEO_CALL": "Are you sure you want to start the group video call?",
-            "ARE_YOU_SURE_START_A_CALL_WITH_USER": "Are you sure you want to call {username}#{discriminator}?",
-            "ARE_YOU_SURE_START_A_VIDEO_CALL_WITH_USER": "Are you sure you want to video call {username}#{discriminator}?",
+            "ARE_YOU_SURE_START_A_ACTION_WITH_USER": "Are you sure you want to {action} {username}#{discriminator}?",
             "YES": "Yes",
             "CANCEL": "Cancel",
-            "ARE_YOU_SURE_BLOCK_USER": "Are you sure you want to block {username}#{discriminator}?",
-            "ARE_YOU_SURE_FRIEND_USER": "Are you sure you want to friend {username}#{discriminator}?"
+            "ARE_YOU_SURE_ACTION_USER": "Are you sure you want to {action} {username}#{discriminator}?",
+            "BLOCK": "Block",
+            "FRIEND": "Friend"
         },
         "MOYAI": {
             "NAME": "Moyai",

@@ -1,4 +1,5 @@
 import { findByProps } from "@metro";
+import { Strings } from "@rain/i18n";
 import { ScrollView } from "react-native";
 
 import { useMoyaiSettings } from "./storage";
@@ -12,9 +13,9 @@ export default function MoyaiSettings() {
     return (
         <ScrollView style={{ flex: 1 }}>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
-                <TableRowGroup title="Behavior">
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.MOYAI.BEHAVIOR}>
                     <TableSwitchRow
-                        label="Play on reactions"
+                        label={Strings.PLUGINS.CUSTOM.MOYAI.PLAY_ON_REACTIONS}
                         onValueChange={(value: boolean) => {
                             settings.updateSettings({ allowReactions: value });
                         }}

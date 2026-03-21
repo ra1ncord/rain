@@ -1,6 +1,7 @@
 import { rawColors } from "@api/ui/components/color";
 import { findByProps, findByStoreName } from "@metro";
 import { constants, i18n } from "@metro/common";
+import { Strings } from "@rain/i18n";
 import chroma from "chroma-js";
 
 import { useStaffTagsSettings } from "../storage";
@@ -30,31 +31,31 @@ interface Tag {
 
 const tags: Tag[] = [
     {
-        text: "WEBHOOK",
+        text: Strings.PLUGINS.CUSTOM.STAFFTAGS.WEBHOOK,
         condition: (guild, channel, user) => user?.isNonUserBot?.() ?? false
     },
     {
-        text: "OWNER",
+        text: Strings.PLUGINS.CUSTOM.STAFFTAGS.OWNER,
         condition: (guild, channel, user) => guild?.ownerId === user?.id
     },
     {
-        text: "ADMIN",
+        text: Strings.PLUGINS.CUSTOM.STAFFTAGS.ADMIN,
         permissions: ["ADMINISTRATOR"]
     },
     {
-        text: "STAFF",
+        text: Strings.PLUGINS.CUSTOM.STAFFTAGS.STAFF,
         permissions: ["MANAGE_GUILD", "MANAGE_CHANNELS", "MANAGE_ROLES", "MANAGE_WEBHOOKS"]
     },
     {
-        text: "MOD",
+        text: Strings.PLUGINS.CUSTOM.STAFFTAGS.MOD,
         permissions: ["MANAGE_MESSAGES", "KICK_MEMBERS", "BAN_MEMBERS"]
     },
     {
-        text: "VC Mod",
+        text: Strings.PLUGINS.CUSTOM.STAFFTAGS.VC_MOD,
         permissions: ["MOVE_MEMBERS", "MUTE_MEMBERS", "DEAFEN_MEMBERS"]
     },
     {
-        text: "Chat Mod",
+        text: Strings.PLUGINS.CUSTOM.STAFFTAGS.CHAT_MOD,
         permissions: ["MODERATE_MEMBERS"]
     }
 ];

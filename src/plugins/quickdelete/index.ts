@@ -2,6 +2,7 @@ import { instead } from "@api/patcher";
 import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
 import { Contributors,Developers } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 import Settings from "./Settings";
 import { quickDeleteSettings } from "./storage";
@@ -26,8 +27,8 @@ let autoConfirmMessages: { embed: string; message: string };
 let unpatch: () => void;
 
 export default definePlugin({
-    name: "QuickDelete",
-    description: "Automatically confirm delete popups for messages and embeds",
+    name: Strings.PLUGINS.CUSTOM.QUICKDELETE.NAME,
+    description: Strings.PLUGINS.CUSTOM.QUICKDELETE.DESCRIPTION,
     author: [
         Contributors.TheSun,
         Contributors.PurpleEye,

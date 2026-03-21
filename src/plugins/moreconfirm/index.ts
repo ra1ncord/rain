@@ -22,6 +22,7 @@ import { logger } from "@lib/utils/logger";
 import { findByProps, findByStoreName } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
 import { Contributors,Developers } from "@rain/Developers";
+import { formatString,Strings } from "@rain/i18n";
 
 const dialog = findByProps("show", "confirm", "close");
 const relationshipManager = findByProps("addRelationship");
@@ -32,8 +33,8 @@ const UserStore = findByStoreName("UserStore");
 const patches: (() => void)[] = [];
 
 export default definePlugin({
-    name: "MoreConfirm",
-    description: "Prompts confirmations before making irreversible actions.",
+    name: Strings.PLUGINS.CUSTOM.MORECONFIRM.NAME,
+    description: Strings.PLUGINS.CUSTOM.MORECONFIRM.DESCRIPTION,
     author: [Contributors.pylix, Developers.j],
     id: "moreconfirm",
     version: "1.0.0",
@@ -45,10 +46,21 @@ export default definePlugin({
 
             // if `multiple` is defined, it's probably a group call
             dialog.show({
-                title: multiple ? `Start a group ${action}?` : `Start a ${action} with ${username}#${discriminator}?`,
-                body: multiple ? "Are you sure you want to start the group call?" : `Are you sure you want to ${action} ${username}#${discriminator}?`,
-                confirmText: "Yes",
-                cancelText: "Cancel",
+                title: multiple ? formatString(Strings.PLUGINS.CUSTOM.MORECONFIRM.START_A_GROUP_ACTION, {
+                    action: action,
+                }) :
+                    formatString(Strings.PLUGINS.CUSTOM.MORECONFIRM.START_A_ACTION_USER, {
+                        action: action,
+                        username: username,
+                        discriminator: discriminator
+                    }),
+                body: multiple ? Strings.PLUGINS.CUSTOM.MORECONFIRM.ARE_YOU_SURE_START_A_GROUP_CALL : formatString(Strings.PLUGINS.CUSTOM.MORECONFIRM.ARE_YOU_SURE_START_A_ACTION_WITH_USER, {
+                        action: action,
+                        username: username,
+                        discriminator: discriminator
+                    }),
+                confirmText: Strings.PLUGINS.CUSTOM.MORECONFIRM.YES,
+                cancelText: Strings.PLUGINS.CUSTOM.MORECONFIRM.CANCEL,
                 confirmColor: "brand",
                 onConfirm: () => {
                     try {
@@ -71,10 +83,15 @@ export default definePlugin({
             const block = args[0].type === 2;
             return new Promise(r => {
                 dialog.show({
-                    title: `${block ? "Block" : "Friend"} ${username}#${discriminator}?`,
-                    body: `Are you sure you want to ${block ? "block" : "friend"} ${username}#${discriminator}?`,
-                    confirmText: "Yes",
-                    cancelText: "Cancel",
+                    title: `${block ? Strings.PLUGINS.CUSTOM.MORECONFIRM.BLOCK : Strings.PLUGINS.CUSTOM.MORECONFIRM.FRIEND} ${username}#${discriminator}?`,
+                    body: formatString(Strings.PLUGINS.CUSTOM.MORECONFIRM.ARE_YOU_SURE_ACTION_USER, {
+                    action: block ? Strings.PLUGINS.CUSTOM.MORECONFIRM.BLOCK : Strings.PLUGINS.CUSTOM.MORECONFIRM.FRIEND,
+                    username: username,
+                    discriminator: discriminator
+                })
+                    ,
+                    confirmText: Strings.PLUGINS.CUSTOM.MORECONFIRM.YES,
+                    cancelText: Strings.PLUGINS.CUSTOM.MORECONFIRM.CANCEL,
                     confirmColor: "brand",
                     onConfirm: () => {
                         try {

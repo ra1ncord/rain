@@ -1,5 +1,6 @@
 import { definePlugin } from "@plugins";
 import { Contributors,Developers } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 import patchChat from "./patches/chat";
 import patchDetails from "./patches/details";
@@ -10,8 +11,8 @@ import Settings from "./Settings";
 const patches: any[] = [];
 
 export default definePlugin({
-    name: "StaffTags",
-    description: "Shows extra tags for staff members.",
+    name: Strings.PLUGINS.CUSTOM.STAFFTAGS.NAME,
+    description: Strings.PLUGINS.CUSTOM.STAFFTAGS.DESCRIPTION,
     author: [Contributors.Fiery, Contributors.siguma, Developers.kmmiio99o],
     id: "stafftags",
     version: "1.0.0",

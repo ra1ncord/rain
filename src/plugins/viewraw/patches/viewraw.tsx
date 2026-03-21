@@ -5,6 +5,7 @@ import { logger } from "@lib/utils/logger";
 import { findByName, findByProps } from "@metro";
 import { React } from "@metro/common";
 import { Forms } from "@metro/common/components";
+import { Strings } from "@rain/i18n";
 
 import RawPage from "./RawPage";
 
@@ -76,7 +77,7 @@ export default () => [
 
                     const viewRawButton = (
                         <ActionSheetRow
-                            label="View Raw"
+                            label={Strings.PLUGINS.CUSTOM.VIEWRAW.VIEW_RAW}
                             icon={{
                                 $$typeof: middleGroup.props.children[0].props.icon.$$typeof,
                                 type: middleGroup.props.children[0].props.icon.type,

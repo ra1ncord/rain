@@ -1,6 +1,7 @@
 import { useSettings } from "@api/settings";
 import { ReactNative } from "@metro/common";
 import { Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
+import { Strings } from "@rain/i18n";
 import React from "react";
 import { View } from "react-native";
 
@@ -27,38 +28,38 @@ export default function TapTapSettings() {
     return (
         <View>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
-                <TableRowGroup title={"Behavior"}>
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.TAPTAP.BEHAVIOR}>
                     <TableSwitchRow
-                        label="Reply on double-tap"
-                        subLabel="Creates a pending reply when double-tapping messages"
+                        label={Strings.PLUGINS.CUSTOM.TAPTAP.REPLY_ON_DOUBLE_TAP}
+                        subLabel={Strings.PLUGINS.CUSTOM.TAPTAP.REPLY_ON_DOUBLE_TAP_DESC}
                         value={!!taptapSettings.reply}
                         onValueChange={v => useTapTapSettings.getState().updateSettings({ reply: v })}
                     />
                     <TableSwitchRow
-                        label="Edit own messages"
-                        subLabel="Double-tap your own messages to edit"
+                        label={Strings.PLUGINS.CUSTOM.TAPTAP.EDIT_OWN_MESSAGES}
+                        subLabel={Strings.PLUGINS.CUSTOM.TAPTAP.EDIT_OWN_MESSAGES_DESC}
                         value={!!taptapSettings.userEdit}
                         onValueChange={v => useTapTapSettings.getState().updateSettings({ userEdit: v })}
                     />
                     {ReactNative.Platform.OS === "ios" && (
                         <TableSwitchRow
-                            label="Tap username to mention"
-                            subLabel="Tap a username to insert an @mention into the chat input"
+                            label={Strings.PLUGINS.CUSTOM.TAPTAP.TAP_USERNAME_TO_MENTION}
+                            subLabel={Strings.PLUGINS.CUSTOM.TAPTAP.USERNAME_TO_MENTION_DESC}
                             value={!!taptapSettings.tapUsernameMention}
                             onValueChange={v => useTapTapSettings.getState().updateSettings({ tapUsernameMention: v })}
                         />
                     )}
                     <TableSwitchRow
-                        label="Open keyboard after action"
+                        label={Strings.PLUGINS.CUSTOM.TAPTAP.OPEN_KEYBOARD_AFTER_ACTION}
                         value={!!taptapSettings.keyboardPopup}
                         onValueChange={v => useTapTapSettings.getState().updateSettings({ keyboardPopup: v })}
                     />
                 </TableRowGroup>
                 {developerSettings === true && (
-                    <TableRowGroup title={"Debug"}>
+                    <TableRowGroup title={Strings.PLUGINS.CUSTOM.TAPTAP.DEBUG}>
                         <TableSwitchRow
-                            label="Debug logging"
-                            subLabel="Log gesture state to console"
+                            label={Strings.PLUGINS.CUSTOM.TAPTAP.DEBUG_LOGGING}
+                            subLabel={Strings.PLUGINS.CUSTOM.TAPTAP.DEBUG_LOGGING_DESC}
                             value={!!taptapSettings.debugMode}
                             onValueChange={v => useTapTapSettings.getState().updateSettings({ debugMode: v })}
                         />
