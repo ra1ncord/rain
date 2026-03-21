@@ -35,11 +35,7 @@ export default () => {
                         />
                     }
                     disabled={!isAuthenticated}
-                    onPress={() =>
-                        useReviewDBSettings
-                            .getState()
-                            .updateSettings({ authToken: "" })
-                    }
+                    onPress={() => reviewdbSettings.updateSettings({ authToken: "" })}
                 />
             </TableRowGroup>
             <TableRowGroup title="Settings">

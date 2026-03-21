@@ -1,13 +1,8 @@
 import { definePlugin } from "@plugins";
-import { Contributors,Developers } from "@rain/Developers";
+import { Contributors, Developers } from "@rain/Developers";
 
 import patchActionSheet from "./patches/ActionSheet";
 import Settings from "./settings/index";
-import { settings } from "./storage";
-
-settings.target_lang ??= "en";
-settings.translator ??= 1;
-settings.immersive_enabled ??= true;
 
 const patches: any[] = [];
 
@@ -27,7 +22,10 @@ export default definePlugin({
         patches.push(patchActionSheet());
     },
     stop() {
-        for (const unpatch of patches) unpatch();
+        for (const unpatch of patches) {
+            if (typeof unpatch === "function") unpatch();
+        }
+        patches.length = 0;
     },
     settings: Settings
 });

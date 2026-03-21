@@ -6,7 +6,7 @@ import { findByProps } from "@metro/wrappers";
 import React, { useMemo,useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { useActionSheetFinderSettings } from "./storage";
+import { clearLogs,useActionSheetFinderSettings } from "./storage";
 
 const { Card: CardComponent } = findByProps("Card");
 
@@ -45,7 +45,7 @@ export default function ActionSheetFinderSettings() {
                 <TableRowGroup title="Logs">
                     <TableRow
                         label="Clear Logs"
-                        onPress={() => settings.clearLogs()}
+                        onPress={() => clearLogs()}
                         icon={<TableRow.Icon source={findAssetId("TrashIcon")} />}
                     />
                 </TableRowGroup>

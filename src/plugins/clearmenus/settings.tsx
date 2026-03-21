@@ -1,9 +1,9 @@
 import { findAssetId } from "@api/assets";
 import { findByProps } from "@metro";
 import { NavigationNative } from "@metro/common";
+import { Text } from "@metro/common/components";
 import { Image,StyleSheet, View } from "react-native";
 
-import MoreCommandsText from "../morecommands/settings/components/Text";
 import AccountSettingsPage from "./settings/pages/AccountSettingsPage";
 import AppSettingsPage from "./settings/pages/AppSettingsPage";
 import BillingSettingsPage from "./settings/pages/BillingSettingsPage";
@@ -99,17 +99,16 @@ export default function Settings() {
                     )}
                 </View>
                 <View style={styles.textContainer}>
-                    <MoreCommandsText variant="display-md" color="TEXT_DEFAULT" align="center">
+                    <Text variant="display-md" color="TEXT_DEFAULT">
             ClearMenus
-                    </MoreCommandsText>
-                    <MoreCommandsText
+                    </Text>
+                    <Text
                         variant="text-md/bold"
                         color="TEXT_MUTED"
-                        align="center"
                         style={{ marginTop: 4 }}
                     >
             Hide unwanted buttons and settings
-                    </MoreCommandsText>
+                    </Text>
                 </View>
             </View>
             <Stack spacing={8} style={{ padding: 10 }}>
