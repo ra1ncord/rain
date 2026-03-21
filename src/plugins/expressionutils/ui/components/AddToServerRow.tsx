@@ -103,7 +103,7 @@ export default function AddToServerRow({ guild, emoji }: { guild: any, emoji: an
                 trailing={
                     <Forms.FormIcon
                         style={{ opacity: 1 }}
-                        source={findAssetId("ic_add_24px")}
+                        source={findAssetId("CirclePlusIcon")}
                     />
                 }
                 onPress={addToServerCallback}

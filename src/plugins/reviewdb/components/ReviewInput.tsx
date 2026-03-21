@@ -97,7 +97,7 @@ export default function ReviewInput({
                     icon={
                         <RN.Image
                             style={{ tintColor: "#fff" }}
-                            source={findAssetId("ic_send")}
+                            source={findAssetId("SendMessageIcon")}
                         />
                     }
                     disabled={disableButton}
@@ -158,7 +158,7 @@ export default function ReviewInput({
             >
                 <RN.Image
                     style={{ tintColor: "#fff" }}
-                    source={findAssetId("ic_send")}
+                    source={findAssetId("SendMessageIcon")}
                 />
             </RN.Pressable>
         </RN.View>

@@ -31,7 +31,7 @@ export default () => {
                     icon={
                         <TableRow.Icon
                             variant={isAuthenticated ? "danger" : undefined}
-                            source={findAssetId("ic_leave_24px")}
+                            source={findAssetId("DoorExitIcon")}
                         />
                     }
                     disabled={!isAuthenticated}
@@ -47,7 +47,7 @@ export default () => {
                     label="Use profile-themed send button"
                     subLabel="Controls whether the review send button should attempt to match the user's profile colors."
                     icon={
-                        <TableRow.Icon source={findAssetId("ic_paint_brush")} />
+                        <TableRow.Icon source={findAssetId("PaintbrushThinIcon")} />
                     }
                     value={reviewdbSettings.useThemedSend}
                     onValueChange={(v: boolean) =>

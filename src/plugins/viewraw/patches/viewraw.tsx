@@ -61,7 +61,7 @@ export default () => [
                             leading={
                                 <FormIcon
                                     style={{ opacity: 1 }}
-                                    source={findAssetId("ic_chat_bubble_16px")}
+                                    source={findAssetId("ChatMarkUnreadIcon")}
                                 />
                             }
                             onPress={() => {
@@ -87,7 +87,7 @@ export default () => [
                                     IconComponent: () => (
                                         <FormIcon
                                             style={{ opacity: 1 }}
-                                            source={findAssetId("ic_chat_bubble_32px")}
+                                            source={findAssetId("ChatMarkUnreadIcon")}
                                         />
                                     ),
                                 },

@@ -46,14 +46,14 @@ export default function Settings() {
                     <TableCheckboxRow
                         label={"Immersive Translation"}
                         subLabel={"Display both original and translation"}
-                        icon={<TableRow.Icon source={findAssetId("ic_chat_bubble_filled_24px")} />}
+                        icon={<TableRow.Icon source={findAssetId("ic_chat_bubble_32px")} />}
                         checked={settings.immersive_enabled ?? true}
                         onPress={() => settings.updateSettings({ immersive_enabled: !settings.immersive_enabled })}
                     />
                     <TableRow
                         label={"Translate to"}
                         subLabel={settings.target_lang?.toLowerCase()}
-                        icon={<TableRow.Icon source={findAssetId("ic_activity_24px")} />}
+                        icon={<TableRow.Icon source={findAssetId("LanguageIcon")} />}
                         trailing={() => <TableRow.Arrow />}
                         onPress={() => navigation.push("RAIN_CUSTOM_PAGE", {
                             title: "Translate to",
@@ -63,7 +63,7 @@ export default function Settings() {
                     <TableRow
                         label={"Translator"}
                         subLabel={settings.translator ? "Google Translate" : "DeepL"}
-                        icon={<TableRow.Icon source={findAssetId("ic_locale_24px")} />}
+                        icon={<TableRow.Icon source={findAssetId("LocationIcon")} />}
                         trailing={() => <TableRow.Arrow />}
                         onPress={showTranslatorSheet}
                     />

@@ -154,7 +154,7 @@ export default function Header() {
                             </>
                         ) : (
                             <RN.Image
-                                source={findAssetId("ic_account_circle_24px")}
+                                source={findAssetId("UserCircleIcon")}
                                 style={styles.avatarPlaceholder}
                             />
                         )}

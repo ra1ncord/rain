@@ -106,7 +106,7 @@ export default function CreateDecoration() {
                                             hitSlop={8}
                                             style={{ padding: 4 }}
                                         >
-                                            <TableRow.Icon source={findAssetId("ic_close_circle_24px")} />
+                                            <TableRow.Icon source={findAssetId("CircleXIcon")} />
                                         </Pressable>
                                     ) : TableRow.Arrow
                                 }

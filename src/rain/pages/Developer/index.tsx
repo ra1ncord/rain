@@ -98,14 +98,14 @@ export default function Developer() {
                             <Stack style={{ marginTop: 4, borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: "hidden" }}>
                                 <TableSwitchRow
                                     label={Strings.GENERAL.DEVELOPER.AUTO_DEVTOOLS}
-                                    icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
+                                    icon={<TableRow.Icon source={findAssetId("StaffBadgeIcon")} />}
                                     value={settings.autoDevTools}
                                     onValueChange={(v: boolean) => settings.updateSettings({ autoDevTools: v })}
                                 />
                             </Stack>
                             <TableRow
                                 label={Strings.GENERAL.DEVELOPER.CONNECT_TO_REACT_DEVTOOLS}
-                                icon={<TableRow.Icon source={findAssetId("ic_badge_staff")} />}
+                                icon={<TableRow.Icon source={findAssetId("StaffBadgeIcon")} />}
                                 onPress={async () => {
                                     if (!settings.devToolsUrl?.trim()) {
                                         showToast(Strings.GENERAL.DEVELOPER.INVALID_DEVTOOLS_URL, findAssetId("Small"));

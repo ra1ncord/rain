@@ -29,7 +29,7 @@ export default (review: Review) =>
                     clipboard.setString(review.comment);
                     showToast(
                         "Copied Review Text",
-                        findAssetId("ic_message_copy"),
+                        findAssetId("CopyIcon"),
                     );
                 },
             },
