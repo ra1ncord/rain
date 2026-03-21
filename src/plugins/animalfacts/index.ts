@@ -3,28 +3,28 @@ import { RainApplicationCommand } from "@api/commands/types";
 import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
+import { Contributors } from "@rain/Developers";
 
 const MessageActions = findByProps("sendMessage");
 
 // Helper function to format fact response
 const formatFactResponse = (fact: { text: string; source?: string; length?: number }) => {
-    let response = fact.text;
+    const response = fact.text;
     return response;
 };
 
 export default definePlugin({
     name: "AnimalFacts",
     description: "Adds the catfact and dogfact commands",
-    author: [{name: "jdev082", id: 1038089405161807872n}],
+    author: [Contributors.jdev082],
     id: "animalfacts",
     version: "1.0.0",
     start() {
-        unregister = registerCommand(catFactCommand());
-        unregister2 = registerCommand(dogFactCommand());
+        unregisters.push(registerCommand(catFactCommand()));
+        unregisters.push(registerCommand(dogFactCommand()));
     },
     stop() {
-        unregister?.();
-        unregister2?.();
+        unregisters.forEach(unregister => unregister());
     }
 });
 
@@ -101,6 +101,4 @@ export const catFact = async () => {
     };
 };
 
-// todo: stupid but works having 2
-let unregister: (() => void) | undefined;
-let unregister2: (() => void) | undefined;
+const unregisters: (() => void)[] = [];

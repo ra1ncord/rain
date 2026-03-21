@@ -2,6 +2,7 @@ import { registerCommand } from "@api/commands";
 import { ApplicationCommandOptionType, RainApplicationCommand } from "@api/commands/types";
 import { findByProps, findByStoreName } from "@metro";
 import { definePlugin } from "@plugins";
+import { Contributors } from "@rain/Developers";
 
 const UserStore = findByStoreName("UserStore");
 const MessageActions = findByProps("sendMessage");
@@ -17,7 +18,7 @@ const getPetPetData = async (image: string) => {
 export default definePlugin({
     name: "PetPet",
     description: "Send a gif of someone being pet",
-    author: [{name: "Vendicated", id: 343383572805058560n}],
+    author: [Contributors.Vendicated],
     id: "petpet",
     version: "1.0.0",
     start() {
