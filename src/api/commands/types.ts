@@ -10,7 +10,7 @@ export interface ApplicationCommand {
     name: string;
     description: string;
     execute: (args: Argument[], ctx: CommandContext) => CommandResult | void | Promise<CommandResult> | Promise<void>;
-    options: ApplicationCommandOption[];
+    options?: ApplicationCommandOption[];
     id?: string;
     applicationId?: string;
     displayName?: string;
