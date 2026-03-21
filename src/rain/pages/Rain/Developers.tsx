@@ -13,10 +13,10 @@ type Credit = {
 };
 
 const developers: Credit[] = [
-    { name: "cocobo1", role: "Main Developer", github: "C0C0B01" },
+    { name: "cocobo1", role: "Founder & Main Developer", github: "C0C0B01" },
     { name: "bwlok", role: "Rain Developer", github: "bwlok" },
     { name: "kmmiio99o", role: "Rain Developer", github: "kmmiio99o" },
-    { name: "Catstars", role: "Rain Developer", github: "SerStars" },
+    { name: "CatStars", role: "Rain Developer", github: "SerStars" },
     { name: "J", role: "Rain Developer", github: "joamoncab" },
     { name: "Reyyan", role: "Rain Contributor", github: "Reyyancli" },
     { name: "John", role: "Rain Contributor", github: "janisslsm" },
