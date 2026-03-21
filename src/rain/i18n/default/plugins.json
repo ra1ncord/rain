@@ -119,7 +119,7 @@
         },
         "ANIMATEDPROFILES": {
             "NAME": "AnimatedProfiles",
-            "DESCRIPTION": "Custom animated profile pictures and backgrounds using UserPFP and UserBG",
+            "DESCRIPTION": "Custom animated profile pictures and banners using UserPFP and UserBG",
             "SETTINGS": {
                 "CHOOSE_PREFERED_MODE": "Choose your prefered mode",
                 "PREFERED_MODE_BOTH": "Both Enabled",
