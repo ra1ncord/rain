@@ -1,6 +1,4 @@
-import { createFileStorage, PluginStore } from "@api/storage";
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { createPluginStore } from "@api/storage";
 
 import { Activity, ServiceType, Track } from "./defs";
 
@@ -46,45 +44,10 @@ export const DEFAULT_SETTINGS: MultiScrobblerSettings = {
     lastTrackUrl: undefined,
 };
 
-type MultiScrobblerStore = PluginStore<MultiScrobblerSettings>;
-
-export const useMultiScrobblerSettings = create<MultiScrobblerStore>()(
-    persist(
-        set => ({
-            ...DEFAULT_SETTINGS,
-            _hasHydrated: false,
-            updateSettings: (newSettings: Partial<MultiScrobblerSettings>) =>
-                set(state => ({ ...state, ...newSettings })),
-            setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
-        }),
-        {
-            name: "multiscrobbler-settings",
-            storage: createJSONStorage(() =>
-                createFileStorage("plugins/multiscrobbler.json"),
-            ),
-            onRehydrateStorage: () => state => {
-                state?.setHasHydrated(true);
-            },
-        },
-    ),
-);
-
-export const multiScrobblerSettings = new Proxy(
-    {} as MultiScrobblerSettings,
-    {
-        get(_target, prop: string) {
-            return useMultiScrobblerSettings.getState()[
-                prop as keyof MultiScrobblerSettings
-            ];
-        },
-        set(_target, prop: string, value: any) {
-            useMultiScrobblerSettings
-                .getState()
-                .updateSettings({ [prop]: value } as Partial<MultiScrobblerSettings>);
-            return true;
-        },
-    },
-);
+export const {
+    useStore: useMultiScrobblerSettings,
+    settings: multiScrobblerSettings,
+} = createPluginStore<MultiScrobblerSettings>("multiscrobbler", DEFAULT_SETTINGS);
 
 export const currentSettings = multiScrobblerSettings;
 

@@ -1,6 +1,4 @@
-import { createFileStorage, PluginStore } from "@api/storage";
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { createPluginStore } from "@api/storage";
 
 export interface MessageLoggerSettings {
     deleted: {
@@ -19,35 +17,22 @@ export interface MessageLoggerSettings {
     databaseLogging: boolean;
 }
 
-type MessageLoggerSettingsStore = PluginStore<MessageLoggerSettings>;
-
-export const useMessageLoggerSettings = create<MessageLoggerSettingsStore>()(
-    persist(
-        set => ({
-            deleted: {
-                enabled: true,
-                showTimestamps: false,
-                use12Hour: false,
-                showOnlyTimestamp: false,
-            },
-            edited: {
-                enabled: true,
-                showSeparator: true,
-            },
-            filters: {
-                ignoreBots: false,
-            },
-            databaseLogging: false,
-            _hasHydrated: false,
-            updateSettings: (newSettings: Partial<MessageLoggerSettings>) => set(state => ({ ...state, ...newSettings })),
-            setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
-        }),
-        {
-            name: "messagelogger-settings",
-            storage: createJSONStorage(() => createFileStorage("plugins/messagelogger.json")),
-            onRehydrateStorage: () => state => {
-                state?.setHasHydrated(true);
-            },
-        },
-    ),
-);
+export const {
+    useStore: useMessageLoggerSettings,
+    settings: messageLoggerSettings,
+} = createPluginStore<MessageLoggerSettings>("messagelogger", {
+    deleted: {
+        enabled: true,
+        showTimestamps: false,
+        use12Hour: false,
+        showOnlyTimestamp: false,
+    },
+    edited: {
+        enabled: true,
+        showSeparator: true,
+    },
+    filters: {
+        ignoreBots: false,
+    },
+    databaseLogging: false,
+});

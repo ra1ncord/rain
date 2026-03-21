@@ -1,6 +1,4 @@
-import { createFileStorage, PluginStore } from "@api/storage";
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { createPluginStore } from "@api/storage";
 
 import type { MonetCache, MonetColors, MonetConfig, MonetPatchConfig } from "./types";
 
@@ -31,25 +29,7 @@ export const DEFAULT_SETTINGS: MonetThemeSettings = {
     },
 };
 
-type MonetThemeStore = PluginStore<MonetThemeSettings>;
-
-export const useMonetSettings = create<MonetThemeStore>()(
-    persist(
-        set => ({
-            ...DEFAULT_SETTINGS,
-            _hasHydrated: false,
-            updateSettings: (newSettings: Partial<MonetThemeSettings>) =>
-                set(state => ({ ...state, ...newSettings })),
-            setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
-        }),
-        {
-            name: "monettheme-settings",
-            storage: createJSONStorage(() =>
-                createFileStorage("plugins/monettheme.json"),
-            ),
-            onRehydrateStorage: () => state => {
-                state?.setHasHydrated(true);
-            },
-        },
-    ),
-);
+export const {
+    useStore: useMonetSettings,
+    settings: monetSettings,
+} = createPluginStore<MonetThemeSettings>("_core.painter.monet", DEFAULT_SETTINGS);

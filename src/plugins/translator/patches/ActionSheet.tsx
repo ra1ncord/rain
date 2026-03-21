@@ -9,7 +9,7 @@ import { findByProps, findByStoreName } from "@metro/wrappers";
 
 import { DeepL, GTranslate } from "../api";
 import { getLangName } from "../lang";
-import { settings } from "../storage";
+import { translatorSettings as settings } from "../storage";
 
 const LazyActionSheet = findByProps("openLazy", "hideActionSheet");
 const MessageStore = findByStoreName("MessageStore");

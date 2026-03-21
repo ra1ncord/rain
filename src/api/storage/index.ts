@@ -1,5 +1,7 @@
 import { fileExists, readFile, writeFile } from "@api/native/fs";
-import { StorageValue } from "zustand/middleware";
+import { FluxDispatcher } from "@metro/common";
+import { create } from "zustand";
+import { createJSONStorage, persist, StorageValue } from "zustand/middleware";
 
 export const createFileStorage = (filePath: string) => {
     return {
@@ -82,3 +84,59 @@ export type PluginStore<T> = T & {
     _hasHydrated: boolean;
     setHasHydrated: (state: boolean) => void;
 };
+
+export function createPluginStore<T extends object>(
+    pluginName: string,
+    initialState: T
+) {
+    const useStore = create<PluginStore<T>>()(
+        persist(
+            set => ({
+                ...initialState,
+                _hasHydrated: false,
+                updateSettings: newSettings =>
+                    set((state: any) => ({ ...state, ...newSettings })),
+                setHasHydrated: (state: boolean) =>
+                    set({ _hasHydrated: state } as Partial<PluginStore<T>>),
+            }),
+            {
+                name: `${pluginName}-settings`,
+                storage: createJSONStorage(() => createFileStorage(`plugins/${pluginName}.json`)),
+                onRehydrateStorage: () => state => {
+                    state?.setHasHydrated(true);
+                },
+            }
+        )
+    );
+
+    useStore.subscribe((state, prevState) => {
+        if (state._hasHydrated && JSON.stringify(state) !== JSON.stringify(prevState)) {
+            FluxDispatcher.dispatch({ type: "RAIN_SETTING_UPDATED" });
+        }
+    });
+
+    const settingsProxy = new Proxy({} as T, {
+        get(_, prop: string) {
+            const state = useStore.getState();
+            if (prop.includes(".")) {
+                const [parent, child] = prop.split(".");
+                return (state as any)[parent]?.[child];
+            }
+            return (state as any)[prop];
+        },
+        set(_, prop: string, value: any) {
+            const state = useStore.getState();
+            if (prop.includes(".")) {
+                const [parent, child] = prop.split(".");
+                state.updateSettings({
+                    [parent]: { ...(state as any)[parent], [child]: value }
+                } as any);
+            } else {
+                state.updateSettings({ [prop]: value } as any);
+            }
+            return true;
+        },
+    });
+
+    return { useStore, settings: settingsProxy };
+}

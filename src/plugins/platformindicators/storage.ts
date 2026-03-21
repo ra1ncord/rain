@@ -1,8 +1,6 @@
-import { createFileStorage, PluginStore } from "@api/storage";
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { createPluginStore } from "@api/storage";
 
-interface Settings {
+interface PlatformIndicatorSettings {
     dmTopBar: boolean;
     userList: boolean;
     profileUsername: boolean;
@@ -10,36 +8,13 @@ interface Settings {
     useThemeColors: boolean;
 }
 
-type PlatformIndicatorSettingsStore = PluginStore<Settings>;
-
-export const usePlatformIndicatorSettings = create<PlatformIndicatorSettingsStore>()(
-    persist(
-        set => ({
-            dmTopBar: true,
-            userList: true,
-            profileUsername: true,
-            removeDefaultMobile: true,
-            useThemeColors: true,
-            _hasHydrated: false,
-            updateSettings: newSettings => set(state => ({ ...state, ...newSettings })),
-            setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
-        }),
-        {
-            name: "platformindicator-settings",
-            storage: createJSONStorage(() => createFileStorage("plugins/platformindicator.json")),
-            onRehydrateStorage: () => state => {
-                state?.setHasHydrated(true);
-            },
-        },
-    ),
-);
-
-export const platformIndicatorSettings = new Proxy({} as Settings, {
-    get(target, prop: string) {
-        return usePlatformIndicatorSettings.getState()[prop as keyof Settings];
-    },
-    set(target, prop: string, value: any) {
-        usePlatformIndicatorSettings.getState().updateSettings({ [prop]: value } as Partial<Settings>);
-        return true;
-    },
+export const {
+    useStore: usePlatformIndicatorSettings,
+    settings: platformIndicatorSettings,
+} = createPluginStore<PlatformIndicatorSettings>("platformindicators", {
+    dmTopBar: true,
+    userList: true,
+    profileUsername: true,
+    removeDefaultMobile: true,
+    useThemeColors: true,
 });
