@@ -6,13 +6,14 @@ import { openAlert } from "@api/ui/alerts";
 import { resolveSemanticColor, semanticColors } from "@api/ui/components/color";
 import { CodebergIcon, KofiIcon,RainIcon } from "@assets";
 import { Strings } from "@i18n";
-import { CODEBERG, DEVELOPERS,DISCORD_SERVER, GITHUB, KOFI } from "@lib/info";
+import { CODEBERG, DISCORD_SERVER, GITHUB, KOFI } from "@lib/info";
 import { NavigationNative } from "@metro/common";
 import { AlertActionButton, AlertActions, AlertModal, Stack, TableRow, TableRowGroup, TableSwitchRow, Text } from "@metro/common/components";
 import { Image, Linking, ScrollView, View } from "react-native";
 
 import About from "./About";
 import { InfoCard } from "./components/InfoCard";
+import Developers from "./Developers";
 import Updater, { checkForUpdate } from "./Updater";
 
 async function disableDevOnlyPlugins() {
@@ -90,6 +91,11 @@ export default function General() {
                     />
                 </TableRowGroup>
                 <TableRowGroup title={Strings.SETTINGS}>
+                    <TableRow
+                        label="Reload App"
+                        icon={<TableRow.Icon source={findAssetId("RetryIcon")!} />}
+                        onPress={() => BundleUpdaterManager.reload()}
+                    />
                     <TableSwitchRow
                         label={Strings.SAFE_MODE}
                         icon={<TableRow.Icon source={findAssetId("ShieldIcon")!} />}
@@ -155,7 +161,10 @@ export default function General() {
                         arrow={true}
                         label={Strings.DEVELOPERS}
                         icon={<TableRow.Icon source={findAssetId("CircleInformationIcon-primary")!} />}
-                        onPress={() => Linking.openURL(DEVELOPERS)}
+                        onPress={() => navigation.push("RAIN_CUSTOM_PAGE", {
+                            title: Strings.DEVELOPERS,
+                            render: () => <Developers />,
+                        })}
                     />
                 </TableRowGroup>
             </Stack>
