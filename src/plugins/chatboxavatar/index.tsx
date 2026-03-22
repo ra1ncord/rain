@@ -133,6 +133,7 @@ export default definePlugin({
     author: [Contributors.LampDelivery],
     id: "chatboxavatar",
     version: "v1.0.0",
+    requiresRestart: true,
     settings: ChatboxAvatarSettings,
     async start() {
         if (!ChatInputActions?.type || !ChatInputSendButton?.type) return;
