@@ -1,11 +1,13 @@
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
 
-import { loadAllEffectData } from "./patches/effects";
 import {
+    patchGetUserProfile,
     patchGetAllProfileEffects,
-    patchGetProfileEffect,
-    patchGetUserProfile } from "./patches/profile";
+    patchGetProfileEffect
+} from "./patches/profile";
+
+import { loadAllEffectData } from "./patches/effects";
 import Settings from "./settings";
 
 export default definePlugin({

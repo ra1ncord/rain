@@ -1,4 +1,4 @@
-const effectsURL = "https://raw.githubusercontent.com/SerStars/CustomEffects/refs/heads/main/effects.min.json";
+const effectsURL = "https://raw.githubusercontent.com/SerStars/CustomEffects/refs/heads/main/skus.min.json";
 const usersURL = "https://raw.githubusercontent.com/SerStars/CustomEffects/refs/heads/main/users.min.json";
 
 export interface CustomEffect {
