@@ -11,7 +11,7 @@ const { ActionSheetCloseButton } = findByProps("ActionSheetCloseButton");
 
 function AddToServerContent({ emoji }: { emoji: { id: string; name: string; animated?: boolean; src?: string; alt?: string } }) {
     const permConstants = constants.Permissions;
-    const permission = permConstants?.MANAGE_GUILD_EXPRESSIONS;
+    const permission = permConstants?.CREATE_GUILD_EXPRESSIONS;
     const emojiName = emoji.alt ?? emoji.name ?? "emoji";
 
     const guildsRaw = GuildStore?.getGuilds?.() ?? {};
