@@ -15,7 +15,7 @@ import {
     TableSwitch,
     Text,
 } from "@metro/common/components";
-import { isPluginCore } from "@plugins";
+import { isPluginCore, usePluginSettings } from "@plugins";
 import { CardWrapper } from "@rain/pages/Addon/AddonCard";
 import { UnifiedPluginModel } from "@rain/pages/Plugins/models";
 import chroma from "chroma-js";
@@ -154,13 +154,14 @@ export default function PluginCard({
     const cardContextValue = useMemo(() => ({ plugin, result }), [plugin, result]);
     const core = isPluginCore(plugin.id);
 
+    const pluginEnabled = usePluginSettings(s => s.settings[plugin.id]?.enabled ?? core);
+
     const handleToggle = async (v: boolean) => {
         if (core || toggling) return;
         setToggling(true);
         try {
             await plugin.toggle(v);
 
-            // todo: probably put this out of the ui and directly into the plugin system
             FluxDispatcher.dispatch({ type: "RAIN_SETTING_UPDATED" });
         } finally {
             setToggling(false);
@@ -219,7 +220,7 @@ export default function PluginCard({
                                     <Actions />
                                     <View style={core ? { opacity: 0.5 } : undefined}>
                                         <TableSwitch
-                                            value={core ? true : plugin.isEnabled()}
+                                            value={pluginEnabled}
                                             disabled={core || toggling}
                                             onValueChange={handleToggle}
                                         />
