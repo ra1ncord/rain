@@ -7,6 +7,7 @@ import { initFonts } from "./fonts";
 import { initMonet } from "./monet";
 import { initThemes } from "./themes";
 
+// thanks pylix for the name
 export default definePlugin({
     name: Strings.PLUGIN__CORE_PAINTER,
     description: Strings.PLUGIN__CORE_PAINTER_DESC,

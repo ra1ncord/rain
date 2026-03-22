@@ -4,7 +4,7 @@ import { logger } from "@lib/utils/logger";
 import { ReactNative } from "@metro/common";
 import { findByProps, findByStoreName } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Contributors } from "@rain/Developers";
 
 import TapTapSettings from "./settings";
 import { taptapSettings, useTapTapSettings } from "./storage";
@@ -68,6 +68,7 @@ function openKeyboard(channelId: string) {
             return;
         }
 
+        //@ts-expect-error
         if (ReactNative.Keyboard?.dismiss) {
             setTimeout(() => {
                 if (ChatInput?.focus) ChatInput.focus();
@@ -352,7 +353,7 @@ function resolveRuntimeModules() {
 export default definePlugin({
     name: "TapTap",
     description: "Double-tap others to reply, Double-tap self to edit",
-    author: [Developers.LampDelivery],
+    author: [Contributors.LampDelivery],
     id: "taptap",
     version: "1.0.0",
     async start() {

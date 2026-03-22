@@ -2,7 +2,7 @@ import { after } from "@api/patcher";
 import { findByNameLazy, findByProps, findByPropsLazy, findByStoreName, findByTypeDisplayName } from "@metro";
 import { ReactNative } from "@metro/common";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Contributors } from "@rain/Developers";
 import React, { useEffect, useRef } from "react";
 
 import ChatboxAvatarSettings from "./settings";
@@ -130,7 +130,7 @@ const unpatches: (() => void)[] = [];
 export default definePlugin({
     name: "ChatboxAvatar",
     description: "Adds your avatar to the chatbox.",
-    author: [Developers.LampDelivery],
+    author: [Contributors.LampDelivery],
     id: "chatboxavatar",
     version: "v1.0.0",
     settings: ChatboxAvatarSettings,

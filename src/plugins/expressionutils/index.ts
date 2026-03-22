@@ -90,7 +90,7 @@ async function cloneEmojiToGuild(emojiId: string, emojiName: string, animated: b
 export default definePlugin({
     name: "ExpressionUtils",
     description: "Manage emojis and stickers with ease. Adds context menu options to emojis and stickers.",
-    author: [Developers.LampDelivery, Developers.reyyan1, Contributors.sapphire],
+    author: [Contributors.LampDelivery, Developers.reyyan1, Contributors.sapphire],
     id: "expressionutils",
     version: "1.0.0",
 

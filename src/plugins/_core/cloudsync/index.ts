@@ -1,4 +1,5 @@
 import { logger } from "@lib/utils/logger";
+import { FluxDispatcher } from "@metro/common";
 import { definePlugin } from "@plugins";
 import { Contributors, Developers } from "@rain/Developers";
 import Settings from "@rain/pages/CloudSync";
@@ -7,46 +8,41 @@ import { saveData } from "./api";
 import { grabEverything } from "./lib/syncStuff";
 import { useCloudSyncSettings } from "./storage";
 import { useAuthorizationStore } from "./stores/AuthorizationStore";
-import { useCacheStore } from "./stores/CacheStore";
-
-let syncTimeout: any = 0;
-function debounceSync(run: () => void) {
-    clearTimeout(syncTimeout);
-    syncTimeout = setTimeout(run, 1500);
-}
+import { useSettings } from "@api/settings";
 
 const autoSync = async () => {
+    alert("americaya");
     const settings = useCloudSyncSettings.getState();
     const auth = useAuthorizationStore.getState();
     if (!settings.autoSync || !auth.isAuthorized()) return;
 
-    debounceSync(async () => {
-        try {
-            const everything = await grabEverything();
-            await saveData(everything);
-            logger.log("[CloudSync] Auto-synced data.");
-        } catch (e) {
-            // Suppress logger for Cloudflare 1102 timeout
-            const msg = typeof e === "string" ? e : e instanceof Error ? e.message : "";
-            if (!(msg.includes("error code: 1102") || msg.includes("1102"))) {
-                logger.error("[CloudSync] Auto-sync failed:", e);
-            }
+    try {
+        const everything = await grabEverything();
+        await saveData(everything);
+    } catch (e) {
+        // Suppress logger for Cloudflare 1102 timeout
+        const msg = typeof e === "string" ? e : e instanceof Error ? e.message : "";
+        if (!(msg.includes("error code: 1102") || msg.includes("1102"))) {
+            logger.error("[CloudSync] Auto-sync failed:", e);
         }
-    });
+    }
 };
 
 export default definePlugin({
     name: "CloudSync",
     description: "Sync your plugins, themes, and fonts to the cloud.",
-    author: [Developers.cocobo1, Developers.LampDelivery, Contributors.nexpid],
+    author: [Developers.cocobo1, Contributors.LampDelivery, Contributors.nexpid],
     id: "cloudsync",
     version: "1.0.0",
     start() {
-        // In Rain, we don't have a direct emitter for plugin/theme changes yet,
-        // but we can subscribe to the stores.
-        useCloudSyncSettings.subscribe(autoSync);
-        useAuthorizationStore.subscribe(autoSync);
-        useCacheStore.subscribe(autoSync);
+        // im too lazy to add this to the ui
+        useSettings.subscribe((state, prevState) => {
+            if (JSON.stringify(state) !== JSON.stringify(prevState)) {
+                FluxDispatcher.dispatch({ type: "RAIN_SETTING_UPDATED" });
+            }
+        });
+        
+        FluxDispatcher.subscribe("RAIN_SETTING_UPDATED", autoSync);
     },
     stop() {
     },

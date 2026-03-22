@@ -1,6 +1,6 @@
 import { useSettings } from "@api/settings";
 import { showSheet } from "@api/ui/sheets";
-import { navigation } from "@metro/common";
+import { FluxDispatcher, navigation } from "@metro/common";
 import { applyMonetTheme } from "@plugins/_core/painter/monet";
 import { ThemeInfo,useThemes } from "@plugins/_core/painter/themes";
 import { ColorManifest, RainColorManifest, ThemeManifest } from "@plugins/_core/painter/themes/types";
@@ -49,6 +49,8 @@ export default function ThemeCard({ item: theme }: CardWrapper<ThemeInfo>) {
             toggleType={!safeModeEnabled ? "radio" : undefined}
             toggleValue={() => isSelected}
             onToggleChange={(v: boolean) => {
+                // todo: move this out of ui
+                FluxDispatcher.dispatch({ type: "RAIN_SETTING_UPDATED" });
                 selectAndApply(v, theme);
             }}
             overflowTitle={name}

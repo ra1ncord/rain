@@ -6,7 +6,7 @@ import { createStyles, TextStyleSheet } from "@api/ui/styles";
 import { Strings } from "@i18n";
 import { lazyDestructure } from "@lib/utils/lazy";
 import { findByProps } from "@metro";
-import { NavigationNative, tokens } from "@metro/common";
+import { FluxDispatcher, NavigationNative, tokens } from "@metro/common";
 import { Button, Card, IconButton, Stack, Text } from "@metro/common/components";
 import { FontDefinition, selectFont, useFonts } from "@plugins/_core/painter/fonts";
 import { CardWrapper } from "@rain/pages/Addon/AddonCard";
@@ -170,6 +170,8 @@ export default function FontCard({ item: font }: CardWrapper<FontDefinition>) {
                                 text={selected ? Strings.UNAPPLY : Strings.APPLY}
                                 onPress={async () => {
                                     await selectFont(selected ? null : font.name);
+                                    // todo: move this out of ui
+                                    FluxDispatcher.dispatch({ type: "RAIN_SETTING_UPDATED" });
                                     showConfirmationAlert({
                                         title: Strings.HOLD_UP,
                                         content: Strings.RELOAD_DISCORD,

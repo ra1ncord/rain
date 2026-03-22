@@ -3,7 +3,7 @@ import { createFileStorage } from "@api/storage";
 import { showToast } from "@api/ui/toasts";
 import { findByName, findByProps, findByStoreName } from "@metro";
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Contributors, Developers } from "@rain/Developers";
 
 import Settings from "./settings";
 import { useMessageLoggerSettings } from "./storage";
@@ -312,7 +312,7 @@ function patchDeleteAction() {
 export default definePlugin({
     name: "MessageLogger",
     description: "Prevents deleted messages from being lost by storing them in memory",
-    author: [Developers.LampDelivery, Developers.kmmiio99o],
+    author: [Contributors.LampDelivery, Developers.kmmiio99o],
     id: "messagelogger",
     version: "2.0.0",
     settings: Settings,

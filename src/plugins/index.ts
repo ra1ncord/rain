@@ -7,6 +7,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 import * as t from "./types";
+import { FluxDispatcher } from "@metro/common";
 
 export const pluginInstances = new Map<string, t.rainPlugin>();
 let _setupPromise: Promise<void> | null = null;
