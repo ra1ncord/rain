@@ -52,14 +52,14 @@ async function makeModule() {
     
     const pluginImports = plugins.map(({ id, relativePath }) => {
         const importPath = `./plugins/${relativePath}`;
-        return `    "${id}": (() => {
-        try {
-            return require("${importPath}").default;
-        } catch (error) {
+        return `    get "${id}"() {
+            try {
+                return require("${importPath}").default;
+            } catch (error) {
             console.error("[Failed to compile '${id}' from '${importPath}':", error.message);
             return null;
-        }
-    })()`;
+            }
+        }`;
     });
     
     return `

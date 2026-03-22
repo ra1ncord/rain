@@ -1,7 +1,7 @@
 import { waitForHydration } from "@api/storage";
 import { logger } from "@lib/utils/logger";
 import { definePlugin } from "@plugins";
-import {Contributors, Developers} from "@rain/Developers";
+import { Contributors, Developers } from "@rain/Developers";
 
 import { setupPatches } from "./patcher";
 import { useRulesStore } from "./rulesStore";

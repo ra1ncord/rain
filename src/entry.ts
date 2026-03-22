@@ -128,6 +128,11 @@ if (typeof window.__r === "undefined") {
                 // @ts-ignore - I got an error where 'Object' is undefined *sometimes*, which is literally never supposed to happen
                 if (window.Object && !window.modules) {
                     window.modules = window.__c?.();
+                    Object.defineProperty(globalThis, "__d", {
+                        value: this.value,
+                        writable: true,
+                        configurable: true
+                    });
                 }
                 return this.value;
             },
