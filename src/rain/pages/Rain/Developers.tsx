@@ -1,25 +1,32 @@
 import { findAssetId } from "@api/assets";
-import { ReactNative as RN } from "@metro/common";
+import { resolveSemanticColor, semanticColors } from "@api/ui/components/color";
+import { lazyDestructure } from "@lib/utils/lazy";
+import { findByName, findByProps } from "@metro";
+import { FluxUtils } from "@metro/common";
 import { Card, Stack, TableRow, TableRowGroup, Text } from "@metro/common/components";
+import { UserStore } from "@metro/common/stores";
+import { developer } from "@plugins/types";
+import { Developers } from "@rain/Developers";
 import { useMemo } from "react";
 import { Image, ScrollView, View } from "react-native";
 
-const ACCENT_COLOR = "#EB459E";
+const showUserProfileActionSheet = findByName("showUserProfileActionSheet");
+const { getUser: maybeFetchUser } = lazyDestructure(() => findByProps("getUser", "fetchProfile"));
 
 type Credit = {
     name: string;
     role: string;
-    github: string | undefined;
+    dev: developer;
 };
 
 const developers: Credit[] = [
-    { name: "cocobo1", role: "Founder & Main Developer", github: "C0C0B01" },
-    { name: "bwlok", role: "Rain Developer", github: "bwlok" },
-    { name: "kmmiio99o", role: "Rain Developer", github: "kmmiio99o" },
-    { name: "CatStars", role: "Rain Developer", github: "SerStars" },
-    { name: "J", role: "Rain Developer", github: "joamoncab" },
-    { name: "Reyyan", role: "Rain Contributor", github: "Reyyancli" },
-    { name: "John", role: "Rain Contributor", github: "janisslsm" },
+    { name: "cocobo1", role: "Founder & Main Developer", dev: Developers.cocobo1 },
+    { name: "bwlok", role: "Rain Developer", dev: Developers.Bwlok },
+    { name: "kmmiio99o", role: "Rain Developer", dev: Developers.kmmiio99o },
+    { name: "CatStars", role: "Rain Developer", dev: Developers.SerStars },
+    { name: "J", role: "Rain Developer", dev: Developers.j },
+    { name: "Reyyan", role: "Rain Contributor", dev: Developers.reyyan1 },
+    { name: "John", role: "Rain Contributor", dev: Developers.John },
 ];
 
 const donators = [
@@ -36,26 +43,61 @@ const donators = [
 ];
 
 export default function DevelopersPage() {
-    const handleProfilePress = (github: string | undefined) => {
-        if (github) {
-            RN.Linking.openURL(`https://github.com/${github}`);
+    const accentColor = resolveSemanticColor(semanticColors.BACKGROUND_ACCENT);
+    const hexAlpha = (hex: string, alpha: string) => hex + alpha;
+
+    const handleProfilePress = (dev: developer) => {
+        if (dev.id) {
+            showUserProfileActionSheet({ userId: dev.id });
         }
+    };
+
+    const users: any[] = FluxUtils.useStateFromStoresArray([UserStore], () => {
+        developers.forEach(d => d.dev.id && maybeFetchUser(d.dev.id));
+        return developers.map(d => d.dev.id ? UserStore.getUser(d.dev.id) : null);
+    });
+
+    const getDiscordAvatar = (user: any): string | undefined => {
+        if (!user?.avatar) return undefined;
+        return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
     };
 
     const randomHearts = useMemo(() => {
         const hearts: { top: number; left: number; size: number; opacity: number }[] = [];
-        const rows = 4;
-        const cols = 4;
+        const heartCount = 24;
+        const minSize = 20;
+        const maxSize = 36;
+        const margin = 10;
+        const cardWidth = 600;
+        const cardHeight = 250;
 
-        for (let row = 0; row < rows; row++) {
-            for (let col = 0; col < cols; col++) {
-                hearts.push({
-                    top: 20 + row * 45 + (Math.random() - 0.5) * 10,
-                    left: 20 + col * 65 + (Math.random() - 0.5) * 10,
-                    size: 24 + Math.random() * 16,
-                    opacity: 0.1 + Math.random() * 0.12,
-                });
-            }
+        for (let i = 0; i < heartCount; i++) {
+            const size = minSize + Math.random() * (maxSize - minSize);
+            let top: number;
+            let left: number;
+            let attempts = 0;
+            const maxAttempts = 50;
+
+            do {
+                top = margin + Math.random() * (cardHeight - size - margin * 2);
+                left = margin + Math.random() * (cardWidth - size - margin * 2);
+                attempts++;
+            } while (
+                attempts < maxAttempts &&
+                hearts.some(h => {
+                    const dx = Math.abs(top - h.top);
+                    const dy = Math.abs(left - h.left);
+                    const minDist = (size + h.size) / 2 + 5;
+                    return dx < minDist && dy < minDist;
+                })
+            );
+
+            hearts.push({
+                top,
+                left,
+                size,
+                opacity: 0.08 + Math.random() * 0.1,
+            });
         }
         return hearts;
     }, []);
@@ -64,28 +106,30 @@ export default function DevelopersPage() {
         <ScrollView style={{ flex: 1 }}>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
                 <TableRowGroup title="Developers">
-                    {developers.map(developer => (
-                        <TableRow
-                            key={developer.name}
-                            label={developer.name}
-                            subLabel={developer.role}
-                            icon={
-                                developer.github ? (
-                                    <Image
-                                        source={{ uri: `https://github.com/${developer.github}.png` }}
-                                        style={{
-                                            width: 48,
-                                            height: 48,
-                                            borderRadius: 8,
-                                            resizeMode: "cover",
-                                        }}
-                                    />
-                                ) : undefined
-                            }
-                            onPress={() => handleProfilePress(developer.github)}
-                            arrow
-                        />
-                    ))}
+                    {developers.map((dev, index) => {
+                        const avatarUrl = getDiscordAvatar(users[index]);
+                        return (
+                            <TableRow
+                                key={dev.name}
+                                label={dev.name}
+                                subLabel={dev.role}
+                                icon={
+                                    avatarUrl ? (
+                                        <Image
+                                            source={{ uri: avatarUrl }}
+                                            style={{
+                                                width: 48,
+                                                height: 48,
+                                                borderRadius: 8,
+                                            }}
+                                        />
+                                    ) : undefined
+                                }
+                                onPress={() => handleProfilePress(dev.dev)}
+                                arrow
+                            />
+                        );
+                    })}
                 </TableRowGroup>
 
                 <Card>
@@ -100,7 +144,7 @@ export default function DevelopersPage() {
                                     left: heart.left,
                                     width: heart.size,
                                     height: heart.size,
-                                    tintColor: ACCENT_COLOR,
+                                    tintColor: resolveSemanticColor(semanticColors.BACKGROUND_ACCENT),
                                     opacity: heart.opacity,
                                 }}
                             />
@@ -117,9 +161,9 @@ export default function DevelopersPage() {
                                     paddingVertical: 6,
                                     paddingHorizontal: 12,
                                     borderRadius: 16,
-                                    backgroundColor: ACCENT_COLOR + "50",
+                                    backgroundColor: hexAlpha(accentColor, "50"),
                                     borderWidth: 1,
-                                    borderColor: ACCENT_COLOR + "70",
+                                    borderColor: hexAlpha(accentColor, "70"),
                                 }}
                             >
                                 <Text variant="text-sm/normal" style={{ color: "text-default" }}>{donator}</Text>
