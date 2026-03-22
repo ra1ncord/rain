@@ -69,7 +69,7 @@ function openKeyboard(channelId: string) {
             return;
         }
 
-        //@ts-expect-error
+        // @ts-expect-error
         if (ReactNative.Keyboard?.dismiss) {
             setTimeout(() => {
                 if (ChatInput?.focus) ChatInput.focus();
