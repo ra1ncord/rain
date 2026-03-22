@@ -1,66 +1,43 @@
-const effectsURL = "https://raw.githubusercontent.com/SerStars/CustomEffects/refs/heads/main/effects.min.json";
-const usersURL = "https://raw.githubusercontent.com/SerStars/CustomEffects/refs/heads/main/users.min.json";
+import { findAssetId } from "@api/assets";
+import { showToast } from "@api/ui/toasts";
+
+import { apiFetch } from "../lib/api";
+import { useAuthorizationStore } from "../stores/AuthorizationStore";
 
 export interface CustomEffect {
     skuId: string;
-    config: {
-        skuId: string;
-        title: string;
-        description: string;
-        accessibilityLabel: string;
-        // reducedMotionSrc: string;
-        thumbnailPreviewSrc: string;
-        effects: {
-            src: string;
-            loop: boolean;
-            height: number;
-            width: number;
-            duration: number;
-            start: number;
-            loopDelay: number;
-            // position: { x: number; y: number };
-            // zIndex: number;
-            // randomizedSources: string[];
-        }[];
-        // animationType: number;
-        // type: number;
-    };
-}
-
-export interface CustomEffectAssignment {
-    skuId: string;
+    config: any;
 }
 
 export let customEffects: Record<string, CustomEffect> = {};
-export let userEffectData: Record<string, CustomEffectAssignment> = {};
+export let userEffectData: Record<string, { skuId: string }> = {};
 
 export async function fetchEffectsData() {
     try {
-        const res = await fetch(effectsURL);
-        const data = await res.json();
-
-        customEffects = data;
-        // console.log("[CustomEffects] Effects loaded:", Object.keys(customEffects).length);
+        const data: CustomEffect[] = await apiFetch("/presets");
+        customEffects = Object.fromEntries(data.map(e => [e.skuId, e]));
     } catch (e) {
         console.error("[CustomEffects] Failed to fetch effects", e);
+        showToast("Failed to load effects", findAssetId("CircleXIcon"));
     }
 }
 
 export async function fetchUserEffectData() {
     try {
-        const res = await fetch(usersURL);
-        const data = await res.json();
-
-        userEffectData = data;
-        // console.log("[CustomEffects] Users loaded:", Object.keys(userEffectData).length);
+        const data: Record<string, { selected: string | null }> = await apiFetch("/users");
+        userEffectData = Object.fromEntries(
+            Object.entries(data)
+                .filter(([_, v]) => v.selected)
+                .map(([userId, v]) => [userId, { skuId: v.selected! }])
+        );
     } catch (e) {
-        console.error("[CustomEffects] Failed to fetch users", e);
+        console.error("[CustomEffects] Failed to fetch user effects", e);
+        showToast("Failed to load user effects", findAssetId("CircleXIcon"));
     }
 }
 
 export async function loadAllEffectData() {
-    await Promise.all([
-        fetchEffectsData(),
-        fetchUserEffectData()
-    ]);
+    const auth = useAuthorizationStore.getState();
+    if (!auth.isAuthorized()) return;
+    await Promise.all([fetchEffectsData(), fetchUserEffectData()]);
 }
