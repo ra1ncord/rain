@@ -11,7 +11,6 @@ import { useAuthorizationStore } from "./stores/AuthorizationStore";
 import { useSettings } from "@api/settings";
 
 const autoSync = async () => {
-    alert("americaya");
     const settings = useCloudSyncSettings.getState();
     const auth = useAuthorizationStore.getState();
     if (!settings.autoSync || !auth.isAuthorized()) return;
@@ -41,7 +40,7 @@ export default definePlugin({
                 FluxDispatcher.dispatch({ type: "RAIN_SETTING_UPDATED" });
             }
         });
-        
+
         FluxDispatcher.subscribe("RAIN_SETTING_UPDATED", autoSync);
     },
     stop() {
