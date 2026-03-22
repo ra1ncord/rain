@@ -3,6 +3,7 @@ import { getStoredTheme, getThemeFilePath, isPyonLoader } from "@api/native/load
 import { useSettings } from "@api/settings";
 import { createFileStorage } from "@api/storage";
 import { safeFetch } from "@lib/utils";
+import { FluxDispatcher } from "@metro/common";
 import { Platform } from "react-native";
 import { create } from "zustand";
 import { createJSONStorage,persist } from "zustand/middleware";
@@ -12,7 +13,6 @@ import { applyAndroidAlphaKeys, normalizeToHex } from "./parser";
 import { waitForColorsPrefHydration } from "./preferences";
 import { ThemeManifest } from "./types";
 import { updateColor } from "./updater";
-import { FluxDispatcher } from "@metro/common";
 
 export interface ThemeInfo {
     id: string;
