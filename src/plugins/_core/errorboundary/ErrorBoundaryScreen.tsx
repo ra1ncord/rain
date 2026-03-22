@@ -5,7 +5,7 @@ import { Codeblock, ErrorBoundary } from "@api/ui/components";
 import { createStyles } from "@api/ui/styles";
 import { tokens } from "@metro/common";
 import { Button, Card, SafeAreaProvider, SafeAreaView, Text } from "@metro/common/components";
-import { checkForUpdate, downloadUpdate } from "@rain/pages/Rain/Updater";
+import { checkForUpdate, downloadUpdate } from "@rain/pages/Updater";
 import { ScrollView, View } from "react-native";
 
 import ErrorComponentStackCard from "./ErrorComponentStackCard";

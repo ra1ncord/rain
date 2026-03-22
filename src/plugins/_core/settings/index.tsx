@@ -7,7 +7,7 @@ import { findByPropsLazy } from "@metro";
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
 import { Strings } from "@rain/i18n";
-import { checkForUpdate } from "@rain/pages/Rain/Updater";
+import { checkForUpdate } from "@rain/pages/Updater";
 import { version } from "rain-build-info";
 import React, { lazy } from "react";
 import { Image, type ImageURISource } from "react-native";
