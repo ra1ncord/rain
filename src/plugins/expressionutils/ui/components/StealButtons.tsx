@@ -85,9 +85,8 @@ export default function StealButtons({ emoji }: { emoji: any }) {
                 <Button
                     key={text}
                     text={text}
-                    size={"sm"}
                     onPress={callback}
-                    style={{ marginTop: ReactNative.Platform.select({ android: 12, default: 16 }) }}
+                    style={{ marginTop: ReactNative.Platform.select({ android: 8, default: 12 }) }}
                 />
             ))}
         </>
