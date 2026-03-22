@@ -4,9 +4,9 @@ import RPCPreview from "./components/RPCPreview";
 import {
     ScrollView,
     Stack,
-    TableCheckboxRow,
     TableRow,
     TableRowGroup,
+    TableSwitchRow,
 } from "./components/TableComponents";
 
 export default function RPCCustomizationSettingsPage() {
@@ -31,18 +31,18 @@ export default function RPCCustomizationSettingsPage() {
             <RPCPreview />
             <Stack spacing={8}>
                 <TableRowGroup title="RPC Display Options">
-                    <TableCheckboxRow
+                    <TableSwitchRow
                         label="Show as Listening"
                         subLabel="Display as 'Listening to' instead of 'Playing'"
-                        checked={settings.listeningTo}
-                        onPress={handleListeningToChange}
+                        value={settings.listeningTo}
+                        onValueChange={handleListeningToChange}
                     />
 
-                    <TableCheckboxRow
+                    <TableSwitchRow
                         label="Show Tooltip Text"
                         subLabel="Show album name and track duration in Discord activity tooltip"
-                        checked={settings.showLargeText}
-                        onPress={() => setStorage("showLargeText", !settings.showLargeText)}
+                        value={settings.showLargeText}
+                        onValueChange={(v: boolean) => setStorage("showLargeText", v)}
                     />
 
                     {!settings.listeningTo && (
@@ -54,31 +54,31 @@ export default function RPCCustomizationSettingsPage() {
                         />
                     )}
 
-                    <TableCheckboxRow
+                    <TableSwitchRow
                         label="Show Timestamp"
                         subLabel="Display track progress and duration"
-                        checked={settings.showTimestamp}
-                        onPress={handleTimestampChange}
+                        value={settings.showTimestamp}
+                        onValueChange={handleTimestampChange}
                         disabled={!settings.listeningTo}
                     />
 
-                    <TableCheckboxRow
+                    <TableSwitchRow
                         label="Show Album in Tooltip"
                         subLabel="Include album name in the tooltip text"
-                        checked={settings.showAlbumInTooltip}
-                        onPress={() =>
-                            setStorage("showAlbumInTooltip", !settings.showAlbumInTooltip)
+                        value={settings.showAlbumInTooltip}
+                        onValueChange={(v: boolean) =>
+                            setStorage("showAlbumInTooltip", v)
                         }
                     />
 
-                    <TableCheckboxRow
+                    <TableSwitchRow
                         label="Show Duration in Tooltip"
                         subLabel="Include track duration in the tooltip text"
-                        checked={settings.showDurationInTooltip}
-                        onPress={() =>
+                        value={settings.showDurationInTooltip}
+                        onValueChange={(v: boolean) =>
                             setStorage(
                                 "showDurationInTooltip",
-                                !settings.showDurationInTooltip,
+                                v,
                             )
                         }
                     />
