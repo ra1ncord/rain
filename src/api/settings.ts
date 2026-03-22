@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 
 import { getLoaderConfigPath } from "./native/loader";
 import { createFileStorage, createFlattenedFileStorage } from "./storage";
+import { FluxDispatcher } from "@metro/common";
 
 export interface Settings {
   debuggerUrl: string;
@@ -21,7 +22,7 @@ export interface Settings {
   assetBrowser: {
     enabledFilters: Record<string, boolean>;
   };
-  pinnedPlugins: string[]; // Added pinnedPlugins
+  pinnedPlugins: string[];
 }
 
 export interface LoaderConfig {
@@ -34,7 +35,7 @@ export interface LoaderConfig {
 
 interface SettingsStore extends Settings {
   updateSettings: (settings: Partial<Settings>) => void;
-  togglePinnedPlugin: (id: string) => void; // Added togglePinnedPlugin
+  togglePinnedPlugin: (id: string) => void;
 }
 
 export const useSettings = create<SettingsStore>()(

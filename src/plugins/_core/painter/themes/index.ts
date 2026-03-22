@@ -12,6 +12,7 @@ import { applyAndroidAlphaKeys, normalizeToHex } from "./parser";
 import { waitForColorsPrefHydration } from "./preferences";
 import { ThemeManifest } from "./types";
 import { updateColor } from "./updater";
+import { FluxDispatcher } from "@metro/common";
 
 export interface ThemeInfo {
     id: string;
@@ -197,8 +198,8 @@ export const useThemes = create<ThemesStore>()(
             setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
         }),
         {
-            name: "vendetta-themes",
-            storage: createJSONStorage(() => createFileStorage("VENDETTA_THEMES")),
+            name: "rain-themes",
+            storage: createJSONStorage(() => createFileStorage("RAIN_THEMES")),
             onRehydrateStorage: () => state => {
                 state?.setHasHydrated(true);
             }
@@ -240,18 +241,22 @@ export async function fetchTheme(url: string, selected = false) {
 }
 
 export async function installTheme(url: string) {
+    FluxDispatcher.dispatch({ type: "RAIN_SETTING_UPDATED" });
     return useThemes.getState().installTheme(url);
 }
 
 export async function selectTheme(theme: ThemeInfo | null, write = true) {
+    FluxDispatcher.dispatch({ type: "RAIN_SETTING_UPDATED" });
     return useThemes.getState().selectTheme(theme?.id ?? null, write);
 }
 
 export async function removeTheme(id: string) {
+    FluxDispatcher.dispatch({ type: "RAIN_SETTING_UPDATED" });
     return useThemes.getState().removeTheme(id);
 }
 
 export async function updateThemes() {
+    FluxDispatcher.dispatch({ type: "RAIN_SETTING_UPDATED" });
     return useThemes.getState().updateThemes();
 }
 

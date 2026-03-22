@@ -5,10 +5,6 @@ export const Developers = {
         name: "cocobo1",
         id: 767650984175992833n,
     },
-    LampDelivery: {
-        name: "LampDelivery",
-        id: 650805815623680030n,
-    },
     j: {
         name: "j",
         id: 1356632712861192242n,
@@ -143,5 +139,9 @@ export const Contributors = {
     jdev082: {
         name: "jdev082",
         id: 1038089405161807872n,
+    },
+    LampDelivery: {
+        name: "LampDelivery",
+        id: 650805815623680030n,
     },
 } satisfies Record<string, developer>;

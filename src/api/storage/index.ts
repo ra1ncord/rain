@@ -15,7 +15,7 @@ export const createFileStorage = (filePath: string) => {
                 return null;
             }
         },
-        setItem: async (name: string, value: string): Promise<void> => { // Added name parameter
+        setItem: async (name: string, value: string): Promise<void> => {
             try {
                 await writeFile(filePath, value);
             } catch (e) {

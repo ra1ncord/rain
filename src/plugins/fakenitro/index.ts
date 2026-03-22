@@ -1,5 +1,5 @@
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Contributors, Developers } from "@rain/Developers";
 
 import getAppIcons from "./patches/appIcons";
 import getNitroChecks from "./patches/nitroChecks";
@@ -13,7 +13,7 @@ const patches: any[] = [];
 export default definePlugin({
     name: "FakeNitro",
     description: "Gives you Client-Side Nitro",
-    author: [Developers.John, Developers.cocobo1, Developers.kmmiio99o, Developers.LampDelivery, Developers.j, Developers.SerStars],
+    author: [Developers.John, Developers.cocobo1, Developers.kmmiio99o, Contributors.LampDelivery, Developers.j, Developers.SerStars],
     id: "fakenitro",
     version: "1.1.1",
     start() {

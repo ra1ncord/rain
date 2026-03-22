@@ -1,7 +1,7 @@
 import { findAssetId } from "@api/assets";
 import { connectToDebugger, disconnectFromDebugger, hotReloadTheme, isConnectedToDebugger } from "@api/debug";
 import { getReactDevToolsProp, isLoaderConfigSupported, isReactDevToolsPreloaded } from "@api/native/loader";
-import { useLoaderConfig,useSettings } from "@api/settings";
+import { useLoaderConfig, useSettings } from "@api/settings";
 import { CheckState, useFileExists } from "@api/storage/useFS";
 import { ErrorBoundary } from "@api/ui/components";
 import { semanticColors } from "@api/ui/components/color";

@@ -4,7 +4,7 @@ import { useSettings } from "@api/settings";
 import { openAlert } from "@api/ui/alerts";
 import { showSheet } from "@api/ui/sheets";
 import { Strings } from "@i18n";
-import { NavigationNative, tokens } from "@metro/common";
+import { FluxDispatcher, NavigationNative, tokens } from "@metro/common";
 import {
     AlertActionButton,
     AlertActions,
@@ -159,6 +159,9 @@ export default function PluginCard({
         setToggling(true);
         try {
             await plugin.toggle(v);
+
+            // todo: probably put this out of the ui and directly into the plugin system
+            FluxDispatcher.dispatch({ type: "RAIN_SETTING_UPDATED" });
         } finally {
             setToggling(false);
         }

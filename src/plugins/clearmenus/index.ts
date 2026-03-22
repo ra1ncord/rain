@@ -1,5 +1,5 @@
 import { definePlugin } from "@plugins";
-import { Developers } from "@rain/Developers";
+import { Contributors } from "@rain/Developers";
 
 import patchMessageActionSheet from "./patches/ActionSheet";
 import patchSettingsSections from "./patches/SettingsSections";
@@ -13,7 +13,7 @@ let unpatchSettingsSections: (() => void) | null = null;
 export default definePlugin({
     name: "ClearMenus",
     description: "Hide unwanted buttons and settings",
-    author: [Developers.LampDelivery],
+    author: [Contributors.LampDelivery],
     id: "clearmenus",
     version: "1.0.0",
     start() {
