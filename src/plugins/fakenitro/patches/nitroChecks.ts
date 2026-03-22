@@ -22,6 +22,7 @@ export default function getPatches() {
         after("getEmojiUnavailableReason", emojiUtils, (args, result) => {
             if (args[0]?.intention === 0 && result === null && getCurrentUser?.().premiumType === null) {
                 const { emoji, guildId, channel } = args[0];
+                if (emoji.type === 0) return result; // type 0 is twemoji
                 const currentGuildId = guildId ?? channel?.getGuildId?.();
                 if (emoji.guildId !== currentGuildId || emoji.animated) {
                     return 0; // DISALLOW_EXTERNAL
@@ -34,6 +35,7 @@ export default function getPatches() {
         after("isEmojiPremiumLocked", emojiUtils, (args, result) => {
             if (args[0]?.intention === 0 && !result && getCurrentUser?.().premiumType === null) {
                 const { emoji, guildId, channel } = args[0];
+                if (emoji.type === 0) return result; // type 0 is twemoji
                 const currentGuildId = guildId ?? channel?.getGuildId?.();
                 if (emoji.guildId !== currentGuildId || emoji.animated) {
                     return true;
