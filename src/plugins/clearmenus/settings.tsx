@@ -99,12 +99,12 @@ export default function Settings() {
                     )}
                 </View>
                 <View style={styles.textContainer}>
-                    <Text variant="display-md" color="TEXT_DEFAULT">
+                    <Text variant="display-md" color="text-default">
             ClearMenus
                     </Text>
                     <Text
                         variant="text-md/bold"
-                        color="TEXT_MUTED"
+                        color="text-muted"
                         style={{ marginTop: 4 }}
                     >
             Hide unwanted buttons and settings
