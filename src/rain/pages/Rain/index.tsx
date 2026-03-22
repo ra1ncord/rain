@@ -11,10 +11,10 @@ import { NavigationNative } from "@metro/common";
 import { AlertActionButton, AlertActions, AlertModal, Stack, TableRow, TableRowGroup, TableSwitchRow, Text } from "@metro/common/components";
 import { Image, Linking, ScrollView, View } from "react-native";
 
+import Updater, { checkForUpdate } from "../Updater";
 import About from "./About";
 import { InfoCard } from "./components/InfoCard";
 import Developers from "./Developers";
-import Updater, { checkForUpdate } from "./Updater";
 
 async function disableDevOnlyPlugins() {
     const { pluginInstances, usePluginSettings, stopPlugin } = await import("@plugins");
@@ -34,6 +34,8 @@ async function disableDevOnlyPlugins() {
 export default function General() {
     const debugInfo = getDebugInfo();
     const navigation = NavigationNative.useNavigation();
+
+    let easterEggTaps = 0;
 
     const { developerSettings, safeMode, updateSettings } = useSettings();
 
@@ -74,6 +76,12 @@ export default function General() {
                         label={Strings.GENERAL.CORE.RAIN}
                         icon={<TableRow.Icon source={{ uri: RainIcon }} />}
                         trailing={<TableRow.TrailingText text={debugInfo.rain.version} />}
+                        onPress={() => {
+                            easterEggTaps += 1;
+                            if (easterEggTaps >= 10) {
+                                Linking.openURL("https://www.youtube.com/watch?v=9FjGP4t2zKY");
+                            }
+                        }}
                     />
                     <TableRow
                         label={Strings.GENERAL.CORE.DISCORD}
