@@ -42,7 +42,7 @@ export default function getPatches() {
             return result;
         }),
 
-        // Stickers
+        // sticker patch credits: https://github.com/aliernfrog/vd-plugins/blob/master/plugins/FreeStickers/src/patches/nitro.ts
         instead(nitroInfo.canUseCustomStickersEverywhere ? "canUseCustomStickersEverywhere" : "canUseStickersEverywhere", nitroInfo, (args, orig) => {
             if (getCurrentUser?.().premiumType !== null)
                 return orig(...args);
