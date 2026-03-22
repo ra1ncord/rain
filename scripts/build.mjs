@@ -168,13 +168,13 @@ async function compileWithHermesc(inputPath, outputPath, options = {}) {
     
     // i basically just searched up the best hermes compilation flags :P
     const flags = options.flags || [
-    "-O",
-    "-g0",
-    "-finline",
-    "-fstatic-require",
-    "-strict",
-    "-reuse-prop-cache",
-    "-optimized-eval",
+        "-O",
+        "-g0",
+        "-finline",
+        "-fstatic-require",
+        "-strict",
+        "-reuse-prop-cache",
+        "-optimized-eval",
     ];
 
     // -emit-binary and -out are here to stop idiots like me removing them :P
