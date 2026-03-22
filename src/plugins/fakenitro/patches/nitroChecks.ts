@@ -22,7 +22,6 @@ export default function getPatches() {
         after("getEmojiUnavailableReason", emojiUtils, (args, result) => {
             if (args[0]?.intention === 0 && result === null && getCurrentUser?.().premiumType === null) {
                 const { emoji, guildId, channel } = args[0];
-                console.log(emoji);
                 const currentGuildId = guildId ?? channel?.getGuildId?.();
                 if (emoji.guildId !== currentGuildId || emoji.animated) {
                     return 0; // DISALLOW_EXTERNAL
