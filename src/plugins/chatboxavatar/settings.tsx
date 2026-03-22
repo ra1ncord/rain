@@ -1,20 +1,16 @@
 import { Stack, TableRadioGroup, TableRadioRow } from "@metro/common/components";
 import React from "react";
 
-import { Settings,useChatboxAvatarSettings } from "./storage";
+import { ChatboxAvatarSettings, useChatboxAvatarSettings } from "./storage";
 export default function ChatboxAvatarSettings() {
     const settings = useChatboxAvatarSettings();
     const [, forceUpdate] = React.useReducer(x => ~x, 0);
     const setPressAction = (value: string) => {
-        useChatboxAvatarSettings.getState().updateSettings?.({ pressAction: value as Settings["pressAction"] });
+        useChatboxAvatarSettings.getState().updateSettings?.({ pressAction: value as ChatboxAvatarSettings["pressAction"] });
         forceUpdate();
     };
     const setLongPressAction = (value: string) => {
-        useChatboxAvatarSettings.getState().updateSettings?.({ longPressAction: value as Settings["longPressAction"] });
-        forceUpdate();
-    };
-    const setServerId = (value: string) => {
-        useChatboxAvatarSettings.getState().updateSettings?.({ serverId: value });
+        useChatboxAvatarSettings.getState().updateSettings?.({ longPressAction: value as ChatboxAvatarSettings["longPressAction"] });
         forceUpdate();
     };
     return (
