@@ -29,16 +29,16 @@ export function downloadUpdate() {
 }
 
 export function checkForUpdate() {
-    const loaderConfig = useLoaderConfig();
-    if (loaderConfig.customLoadUrl.enabled) { return false; }
-
     const [hasUpdate, setHasUpdate] = React.useState(false);
+
     React.useEffect(() => {
+        if (useLoaderConfig.getState().customLoadUrl.enabled) return;
         fetch("https://codeberg.org/api/v1/repos/raincord/rain/releases?limit=1")
             .then(r => r.json())
             .then(([latestRelease]) => setHasUpdate(!!latestRelease && isNewerVersion(latestRelease.tag_name, getDebugInfo().rain.version)));
     }, []);
-    return(hasUpdate);
+
+    return hasUpdate;
 }
 
 export default function Updater() {
