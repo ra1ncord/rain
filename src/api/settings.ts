@@ -3,7 +3,6 @@ import { createJSONStorage, persist } from "zustand/middleware";
 
 import { getLoaderConfigPath } from "./native/loader";
 import { createFileStorage, createFlattenedFileStorage } from "./storage";
-import { FluxDispatcher } from "@metro/common";
 
 export interface Settings {
   debuggerUrl: string;
