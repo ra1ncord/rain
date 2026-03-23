@@ -15,4 +15,5 @@ declare module "#rain-plugins" {
 
 declare module "rain-build-info" {
     const version: string;
+    const supportedVersions: string;
 }

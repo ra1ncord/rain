@@ -8,8 +8,9 @@ import { CodebergIcon, RainIcon } from "@assets";
 import { Strings } from "@i18n";
 import { CODEBERG } from "@lib/info";
 import { AlertActionButton, AlertActions, AlertModal, Button, Stack, TableRow, TableRowGroup } from "@metro/common/components";
+import { supportedVersions } from "rain-build-info";
 import { useState } from "react";
-import { Linking, ScrollView, View } from "react-native";
+import { Linking, Platform, ScrollView, View } from "react-native";
 
 let _setIsChecking: ((v: boolean) => void) | null = null;
 
@@ -39,6 +40,40 @@ export function checkForUpdate() {
     }, []);
 
     return hasUpdate;
+}
+
+export function versionCheck() {
+    if (useLoaderConfig.getState().customLoadUrl.enabled) return;
+
+    const version = getDebugInfo().discord.build;
+    if (!supportedVersions.includes(version)) {
+        openAlert(
+            "incompatible-version-alert",
+            <AlertModal
+                title={Strings.INCOMPATIBLE_VERSION}
+                content={Strings.INCOMPATIBLE_VERSION_DESC}
+                actions={
+                    <AlertActions>
+                        {Platform.OS == "android" && <AlertActionButton
+                            text={Strings.OPEN_MANAGER}
+                            variant="primary"
+                            onPress={() => {
+                                Linking.openURL("raincord://");
+                            }}
+                        />}
+                        {Platform.OS == "ios" && <AlertActionButton
+                            text={Strings.IPA_DOWNLOAD}
+                            variant="primary"
+                            onPress={() => {
+                                Linking.openURL("https://codeberg.org/raincord/RainTweak/releases");
+                            }}
+                        />}
+                        <AlertActionButton text={Strings.CONTINUE_ANYWAYS} variant="destructive" />
+                    </AlertActions>
+                }
+            />,
+        );
+    }
 }
 
 export default function Updater() {
@@ -72,7 +107,7 @@ export default function Updater() {
                         onPress={() => {
                             downloadUpdate();
                             openAlert(
-                                "update-restart-alert",
+                                "rain-update-restart-alert",
                                 <AlertModal
                                     title={Strings.GENERAL.CORE.RELOAD_DISCORD}
                                     content={Strings.GENERAL.CORE.UPDATE_RESTART_MESSAGE}

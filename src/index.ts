@@ -1,5 +1,6 @@
 import { initFetchI18nStrings } from "@i18n";
 import { initEagerPlugins, initPlugins } from "@plugins/index";
+import { versionCheck } from "@rain/pages/Updater";
 
 import { initDebugger, patchLogHook } from "./api/debug";
 import { injectFluxInterceptor } from "./api/flux";
@@ -24,6 +25,8 @@ export default async () => {
     window.rain = lib;
 
     initDebugger();
+
+    versionCheck();
 };
 
 export { initPlugins };
