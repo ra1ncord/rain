@@ -89,12 +89,13 @@ function PluginPage(props: PluginPageProps) {
 export default function Plugins() {
     useSettings();
 
+    const items = useMemo(() => {
+        return Array.from(pluginInstances.values()).map(unifyRainPlugin);
+    }, []); 
+
     return (
         <PluginPage
-            useItems={() => {
-                const rainPlugins = [...pluginInstances.values()];
-                return rainPlugins.map(plugin => unifyRainPlugin(plugin));
-            }}
+            useItems={() => items}
         />
     );
 }
