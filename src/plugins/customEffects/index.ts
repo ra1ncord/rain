@@ -2,10 +2,7 @@ import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
 
 import { loadAllEffectData } from "./patches/effects";
-import {
-    patchGetAllProfileEffects,
-    patchGetProfileEffect,
-    patchGetUserProfile } from "./patches/profile";
+import { patchGetAllProfileEffects, patchGetProfileEffect, patchGetUserProfile } from "./patches/profile";
 import Settings from "./settings";
 
 export default definePlugin({
@@ -13,7 +10,7 @@ export default definePlugin({
     description: "Custom profile effects",
     author: [Developers.SerStars],
     id: "customeffects",
-    version: "1.0.0",
+    version: "2.0.0",
 
     async start() {
         await loadAllEffectData();

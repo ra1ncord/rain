@@ -5,20 +5,14 @@ import { ErrorBoundary, Search } from "@api/ui/components";
 import { showSheet } from "@api/ui/sheets";
 import { Strings } from "@i18n";
 import isValidHttpUrl from "@lib/utils/isValidHttpUrl";
-import { lazyDestructure } from "@lib/utils/lazy";
-import { findByProps } from "@metro";
 import { clipboard, NavigationNative } from "@metro/common";
-import { AlertActionButton, AlertModal, Button, FlashList, FloatingActionButton, HelpMessage, IconButton, Stack, Text, TextInput, useSafeAreaInsets } from "@metro/common/components";
+import { AlertActionButton, ActionSheet, AlertModal, Button, FlashList, FloatingActionButton, HelpMessage, IconButton, Stack, Text, TextInput, TableRadioRow, TableSwitchRow, TableRowGroup, TableRadioGroup, useSafeAreaInsets } from "@metro/common/components";
 import { isNotNil } from "es-toolkit";
 import fuzzysort from "fuzzysort";
 import { ComponentType, ReactNode, useCallback, useEffect, useMemo } from "react";
 import * as React from "react";
 import { Image, ScrollView, View } from "react-native";
-
 import { CardWrapper } from "./AddonCard";
-
-const { showSimpleActionSheet } = lazyDestructure(() => findByProps("showSimpleActionSheet"));
-const { hideActionSheet } = findByProps("hideActionSheet");
 
 type SearchKeywords<T> = Array<string | ((obj: T & {}) => string)>;
 
@@ -54,8 +48,6 @@ interface AddonPageProps<T extends object, I = any> {
     ListHeaderComponent?: ComponentType<any>;
     ListFooterComponent?: ComponentType<any>;
 }
-
-type ActionSheetOption = { label: string; onPress: () => void; } | { label: string; type: "header"; onPress?: () => void };
 
 function InputAlert(props: { label: string, fetchFn: (url: string) => Promise<void>; }) {
     const [value, setValue] = React.useState("");
@@ -124,14 +116,21 @@ function InputAlert(props: { label: string, fetchFn: (url: string) => Promise<vo
     />;
 }
 
+
 export default function AddonPage<T extends object>({ CardComponent, ...props }: AddonPageProps<T>) {
     const settings = useSettings();
     const [search, setSearch] = React.useState("");
     const [sortFn, setSortFn] = React.useState<((a: T, b: T) => number) | null>(() => props.defaultSortKey && props.sortOptions ? props.sortOptions[props.defaultSortKey] : null);
-    const [filterFn, setFilterFn] = React.useState<((item: T) => boolean) | null>(() => props.defaultFilterKey && props.filterOptions ? props.filterOptions[props.defaultFilterKey] : null);
+    const [selectedSortKey, setSelectedSortKey] = React.useState(props.defaultSortKey || "");
+    const [activeFilterKeys, setActiveFilterKeys] = React.useState<string[]>(props.defaultFilterKey ? [props.defaultFilterKey] : []);
     const { bottom: bottomInset } = useSafeAreaInsets();
     const { right: rightInset } = useSafeAreaInsets();
     const navigation = NavigationNative.useNavigation();
+
+    const filterFn = useMemo(() => {
+        if (activeFilterKeys.length === 0) return null;
+        return (item: T) => activeFilterKeys.every(key => props.filterOptions![key](item));
+    }, [activeFilterKeys, props.filterOptions]);
 
     useEffect(() => {
         if (props.OptionsActionSheetComponent) {
@@ -150,6 +149,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
         const sortKey = props.defaultSortKey;
         if (props.sortOptions && sortKey && props.sortOptions[sortKey]) {
             setSortFn(() => props.sortOptions![sortKey]);
+            setSelectedSortKey(sortKey);
         }
     }, [props.sortOptions, props.defaultSortKey]);
 
@@ -212,20 +212,40 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
         </View>;
     }
 
-    const sortOptions = props.sortOptions ? Object.entries(props.sortOptions).map(([name, fn]) => ({
-        label: name,
-        onPress: () => setSortFn(() => fn)
-    })) : [];
+    const SortAndFilterActionSheet = React.useCallback(({ sortKey, filterKeys }: { sortKey: string; filterKeys: string[] }) => (
+        <ActionSheet>
+            {props.sortOptions && (
+                <TableRadioGroup
+                    title="Sort By"
+                    value={sortKey}
+                    onChange={(value: string) => {
+                        setSelectedSortKey(value);
+                        setSortFn(() => props.sortOptions![value]);
+                        showSheet("SortAndFilterActionSheet", SortAndFilterActionSheet, { sortKey: value, filterKeys });
+                    }}
+                >
+                    {Object.keys(props.sortOptions).map((key) => (
+                        <TableRadioRow key={key} label={key} value={key} />
+                    ))}
+                </TableRadioGroup>
+            )}
+            {props.filterOptions && (
+                <TableRowGroup title="Filter By">
+                    <TableSwitchRow
+                        label="Hide Core Plugins"
+                        value={filterKeys.length > 0}
+                        onValueChange={(value) => {
+                            const key = Object.keys(props.filterOptions!)[0];
+                            const newFilterKeys = value ? [key] : [];
+                            setActiveFilterKeys(newFilterKeys);
+                            showSheet("SortAndFilterActionSheet", SortAndFilterActionSheet, { sortKey, filterKeys: newFilterKeys });
+                        }}
+                    />
+                </TableRowGroup>
+            )}
 
-    const filterOptions = props.filterOptions ? Object.entries(props.filterOptions).map(([name, fn]) => ({
-        label: name,
-        onPress: () => setFilterFn(() => fn)
-    })) : [];
-
-    const actionSheetOptions: ActionSheetOption[] = [
-        ...sortOptions,
-        ...filterOptions,
-    ];
+        </ActionSheet>
+    ), [props.sortOptions, props.filterOptions]);
 
     const headerElement = (
         <View style={{ paddingBottom: 8 }}>
@@ -245,14 +265,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
                     icon={findAssetId("ArrowsUpDownIcon")}
                     variant="tertiary"
                     disabled={!!search}
-                    onPress={() => showSimpleActionSheet({
-                        key: "AddonListSortAndFilterOptions",
-                        header: {
-                            title: Strings.LIST_OPTIONS,
-                            onClose: () => hideActionSheet("AddonListSortAndFilterOptions"),
-                        },
-                        options: actionSheetOptions,
-                    })}
+                    onPress={() => showSheet("SortAndFilterActionSheet", SortAndFilterActionSheet, { sortKey: selectedSortKey, filterKeys: activeFilterKeys })}
                 />}
             </View>
             {props.ListHeaderComponent && <props.ListHeaderComponent />}
