@@ -43,7 +43,7 @@ export function checkForUpdate() {
 }
 
 export function versionCheck() {
-    if (useLoaderConfig.getState().customLoadUrl.enabled) return;
+    if (useLoaderConfig.getState().customLoadUrl.enabled === true) return;
 
     const version = getDebugInfo().discord.build;
     if (!supportedVersions.includes(version)) {
