@@ -20,7 +20,7 @@ import { CardWrapper } from "@rain/pages/Addon/AddonCard";
 import { UnifiedPluginModel } from "@rain/pages/Plugins/models";
 import chroma from "chroma-js";
 import { createContext, useContext, useMemo, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Image, Pressable, View } from "react-native";
 
 const CardContext = createContext<{
   plugin: UnifiedPluginModel;
@@ -34,6 +34,8 @@ function getHighlightColor(): import("react-native").ColorValue {
 
 function Title() {
     const { plugin, result } = useCardContext();
+    const { pinnedPlugins, togglePinnedPlugin } = useSettings(s => s);
+    const isPinned = pinnedPlugins?.includes(plugin.id);
 
     // could be empty if the plugin name is irrelevant!
     const highlightedNode = result[0].highlight((m, i) => (
@@ -50,6 +52,7 @@ function Title() {
 
     return (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            {isPinned && <Image source={findAssetId("PinIcon")} />}
             {textNode}
         </View>
     );
@@ -103,19 +106,10 @@ function Description() {
 const Actions = () => {
     const { plugin } = useCardContext();
     const navigation = NavigationNative.useNavigation();
-    const { pluginCard, pinnedPlugins, togglePinnedPlugin } = useSettings(s => s);
-    const isPinned = pinnedPlugins?.includes(plugin.id);
+    const { pluginCard } = useSettings(s => s);
 
     return (
         <View style={{ flexDirection: "row", gap: 6 }}>
-            <IconButton style={{ opacity: isPinned ? 1 : 0, pointerEvents: isPinned ? "auto" : "none", paddingRight: 5 }}
-                size="sm"
-                variant="secondary"
-                icon={findAssetId("PinIcon")}
-                onPress={() => {
-                    togglePinnedPlugin(plugin.id);
-                }}
-            />
             <IconButton
                 size="sm"
                 variant="secondary"
