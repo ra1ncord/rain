@@ -64,7 +64,7 @@ export default [
             content[i] = {
                 type: "customEmoji",
                 id: match[1],
-                alt: emojiName,
+                alt: emojiName + "_rainenhancements",
                 src: el.target.includes("animated=true")
                     ? url.replace("webp", "gif")
                     : url,
