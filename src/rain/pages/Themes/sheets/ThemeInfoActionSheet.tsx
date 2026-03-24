@@ -226,7 +226,7 @@ export default function ThemeInfoActionSheet({
                 </Card>
 
                 {authors?.length ? (
-                    <AuthorCard title="Themers" authors={authors} />
+                    <AuthorCard title={Strings.GENERAL.CORE.THEMERS} authors={authors} />
                 ) : null}
             </ScrollView>
         </ActionSheet>

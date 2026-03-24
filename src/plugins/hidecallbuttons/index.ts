@@ -6,6 +6,7 @@ import { cyrb64Hash } from "@lib/utils/cyrb64";
 import { findByName } from "@metro";
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 import settings from "./settings";
 import { hidecallbuttonsSettings, useHideCallButtonsSettings } from "./storage";
@@ -22,7 +23,7 @@ const find = (filter: (m: any) => boolean) => {
 
 export default definePlugin({
     name: "HideCallButtons",
-    description: "Hides call buttons from dms, user profiles and vcs",
+    description: Strings.PLUGINS.CUSTOM.HIDECALLBUTTONS.DESCRIPTION,
     author: [Developers.John],
     id: "hidecallbuttons",
     version: "1.0.0",

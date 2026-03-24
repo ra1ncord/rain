@@ -2,6 +2,7 @@ import { findAssetId } from "@api/assets";
 import { showToast } from "@api/ui/toasts";
 import { logger } from "@lib/utils/logger";
 import { findByName, findByProps } from "@metro";
+import { Strings } from "@rain/i18n";
 
 import { getClientId, getRedirectUrl } from "../constants";
 import { useAuthorizationStore } from "../stores/AuthorizationStore";
@@ -65,13 +66,13 @@ export default () =>
 
                         if (token) {
                             useAuthorizationStore.getState().setToken(token);
-                            showToast("Successfully authorized!", findAssetId("CheckIcon"));
+                            showToast(Strings.PLUGINS.CORE.CLOUDSYNC.AUTHORIZATION_SUCCESS, findAssetId("CheckIcon"));
                             popModal("oauth2-authorize");
                         } else {
                             throw new Error(`No token found in server response: ${text.slice(0, 100)}...`);
                         }
                     } catch (e) {
-                        showToast("Authorization failed!", findAssetId("CircleXIcon"));
+                        showToast(Strings.PLUGINS.CORE.CLOUDSYNC.AUTHORIZATION_FAILED, findAssetId("CircleXIcon"));
                         logger.error("[CloudSync] Authorization failed", e);
                         popModal("oauth2-authorize");
                     }

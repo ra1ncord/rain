@@ -7,7 +7,7 @@ import { onLoad } from "./patches/showimagelinks";
 const patches: any[] = [];
 
 export default definePlugin({
-    name: Strings.PLUGINS.CUSTOM.SHOWIMAGELINKS.NAME,
+    name: "ShowImageLinks",
     description: Strings.PLUGINS.CUSTOM.SHOWIMAGELINKS.DESCRIPTION,
     author: [Contributors.Cynosphere, Developers.reyyan1],
     id: "showimagelinks",

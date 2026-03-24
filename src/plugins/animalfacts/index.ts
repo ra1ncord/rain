@@ -4,6 +4,7 @@ import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
 import { Contributors } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 const MessageActions = findByProps("sendMessage");
 
@@ -15,7 +16,7 @@ const formatFactResponse = (fact: { text: string; source?: string; length?: numb
 
 export default definePlugin({
     name: "AnimalFacts",
-    description: "Adds the catfact and dogfact commands",
+    description: Strings.PLUGINS.CUSTOM.ANIMALFACTS.DESCRIPTION,
     author: [Contributors.jdev082],
     id: "animalfacts",
     version: "1.0.0",
@@ -29,10 +30,10 @@ export default definePlugin({
 });
 
 const catFactCommand = (): RainApplicationCommand => ({
-    name: "catfact",
-    displayName: "catfact",
-    description: "Sends a random cat fact.",
-    displayDescription: "Sends a random cat fact.",
+    name: Strings.PLUGINS.CUSTOM.ANIMALFACTS.CATFACT_COMMAND,
+    displayName: Strings.PLUGINS.CUSTOM.ANIMALFACTS.CATFACT_COMMAND,
+    description: Strings.PLUGINS.CUSTOM.ANIMALFACTS.CATFACT_COMMAND_DESC,
+    displayDescription: Strings.PLUGINS.CUSTOM.ANIMALFACTS.CATFACT_COMMAND_DESC,
     applicationId: "-1",
     inputType: 1,
     type: 1,
@@ -51,16 +52,16 @@ const catFactCommand = (): RainApplicationCommand => ({
         } catch (error) {
             console.error("[CatFact] Error:", error);
             // Show toast on error
-            showToast("Failed to fetch cat fact", 3000);
+            showToast(Strings.PLUGINS.CUSTOM.ANIMALFACTS.CATFACT_COMMAND_ERROR, 3000);
         }
     },
 });
 
 const dogFactCommand = (): RainApplicationCommand => ({
-    name: "dogfact",
-    displayName: "dogfact",
-    description: "Sends a dog fact.",
-    displayDescription: "Sends a dog fact.",
+    name: Strings.PLUGINS.CUSTOM.ANIMALFACTS.DOGFACT_COMMAND,
+    displayName: Strings.PLUGINS.CUSTOM.ANIMALFACTS.DOGFACT_COMMAND,
+    description: Strings.PLUGINS.CUSTOM.ANIMALFACTS.DOGFACT_COMMAND_DESC,
+    displayDescription: Strings.PLUGINS.CUSTOM.ANIMALFACTS.DOGFACT_COMMAND_DESC,
     applicationId: "-1",
     inputType: 1,
     type: 1,
@@ -79,7 +80,7 @@ const dogFactCommand = (): RainApplicationCommand => ({
         } catch (error) {
             console.error("[DogFact] Error:", error);
             // Show toast on error
-            showToast("Failed to fetch dog fact", 3000);
+            showToast(Strings.PLUGINS.CUSTOM.ANIMALFACTS.DOGFACT_COMMAND_ERROR, 3000);
         }
     },
 });

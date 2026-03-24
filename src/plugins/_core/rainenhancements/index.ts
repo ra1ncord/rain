@@ -11,7 +11,7 @@ import settings from "./settings";
 let patches: any[] = [];
 
 export default definePlugin({
-    name: Strings.PLUGINS.CORE.RAINENHANCEMENTS.NAME,
+    name: "RainEnhancements",
     description: Strings.PLUGINS.CORE.RAINENHANCEMENTS.DESCRIPTION,
     author: [Developers.cocobo1, Developers.j, Contributors.rico040, Contributors.redstonekasi],
     id: "rainenhancements",

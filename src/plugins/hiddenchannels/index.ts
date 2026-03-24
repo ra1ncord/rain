@@ -5,6 +5,7 @@ import { findByName,findByProps } from "@metro";
 import { constants, React, ReactNative as RN } from "@metro/common";
 import { definePlugin } from "@plugins";
 import { Contributors,Developers } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 import AlertContent from "./AlertContent";
 import Settings from "./settings";
@@ -44,7 +45,7 @@ const unpatches: (() => void)[] = [];
 
 export default definePlugin({
     name: "HiddenChannels",
-    description: "View hidden channels with permission bypass",
+    description: Strings.PLUGINS.CUSTOM.HIDDENCHANNELS.DESCRIPTION,
     author: [
         Contributors.cloudburst,
         Contributors.TrainingDummy,

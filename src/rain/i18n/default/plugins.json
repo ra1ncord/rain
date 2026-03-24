@@ -33,13 +33,10 @@
             "DOWNLOAD_RAIN_UPDATE": "Download latest Rain update",
             "RETRY_RENDER": "Retry Render",
             "DETAILS": "Details",
-            "SHOW": "Show",
-            "LESS": "Less",
-            "MORE": "More",
+            "SHOW_LESS": "Show less",
+            "SHOW_MORE": "Show more",
             "COPY": "Copy",
-            "COMPONENT_STACK": "Component Stack",
-            "ERROR": "Error",
-            "CALL_STACK": "Call Stack"
+            "ERROR": "Error"
         },
         "PAINTER": {
             "NAME": "Painter",
@@ -50,7 +47,8 @@
             "DESCRIPTION": "Combines many plugins into one to improve your experience",
             "REALMOJI": "Realmoji",
             "REALMOJI_DESC": "Transform fake emojis into real ones",
-            "REALSTICKER_DESC": "Transform fake stickers into real ones"
+            "REALSTICKER_DESC": "Transform fake stickers into real ones",
+            "REALMOJI_RENDER": "This is a RainEnhancements emoji and renders like a real emoji only for you. Appears as a link to non-rain users."
         },
         "SETTINGS": {
             "NAME": "Settings",
@@ -74,6 +72,7 @@
             "AUTHORIZE_WITH_DISCORD_DESC": "Required to sync your data to the cloud",
             "AUTHORIZED": "Authorized",
             "AUTHORIZED_DESC": "You are logged in and ready to sync your data",
+            "AUTHORIZATION_SUCCESS": "Successfully authorized!",
             "AUTHORIZATION_FAILED": "Authorization failed!",
             "LOG_OUT": "Log out",
             "LOG_OUT_DESC": "Disconnect your account from Cloud Sync",
@@ -95,13 +94,13 @@
     "CUSTOM": {
         "ACCOUNTSWITCHER": {
             "NAME": "AccountSwitcher",
-            "DESCRIPTION": "Enables account switcher because discord got rid of experiment"
+            "DESCRIPTION": "Enables account switcher because Discord got rid of the experiment"
         },
         "ACTIONSHEETFINDER": {
             "NAME": "ActionSheetFinder",
             "DESCRIPTION": "Utility plugin to find ActionSheet key of pressed sheet. Mostly used by developers to find action sheet keys.",
             "SETTINGS": {
-                "ACTIONSHEET_FOUND": "[ActionSheetFinder] Found ActionSheet: ",
+                "ACTIONSHEET_FOUND": "Found ActionSheet:",
                 "LOGS": "Logs",
                 "SEARCH_LOGS": "Search logs...",
                 "NO_MATCHING_LOGS_FOUND": "No matching logs found.",
@@ -112,6 +111,16 @@
         "ALWAYSTRUST": {
             "NAME": "AlwaysTrust",
             "DESCRIPTION": "Disable the untrusted link popup for every link"
+        },
+        "ANIMALFACTS": {
+            "NAME": "AnimalFacts",
+            "DESCRIPTION": "Adds the fatfact and dogfact commands",
+            "CATFACT_COMMAND": "catfact",
+            "CATFACT_COMMAND_DESC": "Sends a random cat fact.",
+            "CATFACT_COMMAND_ERROR": "Filed to fetch cat fact",
+            "DOGFACT_COMMAND": "dogfact",
+            "DOGFACT_COMMAND_DESC": "Sends a random dog fact.",
+            "DOGFACT_COMMAND_ERROR": "Filed to fetch fog fact"
         },
         "ANIMATEDKEYBOARD": {
             "NAME": "AnimatedKeyboard",
@@ -416,6 +425,18 @@
                 }
             }
         },
+        "CUSTOMEFFECTS": {
+            "NAME": "CustomEffects",
+            "DESCRIPTION": "Custom profile effects",
+            "ACCOUNT": "Account",
+            "LOGOUT": "Logout",
+            "LOGIN": "Login",
+            "LOGGED_OUT": "Logged out",
+            "RELOAD_EFFECTS_DB": "Reload Effects DB",
+            "RELOADED_EFFECTS": "Reloaded effects",
+            "INFO": "Info",
+            "REQUEST_OWN_EFFECT": "Request your own CustomEffect"
+        },
         "DASHLESS": {
             "NAME": "Dashless",
             "DESCRIPTION": "Changes dashes in text channel names to spaces"
@@ -486,6 +507,10 @@
                 "USE_HYPERLINK_STICKERS": "Use hyperlinks when sending fake stickers"
             }
         },
+        "FAVOURITEANYTHING": {
+            "NAME": "FavouriteAnything",
+            "DESCRIPTION": "Allows favouriting any media, not just GIFs"
+        },
         "GLOBALBADGES": {
             "NAME": "GlobalBadges",
             "DESCRIPTION": "Display custom badges from various Discord mod clients",
@@ -515,7 +540,10 @@
             "SHOW_LOCK_ICON": "Show Lock Icon",
             "SHOW_LOCK_ICON_DESC": "Show a lock icon to the right of hidden channel names.",
             "SHOW_POPUP": "Show Popup on Hidden Channels",
-            "SHOW_POPUP_DESC": "Toggle the information popup that appears when selecting hidden channels."
+            "SHOW_POPUP_DESC": "Toggle the information popup that appears when selecting hidden channels.",
+            "TOPIC": "Topic:",
+            "NO_MESSAGES": "No messages.",
+            "NO_PINS": "No pins."
         },
         "HIDEBLOCKEDANDIGNOREDMESSAGES": {
             "NAME": "HideBlockedAndIgnoredMessages",
@@ -523,7 +551,8 @@
             "REMOVE_BLOCKED_MESSAGES": "Remove blocked messages",
             "REMOVE_IGNORED_MESSAGES": "Remove ignored messages",
             "REMOVE_REPLIES_TO_MESSAGES": "Remove replies to blocked/ignored users",
-            "REMOVE_REPLIES_TO_MESSAGES_DESC": "Filters messages replying to blocked or ignored users."
+            "REMOVE_REPLIES_TO_MESSAGES_DESC": "Filters messages replying to blocked or ignored users.",
+            "FILTERED_MESSAGE_CHECK_SETTINGS": "Filtered message. Check plugin settings."
         },
         "HIDECALLBUTTONS": {
             "NAME": "HideCallButtons",
@@ -531,25 +560,28 @@
             "USER_PROFILE": "User Profile",
             "HIDE_CALL_BUTTON": "Hide call button",
             "HIDE_VIDEO_BUTTON": "Hide video button",
-            "DM": "DM",
+            "DMS": "DMs",
             "OTHER": "Other",
             "HIDE_VIDEO_BUTTON_IN_VC": "Hide video button in vc"
         },
-        "LETITRAIN": {
-            "NAME": "LetItRain",
-            "DESCRIPTION": "rain tomorrow btw",
-            "RAIN_AMOUNT": "Rain Amount",
-            "RAINDROP_SIZE": "Raindrop Size",
-            "TRANSPARENCY": "Transparency",
-            "SPEED_MULTIPLIER": "Speed Multiplier"
-        },
         "MESSAGELOGGER_WIP": {
             "NAME": "MessageLogger",
-            "DESCRIPTION": "Prevents deleted messages from being lost by storing them in memory"
-        },
-        "MORECOMMANDS_WIP": {
-            "NAME": "MoreCommands",
-            "DESCRIPTION": "Additional commands for Discord"
+            "DESCRIPTION": "Prevents deleted messages from being lost by storing them in memory",
+            "MESSAGE_DELETED": "This message was deleted",
+            "EDITED": "EDITED",
+            "REMOVE_EDIT_HISTORY": "Remove Edit History",
+            "EDIT_HISTORY_REMOVE": "Edit history removed",
+            "DELETED_MESSAGES": "Deleted Messages",
+            "SHOW_TIMESTAMPS": "Show Timestamps",
+            "USE_12HOURS_FORMAT": "Use 12-Hour Format",
+            "SHOW_ONLY_TIMESTAMP": "Show only Timestamp",
+            "EDITED_MESSAGES": "Edited Messages",
+            "ENABLE": "Enable",
+            "SHOW_SEPARATOR": "Show Separator",
+            "FILTERS": "Filters",
+            "IGNORE_BOTS": "Ignore Bots",
+            "DATABASE": "Database",
+            "ENABLE_LOGGING": "Enable Logging"
         },
         "MORECONFIRM": {
             "NAME": "MoreConfirm",
@@ -576,15 +608,29 @@
             "NAME": "MultiScrobbler",
             "DESCRIPTION": "Show off your music status from Last.fm, Libre.fm, or ListenBrainz on your Discord profile."
         },
+        "PETPET": {
+            "NAME": "PetPet",
+            "DESCRIPTION": "Send a gif of someone being pet",
+            "COMMAND_NAME": "petpet",
+            "COMMAND_DESC": "PetPet someone",
+            "USER": "user",
+            "USER_DESC": "The user(or their id) to be patted"
+        },
         "PICTURELINKS": {
             "NAME": "PictureLinks",
             "DESCRIPTION": "Allows you to click on profile pictures and banners."
         },
-        "PLATFORMINDICATORS_WIP": {
+        "PLATFORMINDICATORS": {
             "NAME": "PlatformIndicators",
-            "DESCRIPTION": "Shows platform indicators on users"
+            "DESCRIPTION": "Shows platform indicators on users",
+            "PLATFORM_INDICATOR": "Platform Indicator",
+            "SHOW_ICONS_ON_DM_TOP_BAR": "Show icons on the dm top bar",
+            "SHOW_ICONS_ON_USERS_DMS_LIST": "Show icons on the users and DMs list",
+            "SHOW_ICONS_ON_USER_PROFILES": "Show icons on user profiles",
+            "HODE_MOBILE_STATUS": "Hide mobile status from the normal indicator",
+            "THEME_COMPATIBILITY_MODE": "Theme compatibility mode"
         },
-        "QUICKDELETE_WIP?": {
+        "QUICKDELETE": {
             "NAME": "QuickDelete",
             "DESCRIPTION": "Automatically confirm delete popups for messages and embeds",
             "MESSAGES": "Messages",
@@ -633,9 +679,37 @@
             "DEBUG_LOGGING": "Debug logging",
             "DEBUG_LOGGING_DESC": "Log gesture state to console"
         },
-        "TEXTREPLACE_WIP": {
+        "TEXTREPLACE": {
             "NAME": "TextReplace",
-            "DESCRIPTION": "Replace text in messages with custom rules"
+            "DESCRIPTION": "Replace text in messages with custom rules",
+            "NEW_RULE": "New Rule",
+            "EDIT_RULE": "Edit Rule",
+            "RULES": "Rules",
+            "NO_RULES_YET": "No rules created yet.",
+            "UNNAMED_RULE": "Unnamed Rule",
+            "MATCHES": "Matches: {matches}",
+            "NO_MATCHES": "No match pattern set",
+            "DELETE_RULE_QUESTION": "Delete Rule?",
+            "ARE_YOU_SURE_DELETE_RULE": "Are you sure you want to delete \"{rulename}\" rule? This cannot be undone.",
+            "CANCEL": "Cancel",
+            "DELETE": "Delete",
+            "RULE_COPIED": "Rule {rulename} copied to clipboard",
+            "CONFIGURATION": "Configuration",
+            "NAME_PLACEHOLDER": "Name",
+            "RULE_NAME": "Name",
+            "MATCH": "Match",
+            "TEXT_TO_REPLACE": "Text to replace",
+            "REPLACE_WITH": "Replace with",
+            "NEW_TEXT": "New text",
+            "SETTINGS": "Settings",
+            "REGEX_MODE": "Refex Mode",
+            "REGEX_MODE_DESC": "Treat the natch string as a Regular Expression",
+            "REGEX_FLAGS": "Regex Flags",
+            "ACTIONS": "Actions",
+            "COPY_RULE_JSON": "Copy Rule JSON",
+            "DELETE_RULE": "Delete Rule",
+            "IMPORT_RULE": "Import Rule: {rulename}",
+            "IMPORTED_RULE": "Imported: {rulename}"
         },
         "TRANSLATOR_WIP": {
             "NAME": "Translator",

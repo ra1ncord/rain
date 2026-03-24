@@ -3,6 +3,7 @@ import { ApplicationCommandOptionType, RainApplicationCommand } from "@api/comma
 import { findByProps, findByStoreName } from "@metro";
 import { definePlugin } from "@plugins";
 import { Contributors } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 const UserStore = findByStoreName("UserStore");
 const MessageActions = findByProps("sendMessage");
@@ -16,8 +17,8 @@ const getPetPetData = async (image: string) => {
 };
 
 export default definePlugin({
-    name: "PetPet",
-    description: "Send a gif of someone being pet",
+    name: Strings.PLUGINS.CUSTOM.PETPET.NAME,
+    description: Strings.PLUGINS.CUSTOM.PETPET.DESCRIPTION,
     author: [Contributors.Vendicated],
     id: "petpet",
     version: "1.0.0",
@@ -30,22 +31,22 @@ export default definePlugin({
 });
 
 const petPetCommand = (): RainApplicationCommand => ({
-    name: "petpet",
-    displayName: "petpet",
-    description: "PetPet someone",
-    displayDescription: "PetPet someone",
+    name: Strings.PLUGINS.CUSTOM.PETPET.COMMAND_NAME,
+    displayName: Strings.PLUGINS.CUSTOM.PETPET.COMMAND_NAME,
+    description: Strings.PLUGINS.CUSTOM.PETPET.COMMAND_DESC,
+    displayDescription: Strings.PLUGINS.CUSTOM.PETPET.COMMAND_DESC,
     applicationId: "-1",
     inputType: 1,
     type: 1,
     shouldHide: () => false,
     options: [
         {
-            name: "user",
-            description: "The user(or their id) to be patted",
+            name: Strings.PLUGINS.CUSTOM.PETPET.USER,
+            description: Strings.PLUGINS.CUSTOM.PETPET.USER_DESC,
             type: ApplicationCommandOptionType.USER,
             required: true,
-            displayName: "user",
-            displayDescription: "The user(or their id) to be patted",
+            displayName: Strings.PLUGINS.CUSTOM.PETPET.USER,
+            displayDescription: Strings.PLUGINS.CUSTOM.PETPET.USER_DESC,
         },
     ],
     execute: async (args, ctx) => {

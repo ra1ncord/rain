@@ -4,8 +4,8 @@ import { logger } from "@lib/utils/logger";
 import { ReactNative } from "@metro/common";
 import { findByProps, findByStoreName } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
-import { Strings } from "@rain/i18n";
 import { Contributors } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 import TapTapSettings from "./settings";
 import { taptapSettings, useTapTapSettings } from "./storage";
@@ -352,7 +352,7 @@ function resolveRuntimeModules() {
 }
 
 export default definePlugin({
-    name: Strings.PLUGINS.CUSTOM.TAPTAP.NAME,
+    name: "TapTap",
     description: Strings.PLUGINS.CUSTOM.TAPTAP.DESCRIPTION,
     author: [Contributors.LampDelivery],
     id: "taptap",

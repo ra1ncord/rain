@@ -4,7 +4,7 @@ import { Developers } from "@rain/Developers";
 import { Strings } from "@rain/i18n";
 
 export default definePlugin({
-    name: Strings.PLUGINS.CORE.CORECOMMANDS.NAME,
+    name: "CoreCommands",
     description: Strings.PLUGINS.CORE.CORECOMMANDS.DESCRIPTION,
     author: [Developers.cocobo1],
     // this is still the id as we automatically add "core." to core plugins

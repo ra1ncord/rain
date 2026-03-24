@@ -2,6 +2,7 @@ import { after } from "@api/patcher";
 import { findByProps, findByStoreName } from "@metro";
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 const AccountDispatcher = findByProps("getCanUseMultiAccountMobile");
 const MultiAccountStore = findByStoreName("MultiAccountStore");
@@ -9,7 +10,7 @@ const patches: (() => boolean)[] = [];
 
 export default definePlugin({
     name: "AccountSwitcher",
-    description: "Enables account switcher because discord got rid of experiment",
+    description: Strings.PLUGINS.CUSTOM.ACCOUNTSWITCHER.DESCRIPTION,
     author: [Developers.John, Developers.cocobo1],
     id: "accountswitcher",
     version: "1.1.0",

@@ -70,7 +70,7 @@ function onReaction(event: any) {
 let soundPrepared = false;
 
 export default definePlugin({
-    name: Strings.PLUGINS.CUSTOM.MOYAI.NAME,
+    name: "Moyai",
     description: Strings.PLUGINS.CUSTOM.MOYAI.DESCRIPTION,
     author: [Contributors.Cynosphere, Developers.kmmiio99o],
     id: "moyai",

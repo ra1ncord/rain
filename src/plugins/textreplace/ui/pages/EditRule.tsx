@@ -3,6 +3,7 @@ import { dismissAlert, openAlert } from "@api/ui/alerts";
 import { showToast } from "@api/ui/toasts";
 import { clipboard, NavigationNative, React, ReactNative } from "@metro/common";
 import { AlertActionButton, AlertActions, AlertModal, Stack, TableRow, TableRowGroup, TableSwitchRow, TextInput } from "@metro/common/components";
+import { Strings, formatString } from "@rain/i18n";
 
 import type { Rule } from "../../def";
 import { useTextReplaceSettings } from "../../storage";
@@ -99,17 +100,17 @@ export default function EditRule({ ruleIndex }: { ruleIndex: number }) {
         openAlert(
             "delete-rule-confirmation",
             <AlertModal
-                title="Delete Rule?"
-                content={`Are you sure you want to delete "${localRule.name || "Unnamed Rule"}" rule? This action cannot be undone.`}
+                title={Strings.PLUGINS.CUSTOM.TEXTREPLACE.DELETE_RULE_QUESTION}
+                content={formatString("PLUGINS.CUSTOM.TEXTREPLACE.ARE_YOU_SURE_DELETE_RULE", { rulename: `${localRule.name || Strings.PLUGINS.CUSTOM.TEXTREPLACE.UNNAMED_RULE}` })}
                 actions={
                     <AlertActions>
                         <AlertActionButton
-                            text="Cancel"
+                            text={Strings.PLUGINS.CUSTOM.TEXTREPLACE.CANCEL}
                             variant="secondary"
                             onPress={() => dismissAlert("delete-rule-confirmation")}
                         />
                         <AlertActionButton
-                            text="Delete"
+                            text={Strings.PLUGINS.CUSTOM.TEXTREPLACE.DELETE}
                             variant="destructive"
                             onPress={() => {
                                 dismissAlert("delete-rule-confirmation");
@@ -125,7 +126,7 @@ export default function EditRule({ ruleIndex }: { ruleIndex: number }) {
     const copyRule = () => {
         const ruleJson = JSON.stringify(localRule, null, 4);
         clipboard.setString(`\`\`\`json\n${ruleJson}\n\`\`\``);
-        showToast(`Rule ${localRule.name} copied to clipboard`, findAssetId("CopyIcon"));
+        showToast(formatString("PLUGINS.CUSTOM.TEXTREPLACE.RULE_COPIED", { rulename: localRule.name }), findAssetId("CopyIcon"));
     };
 
     return (
@@ -137,38 +138,38 @@ export default function EditRule({ ruleIndex }: { ruleIndex: number }) {
             keyboardShouldPersistTaps="handled"
         >
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 16 }} spacing={24}>
-                <TableRowGroup title="Configuration">
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.TEXTREPLACE.CONFIGURATION}>
                     <InputRow
-                        label="Name"
+                        label={Strings.PLUGINS.CUSTOM.TEXTREPLACE.NAME_PLACEHOLDER}
                         value={localRule.name}
                         onChange={v => updateRule("name", v)}
-                        placeholder="Rule Name"
+                        placeholder={Strings.PLUGINS.CUSTOM.TEXTREPLACE.RULE_NAME}
                         isClearable={true}
                     />
                     <InputRow
-                        label="Match"
+                        label={Strings.PLUGINS.CUSTOM.TEXTREPLACE.MATCH}
                         value={localRule.match}
                         onChange={v => updateRule("match", v)}
-                        placeholder="Text to replace"
+                        placeholder={Strings.PLUGINS.CUSTOM.TEXTREPLACE.MATCH_DESC}
                     />
                     <InputRow
-                        label="Replace with"
+                        label={Strings.PLUGINS.CUSTOM.TEXTREPLACE.REPLACE_WITH}
                         value={localRule.replace}
                         onChange={v => updateRule("replace", v)}
-                        placeholder="New text"
+                        placeholder={Strings.PLUGINS.CUSTOM.TEXTREPLACE.NEW_TEXT}
                     />
                 </TableRowGroup>
 
-                <TableRowGroup title="Settings">
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.TEXTREPLACE.SETTINGS}>
                     <TableSwitchRow
-                        label="Regex Mode"
-                        subLabel="Treat the match string as a Regular Expression"
+                        label={Strings.PLUGINS.CUSTOM.TEXTREPLACE.REGEX_MODE}
+                        subLabel={Strings.PLUGINS.CUSTOM.TEXTREPLACE.REGEX_MODE_DESC}
                         value={localRule.regex}
                         onValueChange={(v: boolean) => updateRule("regex", v)}
                     />
                     {localRule.regex && (
                         <InputRow
-                            label="Regex Flags"
+                            label={Strings.PLUGINS.CUSTOM.TEXTREPLACE.REGEX_FLAGS}
                             value={localRule.flags}
                             onChange={v => updateRule("flags", v)}
                             placeholder="gi"
@@ -176,15 +177,15 @@ export default function EditRule({ ruleIndex }: { ruleIndex: number }) {
                     )}
                 </TableRowGroup>
 
-                <TableRowGroup title="Actions">
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.TEXTREPLACE.ACTIONS}>
                     <TableRow
-                        label="Copy Rule JSON"
+                        label={Strings.PLUGINS.CUSTOM.TEXTREPLACE.COPY_RULE_JSON}
                         icon={<TableRow.Icon source={findAssetId("CopyIcon")} />}
                         onPress={copyRule}
                         arrow
                     />
                     <TableRow
-                        label="Delete Rule"
+                        label={Strings.PLUGINS.CUSTOM.TEXTREPLACE.DELETE_RULE}
                         icon={<TableRow.Icon source={findAssetId("TrashIcon")} variant="danger" />}
                         onPress={handleDeletePress}
                         variant="danger"

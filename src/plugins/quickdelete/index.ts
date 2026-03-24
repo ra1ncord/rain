@@ -27,7 +27,7 @@ let autoConfirmMessages: { embed: string; message: string };
 let unpatch: () => void;
 
 export default definePlugin({
-    name: Strings.PLUGINS.CUSTOM.QUICKDELETE.NAME,
+    name: "QuickDelete",
     description: Strings.PLUGINS.CUSTOM.QUICKDELETE.DESCRIPTION,
     author: [
         Contributors.TheSun,

@@ -1,6 +1,7 @@
 import { after, before } from "@api/patcher";
 import findInReactTree from "@lib/utils/findInReactTree";
 import { findByProps } from "@metro";
+import { Strings } from "@rain/i18n";
 
 function patchSheet(funcName: string, sheetModule: any, once: boolean) {
     const unpatch = after(funcName, sheetModule, (args: any[], res: any) => {
@@ -17,7 +18,7 @@ function patchSheet(funcName: string, sheetModule: any, once: boolean) {
                 if (c.props.variant === "text-md/bold" && c.props.children.includes("_rainenhancements")) {
                     c.props.children = c.props.children.replace("_rainenhancements", ""); // typescript ragebait
                 } else if (c.props.variant === "text-sm/medium" && !c.props.children.includes("RainEnhancements")) {
-                    c.props.children += " This is a RainEnhancements emoji and renders like a real emoji only for you. Appears as a link to non-rain users.";
+                    c.props.children += ` ${Strings.PLUGINS.CORE.RAINENHANCEMENTS.REALMOJI_RENDER}`;
                 }
                 return false;
             });

@@ -20,14 +20,14 @@ export default function ErrorCard(props: ErrorCardProps) {
         <Stack>
             {props.header && typeof props.header !== "string"
                 ? props.header
-                : <Text variant="heading-lg/bold">{props.header ?? Strings.GENERAL.CORE.UH_OH}</Text>
+                : <Text variant="heading-lg/bold">{props.header ?? Strings.UH_OH}</Text>
             }
             <Codeblock selectable={true}>{String(props.error)}</Codeblock>
             <TwinButtons>
                 {props.onRetryRender && <Button
                     variant="destructive"
                     icon={findAssetId("RetryIcon")}
-                    text={Strings.GENERAL.CORE.RETRY_RENDER}
+                    text={Strings.RETRY_RENDER}
                     onPress={props.onRetryRender}
                 />}
                 {props.error instanceof Error ? <Button

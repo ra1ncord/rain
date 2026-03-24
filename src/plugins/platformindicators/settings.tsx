@@ -1,4 +1,5 @@
 import { findByProps } from "@metro";
+import { Strings } from "@rain/i18n";
 
 import { usePlatformIndicatorSettings } from "./storage";
 
@@ -13,29 +14,29 @@ export default function Settings() {
             style={{ paddingVertical: 24, paddingHorizontal: 12 }}
             spacing={24}
         >
-            <TableRowGroup title="Platform Indicator">
+            <TableRowGroup title={Strings.PLUGINS.CUSTOM.PLATFORMINDICATORS.PLATFORM_INDICATOR}>
                 <TableSwitchRow
-                    label="Show icons on the dm top bar"
+                    label={Strings.PLUGINS.CUSTOM.PLATFORMINDICATORS.SHOW_ICONS_ON_DM_TOP_BAR}
                     value={settings.dmTopBar ?? true}
                     onValueChange={(v: boolean) => usePlatformIndicatorSettings.getState().updateSettings({ dmTopBar: v })}
                 />
                 <TableSwitchRow
-                    label="Show icons on the users and DMs list"
+                    label={Strings.PLUGINS.CUSTOM.PLATFORMINDICATORS.SHOW_ICONS_ON_USERS_DMS_LIST}
                     value={settings.userList ?? true}
                     onValueChange={(v: boolean) => usePlatformIndicatorSettings.getState().updateSettings({ userList: v })}
                 />
                 <TableSwitchRow
-                    label="Show icons on user profiles"
+                    label={Strings.PLUGINS.CUSTOM.PLATFORMINDICATORS.SHOW_ICONS_ON_USER_PROFILES}
                     value={settings.profileUsername ?? true}
                     onValueChange={(v: boolean) => usePlatformIndicatorSettings.getState().updateSettings({ profileUsername: v })}
                 />
                 <TableSwitchRow
-                    label="Hide mobile status from the normal indicator"
+                    label={Strings.PLUGINS.CUSTOM.PLATFORMINDICATORS.HODE_MOBILE_STATUS}
                     value={settings.removeDefaultMobile ?? true}
                     onValueChange={(v: boolean) => usePlatformIndicatorSettings.getState().updateSettings({ removeDefaultMobile: v })}
                 />
                 <TableSwitchRow
-                    label="Theme compatibility mode"
+                    label={Strings.PLUGINS.CUSTOM.PLATFORMINDICATORS.THEME_COMPATIBILITY_MODE}
                     value={settings.useThemeColors ?? true}
                     onValueChange={(v: boolean) => usePlatformIndicatorSettings.getState().updateSettings({ useThemeColors: v })}
                 />

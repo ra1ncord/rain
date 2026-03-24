@@ -9,6 +9,7 @@ import { developer } from "@plugins/types";
 import { Developers } from "@rain/Developers";
 import { useMemo } from "react";
 import { Image, ScrollView, View } from "react-native";
+import { Strings } from "@rain/i18n";
 
 const showUserProfileActionSheet = findByName("showUserProfileActionSheet");
 const { getUser: maybeFetchUser } = lazyDestructure(() => findByProps("getUser", "fetchProfile"));
@@ -21,12 +22,12 @@ type Credit = {
 
 const developers: Credit[] = [
     { name: "cocobo1", role: "Founder & Main Developer", dev: Developers.cocobo1 },
-    { name: "bwlok", role: "Rain Developer", dev: Developers.Bwlok },
-    { name: "kmmiio99o", role: "Rain Developer", dev: Developers.kmmiio99o },
-    { name: "CatStars", role: "Rain Developer", dev: Developers.SerStars },
-    { name: "J", role: "Rain Developer", dev: Developers.j },
-    { name: "Reyyan", role: "Rain Contributor", dev: Developers.reyyan1 },
-    { name: "John", role: "Rain Contributor", dev: Developers.John },
+    { name: "bwlok", role: Strings.GENERAL.CORE.RAIN_DEVELOPER, dev: Developers.Bwlok },
+    { name: "kmmiio99o", role: Strings.GENERAL.CORE.RAIN_DEVELOPER, dev: Developers.kmmiio99o },
+    { name: "SerStars", role: Strings.GENERAL.CORE.RAIN_DEVELOPER, dev: Developers.SerStars },
+    { name: "J", role: Strings.GENERAL.CORE.RAIN_DEVELOPER, dev: Developers.j },
+    { name: "Reyyan", role: Strings.GENERAL.CORE.RAIN_CONTRIBUTOR, dev: Developers.reyyan1 },
+    { name: "John", role: Strings.GENERAL.CORE.RAIN_CONTRIBUTOR, dev: Developers.John },
 ];
 
 const donators = [
@@ -105,7 +106,7 @@ export default function DevelopersPage() {
     return (
         <ScrollView style={{ flex: 1 }}>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
-                <TableRowGroup title="Developers">
+                <TableRowGroup title={Strings.GENERAL.CORE.DEVELOPERS}>
                     {developers.map((dev, index) => {
                         const avatarUrl = getDiscordAvatar(users[index]);
                         return (
@@ -151,7 +152,7 @@ export default function DevelopersPage() {
                         ))}
                     </View>
                     <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
-                        <Text variant="text-md/semibold" style={{ color: "text-default" }}>Donators</Text>
+                        <Text variant="text-md/semibold" style={{ color: "text-default" }}>{Strings.GENERAL.CORE.DONATORS}</Text>
                     </View>
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                         {donators.map(donator => (

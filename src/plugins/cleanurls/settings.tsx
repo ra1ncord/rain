@@ -2,8 +2,8 @@ import { ReactNative } from "@metro/common";
 import { Button,Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import React from "react";
 import { View } from "react-native";
-
 import { useCleanUrlsSettings } from "./storage";
+import { Strings } from "@rain/i18n";
 
 export default function CleanUrlsSettings() {
     const settings = useCleanUrlsSettings();
@@ -18,9 +18,9 @@ export default function CleanUrlsSettings() {
     return (
         <View>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
-                <TableRowGroup title="Settings">
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.CLEANURLS.SETTINGS.SETTINGS}>
                     <TableSwitchRow
-                        label="Remove link wrapping"
+                        label={Strings.PLUGINS.CUSTOM.CLEANURLS.SETTINGS.REMOVE_LINK_WRAPPING}
                         subLabel={settings.redirect
                             ? "https://example.com/"
                             : "https://www.google.com/url?q=https://example.com/"}
@@ -28,7 +28,7 @@ export default function CleanUrlsSettings() {
                         onValueChange={v => useCleanUrlsSettings.getState().updateSettings({ redirect: v })}
                     />
                     <TableSwitchRow
-                        label="Remove referral parameters"
+                        label={Strings.PLUGINS.CUSTOM.CLEANURLS.SETTINGS.REMOVE_REF_PARAMS}
                         subLabel={`https://amazon.com/product${
                             settings.referrals ? "/" : "?tag=nexpid-50"
                         }`}
@@ -39,7 +39,7 @@ export default function CleanUrlsSettings() {
             </Stack>
             <View style={{ marginHorizontal: 16, marginTop: 12 }}>
                 <Button
-                    text="Visit source"
+                    text={Strings.PLUGINS.CUSTOM.CLEANURLS.SETTINGS.VISIT_SOURCE}
                     onPress={openSourceUrl}
                 />
             </View>

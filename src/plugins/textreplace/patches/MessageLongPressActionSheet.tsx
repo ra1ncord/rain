@@ -4,6 +4,7 @@ import { showToast } from "@api/ui/toasts";
 import { findInReactTree } from "@lib/utils";
 import { findByProps } from "@metro";
 import { React } from "@metro/common";
+import { formatString } from "@rain/i18n";
 
 import { useTextReplaceSettings } from "../storage";
 
@@ -53,13 +54,13 @@ export default function patchMessageLongPressActionSheet() {
                 rules.forEach((rule: any) => {
                     buttons.unshift(
                         <ActionSheetRow
-                            label={`Import Rule: ${rule.name}`}
+                            label={formatString("PLUGINS.CUSTOM.TEXTREPLACE.IMPORT_RULE", { rulename: rule.name })}
                             icon={<ActionSheetRow.Icon source={DownloadIcon} />}
                             onPress={() => {
                                 LazyActionSheet.hideActionSheet();
                                 const currentRules = useTextReplaceSettings.getState().rules;
                                 useTextReplaceSettings.getState().updateSettings({ rules: [...currentRules, rule] });
-                                showToast(`Imported ${rule.name}`, DownloadIcon);
+                                showToast(formatString("PLUGINS.CUSTOM.TEXTREPLACE.IMPORTED_RULE", { rulename: rule.name }), DownloadIcon);
                             }}
                         />,
                     );

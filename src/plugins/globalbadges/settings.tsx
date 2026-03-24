@@ -2,6 +2,7 @@ import { ReactNative } from "@metro/common";
 import { Stack, TableRow,TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import React from "react";
 import { View } from "react-native";
+import { Strings } from "@rain/i18n";
 
 import { useCustomBadgesSettings } from "./storage";
 
@@ -18,27 +19,27 @@ export default function CustomBadgesSettings() {
     return (
         <View>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
-                <TableRowGroup title="Badge Display">
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.GLOBALBADGES.SETTINGS.BADGE_DISPLAY}>
                     <TableSwitchRow
-                        label="Load Badges on left"
-                        subLabel="If enabled, custom badges will load up first than the original badges."
+                        label={Strings.PLUGINS.CUSTOM.GLOBALBADGES.SETTINGS.LOAD_BADGES_ON_LEFT}
+                        subLabel={Strings.PLUGINS.CUSTOM.GLOBALBADGES.SETTINGS.LOAD_BADGES_ON_LEFT_DESC}
                         value={!!settings.left}
                         onValueChange={v => useCustomBadgesSettings.getState().updateSettings({ left: v })}
                     />
                     <TableSwitchRow
-                        label="Disable Mod Badges"
-                        subLabel="If enabled, it will disable mod client badges but not custom badges."
+                        label={Strings.PLUGINS.CUSTOM.GLOBALBADGES.SETTINGS.DISABLE_MOD_BADGES}
+                        subLabel={Strings.PLUGINS.CUSTOM.GLOBALBADGES.SETTINGS.DISABLE_MOD_BADGES_DESC}
                         value={!!settings.mods}
                         onValueChange={v => useCustomBadgesSettings.getState().updateSettings({ mods: v })}
                     />
                     <TableSwitchRow
-                        label="Disable Custom Badges"
-                        subLabel="If enabled, it will disable custom badges but not mod client badges."
+                        label={Strings.PLUGINS.CUSTOM.GLOBALBADGES.SETTINGS.DISABLE_CUSTOM_BADGES}
+                        subLabel={Strings.PLUGINS.CUSTOM.GLOBALBADGES.SETTINGS.DISABLE_CUSTOM_BADGES_DESC}
                         value={!!settings.customs}
                         onValueChange={v => useCustomBadgesSettings.getState().updateSettings({ customs: v })}
                     />
                     <TableRow
-                        label="Add Custom badges (not affiliated)"
+                        label={Strings.PLUGINS.CUSTOM.GLOBALBADGES.SETTINGS.ADD_CUSTOM_BADGE}
                         arrow={true}
                         onPress={openDiscord}
                     />

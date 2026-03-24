@@ -3,6 +3,7 @@ import { logger } from "@lib/utils/logger";
 import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 let origType: Function | null = null;
 let memoWrapper: any = null;
@@ -180,7 +181,7 @@ function patchMobileFavorites() {
 
 export default definePlugin({
     name: "FavouriteAnything",
-    description: "Allows favouriting any media, not just GIFs",
+    description: Strings.PLUGINS.CUSTOM.FAVOURITEANYTHING.DESCRIPTION,
     author: [Developers.kmmiio99o],
     id: "favouriteanything",
     version: "1.0.0",

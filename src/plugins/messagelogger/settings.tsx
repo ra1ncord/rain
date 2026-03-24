@@ -1,6 +1,7 @@
 import { Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import React from "react";
 import { ScrollView } from "react-native";
+import { Strings } from "@rain/i18n";
 
 import { useMessageLoggerSettings } from "./storage";
 
@@ -10,30 +11,30 @@ export default function MessageLoggerSettings() {
     return (
         <ScrollView style={{ flex: 1 }}>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
-                <TableRowGroup title="Deleted Messages">
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.MESSAGELOGGER.DELETED_MESSAGES}>
                     <TableSwitchRow
-                        label="Enable"
+                        label={Strings.PLUGINS.CUSTOM.MESSAGELOGGER.ENABLE}
                         value={!!settings.deleted?.enabled}
                         onValueChange={v => {
                             useMessageLoggerSettings.getState().updateSettings({ deleted: { ...settings.deleted, enabled: v } });
                         }}
                     />
                     <TableSwitchRow
-                        label="Show Timestamps"
+                        label={Strings.PLUGINS.CUSTOM.MESSAGELOGGER.SHOW_TIMESTAMPS}
                         value={!!settings.deleted?.showTimestamps}
                         onValueChange={v => {
                             useMessageLoggerSettings.getState().updateSettings({ deleted: { ...settings.deleted, showTimestamps: v } });
                         }}
                     />
                     <TableSwitchRow
-                        label="Use 12-Hour Format"
+                        label={Strings.PLUGINS.CUSTOM.MESSAGELOGGER.USE_12HOURS_FORMAT}
                         value={!!settings.deleted?.use12Hour}
                         onValueChange={v => {
                             useMessageLoggerSettings.getState().updateSettings({ deleted: { ...settings.deleted, use12Hour: v } });
                         }}
                     />
                     <TableSwitchRow
-                        label="Show Only Timestamp"
+                        label={Strings.PLUGINS.CUSTOM.MESSAGELOGGER.SHOW_ONLY_TIMESTAMP}
                         value={!!settings.deleted?.showOnlyTimestamp}
                         onValueChange={v => {
                             useMessageLoggerSettings.getState().updateSettings({ deleted: { ...settings.deleted, showOnlyTimestamp: v } });
@@ -41,16 +42,16 @@ export default function MessageLoggerSettings() {
                     />
                 </TableRowGroup>
 
-                <TableRowGroup title="Edited Messages">
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.MESSAGELOGGER.EDITED_MESSAGES}>
                     <TableSwitchRow
-                        label="Enable"
+                        label={Strings.PLUGINS.CUSTOM.MESSAGELOGGER.ENABLED}
                         value={!!settings.edited?.enabled}
                         onValueChange={v => {
                             useMessageLoggerSettings.getState().updateSettings({ edited: { ...settings.edited, enabled: v } });
                         }}
                     />
                     <TableSwitchRow
-                        label="Show Separator"
+                        label={Strings.PLUGINS.CUSTOM.MESSAGELOGGER.SHOW_SEPARATOR}
                         value={!!settings.edited?.showSeparator}
                         onValueChange={v => {
                             useMessageLoggerSettings.getState().updateSettings({ edited: { ...settings.edited, showSeparator: v } });
@@ -58,9 +59,9 @@ export default function MessageLoggerSettings() {
                     />
                 </TableRowGroup>
 
-                <TableRowGroup title="Filters">
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.MESSAGELOGGER.FILTERS}>
                     <TableSwitchRow
-                        label="Ignore Bots"
+                        label={Strings.PLUGINS.CUSTOM.MESSAGELOGGER.IGNORE_BOTS}
                         value={!!settings.filters?.ignoreBots}
                         onValueChange={v => {
                             useMessageLoggerSettings.getState().updateSettings({ filters: { ...settings.filters, ignoreBots: v } });
@@ -68,9 +69,9 @@ export default function MessageLoggerSettings() {
                     />
                 </TableRowGroup>
 
-                <TableRowGroup title="Database">
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.MESSAGELOGGER.DATABASE}>
                     <TableSwitchRow
-                        label="Enable Logging"
+                        label={Strings.PLUGINS.CUSTOM.MESSAGELOGGER.ENABLE_LOGGING}
                         value={!!settings.databaseLogging}
                         onValueChange={v => {
                             useMessageLoggerSettings.getState().updateSettings({ databaseLogging: v });

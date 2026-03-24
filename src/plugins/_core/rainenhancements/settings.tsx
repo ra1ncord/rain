@@ -1,5 +1,6 @@
 import { findByProps } from "@metro";
 import { ScrollView } from "react-native";
+import { Strings } from "@rain/i18n";
 
 import { useRainEnhancementsSettings } from "./storage";
 
@@ -18,16 +19,16 @@ export default () => {
                 style={{ paddingVertical: 24, paddingHorizontal: 12 }}
                 spacing={24}
             >
-                <TableRowGroup title="Realmoji" titleStyleType="no_border">
+                <TableRowGroup title={Strings.PLUGINS.CORE.RAINENHANCEMENTS.REALMOJI }titleStyleType="no_border">
                     <TableSwitchRow
-                        label="Transform fake emojis into real ones"
+                        label={Strings.PLUGINS.CORE.RAINENHANCEMENTS.REALMOJI_DESC}
                         onValueChange={(v: boolean) => {
                             settings.updateSettings({ transformEmoji: v });
                         }}
                         value={settings.transformEmoji ?? true}
                     />
                     <TableSwitchRow
-                        label="Transform fake stickers into real ones"
+                        label={Strings.PLUGINS.CORE.RAINENHANCEMENTS.REALSTICKER_DESC}
                         onValueChange={(v: boolean) => {
                             settings.updateSettings({ transformSticker: v });
                         }}

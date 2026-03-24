@@ -4,6 +4,7 @@ import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
 import { Contributors,Developers } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 import settings from "./settings";
 import { useActionSheetFinderSettings } from "./storage";
@@ -22,13 +23,13 @@ function SheetOutput(text: string) {
 
     const log = `[${new Date().toLocaleTimeString()}] ${text}`;
     console.log("[ActionSheetFinder] Found ActionSheet: " + text);
-    showToast("[ActionSheetFinder] Found ActionSheet: " + text, findAssetId("Check"));
+    showToast(`[ActionSheetFinder] ${Strings.PLUGINS.CUSTOM.ACTIONSHEETFINDER.SETTINGS.ACTIONSHEED_FOUND} ` + text, findAssetId("Check"));
     useActionSheetFinderSettings.getState().addLog(log);
 }
 
 export default definePlugin({
     name: "ActionSheetFinder",
-    description: "Utility plugin to find ActionSheet key of pressed sheet. Mostly used by developers to find action sheet keys.",
+    description: Strings.PLUGINS.CUSTOM.ACTIONSHEETFINDER.DESCRIPTION,
     author: [Contributors.rico040, Contributors.byeoon, Developers.kmmiio99o],
     id: "actionsheetfinder",
     version: "1.0.0",

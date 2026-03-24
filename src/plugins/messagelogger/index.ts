@@ -4,6 +4,7 @@ import { showToast } from "@api/ui/toasts";
 import { findByName, findByProps, findByStoreName } from "@metro";
 import { definePlugin } from "@plugins";
 import { Contributors, Developers } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 import Settings from "./settings";
 import { useMessageLoggerSettings } from "./storage";
@@ -117,7 +118,7 @@ function patchMessageDeleteHandler() {
 
                 deleteable.push(id);
 
-                let automodMessage = "This message was deleted";
+                let automodMessage = Strings.PLUGINS.CUSTOM.MESSAGELOGGER.MESSAGE_DELETED;
                 if (storage.deleted?.showTimestamps) {
                     automodMessage += ` (${formatTimestamp(storage.deleted.use12Hour)})`;
                 }
@@ -161,7 +162,7 @@ function patchMessageDeleteHandler() {
 
 function patchMessageEditHandler() {
     try {
-        const EDIT_HISTORY_SEPARATOR = "`[ EDITED ]`";
+        const EDIT_HISTORY_SEPARATOR = `\`[ ${Strings.PLUGINS.CUSTOM.MESSAGELOGGER.EDITED} ] \``;
         const FluxDispatcher = findByProps("dispatch", "_subscriptions");
         const MessageStore = findByStoreName("MessageStore");
         const emojiRegex = /https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.\w+/g;
@@ -209,7 +210,7 @@ function patchRowManager() {
         const RowManager = findByName("RowManager");
         if (!RowManager) return () => {};
 
-        const EDIT_HISTORY_SEPARATOR = "`[ EDITED ]`";
+        const EDIT_HISTORY_SEPARATOR = `\`[ ${Strings.PLUGINS.CUSTOM.MESSAGELOGGER.EDITED} ] \``;
 
         return before("generate", RowManager.prototype, args => {
             try {
@@ -242,7 +243,7 @@ function patchRowManager() {
 
                         data.buttons.push(
                             React.createElement(FormRow, {
-                                label: "Remove Edit History",
+                                label: Strings.PLUGINS.CUSTOM.MESSAGELOGGER.REMOVE_EDIT_HISTORY,
                                 leading: React.createElement("img", { style: { opacity: 1 }, src: getAssetIDByName ? getAssetIDByName("ic_edit_24px") : undefined }),
                                 onPress: () => {
                                     try {
@@ -269,7 +270,7 @@ function patchRowManager() {
                                             ActionSheet.hideActionSheet();
                                         }
 
-                                        showToast("[MessageLogger] Edit history removed", getAssetIDByName ? getAssetIDByName("ic_edit_24px") : undefined);
+                                        showToast(`[MessageLogger] ${Strings.PLUGINS.CUSTOM.MESSAGELOGGER.EDIT_HISTORY_REMOVED}`, getAssetIDByName ? getAssetIDByName("ic_edit_24px") : undefined);
                                     } catch (e) {
                                         console.error("[MessageLogger] Remove edit history error:", e);
                                     }
@@ -311,7 +312,7 @@ function patchDeleteAction() {
 
 export default definePlugin({
     name: "MessageLogger",
-    description: "Prevents deleted messages from being lost by storing them in memory",
+    description: Strings.PLUGINS.CUSTOM.MESSAGELOGGER.DESCRIPTION,
     author: [Contributors.LampDelivery, Developers.kmmiio99o],
     id: "messagelogger",
     version: "2.0.0",

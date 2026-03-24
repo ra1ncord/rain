@@ -10,7 +10,7 @@ const EXPERIMENT_ID = "2026-01-you-bar";
 // this plugin is also kinda a demo on how to override apex experiments :P
 
 export default definePlugin({
-    name: Strings.PLUGINS.CUSTOM.YOUBAR.NAME,
+    name: "YouBar",
     description: Strings.PLUGINS.CUSTOM.YOUBAR.DESCRIPTION,
     author: [Developers.cocobo1],
     id: "youbar",

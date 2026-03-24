@@ -4,6 +4,7 @@ import { FluxDispatcher } from "@metro/common";
 import { definePlugin } from "@plugins";
 import { Contributors, Developers } from "@rain/Developers";
 import Settings from "@rain/pages/CloudSync";
+import { Strings } from "@rain/i18n";
 
 import { saveData } from "./api";
 import { grabEverything } from "./lib/syncStuff";
@@ -29,7 +30,7 @@ const autoSync = async () => {
 
 export default definePlugin({
     name: "CloudSync",
-    description: "Sync your plugins, themes, and fonts to the cloud.",
+    description: Strings.PLUGINS.CORE.CLOUDSYNC.DESCRIPTION,
     author: [Developers.cocobo1, Contributors.LampDelivery, Contributors.nexpid],
     id: "cloudsync",
     version: "1.0.0",

@@ -3,6 +3,7 @@ import { semanticColors } from "@api/ui/components/color";
 import { showToast } from "@api/ui/toasts";
 import { clipboard, constants, ReactNative as RN } from "@metro/common";
 import { findByPropsLazy } from "@metro/wrappers";
+import { Strings } from "@rain/i18n";
 
 const moment = findByPropsLazy("isMoment");
 const { Text } = RN;
@@ -51,7 +52,7 @@ function FancyDate({ date }: { date: Date }) {
             onLongPress={() => {
                 clipboard.setString(date.getTime().toString());
                 showToast(
-                    "Copied Timestamp to Clipboard", findAssetId("CopyIcon")
+                    Strings.PLUGINS.CUSTOM.HIDDENCHANNELS.COPIED_TIMESTAMP, findAssetId("CopyIcon")
                 );
             }}
             style={[MessageStyles.highlight]}
@@ -66,10 +67,10 @@ export default function AlertContent({ channel }: { channel: any }) {
 
     return (
         <>
-            <Text style={[MessageStyles.text, MessageStyles.bold]}>Topic:</Text> <Text>{channel.topic || "No topic."}</Text>
-            <Text style={[MessageStyles.text, MessageStyles.bold]}>{"\n\n"}Creation date:</Text> <FancyDate date={new Date(snowflakeUtils.extractTimestamp(channel.id))} />
-            <Text style={[MessageStyles.text, MessageStyles.bold]}>{"\n\n"}Last message:</Text> {channel.lastMessageId ? <FancyDate date={new Date(snowflakeUtils.extractTimestamp(channel.lastMessageId))} /> : <Text>No messages.</Text>}
-            <Text style={[MessageStyles.text, MessageStyles.bold]}>{"\n\n"}Last pin:</Text> {channel.lastPinTimestamp ? <FancyDate date={new Date(channel.lastPinTimestamp)} /> : <Text>No pins.</Text>}
+            <Text style={[MessageStyles.text, MessageStyles.bold]}>{Strings.PLUGINS.CUSTOM.HIDDENCHANNELS.TOPIC}</Text> <Text>{channel.topic || Strings.PLUGINS.CUSTOM.HIDDENCHANNELS.NO_TOPIC}</Text>
+            <Text style={[MessageStyles.text, MessageStyles.bold]}>{"\n\n"}{Strings.PLUGINS.CUSTOM.HIDDENCHANNELS.CREATION_DATE}</Text> <FancyDate date={new Date(snowflakeUtils.extractTimestamp(channel.id))} />
+            <Text style={[MessageStyles.text, MessageStyles.bold]}>{"\n\n"}{Strings.PLUGINS.CUSTOM.HIDDENCHANNELS.LAST_MESSAGE}</Text> {channel.lastMessageId ? <FancyDate date={new Date(snowflakeUtils.extractTimestamp(channel.lastMessageId))} /> : <Text>{Strings.PLUGINS.CUSTOM.HIDDENCHANNELS.NO_MESSAGES}</Text>}
+            <Text style={[MessageStyles.text, MessageStyles.bold]}>{"\n\n"}{Strings.PLUGINS.CUSTOM.HIDDENCHANNELS.LAST_PIN}</Text> {channel.lastPinTimestamp ? <FancyDate date={new Date(channel.lastPinTimestamp)} /> : <Text>{Strings.PLUGINS.CUSTOM.HIDDENCHANNELS.NO_PINS}</Text>}
         </>
     );
 }

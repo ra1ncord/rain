@@ -91,7 +91,7 @@ export default function Plugins() {
 
     const items = useMemo(() => {
         return Array.from(pluginInstances.values()).map(unifyRainPlugin);
-    }, []); 
+    }, []);
 
     return (
         <PluginPage

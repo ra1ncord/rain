@@ -11,7 +11,7 @@ import Settings from "./Settings";
 const patches: any[] = [];
 
 export default definePlugin({
-    name: Strings.PLUGINS.CUSTOM.STAFFTAGS.NAME,
+    name: "StaffTags",
     description: Strings.PLUGINS.CUSTOM.STAFFTAGS.DESCRIPTION,
     author: [Contributors.Fiery, Contributors.siguma, Developers.kmmiio99o],
     id: "stafftags",

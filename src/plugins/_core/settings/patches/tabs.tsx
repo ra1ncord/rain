@@ -3,6 +3,7 @@ import { useSettings } from "@api/settings";
 import { TableRow } from "@metro/common/components";
 import { findByPropsLazy } from "@metro/wrappers";
 import React from "react";
+import { Strings } from "@rain/i18n";
 
 import { registeredSections } from "..";
 import { CustomPageRenderer, wrapOnPress } from "./shared";
@@ -37,7 +38,7 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
             ...rendererConfigValue,
             RAIN_CUSTOM_PAGE: {
                 type: "route",
-                title: () => "Rain",
+                title: () => {Strings.GENERAL.CORE.RAIN},
                 screen: {
                     route: "RAIN_CUSTOM_PAGE",
                     getComponent: () => CustomPageRenderer

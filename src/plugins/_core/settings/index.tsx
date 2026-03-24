@@ -16,7 +16,7 @@ import { patchTabsUI } from "./patches/tabs";
 import settings from "./settings";
 
 export default definePlugin({
-    name: Strings.PLUGINS.CORE.SETTINGS.NAME,
+    name: "Settings",
     description: Strings.PLUGINS.CORE.SETTINGS.DESCRIPTION,
     author: [Developers.cocobo1],
     id: "settings",
@@ -30,7 +30,6 @@ export default definePlugin({
 });
 
 function initSettings() {
-    // todo: i18n ALL of settings
     registerSection({
         name: "Rain",
         items: [

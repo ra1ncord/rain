@@ -6,7 +6,7 @@ import { Strings } from "@rain/i18n";
 const patches: any[] = [];
 
 export default definePlugin({
-    name: Strings.PLUGINS.CUSTOM.VIEWRAW.NAME,
+    name: "ViewRaw",
     description: Strings.PLUGINS.CUSTOM.VIEWRAW.DESCRIPTION,
     author: [Contributors.sapphire, Contributors.Vendicated, Contributors.Bwlok, Developers.j],
     id: "viewraw",

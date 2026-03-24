@@ -1,6 +1,7 @@
 import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 const ExperimentManager = findByProps("overrideBucket");
 const EXPERIMENT_ID = "2025-08-animated-keyboard-android";
@@ -9,7 +10,7 @@ const EXPERIMENT_ID = "2025-08-animated-keyboard-android";
 
 export default definePlugin({
     name: "AnimatedKeyboard",
-    description: "Enables animated keyboard via experiment override",
+    description: Strings.PLUGINS.CUSTOM.ANIMATEDKEYBOARD.DESCRIPTION,
     author: [Developers.cocobo1],
     id: "animatedkeyboard",
     version: "1.0.0",

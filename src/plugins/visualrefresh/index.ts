@@ -9,7 +9,7 @@ const EXPERIMENT_ID = "2026-02-mobile-visual-refresh";
 // this plugin is also kinda a demo on how to override apex experiments :P
 
 export default definePlugin({
-    name: Strings.PLUGINS.CUSTOM.VISUALREFRESH.NAME,
+    name: "VisualRefresh",
     description: Strings.PLUGINS.CUSTOM.VISUALREFRESH.DESCRIPTION,
     author: [Developers.cocobo1],
     id: "visualrefresh",

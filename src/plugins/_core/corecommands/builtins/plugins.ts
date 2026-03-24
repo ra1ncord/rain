@@ -2,11 +2,11 @@ import { ApplicationCommand } from "@api/commands/types";
 import { messageUtil } from "@metro/common";
 import { pluginInstances } from "@plugins";
 import unifyRainPlugin from "@rain/pages/Plugins/models/rain";
+import { Strings } from "@rain/i18n";
 
-// todo: i18n
 export default () => <ApplicationCommand>{
-    name: "plugins",
-    description: "Send your plugin info to the current channel",
+    name: "Plugins",
+    description: Strings.PLUGINS.CORE.CORECOMMANDS.COMMANDS.PLUGINS.DESCRIPTION,
     execute([ephemeral], ctx) {
         const rainPlugins = [...pluginInstances.values()];
         const plugins = rainPlugins.map(plugin => unifyRainPlugin(plugin));

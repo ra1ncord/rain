@@ -1,5 +1,6 @@
 import { Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import { ScrollView, View } from "react-native";
+import { Strings } from "@rain/i18n";
 
 import { useHideBlockedAndIgnoredMessagesSettings } from "./storage";
 
@@ -10,9 +11,9 @@ export default function Settings() {
         <ScrollView style={{ flex: 1 }}>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
                 <View>
-                    <TableRowGroup title="HideBlockedAndIgnoredMessages">
+                    <TableRowGroup title={Strings.PLUGINS.CUSTOM.HIDEBLOCKEDANDIGNOREDMESSAGES.NAME}>
                         <TableSwitchRow
-                            label="Remove blocked messages"
+                            label={Strings.PLUGINS.CUSTOM.HIDEBLOCKEDANDIGNOREDMESSAGES.REMOVE_BLOCKED_MESSAGES}
                             value={settings.blocked ?? true}
                             onValueChange={(v: boolean) =>
                                 useHideBlockedAndIgnoredMessagesSettings
@@ -21,7 +22,7 @@ export default function Settings() {
                             }
                         />
                         <TableSwitchRow
-                            label="Remove ignored messages"
+                            label={Strings.PLUGINS.CUSTOM.HIDEBLOCKEDANDIGNOREDMESSAGES.REMOVE_IGNORED_MESSAGES}
                             value={settings.ignored ?? true}
                             onValueChange={(v: boolean) =>
                                 useHideBlockedAndIgnoredMessagesSettings
@@ -30,14 +31,14 @@ export default function Settings() {
                             }
                         />
                         <TableSwitchRow
-                            label="Remove replies to blocked/ignored users"
+                            label={Strings.PLUGINS.CUSTOM.HIDEBLOCKEDANDIGNOREDMESSAGES.REMOVE_REPLIES_TO_MESSAGES}
                             value={settings.removeReplies ?? true}
                             onValueChange={(v: boolean) =>
                                 useHideBlockedAndIgnoredMessagesSettings
                                     .getState()
                                     .updateSettings({ removeReplies: v })
                             }
-                            subLabel="Filters messages replying to blocked or ignored users."
+                            subLabel={Strings.PLUGINS.CUSTOM.HIDEBLOCKEDANDIGNOREDMESSAGES.REMOVE_REPLIES_TO_MESSAGES_DESC}
                         />
                     </TableRowGroup>
                 </View>

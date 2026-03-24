@@ -9,7 +9,7 @@ import { initThemes } from "./themes";
 
 // thanks pylix for the name
 export default definePlugin({
-    name: Strings.PLUGINS.CORE.PAINTER.NAME,
+    name: "Painter",
     description: Strings.PLUGINS.CORE.PAINTER.DESCRIPTION,
     author: [Developers.cocobo1, Contributors.nexpid],
     id: "painter",

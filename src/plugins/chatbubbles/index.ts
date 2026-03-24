@@ -6,13 +6,14 @@ import { findByStoreName } from "@metro";
 import { FluxDispatcher, tokens } from "@metro/common";
 import { definePlugin } from "@plugins";
 import { Contributors, Developers } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 import settings from "./settings";
 import { useChatBubblesSettings } from "./storage";
 
 export default definePlugin({
     name: "ChatBubbles",
-    description: "Adds customizable chat bubbles to the chat, similar to Flowercord",
+    description: Strings.PLUGINS.CUSTOM.CHATUBBLES.DESCRIPTION,
     author: [ Contributors.pylix, Developers.cocobo1, Developers.kmmiio99o ],
     id: "chatbubbles",
     version: "1.0.0",

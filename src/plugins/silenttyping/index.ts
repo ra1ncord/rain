@@ -8,7 +8,7 @@ const Typing = findByProps("startTyping", "stopTyping");
 const patches: (() => void)[] = [];
 
 export default definePlugin({
-    name: Strings.PLUGINS.CUSTOM.SILENTTYPING.NAME,
+    name: "SilentTyping",
     description: Strings.PLUGINS.CUSTOM.SILENTTYPING.DESCRIPTION,
     author: [Contributors.redstonekasi],
     id: "silenttyping",

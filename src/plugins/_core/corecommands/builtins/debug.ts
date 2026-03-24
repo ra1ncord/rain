@@ -1,11 +1,11 @@
 import { ApplicationCommand } from "@api/commands/types";
 import { getDebugInfo } from "@api/debug";
 import { messageUtil } from "@metro/common";
+import { Strings } from "@rain/i18n";
 
-// todo: i18n
 export default () => <ApplicationCommand>{
-    name: "debug",
-    description: "Send debug info about rain to the current channel",
+    name: "Debug",
+    description: Strings.PLUGINS.CORE.CORECOMMANDS.COMMANDS.DEBUG.DESCRIPTION,
     execute([ephemeral], ctx) {
         const info = getDebugInfo();
         const content = [

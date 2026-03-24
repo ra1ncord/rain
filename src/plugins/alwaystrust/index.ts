@@ -2,13 +2,14 @@ import { after } from "@api/patcher";
 import { findByStoreName } from "@metro";
 import { definePlugin } from "@plugins";
 import { Contributors } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 const MaskedLink = findByStoreName("MaskedLinkStore");
 const patches: (() => boolean)[] = [];
 
 export default definePlugin({
     name: "AlwaysTrust",
-    description: "Disable the untrusted link popup for every link",
+    description: Strings.PLUGINS.CUSTOM.ALWAYSTRUST.NAME,
     author: [Contributors.fres],
     id: "alwaystrust",
     version: "1.0.0",

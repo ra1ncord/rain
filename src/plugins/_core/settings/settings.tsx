@@ -1,6 +1,7 @@
 import { useSettings } from "@api/settings";
 import { findByProps } from "@metro";
 import { ScrollView } from "react-native";
+import { Strings } from "@rain/i18n";
 
 const {
     Stack,
@@ -9,14 +10,14 @@ const {
 } = findByProps("TableRow");
 
 const SETTINGS_POSITIONS = [
-    { key: "TOP", label: "At the top of the settings page" },
-    { key: "ACCOUNT", label: "Above Payment Settings" },
-    { key: "APPEARANCE", label: "Above Support Settings" },
+    { key: "TOP", label: Strings.PLUGINS.CORE.SETTINGS.RAIN_POSITIONS.TOP },
+    { key: "ACCOUNT", label: Strings.PLUGINS.CORE.SETTINGS.RAIN_POSITIONS.ACCOUNT },
+    { key: "APPEARANCE", label: Strings.PLUGINS.CORE.SETTINGS.RAIN_POSITIONS.APPEARANCE },
 ];
 
 const INFO_OPTIONS = [
-    { key: "PRESS", label: "Open Info on Card Press" },
-    { key: "BUTTON", label: "Show Plugin Info Button" },
+    { key: "PRESS", label: Strings.PLUGINS.CORE.SETTINGS.INFO_OPTIONS.PRESS },
+    { key: "BUTTON", label: Strings.PLUGINS.CORE.SETTINGS.INFO_OPTIONS.BUTTON },
 ];
 
 export default function SettingsPage() {
@@ -26,7 +27,7 @@ export default function SettingsPage() {
         <ScrollView style={{ flex: 1 }}>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
                 <TableRadioGroup
-                    title="Settings Position"
+                    title={Strings.PLUGINS.CORE.SETTINGS.RAIN_POSITIONS.TITLE}
                     titleStyle={{ marginTop: 5 }}
                     value={settingsPosition ?? "TOP"}
                     onChange={(value: string) => updateSettings({ settingsPosition: value })}
@@ -41,7 +42,7 @@ export default function SettingsPage() {
                 </TableRadioGroup>
 
                 <TableRadioGroup
-                    title="Plugin Card Info"
+                    title={Strings.PLUGINS.CORE.SETTINGS.INFO_OPTIONS.TITLE}
                     value={pluginCard?.showInfoButton ? "BUTTON" : pluginCard?.openOnPress ? "PRESS" : "NONE"}
                     onChange={(value: string) => updateSettings({
                         pluginCard: {

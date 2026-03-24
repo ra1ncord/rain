@@ -1,6 +1,7 @@
 import { before } from "@api/patcher";
 import { findByName, findByProps } from "@metro";
 import { FluxDispatcher } from "@metro/common";
+import { Strings } from "@rain/i18n";
 
 import { hideblockedandignoredmessagesSettings as storage } from "../storage";
 
@@ -49,7 +50,7 @@ export default function getPatches() {
                 data.message.canShowComponents = false;
                 if (data.rowType === 2) {
                     data.roleStyle = "";
-                    data.text = "[Filtered message. Check plugin settings.]";
+                    data.text = `[${Strings.PLUGINS.CUSTOM.HIDEBLOCKEDANDIGNOREDMESSAGES.FILTERED_MESSAGE_CHECK_SETTINGS}]`;
                     data.revealed = false;
                     data.content = [];
                 }

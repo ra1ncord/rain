@@ -3,6 +3,7 @@ import { SliderRow } from "@api/ui/components/SliderRow";
 import { createStyles } from "@api/ui/styles";
 import { Card, Stack, TableRowGroup, TextInput } from "@metro/common/components";
 import { ScrollView } from "react-native";
+import { Strings } from "@rain/i18n";
 
 import { useChatBubblesSettings } from "./storage";
 
@@ -37,21 +38,21 @@ export default () => {
         <ScrollView>
             <Stack style={styles.container} spacing={24}>
 
-                <TableRowGroup title="Appearance">
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.CHATBUBBLES.SETTINGS.APPEARANCE}>
                     <Card style={styles.sliderCard}>
                         <SliderRow maximumValue={50}
-                            label="Avatar Radius"
+                            label={Strings.PLUGINS.CUSTOM.CHATBUBBLES.SETTINGS.AVATAR_RADIUS}
                             value={avatarRadius}
                             onChange={v => updateSettings({ avatarRadius: v })}
                         />
                         <SliderRow maximumValue={50}
-                            label="Bubble Radius"
+                            label={Strings.PLUGINS.CUSTOM.CHATBUBBLES.SETTINGS.BUBBLE_RADIUS}
                             value={bubbleChatRadius}
                             onChange={v => updateSettings({ bubbleChatRadius: v })}
                         />
                         <TextInput
-                            label="Bubble Color"
-                            placeholder="#rrggbb or leave empty for theme default"
+                            label={Strings.PLUGINS.CUSTOM.CHATBUBBLES.SETTINGS.BUBBLE_COLOR}
+                            placeholder={Strings.PLUGINS.CUSTOM.CHATBUBBLES.SETTINGS.BUBBLE_COLOR_DESC}
                             value={bubbleChatColor}
                             onChange={v => updateSettings({ bubbleChatColor: v })}
                             isClearable

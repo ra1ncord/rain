@@ -1,5 +1,6 @@
 import { Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import { ScrollView } from "react-native";
+import { Strings } from "@rain/i18n";
 
 import { useHiddenChannelsSettings } from "./storage";
 
@@ -9,16 +10,16 @@ export default function Settings() {
     return (
         <ScrollView style={{ flex: 1 }}>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
-                <TableRowGroup title="Options">
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.HIDDENCHANNELS.OPTIONS}>
                     <TableSwitchRow
-                        label={"Show Lock Icon"}
-                        subLabel={"Show a lock icon to the right of hidden channel names."}
+                        label={Strings.PLUGINS.CUSTOM.HIDDENCHANNELS.SHOW_LOCK_ICON}
+                        subLabel={Strings.PLUGINS.CUSTOM.HIDDENCHANNELS.SHOW_LOCK_ICON_DESC}
                         value={!!settings.showIcon}
                         onValueChange={(v: boolean) => useHiddenChannelsSettings.getState().updateSettings({ showIcon: v })}
                     />
                     <TableSwitchRow
-                        label={"Show Popup on Hidden Channels"}
-                        subLabel={"Toggle the information popup that appears when selecting hidden channels."}
+                        label={Strings.PLUGINS.CUSTOM.HIDDENCHANNELS.SHOW_POPUP}
+                        subLabel={Strings.PLUGINS.CUSTOM.HIDDENCHANNELS.SHOW_POPUP_DESC}
                         value={!!settings.showPopup}
                         onValueChange={(v: boolean) => useHiddenChannelsSettings.getState().updateSettings({ showPopup: v })}
                     />

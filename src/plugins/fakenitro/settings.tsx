@@ -1,6 +1,7 @@
 import { findByProps } from "@metro";
 import { ReactNative as RN } from "@metro/common";
 import { ScrollView } from "react-native";
+import { Strings } from "@rain/i18n";
 
 import { useFakeNitroSettings } from "./storage";
 
@@ -34,7 +35,7 @@ export default () => {
                 spacing={24}
             >
                 <TableRadioGroup
-                    title="Emoji size"
+                    title={Strings.PLUGINS.CUSTOM.FAKENITRO.SETTINGS.EMOJI_SIZE}
                     defaultValue={settings.emojiSize.toString()}
                     onChange={(v: string) =>
                         updateSettings({ emojiSize: parseInt(v) })
@@ -49,7 +50,7 @@ export default () => {
                         />
                     ))}
                 </TableRadioGroup>
-                <TableRowGroup title="Preview">
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.FAKENITRO.SETTINGS.PREVIEW}>
                     <RN.Image
                         source={{
                             uri: `${previewUri}?size=${settings.emojiSize}`,
@@ -58,18 +59,18 @@ export default () => {
                         }}
                     />
                 </TableRowGroup>
-                <TableRowGroup title="Emojis" titleStyleType="no_border">
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.FAKENITRO.SETTINGS.EMOJIS} titleStyleType="no_border">
                     <TableSwitchRow
-                        label="Use hyperlinks when sending fake emojis"
+                        label={Strings.PLUGINS.CUSTOM.FAKENITRO.SETTINGS.USE_HYPERLINK_EMOJIS}
                         onValueChange={(v: boolean) => {
                             updateSettings({ hyperLink: v });
                         }}
                         value={settings.hyperLink}
                     />
                 </TableRowGroup>
-                <TableRowGroup title="Stickers" titleStyleType="no_border">
+                <TableRowGroup title={Strings.PLUGINS.CUSTOM.FAKENITRO.SETTINGS.STICKERS} titleStyleType="no_border">
                     <TableSwitchRow
-                        label="Use hyperlinks when sending fake stickers"
+                        label={Strings.PLUGINS.CUSTOM.FAKENITRO.SETTINGS.USE_HYPERLINK_STICKERS}
                         onValueChange={(v: boolean) => {
                             updateSettings({ stickerHyperLink: v });
                         }}

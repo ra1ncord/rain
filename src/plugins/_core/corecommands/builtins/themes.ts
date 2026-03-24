@@ -1,6 +1,7 @@
 import { ApplicationCommand } from "@api/commands/types";
 import { messageUtil } from "@metro/common";
 import { themes } from "@plugins/_core/painter/themes";
+import { Strings } from "@rain/i18n";
 
 const addonAuthors = (authors: any): string => {
     if (!authors) return "Unknown";
@@ -14,8 +15,8 @@ const addonAuthors = (authors: any): string => {
 };
 
 export default (): ApplicationCommand => <ApplicationCommand>{
-    name: "themes",
-    description: "Send your theme list to the current channel",
+    name: "Themes",
+    description: Strings.PLUGINS.CORE.CORECOMMANDS.COMMANDS.THEMES.DESCRIPTION,
     options: [],
     execute([ephemeral], ctx) {
         if (!themes || typeof themes !== "object") {

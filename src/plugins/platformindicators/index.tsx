@@ -6,7 +6,7 @@ import { findByName,findByProps, findByTypeName, findByTypeNameAll } from "@metr
 import { ReactNative } from "@metro/common";
 import { definePlugin } from "@plugins";
 import { Contributors,Developers } from "@rain/Developers";
-
+import { Strings } from "@rain/i18n";
 import PresenceUpdatedContainer from "./PresenceUpdatedContainer";
 import Settings from "./settings";
 import StatusIcons from "./StatusIcons";
@@ -20,7 +20,7 @@ const unpatches: Unpatch[] = [];
 
 export default definePlugin({
     name: "PlatformIndicators",
-    description: "Shows platform indicators on users",
+    description: Strings.PLUGINS.CUSTOM.PLATFORMINDICATORS.DESCRIPTION,
     author: [Contributors.MSMA, Developers.kmmiio99o],
     id: "platformindicators",
     version: "1.0.0",

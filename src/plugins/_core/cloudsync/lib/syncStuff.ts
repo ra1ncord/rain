@@ -5,7 +5,7 @@ import { logger } from "@lib/utils/logger";
 import { isPluginEnabled,pluginInstances, startPlugin, stopPlugin } from "@plugins";
 import { saveFont,useFonts } from "@plugins/_core/painter/fonts";
 import { installTheme, selectTheme,useThemes } from "@plugins/_core/painter/themes";
-
+import { Strings, formatString } from "@rain/i18n";
 import type { UserData } from "../types";
 
 // Helper functions to map IDs <-> URLs
@@ -98,7 +98,7 @@ export async function grabEverything(): Promise<UserData & { coreSettings?: any 
 }
 
 export async function importData(data: UserData & { coreSettings?: any }) {
-    showToast("Importing data...", findAssetId("DownloadIcon"));
+    showToast(Strings.PLUGINS.CORE.CLOUDSYNC.IMPORTING_DATA, findAssetId("DownloadIcon"));
     // Core/global settings are no longer imported
 
     const status = { plugins: 0, themes: 0, fonts: 0 };
@@ -169,7 +169,7 @@ export async function importData(data: UserData & { coreSettings?: any }) {
     }
 
     showToast(
-        `Imported ${status.plugins} plugins, ${status.themes} themes, and ${status.fonts} fonts.`,
+        formatString("PLUGINS.CORE.CLOUDSYNC.IMPORTING_DATA_SUCCESS", { plugins: status.plugins, themes: status.themes, fonts: status.fonts }),
         findAssetId("CheckIcon"),
     );
 }

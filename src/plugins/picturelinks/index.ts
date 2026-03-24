@@ -6,7 +6,7 @@ import { Strings } from "@rain/i18n";
 const patches: any[] = [];
 
 export default definePlugin({
-    name: Strings.PLUGINS.CUSTOM.PICTURELINKS.NAME,
+    name: "PictureLinks",
     description: Strings.PLUGINS.CUSTOM.PICTURELINKS.DESCRIPTION,
     author: [Contributors.redstonekasi, Contributors.rico040, Developers.reyyan1],
     id: "picturelinks",

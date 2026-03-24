@@ -1,5 +1,6 @@
 import { definePlugin } from "@plugins";
 import { Contributors, Developers } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 
 import patchMessageLongPressActionSheet from "./patches/MessageLongPressActionSheet";
 import patchSendMessage from "./patches/sendMessage";
@@ -11,7 +12,7 @@ const patches: (() => void)[] = [];
 
 export default definePlugin({
     name: "TextReplace",
-    description: "Replace text in messages with custom rules",
+    description: Strings.PLUGINS.CUSTOM.TEXTREPLACE.DESCRIPTION,
     author: [Developers.SerStars, Contributors.Fiery, Contributors.PurpleEye],
     id: "textreplace",
     version: "1.0.0",

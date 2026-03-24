@@ -1,5 +1,6 @@
 import { findAssetId } from "@api/assets";
 import { findByProps } from "@metro";
+import { Strings } from "@rain/i18n";
 
 import { useHideCallButtonsSettings } from "./storage";
 
@@ -14,9 +15,9 @@ export default () => {
             style={{ paddingVertical: 24, paddingHorizontal: 12 }}
             spacing={24}
         >
-            <TableRowGroup title="User Profile">
+            <TableRowGroup title={Strings.PLUGINS.CUSTOM.HIDECALLBUTTONS.USER_PROFILE}>
                 <TableSwitchRow
-                    label="Hide call button"
+                    label={Strings.PLUGINS.CUSTOM.HIDECALLBUTTONS.HIDE_CALL_BUTTON}
                     icon={
                         <TableRow.Icon source={findAssetId("PhoneCallIcon")} />
                     }
@@ -28,7 +29,7 @@ export default () => {
                     value={hidecallbuttonsSettings.upHideVoiceButton}
                 />
                 <TableSwitchRow
-                    label="Hide video button"
+                    label={Strings.PLUGINS.CUSTOM.HIDECALLBUTTONS.HIDE_VIDEO_BUTTON}
                     icon={<TableRow.Icon source={findAssetId("VideoIcon")} />}
                     onValueChange={(v: boolean) => {
                         useHideCallButtonsSettings
@@ -38,9 +39,9 @@ export default () => {
                     value={hidecallbuttonsSettings.upHideVideoButton}
                 />
             </TableRowGroup>
-            <TableRowGroup title="DMs" titleStyleType="no_border">
+            <TableRowGroup title={Strings.PLUGINS.CUSTOM.HIDECALLBUTTONS.DMS} titleStyleType="no_border">
                 <TableSwitchRow
-                    label="Hide call button"
+                    label={Strings.PLUGINS.CUSTOM.HIDECALLBUTTONS.HIDE_CALL_BUTTON}
                     icon={
                         <TableRow.Icon source={findAssetId("PhoneCallIcon")} />
                     }
@@ -52,7 +53,7 @@ export default () => {
                     value={hidecallbuttonsSettings.dmHideCallButton}
                 />
                 <TableSwitchRow
-                    label="Hide video button"
+                    label={Strings.PLUGINS.CUSTOM.HIDECALLBUTTONS.HIDE_VIDEO_BUTTON}
                     icon={<TableRow.Icon source={findAssetId("VideoIcon")} />}
                     onValueChange={(v: boolean) => {
                         useHideCallButtonsSettings
@@ -62,9 +63,9 @@ export default () => {
                     value={hidecallbuttonsSettings.dmHideVideoButton}
                 />
             </TableRowGroup>
-            <TableRowGroup title="Other" titleStyleType="no_border">
+            <TableRowGroup title={Strings.PLUGINS.CUSTOM.HIDECALLBUTTONS.OTHER} titleStyleType="no_border">
                 <TableSwitchRow
-                    label="Hide video button in VC"
+                    label={Strings.PLUGINS.CUSTOM.HIDECALLBUTTONS.HIDE_VIDEO_BUTTON_IN_VC}
                     icon={<TableRow.Icon source={findAssetId("VideoIcon")} />}
                     onValueChange={(v: boolean) => {
                         useHideCallButtonsSettings
