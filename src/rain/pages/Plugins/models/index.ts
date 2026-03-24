@@ -1,6 +1,7 @@
 import { developer } from "@plugins/types";
 
 export interface UnifiedPluginModel {
+    icon: number | undefined;
     id: string;
     name: string;
     description?: string;
