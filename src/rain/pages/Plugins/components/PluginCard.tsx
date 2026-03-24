@@ -110,18 +110,19 @@ const Actions = () => {
 
     return (
         <View style={{ flexDirection: "row", gap: 6 }}>
-            <IconButton
-                size="sm"
-                variant="secondary"
-                icon={findAssetId("WrenchIcon")}
-                disabled={!plugin.getPluginSettingsComponent?.()}
-                onPress={() =>
-                    navigation.push("RAIN_CUSTOM_PAGE", {
-                        title: plugin.name,
-                        render: plugin.getPluginSettingsComponent?.(),
-                    })
-                }
-            />
+            {plugin.getPluginSettingsComponent?.() && 
+                <IconButton
+                    size="sm"
+                    variant="secondary"
+                    icon={findAssetId("SettingsIcon")}
+                    onPress={() =>
+                        navigation.push("RAIN_CUSTOM_PAGE", {
+                            title: plugin.name,
+                            render: plugin.getPluginSettingsComponent?.(),
+                        })
+                    }
+                />
+            }
             {pluginCard?.showInfoButton && (
                 <IconButton
                     size="sm"
@@ -210,7 +211,7 @@ export default function PluginCard({
                             </View>
 
                             <View style={{ flexShrink: 0, minWidth: 100, alignItems: "flex-end" }}>
-                                <Stack spacing={12} direction="horizontal">
+                                <Stack spacing={!plugin.getPluginSettingsComponent?.() ? 45 : 12} direction="horizontal">
                                     <Actions />
                                     <View style={core ? { opacity: 0.5 } : undefined}>
                                         <TableSwitch
