@@ -92,8 +92,8 @@ export default function PluginInfoActionSheet({
                     <View style={{ paddingBottom: 4 }}>
                         <IconButton
                             size="sm"
-                            variant="secondary"
-                            icon={findAssetId(isPinned ? "TrashIcon" : "PinIcon")}
+                            variant={isPinned ? "destructive" : "secondary"}
+                            icon={findAssetId("PinIcon")}
                             style={{
                                 borderRadius: 100,
                                 backgroundColor: isPinned ? semanticColors.BACKGROUND_MODIFIER_ACCENT : "transparent",
