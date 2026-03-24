@@ -211,7 +211,7 @@ export default function PluginCard({
                             </View>
 
                             <View style={{ flexShrink: 0, minWidth: 100, alignItems: "flex-end" }}>
-                                <Stack spacing={!plugin.getPluginSettingsComponent?.() ? 45 : 12} direction="horizontal">
+                                <Stack spacing={!plugin.getPluginSettingsComponent?.() && !pluginCard?.showInfoButton ? 45 : 12} direction="horizontal">
                                     <Actions />
                                     <View style={core ? { opacity: 0.5 } : undefined}>
                                         <TableSwitch
