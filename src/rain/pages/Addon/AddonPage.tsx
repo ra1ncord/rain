@@ -6,12 +6,13 @@ import { showSheet } from "@api/ui/sheets";
 import { Strings } from "@i18n";
 import isValidHttpUrl from "@lib/utils/isValidHttpUrl";
 import { clipboard, NavigationNative } from "@metro/common";
-import { AlertActionButton, ActionSheet, AlertModal, Button, FlashList, FloatingActionButton, HelpMessage, IconButton, Stack, Text, TextInput, TableRadioRow, TableSwitchRow, TableRowGroup, TableRadioGroup, useSafeAreaInsets } from "@metro/common/components";
+import { ActionSheet, AlertActionButton, AlertModal, Button, FlashList, FloatingActionButton, HelpMessage, IconButton, Stack, TableRadioGroup, TableRadioRow, TableRowGroup, TableSwitchRow, Text, TextInput, useSafeAreaInsets } from "@metro/common/components";
 import { isNotNil } from "es-toolkit";
 import fuzzysort from "fuzzysort";
 import { ComponentType, ReactNode, useCallback, useEffect, useMemo } from "react";
 import * as React from "react";
 import { Image, ScrollView, View } from "react-native";
+
 import { CardWrapper } from "./AddonCard";
 
 type SearchKeywords<T> = Array<string | ((obj: T & {}) => string)>;
@@ -224,7 +225,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
                         showSheet("SortAndFilterActionSheet", SortAndFilterActionSheet, { sortKey: value, filterKeys });
                     }}
                 >
-                    {Object.keys(props.sortOptions).map((key) => (
+                    {Object.keys(props.sortOptions).map(key => (
                         <TableRadioRow key={key} label={key} value={key} />
                     ))}
                 </TableRadioGroup>
@@ -234,7 +235,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
                     <TableSwitchRow
                         label="Hide Core Plugins"
                         value={filterKeys.length > 0}
-                        onValueChange={(value) => {
+                        onValueChange={value => {
                             const key = Object.keys(props.filterOptions!)[0];
                             const newFilterKeys = value ? [key] : [];
                             setActiveFilterKeys(newFilterKeys);

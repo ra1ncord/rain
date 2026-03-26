@@ -23,7 +23,7 @@ export default function patchStorage() {
         }),
         before("set", mmkvStorage, ([key, value]) => {
             if (!patchedKeys.has(key) || !value) return;
-        
+
             try {
                 if (value._state && value._state.theme) {
                     const lastTheme = _colorRef.lastSetDiscordTheme || "darker";

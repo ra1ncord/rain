@@ -10,7 +10,20 @@ import { grabEverything } from "./lib/syncStuff";
 import { useCloudSyncSettings } from "./storage";
 import { useAuthorizationStore } from "./stores/AuthorizationStore";
 
-const autoSync = async () => {
+let syncTimeout: number;
+let unsubscribeSettings;
+
+const autoSync = () => {
+    if (syncTimeout) {
+        clearTimeout(syncTimeout);
+    }
+
+    syncTimeout = setTimeout(() => {
+        performSync();
+    }, 5000);
+};
+
+const performSync = async () => {
     const settings = useCloudSyncSettings.getState();
     const auth = useAuthorizationStore.getState();
     if (!settings.autoSync || !auth.isAuthorized()) return;
@@ -35,15 +48,13 @@ export default definePlugin({
     version: "1.0.0",
     start() {
         // im too lazy to add this to the ui
-        useSettings.subscribe((state, prevState) => {
+        unsubscribeSettings = useSettings.subscribe((state, prevState) => {
             if (JSON.stringify(state) !== JSON.stringify(prevState)) {
                 FluxDispatcher.dispatch({ type: "RAIN_SETTING_UPDATED" });
             }
         });
 
         FluxDispatcher.subscribe("RAIN_SETTING_UPDATED", autoSync);
-    },
-    stop() {
     },
     settings: Settings,
 });

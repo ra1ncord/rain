@@ -110,7 +110,7 @@ const Actions = () => {
 
     return (
         <View style={{ flexDirection: "row", gap: 6 }}>
-            {plugin.getPluginSettingsComponent?.() && 
+            {plugin.getPluginSettingsComponent?.() &&
                 <IconButton
                     size="sm"
                     variant="secondary"
