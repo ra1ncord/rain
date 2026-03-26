@@ -5,7 +5,8 @@ import { logger } from "@lib/utils/logger";
 import { isPluginEnabled,pluginInstances, startPlugin, stopPlugin } from "@plugins";
 import { saveFont,useFonts } from "@plugins/_core/painter/fonts";
 import { installTheme, selectTheme,useThemes } from "@plugins/_core/painter/themes";
-import { Strings, formatString } from "@rain/i18n";
+import { formatString,Strings } from "@rain/i18n";
+
 import type { UserData } from "../types";
 
 // Helper functions to map IDs <-> URLs

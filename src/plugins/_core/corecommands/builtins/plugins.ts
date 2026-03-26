@@ -1,8 +1,8 @@
 import { ApplicationCommand } from "@api/commands/types";
 import { messageUtil } from "@metro/common";
 import { pluginInstances } from "@plugins";
-import unifyRainPlugin from "@rain/pages/Plugins/models/rain";
 import { Strings } from "@rain/i18n";
+import unifyRainPlugin from "@rain/pages/Plugins/models/rain";
 
 export default () => <ApplicationCommand>{
     name: "Plugins",

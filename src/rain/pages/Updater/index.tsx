@@ -54,14 +54,14 @@ export function versionCheck() {
                 content={Strings.INCOMPATIBLE_VERSION_DESC}
                 actions={
                     <AlertActions>
-                        {Platform.OS == "android" && <AlertActionButton
+                        {Platform.OS === "android" && <AlertActionButton
                             text={Strings.OPEN_MANAGER}
                             variant="primary"
                             onPress={() => {
                                 Linking.openURL("raincord://");
                             }}
                         />}
-                        {Platform.OS == "ios" && <AlertActionButton
+                        {Platform.OS === "ios" && <AlertActionButton
                             text={Strings.IPA_DOWNLOAD}
                             variant="primary"
                             onPress={() => {

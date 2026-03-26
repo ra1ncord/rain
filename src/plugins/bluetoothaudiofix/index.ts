@@ -3,8 +3,8 @@ import { showToast } from "@api/ui/toasts";
 import { ReactNative as RN } from "@metro/common";
 import { definePlugin, usePluginSettings } from "@plugins";
 import { Contributors,Developers } from "@rain/Developers";
-import { Platform } from "react-native";
 import { Strings } from "@rain/i18n";
+import { Platform } from "react-native";
 
 const patches: any[] = [];
 

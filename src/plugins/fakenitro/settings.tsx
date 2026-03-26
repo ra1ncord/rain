@@ -1,7 +1,7 @@
 import { findByProps } from "@metro";
 import { ReactNative as RN } from "@metro/common";
-import { ScrollView } from "react-native";
 import { Strings } from "@rain/i18n";
+import { ScrollView } from "react-native";
 
 import { useFakeNitroSettings } from "./storage";
 

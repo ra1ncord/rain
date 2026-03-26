@@ -1,8 +1,8 @@
 import { ReactNative } from "@metro/common";
 import { Stack, TableRow,TableRowGroup, TableSwitchRow } from "@metro/common/components";
+import { Strings } from "@rain/i18n";
 import React from "react";
 import { View } from "react-native";
-import { Strings } from "@rain/i18n";
 
 import { useCustomBadgesSettings } from "./storage";
 

@@ -1,7 +1,7 @@
 import { Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
+import { Strings } from "@rain/i18n";
 import React from "react";
 import { ScrollView } from "react-native";
-import { Strings } from "@rain/i18n";
 
 import { useMessageLoggerSettings } from "./storage";
 

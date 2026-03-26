@@ -1,6 +1,6 @@
 import { Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
-import { ScrollView, View } from "react-native";
 import { Strings } from "@rain/i18n";
+import { ScrollView, View } from "react-native";
 
 import { useHideBlockedAndIgnoredMessagesSettings } from "./storage";
 

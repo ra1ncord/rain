@@ -3,7 +3,7 @@ import { dismissAlert, openAlert } from "@api/ui/alerts";
 import { showToast } from "@api/ui/toasts";
 import { clipboard, NavigationNative, React, ReactNative } from "@metro/common";
 import { AlertActionButton, AlertActions, AlertModal, Stack, TableRow, TableRowGroup, TableSwitchRow, TextInput } from "@metro/common/components";
-import { Strings, formatString } from "@rain/i18n";
+import { formatString,Strings } from "@rain/i18n";
 
 import type { Rule } from "../../def";
 import { useTextReplaceSettings } from "../../storage";

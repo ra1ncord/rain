@@ -7,6 +7,7 @@ import { ReactNative } from "@metro/common";
 import { definePlugin } from "@plugins";
 import { Contributors,Developers } from "@rain/Developers";
 import { Strings } from "@rain/i18n";
+
 import PresenceUpdatedContainer from "./PresenceUpdatedContainer";
 import Settings from "./settings";
 import StatusIcons from "./StatusIcons";

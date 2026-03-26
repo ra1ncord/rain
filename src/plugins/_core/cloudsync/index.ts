@@ -3,8 +3,8 @@ import { logger } from "@lib/utils/logger";
 import { FluxDispatcher } from "@metro/common";
 import { definePlugin } from "@plugins";
 import { Contributors, Developers } from "@rain/Developers";
-import Settings from "@rain/pages/CloudSync";
 import { Strings } from "@rain/i18n";
+import Settings from "@rain/pages/CloudSync";
 
 import { saveData } from "./api";
 import { grabEverything } from "./lib/syncStuff";

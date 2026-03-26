@@ -7,9 +7,9 @@ import { Card, Stack, TableRow, TableRowGroup, Text } from "@metro/common/compon
 import { UserStore } from "@metro/common/stores";
 import { developer } from "@plugins/types";
 import { Developers } from "@rain/Developers";
+import { Strings } from "@rain/i18n";
 import { useMemo } from "react";
 import { Image, ScrollView, View } from "react-native";
-import { Strings } from "@rain/i18n";
 
 const showUserProfileActionSheet = findByName("showUserProfileActionSheet");
 const { getUser: maybeFetchUser } = lazyDestructure(() => findByProps("getUser", "fetchProfile"));

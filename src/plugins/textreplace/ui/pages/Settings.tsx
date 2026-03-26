@@ -1,7 +1,7 @@
 import { findAssetId } from "@api/assets";
 import { components, NavigationNative, ReactNative } from "@metro/common";
 import { Button, Text } from "@metro/common/components";
-import { Strings, formatString } from "@rain/i18n";
+import { formatString,Strings } from "@rain/i18n";
 
 import { useTextReplaceSettings } from "../../storage";
 import EditRule from "./EditRule";
@@ -46,7 +46,7 @@ export default function Settings() {
                                 <TableRow
                                     key={index}
                                     label={rule.name ? `${rule.name}` : Strings.PLUGINS.CUSTOM.TEXTREPLACE.UNAMED_RULE}
-                                    subLabel={rule.match ? formatString("PLUGINS.CUSTOM.TEXTREPLACE.MATCHES", { matches: rule.match  }) : Strings.PLUGINS.CUSTOM.TEXTREPLACE.NO_MATCHES}
+                                    subLabel={rule.match ? formatString("PLUGINS.CUSTOM.TEXTREPLACE.MATCHES", { matches: rule.match }) : Strings.PLUGINS.CUSTOM.TEXTREPLACE.NO_MATCHES}
                                     onPress={() =>
                                         navigation.push("RAIN_CUSTOM_PAGE", {
                                             title: Strings.PLUGINS.CUSTOM.TEXTREPLACE.EDIT_RULE,

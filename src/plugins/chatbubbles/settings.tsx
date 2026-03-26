@@ -2,8 +2,8 @@ import { semanticColors } from "@api/ui/components/color";
 import { SliderRow } from "@api/ui/components/SliderRow";
 import { createStyles } from "@api/ui/styles";
 import { Card, Stack, TableRowGroup, TextInput } from "@metro/common/components";
-import { ScrollView } from "react-native";
 import { Strings } from "@rain/i18n";
+import { ScrollView } from "react-native";
 
 import { useChatBubblesSettings } from "./storage";
 

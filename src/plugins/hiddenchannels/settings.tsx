@@ -1,6 +1,6 @@
 import { Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
-import { ScrollView } from "react-native";
 import { Strings } from "@rain/i18n";
+import { ScrollView } from "react-native";
 
 import { useHiddenChannelsSettings } from "./storage";
 

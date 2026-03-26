@@ -1,9 +1,10 @@
 import { ReactNative } from "@metro/common";
 import { Button,Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
+import { Strings } from "@rain/i18n";
 import React from "react";
 import { View } from "react-native";
+
 import { useCleanUrlsSettings } from "./storage";
-import { Strings } from "@rain/i18n";
 
 export default function CleanUrlsSettings() {
     const settings = useCleanUrlsSettings();
