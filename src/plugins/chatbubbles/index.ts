@@ -17,6 +17,7 @@ export default definePlugin({
     author: [ Contributors.pylix, Developers.cocobo1, Developers.kmmiio99o ],
     id: "chatbubbles",
     version: "1.0.0",
+    requiresRestart: true,
     predicates: [
         () => isChatBubblesSupported() === true,
     ],

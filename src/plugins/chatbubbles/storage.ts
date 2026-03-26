@@ -11,6 +11,6 @@ export const {
     settings: chatBubblesSettings,
 } = createPluginStore<ChatBubblesSettings>("chatbubbles", {
     avatarRadius: 12,
-    bubbleChatRadius: 12,
+    bubbleChatRadius: 40,
     bubbleChatColor: "",
 });
