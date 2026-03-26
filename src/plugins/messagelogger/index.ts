@@ -99,6 +99,7 @@ function patchMessageDeleteHandler() {
                 const message = MessageStore.getMessage?.(channelId, id);
 
                 if (!message) return args;
+                if(storage.ignoreList.split(" ").indexOf(message?.author?.id.toString()) != -1) return args;
 
                 if (shouldIgnoreMessage(message, storage)) return args;
 
@@ -118,6 +119,8 @@ function patchMessageDeleteHandler() {
                 deleteable.push(id);
 
                 let automodMessage = "This message was deleted";
+                
+                if(storage.customDeleteTextEnabled) automodMessage = storage.customDeletedText;
                 if (storage.deleted?.showTimestamps) {
                     automodMessage += ` (${formatTimestamp(storage.deleted.use12Hour)})`;
                 }
@@ -161,7 +164,6 @@ function patchMessageDeleteHandler() {
 
 function patchMessageEditHandler() {
     try {
-        const EDIT_HISTORY_SEPARATOR = "`[ EDITED ]`";
         const FluxDispatcher = findByProps("dispatch", "_subscriptions");
         const MessageStore = findByStoreName("MessageStore");
         const emojiRegex = /https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.\w+/g;
@@ -174,12 +176,18 @@ function patchMessageEditHandler() {
                 if (!event || event.type !== "MESSAGE_UPDATE" || !event.message) return args;
                 if (event.otherPluginBypass) return args;
 
+                let EDIT_HISTORY_SEPARATOR = "-# `[ EDITED ]`";
                 const storage = useMessageLoggerSettings.getState();
+                if(storage.customEditTextEnabled) EDIT_HISTORY_SEPARATOR = storage.customEditText;
+
                 if (!storage.edited?.enabled) return args;
 
                 const message = event.message;
                 if (!message?.content || !message?.id) return args;
 
+                if (storage.filters?.ignoreSelfEdits && message?.author?.id == findByStoreName("UserStore").getCurrentUser().id) return args;
+                
+                if(storage.ignoreList.split(" ").indexOf(message?.author?.id.toString()) != -1) return args;
                 const prevMessage = MessageStore.getMessage?.(message.channel_id || message.channelId, message.id);
                 if (!prevMessage || !prevMessage.content || prevMessage.content === message.content) return args;
 
