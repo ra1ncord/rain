@@ -117,7 +117,7 @@ export default function Settings() {
                                         style={styles.labelIcon}
                                         resizeMode="cover"
                                     />
-                                    <Text variant="text-sm/semibold" color="TEXT_DEFAULT">
+                                    <Text variant="text-sm/semibold">
                                         Autofill
                                     </Text>
                                 </PressableScale>
@@ -163,39 +163,6 @@ export default function Settings() {
                     <RN.ActivityIndicator size="small" />
                 ) : (
                     <TableRowGroup title="Theme Actions">
-                        <TableRow
-                            label="Load Theme"
-                            icon={<TableRow.Icon source={findAssetId("WrenchIcon")} />}
-                            trailing={
-                                <Button
-                                    onPress={() => {
-                                        applyMonetTheme(null);
-                                        setIsLoadedTheme(false);
-                                    }}
-                                    disabled={!isLoadedTheme}
-                                    size="sm"
-                                    variant={isLoadedTheme ? "destructive" : "secondary"}
-                                    icon={findAssetId("TrashIcon")}
-                                    text=""
-                                />
-                            }
-                            onPress={async () => {
-                                let theme: BuiltTheme;
-                                try {
-                                    theme = build(patches);
-                                } catch (e) {
-                                    const err = e instanceof Error ? e : new Error(String(e));
-                                    logger.error("Error during applying theme", err.stack);
-                                    showToast(
-                                        String(err),
-                                        findAssetId("CircleXIcon-primary"),
-                                    );
-                                    return;
-                                }
-
-                                if (applyMonetTheme(theme)) setIsLoadedTheme(true);
-                            }}
-                        />
                         <TableRow
                             label="Reload Theme Patches"
                             subLabel={`Patch v${(patches as any).version ?? "?"} (${
