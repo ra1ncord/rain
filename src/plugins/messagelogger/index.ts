@@ -99,7 +99,7 @@ function patchMessageDeleteHandler() {
                 const message = MessageStore.getMessage?.(channelId, id);
 
                 if (!message) return args;
-                if(storage.ignoreList.split(" ").indexOf(message?.author?.id.toString()) != -1) return args;
+                if(storage.ignoreList.split(" ").indexOf(message?.author?.id.toString()) !== -1) return args;
 
                 if (shouldIgnoreMessage(message, storage)) return args;
 
@@ -185,9 +185,9 @@ function patchMessageEditHandler() {
                 const message = event.message;
                 if (!message?.content || !message?.id) return args;
 
-                if (storage.filters?.ignoreSelfEdits && message?.author?.id == findByStoreName("UserStore").getCurrentUser().id) return args;
+                if (storage.filters?.ignoreSelfEdits && message?.author?.id === findByStoreName("UserStore").getCurrentUser().id) return args;
 
-                if(storage.ignoreList.split(" ").indexOf(message?.author?.id.toString()) != -1) return args;
+                if(storage.ignoreList.split(" ").indexOf(message?.author?.id.toString()) !== -1) return args;
                 const prevMessage = MessageStore.getMessage?.(message.channel_id || message.channelId, message.id);
                 if (!prevMessage || !prevMessage.content || prevMessage.content === message.content) return args;
 
