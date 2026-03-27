@@ -2,7 +2,9 @@ import Constants from "../../../constants";
 import { useMultiScrobblerSettings } from "../../../storage";
 import { setStorage } from "../Settings";
 import {
+    Card,
     ScrollView,
+    SliderRow,
     Stack,
     TableRow,
     TableRowGroup,
@@ -23,18 +25,16 @@ export default function DisplaySettingsPage() {
                             onChange={(v: string) => setStorage("appName", v)}
                             isClearable
                         />
-                        <TextInput
-                            placeholder={`Update Interval (Default: ${Constants.DEFAULT_SETTINGS.timeInterval}s)`}
-                            value={String(settings.timeInterval)}
-                            onChange={(v: string) => {
-                                const interval = Number(v);
-                                if (interval >= Constants.MIN_UPDATE_INTERVAL) {
-                                    setStorage("timeInterval", interval);
-                                }
-                            }}
-                            keyboardType="numeric"
-                            isClearable
-                        />
+                        <Card style={{ padding: 16 }}>
+                            <SliderRow
+                                label="Update Interval"
+                                value={settings.timeInterval}
+                                minimumValue={Constants.MIN_UPDATE_INTERVAL}
+                                maximumValue={Constants.MAX_UPDATE_INTERVAL}
+                                suffix="s"
+                                onChange={(v: number) => setStorage("timeInterval", v)}
+                            />
+                        </Card>
                     </Stack>
                 </TableRowGroup>
 

@@ -1,7 +1,9 @@
+import { SliderRow } from "@api/ui/components/SliderRow";
 import { findByProps } from "@metro";
 
 export const { ScrollView } = findByProps("ScrollView");
 export const {
+    Card,
     TableRowGroup,
     TableSwitchRow,
     TableCheckboxRow,
@@ -10,6 +12,7 @@ export const {
     Stack,
     TableRow,
 } = findByProps(
+    "Card",
     "TableSwitchRow",
     "TableCheckboxRow",
     "TableRowGroup",
@@ -19,3 +22,4 @@ export const {
     "TableRadioGroup",
 );
 export const { TextInput } = findByProps("TextInput");
+export { SliderRow };

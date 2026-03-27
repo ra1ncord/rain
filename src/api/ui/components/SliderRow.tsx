@@ -3,18 +3,19 @@ import { StyleSheet,View } from "react-native";
 
 import { semanticColors } from "./color";
 
-export const SliderRow = ({ label, value, onChange, minimumValue = 0, maximumValue = 100 }: {
-    label: string;
+export const SliderRow = ({ label, value, onChange, minimumValue = 0, maximumValue = 100, suffix = "px" }: {
+    label?: string;
     value: number;
     minimumValue?: number;
     maximumValue?: number;
     onChange: (v: number) => void;
+    suffix?: string;
 }) => {
     return (
         <View>
             <View style={styles.labelRow}>
                 <Text variant="text-sm/semibold" color="text-muted">{label}</Text>
-                <Text variant="text-md/medium" color="text-muted">{value}px</Text>
+                <Text variant="text-md/medium" color="text-muted">{value}{suffix}</Text>
             </View>
             <Slider
                 value={value}

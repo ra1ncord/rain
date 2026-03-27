@@ -1,6 +1,6 @@
-import { Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import SettingsTextInput from "@api/ui/components/SettingsTextInput";
 import { findByProps } from "@metro";
+import { Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import React from "react";
 import { ScrollView } from "react-native";
 
@@ -78,15 +78,15 @@ export default function MessageLoggerSettings() {
                     />
                 </TableRowGroup>
                 <TableRowGroup title="Ignore list">
-                        <Card>
-                            <SettingsTextInput
-                                placeholder="Enter a list of IDs to ignore separated by spaces."
-                                value={settings.ignoreList}
-                                onChange={(v: string) => useMessageLoggerSettings.getState().updateSettings({ignoreList: v.replaceAll(/[^0-9 ]/g, "")})}
-                                isClearable
-                            />
-                        </Card>  
-                </TableRowGroup>   
+                    <Card>
+                        <SettingsTextInput
+                            placeholder="Enter a list of IDs to ignore separated by spaces."
+                            value={settings.ignoreList}
+                            onChange={(v: string) => useMessageLoggerSettings.getState().updateSettings({ ignoreList: v.replaceAll(/[^0-9 ]/g, "") })}
+                            isClearable
+                        />
+                    </Card>
+                </TableRowGroup>
 
                 <TableRowGroup title="Database">
                     <TableSwitchRow
@@ -117,28 +117,28 @@ export default function MessageLoggerSettings() {
                     />
                 </TableRowGroup>
                 {settings.customEditTextEnabled === true && (
-                        <TableRowGroup title="Custom Edit Text">
-                            <Card>
-                                <SettingsTextInput
-                                    placeholder="Custom Edit Text Goes here"
-                                    value={settings.customEditText}
-                                    onChange={(v: string) => useMessageLoggerSettings.getState().updateSettings({ customEditText: v })}
-                                    isClearable
-                                />
-                            </Card>  
-                        </TableRowGroup>                
+                    <TableRowGroup title="Custom Edit Text">
+                        <Card>
+                            <SettingsTextInput
+                                placeholder="Custom Edit Text Goes here"
+                                value={settings.customEditText}
+                                onChange={(v: string) => useMessageLoggerSettings.getState().updateSettings({ customEditText: v })}
+                                isClearable
+                            />
+                        </Card>
+                    </TableRowGroup>
                 )}
                 {settings.customDeleteTextEnabled === true && (
-                        <TableRowGroup title="Custom Delete Text">
-                            <Card>
-                                <SettingsTextInput
-                                    placeholder="Custom Delete Text Goes here"
-                                    value={settings.customDeletedText}
-                                    onChange={(v: string) => useMessageLoggerSettings.getState().updateSettings({ customDeletedText: v })}
-                                    isClearable
-                                />
-                            </Card>  
-                        </TableRowGroup>                
+                    <TableRowGroup title="Custom Delete Text">
+                        <Card>
+                            <SettingsTextInput
+                                placeholder="Custom Delete Text Goes here"
+                                value={settings.customDeletedText}
+                                onChange={(v: string) => useMessageLoggerSettings.getState().updateSettings({ customDeletedText: v })}
+                                isClearable
+                            />
+                        </Card>
+                    </TableRowGroup>
                 )}
             </Stack>
         </ScrollView>
