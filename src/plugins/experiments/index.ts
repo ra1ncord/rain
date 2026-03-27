@@ -1,6 +1,6 @@
 import { patcher } from "@api";
 import { useSettings } from "@api/settings";
-import { openAlert, showConfirmationAlert } from "@api/ui/alerts";
+import { showConfirmationAlert } from "@api/ui/alerts";
 import { findByProps, findByStoreName } from "@metro";
 import { UserStore } from "@metro/common/stores";
 import { definePlugin } from "@plugins";
@@ -38,7 +38,7 @@ export default definePlugin({
             const confirmed = await new Promise<boolean>((resolve) => {
                 showConfirmationAlert({
                     title: "WARNING!!",
-                    content: "Messing with staff only settings may lead to account termination. I heavily discourage using this and am not responsible for anything that happens if you use it\n\nA manual restart is required for the plugin to take effect",
+                    content: "Enabling staff only settings has its risks. rain dev team does not bear any responsibility for any issues faced when using these experimental settings, including possible account termination. **Use at your own risk**\n\nA manual restart is required for the plugin to take effect",
                     confirmText: "I understand the risks",
                     confirmColor: "red",
                     onConfirm: () => {
@@ -52,7 +52,7 @@ export default definePlugin({
             });
 
             if (!confirmed) {
-                return;
+                throw new Error("User aborted");
             }
 
             useSettings.setState({ experimentsConfirmed: true });
