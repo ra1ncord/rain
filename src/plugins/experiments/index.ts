@@ -29,7 +29,7 @@ export default definePlugin({
     description: "Enables Discord Staff settings, continue with caution",
     author: [Developers.cocobo1],
     id: "dummy",
-    version: "1.0.0",
+    version: "1.1.0",
     async start() {
         const settings = useSettings.getState();
         const hasConfirmed = settings.experimentsConfirmed !== false;
@@ -38,7 +38,7 @@ export default definePlugin({
             const confirmed = await new Promise<boolean>((resolve) => {
                 showConfirmationAlert({
                     title: "WARNING!!",
-                    content: "Messing with this staff only settings may lead to account termination. I heavily discourage using this and am not responsible for anything that happens if you use it\n\nA manual restart is required for the plugin to take effect",
+                    content: "Messing with staff only settings may lead to account termination. I heavily discourage using this and am not responsible for anything that happens if you use it\n\nA manual restart is required for the plugin to take effect",
                     confirmText: "I understand the risks",
                     confirmColor: "red",
                     onConfirm: () => {
