@@ -14,6 +14,7 @@ export interface Settings {
   hotReloadTheme: boolean;
   safeMode?: boolean;
   settingsPosition: string;
+  disableUpdateWarnings: boolean;
   pluginCard: {
     showInfoButton: boolean;
     openOnPress: boolean;
@@ -48,6 +49,7 @@ export const useSettings = create<SettingsStore>()(
             autoDevTools: false,
             hotReloadTheme: false,
             safeMode: false,
+            disableUpdateWarnings: false,
             settingsPosition: "TOP",
             pluginCard: {
                 showInfoButton: false,

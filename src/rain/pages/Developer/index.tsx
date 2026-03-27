@@ -190,6 +190,14 @@ export default function Developer() {
                     </TableRowGroup>
 
                     <TableRowGroup title={Strings.OTHER}>
+                        <TableSwitchRow
+                            label={Strings.DISABLE_UPDATE_WARNING}
+                            icon={<TableRow.Icon source={findAssetId("UploadIcon")!} />}
+                            value={settings.disableUpdateWarnings}
+                            onValueChange={(v: boolean) =>
+                                settings.updateSettings({ disableUpdateWarnings: v })
+                            }
+                        />
                         <TableRow
                             arrow
                             label={Strings.ASSET_BROWSER}

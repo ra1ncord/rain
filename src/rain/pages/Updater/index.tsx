@@ -2,7 +2,7 @@ import { findAssetId } from "@api/assets";
 import { getDebugInfo } from "@api/debug";
 import { BundleUpdaterManager } from "@api/native/modules";
 import UpdateModule from "@api/native/modules/update";
-import { useLoaderConfig } from "@api/settings";
+import { useLoaderConfig, useSettings } from "@api/settings";
 import { openAlert } from "@api/ui/alerts";
 import { CodebergIcon, RainIcon } from "@assets";
 import { Strings } from "@i18n";
@@ -44,6 +44,7 @@ export function checkForUpdate() {
 
 export function versionCheck() {
     if (useLoaderConfig.getState().customLoadUrl.enabled === true) return;
+    if (useSettings.getState().disableUpdateWarnings === true) return;
 
     const version = getDebugInfo().discord.build;
     if (!supportedVersions.includes(version)) {

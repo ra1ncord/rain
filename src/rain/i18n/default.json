@@ -42,6 +42,7 @@
     "DISCORD": "Discord",
     "DISCORD_SERVER": "Discord Server",
     "DISABLED": "Disabled",
+    "DISABLE_UPDATE_WARNING": "Disable update warnings",
     "DISCONNECT_FROM_DEBUGGER": "Disconnect from Debugger",
     "EDIT_FONT": "Edit Font",
     "ENABLED": "Enabled",
