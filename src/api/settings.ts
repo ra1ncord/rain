@@ -23,6 +23,7 @@ export interface Settings {
     enabledFilters: Record<string, boolean>;
   };
   pinnedPlugins: string[];
+  experimentsConfirmed?: boolean;
 }
 
 export interface LoaderConfig {
@@ -68,6 +69,7 @@ export const useSettings = create<SettingsStore>()(
                 }
             },
             pinnedPlugins: [], // Initialize empty
+            experimentsConfirmed: false,
             updateSettings: newSettings => set(state => ({ ...state, ...newSettings })),
             togglePinnedPlugin: id => set(state => {
                 const pinned = state.pinnedPlugins || [];

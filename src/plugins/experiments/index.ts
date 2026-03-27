@@ -1,11 +1,13 @@
 import { patcher } from "@api";
+import { useSettings } from "@api/settings";
+import { openAlert, showConfirmationAlert } from "@api/ui/alerts";
 import { findByProps, findByStoreName } from "@metro";
 import { UserStore } from "@metro/common/stores";
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
 
-let unpatchIsStaffEnv;
-let unpatchDevStoreProps;
+let unpatchIsStaffEnv: any;
+let unpatchDevStoreProps: any;
 
 function reinitStore() {
     const DeveloperExperimentStore = findByStoreName("DeveloperExperimentStore");
@@ -28,8 +30,34 @@ export default definePlugin({
     author: [Developers.cocobo1],
     id: "dummy",
     version: "1.0.0",
-    devOnly: true,
-    start() {
+    async start() {
+        const settings = useSettings.getState();
+        const hasConfirmed = settings.experimentsConfirmed !== false;
+
+        if (!hasConfirmed) {
+            const confirmed = await new Promise<boolean>((resolve) => {
+                showConfirmationAlert({
+                    title: "WARNING!!",
+                    content: "Messing with this staff only settings may lead to account termination. I heavily discourage using this and am not responsible for anything that happens if you use it\n\nA manual restart is required for the plugin to take effect",
+                    confirmText: "I understand the risks",
+                    confirmColor: "red",
+                    onConfirm: () => {
+                        resolve(true);
+                    },
+                    cancelText: "Cancel",
+                    onCancel: () => {
+                        resolve(false);
+                    }
+                });
+            });
+
+            if (!confirmed) {
+                return;
+            }
+
+            useSettings.setState({ experimentsConfirmed: true });
+        }
+
         const targetModule = findByProps("isStaffEnv");
 
         unpatchIsStaffEnv = patcher.instead("isStaffEnv", targetModule, (args: any[], origFunc: { apply: (arg0: any, arg1: any) => any; }) => {
@@ -54,5 +82,6 @@ export default definePlugin({
         }
 
         reinitStore();
+        useSettings.setState({ experimentsConfirmed: false });
     }
 });
