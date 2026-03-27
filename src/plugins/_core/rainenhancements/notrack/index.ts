@@ -56,6 +56,17 @@ const noop = (prop: string, parent: Record<string, any>): PatchCleanupFn => {
     }
 };
 
+// this is always false on stock, but we force set this anyway incase that changes :P
+export function patchModDetection() {
+    const clientModUtils = findByProps("usesClientMods");
+
+    const unpatch = instead("usesClientMods", clientModUtils, (_args, _orig) => {
+        return false;
+    });
+
+    return unpatch;
+}
+
 // Network tracking prevention
 export function patchNetwork(): PatchCleanupFn {
     // Analytics and tracking endpoints to block

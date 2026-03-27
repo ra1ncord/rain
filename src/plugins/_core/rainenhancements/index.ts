@@ -2,7 +2,7 @@ import { definePlugin } from "@plugins";
 import { Contributors,Developers } from "@rain/Developers";
 import { Strings } from "@rain/i18n";
 
-import { patchConsole, patchMiscellaneous, patchNetwork, patchSentry } from "./notrack";
+import { patchConsole, patchMiscellaneous, patchModDetection,patchNetwork, patchSentry } from "./notrack";
 import patchEmojiActionSheet from "./realmoji/patches/patchEmojiActionSheet";
 import transformEmoji from "./realmoji/patches/transformEmoji";
 import transformSticker from "./realmoji/patches/transformSticker";
@@ -16,15 +16,17 @@ export default definePlugin({
     author: [Developers.cocobo1, Developers.j, Contributors.rico040, Contributors.redstonekasi],
     id: "rainenhancements",
     version: "1.0.0",
-    start() {
+    eagerStart() {
         // NoTrack
         patches = [
             patchNetwork(),
             patchConsole(),
             patchMiscellaneous(),
             patchSentry(),
+            patchModDetection(),
         ].filter(Boolean);
-
+    },
+    start() {
         // Realmoji
         patches.push(...transformEmoji);
         patches.push(...transformSticker);
