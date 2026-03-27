@@ -7,16 +7,17 @@ function patchSheet(funcName: string, sheetModule: any, once: boolean) {
         const emojiNode = args[0]?.emojiNode;
         if (!emojiNode?.src || !emojiNode?.id) return;
 
-        if (!emojiNode.alt.endsWith("_rainenhancements")) return;
+        if (!emojiNode.alt.endsWith("_rainenhancements") && !emojiNode.fake) return;
+        emojiNode.fake = true;
+        emojiNode.alt = emojiNode.alt.replace("_rainenhancements", "");
+        console.log(emojiNode);
 
         const view = res?.props?.children?.props?.children;
         if (!view) return;
         after("type", view, (_: any, component: any) => {
             findInReactTree(component, (c: any) => {
                 if (typeof c.props.children !== "string") return false;
-                if (c.props.variant === "text-md/bold" && c.props.children.includes("_rainenhancements")) {
-                    c.props.children = c.props.children.replace("_rainenhancements", ""); // typescript ragebait
-                } else if (c.props.variant === "text-sm/medium" && !c.props.children.includes("RainEnhancements")) {
+                if (c.props.variant === "text-sm/medium" && !c.props.children.includes("RainEnhancements")) {
                     c.props.children += " This is a RainEnhancements emoji and renders like a real emoji only for you. Appears as a link to non-rain users.";
                 }
                 return false;
