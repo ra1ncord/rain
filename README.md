@@ -21,7 +21,7 @@
 
 ### iOS
 
-- **rainTweak** (to be announced)
+- **[RainTweak](https://codeberg.org/raincord/RainTweak/releases/latest)**
 
 ## How can I support the project?
 
