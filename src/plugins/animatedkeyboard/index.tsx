@@ -13,7 +13,7 @@ export default definePlugin({
     author: [Developers.cocobo1],
     id: "animatedkeyboard",
     version: "1.0.0",
-
+    platforms: ["android"],
     // since this is a demo i should probably mention this isnt needed for all experiment overrides
     requiresRestart: true,
 
