@@ -27,9 +27,7 @@ function patchSheet(funcName: string, sheetModule: any, once: boolean) {
         }
         // fallback: try to get name from alt or parent props
         if (!emoji.name && emojiNode.alt) {
-            emoji.name = emojiNode.alt
-                .replace(/:/g, "")
-                .replace("_rainenhancements", "");
+            emoji.name = emojiNode.alt.replace(/:/g, "");
         }
         const view = res?.props?.children?.props?.children;
         if (!view) return;
