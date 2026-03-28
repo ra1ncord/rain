@@ -17,7 +17,7 @@
 
 ### Android
 
-- **[rainManager](https://codeberg.org/raincord/rainManager/releases/latest)**
+- **[rainManager](https://codeberg.org/raincord/RainTweak/releases/latest)**
 
 ### iOS
 
