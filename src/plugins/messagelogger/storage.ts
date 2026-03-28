@@ -16,11 +16,16 @@ export interface MessageLoggerSettings {
         ignoreSelfEdits: boolean;
     };
     databaseLogging: boolean;
-    customEditTextEnabled: boolean;
-    customDeleteTextEnabled: boolean;
-    customEditText: string;
-    customDeletedText: string;
-    ignoreList: string;
+    custom: {
+        customEditTextEnabled: boolean;
+        customDeleteTextEnabled: boolean;
+        customEditText: string;
+        customDeletedText: string;
+    }
+    ignoreLists: {
+        user: string;
+        channel: string;
+    }
 }
 
 export const {
@@ -42,10 +47,14 @@ export const {
         ignoreSelfEdits: true,
     },
     databaseLogging: false,
-    customEditTextEnabled: false,
-    customDeleteTextEnabled: false,
-    customEditText: "-# `[ EDITED ]`",
-    customDeletedText: "This message was deleted",
-
-    ignoreList: ""
+    custom: {
+        customEditTextEnabled: false,
+        customDeleteTextEnabled: false,
+        customEditText: "`[ EDITED ]`",
+        customDeletedText: "This message was deleted",
+    },
+    ignoreLists: {
+        user: "",
+        channel: "",
+    }
 });
