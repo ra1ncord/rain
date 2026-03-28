@@ -99,7 +99,8 @@ function patchMessageDeleteHandler() {
                 const message = MessageStore.getMessage?.(channelId, id);
 
                 if (!message) return args;
-                if(storage.ignoreList.split(" ").indexOf(message?.author?.id.toString()) !== -1) return args;
+                if(storage.ignoreLists.user.split(" ").indexOf(message?.author?.id.toString()) !== -1) return args;
+                if(storage.ignoreLists.channel.split(" ").indexOf(message?.channel_id.toString()) !== -1) return args;
 
                 if (shouldIgnoreMessage(message, storage)) return args;
 
@@ -120,7 +121,7 @@ function patchMessageDeleteHandler() {
 
                 let automodMessage = "This message was deleted";
 
-                if(storage.customDeleteTextEnabled) automodMessage = storage.customDeletedText;
+                if(storage.custom.customDeleteTextEnabled) automodMessage = storage.custom.customDeletedText;
                 if (storage.deleted?.showTimestamps) {
                     automodMessage += ` (${formatTimestamp(storage.deleted.use12Hour)})`;
                 }
@@ -176,9 +177,9 @@ function patchMessageEditHandler() {
                 if (!event || event.type !== "MESSAGE_UPDATE" || !event.message) return args;
                 if (event.otherPluginBypass) return args;
 
-                let EDIT_HISTORY_SEPARATOR = "-# `[ EDITED ]`";
+                let EDIT_HISTORY_SEPARATOR = "`[ EDITED ]`";
                 const storage = useMessageLoggerSettings.getState();
-                if(storage.customEditTextEnabled) EDIT_HISTORY_SEPARATOR = storage.customEditText;
+                if(storage.custom.customEditTextEnabled) EDIT_HISTORY_SEPARATOR = storage.custom.customEditText;
 
                 if (!storage.edited?.enabled) return args;
 
@@ -187,7 +188,8 @@ function patchMessageEditHandler() {
 
                 if (storage.filters?.ignoreSelfEdits && message?.author?.id === findByStoreName("UserStore").getCurrentUser().id) return args;
 
-                if(storage.ignoreList.split(" ").indexOf(message?.author?.id.toString()) !== -1) return args;
+                if(storage.ignoreLists.user.split(" ").indexOf(message?.author?.id.toString()) !== -1) return args;
+                if(storage.ignoreLists.channel.split(" ").indexOf(message?.channel_id.toString()) !== -1) return args;
                 const prevMessage = MessageStore.getMessage?.(message.channel_id || message.channelId, message.id);
                 if (!prevMessage || !prevMessage.content || prevMessage.content === message.content) return args;
 
@@ -195,7 +197,7 @@ function patchMessageEditHandler() {
 
                 const separator = storage.edited?.showSeparator !== false ? EDIT_HISTORY_SEPARATOR : "";
                 const oldContent = prevMessage.content.replace(emojiRegex, "").trim();
-                const newContent = oldContent + (separator ? `\n\n${separator}\n\n` : "\n") + message.content;
+                const newContent = oldContent + (separator ? `  ${separator}\n\n` : "\n") + message.content;
 
                 event.message = {
                     ...message,
