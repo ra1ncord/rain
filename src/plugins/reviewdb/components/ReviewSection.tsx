@@ -8,6 +8,7 @@ import { Review } from "../def";
 import { getReviews } from "../lib/api";
 import ReviewInput from "./ReviewInput";
 import ReviewRow from "./ReviewRow";
+import { useReviewDBSettings } from "../storage";
 
 const { getCurrentUser } = findByStoreName("UserStore");
 const UserProfileCard = findByName("UserProfileCard");
@@ -32,6 +33,8 @@ export default function ReviewSection({ userId }: ReviewSectionProps) {
             .length !== 0;
 
     const themeColors = getDisplayProfile?.(userId)?.themeColors;
+
+    const reviewdbSettings = useReviewDBSettings();
 
     const useStyles = createStyles({
         avatar: {
@@ -65,7 +68,10 @@ export default function ReviewSection({ userId }: ReviewSectionProps) {
                         ItemSeparatorComponent={() => (
                             <RN.View style={{ height: 8 }} />
                         )}
-                        data={reviews}
+                        data={reviewdbSettings.showWarning
+                            ? reviews
+                            : reviews.filter(review => review.type !== 3)
+                        }
                         renderItem={({ item }: any) => (
                             <ReviewRow
                                 style={styles.reviewCard}

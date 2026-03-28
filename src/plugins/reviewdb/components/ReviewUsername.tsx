@@ -9,6 +9,7 @@ import ReviewBadge from "./ReviewBadge";
 interface ReviewUsernameProps {
     username: string;
     badges: Badge[];
+    timestamp: string;
 }
 
 const useStyles = createStyles({
@@ -20,7 +21,7 @@ const useStyles = createStyles({
 
 const { FormLabel } = Forms;
 
-export default ({ username, badges }: ReviewUsernameProps) => {
+export default ({ username, badges, timestamp }: ReviewUsernameProps) => {
     const styles = useStyles();
 
     return (
@@ -34,6 +35,10 @@ export default ({ username, badges }: ReviewUsernameProps) => {
                     <ReviewBadge badge={b} />
                 ))}
             </RN.View>
+            <FormLabel
+                text={timestamp}
+                style={{ color: useThemedColor("TEXT_MUTED"), marginLeft: 5 }}
+            />
         </RN.View>
     );
 };

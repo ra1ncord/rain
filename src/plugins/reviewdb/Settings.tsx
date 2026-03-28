@@ -52,6 +52,19 @@ export default () => {
                             .updateSettings({ useThemedSend: v })
                     }
                 />
+                <TableSwitchRow
+                    label="Show Warning"
+                    subLabel="Show the warning to be respectful at the top of the reviews list."
+                    icon={
+                        <TableRow.Icon source={findAssetId("WarningIcon")} />
+                    }
+                    value={reviewdbSettings.showWarning}
+                    onValueChange={(v: boolean) =>
+                        useReviewDBSettings
+                            .getState()
+                            .updateSettings({ showWarning: v })
+                    }
+                />
             </TableRowGroup>
         </Stack>
     );
