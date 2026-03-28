@@ -5,7 +5,6 @@ import { showToast } from "@api/ui/toasts";
 import { LoggerClass } from "@lib/utils/logger";
 import { React, ReactNative as RN } from "@metro/common";
 import {
-    Button,
     HelpMessage,
     PressableScale,
     Stack,
@@ -16,9 +15,8 @@ import {
 
 import Color from "./components/Color";
 import usePatches from "./hooks/usePatches";
-import { applyMonetTheme, getMonetSysColors, hasMonetTheme, refreshMonetSysColors,setColorsFromDynamic } from "./index";
+import { getMonetSysColors, hasMonetTheme, refreshMonetSysColors,setColorsFromDynamic } from "./index";
 import { useMonetSettings } from "./storage";
-import { build, type BuiltTheme } from "./stuff/buildTheme";
 import type { VendettaSysColors } from "./types";
 
 const logger = new LoggerClass("MonetTheme");

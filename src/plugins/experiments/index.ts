@@ -35,7 +35,7 @@ export default definePlugin({
         const hasConfirmed = settings.experimentsConfirmed !== false;
 
         if (!hasConfirmed) {
-            const confirmed = await new Promise<boolean>((resolve) => {
+            const confirmed = await new Promise<boolean>(resolve => {
                 showConfirmationAlert({
                     title: "WARNING!!",
                     content: "Enabling staff only settings has its risks. rain dev team does not bear any responsibility for any issues faced when using these experimental settings, including possible account termination. **Use at your own risk**\n\nA manual restart is required for the plugin to take effect",
