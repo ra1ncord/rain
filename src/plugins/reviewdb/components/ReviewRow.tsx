@@ -32,6 +32,8 @@ const { TableRowGroup } = findByProps("TableRow");
 export default ({ review, style }: ReviewRowProps) => {
     const styles = useStyles();
 
+    const reviewTimestamps = new Date(review.timestamp * 1000).toLocaleDateString()
+
     return (
         <TableRowGroup style={[style]}>
             <FormRow
@@ -40,6 +42,7 @@ export default ({ review, style }: ReviewRowProps) => {
                     <ReviewUsername
                         username={review.sender.username}
                         badges={review.sender.badges}
+                        timestamp={reviewTimestamps}
                     />
                 }
                 subLabel={
