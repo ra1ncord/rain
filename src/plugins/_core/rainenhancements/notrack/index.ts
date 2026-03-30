@@ -78,13 +78,13 @@ export function patchNetwork(): PatchCleanupFn {
             "send",
             XMLHttpRequest.prototype,
             function (
-                this: XMLHttpRequest & { __sentry_xhr__?: { url: string } },
+                this: XMLHttpRequest & { _url: string },
                 args: unknown[],
                 orig: Function,
             ) {
                 if (
-                    this.__sentry_xhr__?.url &&
-          analyticsTest.test(this.__sentry_xhr__.url)
+                    this._url &&
+          analyticsTest.test(this._url)
                 ) {
                     return undefined;
                 }
