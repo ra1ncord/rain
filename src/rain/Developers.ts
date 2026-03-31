@@ -144,4 +144,8 @@ export const Contributors = {
         name: "LampDelivery",
         id: 650805815623680030n,
     },
+    Vaiskiainen: {
+        name: "vaiskiainen.",
+        id: 1465743112428064955n,
+    },
 } satisfies Record<string, developer>;
