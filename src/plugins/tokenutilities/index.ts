@@ -19,12 +19,7 @@ var unregisters: any;
 export default definePlugin({
   name: "Token Utilities",
   description: "Get your token",
-  author: [
-    Contributors.Axolotl_cpp,
-    Developers.cocobo1,
-    Contributors.LampDelivery,
-    Contributors.nexpid,
-  ],
+  author: [Contributors.Axolotl_cpp],
   id: "tokenutilities",
   version: "1.0.0",
 
