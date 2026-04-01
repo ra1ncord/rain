@@ -13,7 +13,7 @@
 
 ## Install Rain
 > [!NOTE]
-> rain is currently in beta. Expect things to break and report bug when you find them
+> rain is currently in beta. **Expect things to break and report bug when you find them**
 
 ### Android
 
