@@ -1,11 +1,13 @@
 import { findByProps } from "@metro";
+import React from "react";
 import { Image, Pressable, View } from "react-native";
 
 const { TextStyleSheet, Text } = findByProps("TextStyleSheet");
 
 // @ts-ignore
-export default function EffectCard({ effect, onSelect, selected }) {
-    const preview = effect.config.thumbnailPreviewSrc;
+function EffectCardComponent({ effect, onSelect, selected }) {
+    const preview = React.useMemo(() => effect.config.thumbnailPreviewSrc, [effect]);
+    const title = React.useMemo(() => effect.config.title, [effect]);
 
     return (
         <Pressable
@@ -40,9 +42,17 @@ export default function EffectCard({ effect, onSelect, selected }) {
                     style={TextStyleSheet["text-xs/semibold"]}
                     numberOfLines={1}
                 >
-                    {effect.config.title}
+                    {title}
                 </Text>
             </View>
         </Pressable>
     );
 }
+
+export default React.memo(EffectCardComponent, (prevProps, nextProps) => {
+    return (
+        prevProps.selected === nextProps.selected &&
+        prevProps.effect.skuId === nextProps.effect.skuId &&
+        prevProps.onSelect === nextProps.onSelect
+    );
+});

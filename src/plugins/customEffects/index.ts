@@ -10,7 +10,7 @@ export default definePlugin({
     description: "Custom profile effects",
     author: [Developers.SerStars],
     id: "customeffects",
-    version: "2.0.0",
+    version: "2.1.0",
 
     async start() {
         await loadAllEffectData();

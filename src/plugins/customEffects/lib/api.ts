@@ -20,8 +20,19 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
 
     if (!res.ok) {
         const text = await res.text();
+        if (res.status === 401) {
+            throw new Error("Unauthorized — please log in again");
+        }
+        if (res.status === 403) {
+            throw new Error("Forbidden — you don't have access to this endpoint");
+        }
         throw new Error(`Fetch failed: ${res.status} — ${text}`);
     }
 
-    return res.json();
+    const contentType = res.headers.get("content-type");
+    if (contentType?.includes("application/json")) {
+        return res.json();
+    }
+
+    return res.text();
 }

@@ -1,104 +1,96 @@
-import { NavigationNative,ReactNative } from "@metro/common";
-import { Forms } from "@metro/common/components";
+import { NavigationNative, ReactNative } from "@metro/common";
 import React from "react";
 import { View } from "react-native";
 
 import { apiFetch } from "../../lib/api";
+import { userEffects } from "../../patches/effects";
 import EffectCard from "../components/EffectCard";
 
 const { FlatList } = ReactNative;
-const { FormDivider, FormTitle } = Forms;
-
-type ListItem =
-    | { type: "header"; title: string }
-    | { type: "effect"; data: any };
 
 export default function MyEffects() {
-    const [items, setItems] = React.useState<ListItem[]>([]);
+    const [effects, setEffects] = React.useState<any[]>([]);
     const [selected, setSelected] = React.useState<string | null>(null);
     const navigation = NavigationNative.useNavigation();
 
-    async function load() {
+    const load = React.useCallback(async () => {
         try {
             const me = await apiFetch("/me", { method: "POST" });
             const myEffects = await apiFetch("/my-effects", { method: "POST" });
 
-            setSelected(me.data.selected);
-
-            const list: ListItem[] = [];
-
-            list.push(
-                // @ts-ignore
-                ...myEffects.map(e => ({
-                    type: "effect",
-                    data: e
-                }))
-            );
-
-            setItems(list);
+            setSelected(me?.data?.selected || null);
+            
+            const myEffectsArray = Array.isArray(myEffects) ? myEffects : [];
+            const myEffectIds = new Set(myEffectsArray.map((e: any) => e.skuId));
+            
+            const uniqueUserEffects = userEffects.filter(e => !myEffectIds.has(e.skuId));
+            
+            const allEffects = [
+                ...myEffectsArray,
+                ...uniqueUserEffects
+            ];
+            
+            setEffects(allEffects);
         } catch (e) {
-            console.error("Failed loading myeffects", e);
+            console.error("Failed loading effects", e);
         }
-    }
+    }, []);
 
     React.useEffect(() => {
         load();
-    }, []);
+        
+        const unsubscribe = navigation.addListener("focus", () => {
+            load();
+        });
+        
+        return unsubscribe;
+    }, [load, navigation]);
+
+    const handleSelectEffect = React.useCallback(
+        async (effect: any) => {
+            try {
+                await apiFetch("/set-effect", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ effectId: effect.skuId }),
+                });
+
+                setSelected(effect.skuId);
+                navigation.goBack();
+            } catch (e) {
+                console.error("Failed to select effect", e);
+            }
+        },
+        [navigation]
+    );
+
+    const renderItem = React.useCallback(
+        ({ item }: { item: any }) => (
+            <EffectCard
+                effect={item}
+                selected={selected === item.skuId}
+                onSelect={() => handleSelectEffect(item)}
+            />
+        ),
+        [selected, handleSelectEffect]
+    );
 
     return (
-        <>
-            <FlatList
-                data={items}
-                keyExtractor={(item, index) =>
-                    item.type === "effect"
-                        ? item.data.skuId
-                        : `header-${index}`
-                }
-                renderItem={({ item }) => {
-                    if (item.type === "header") {
-                        return (
-                            <View style={{ paddingHorizontal: 12 }}>
-                                <FormDivider />
-                                <FormTitle title={item.title} />
-                            </View>
-                        );
-                    }
-
-                    return (
-                        <EffectCard
-                            effect={item.data}
-                            selected={selected === item.data.skuId}
-                            onSelect={async () => {
-                                try {
-                                    await apiFetch("/set-effect", {
-                                        method: "POST",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ effectId: item.data.skuId }),
-                                    });
-
-                                    const me = await apiFetch("/me", { method: "POST" });
-                                    setSelected(item.data.skuId);
-
-                                    navigation.goBack();
-                                } catch (e) {
-                                    console.error("Failed to select effect", e);
-                                }
-                            }}
-                        />
-                    );
-                }}
-                numColumns={3}
-                columnWrapperStyle={{
-                    justifyContent: "space-between",
-                    paddingHorizontal: 12
-                }}
-                contentContainerStyle={{
-                    paddingVertical: 12
-                }}
-                ItemSeparatorComponent={() => (
-                    <View style={{ height: 12 }} />
-                )}
-            />
-        </>
+        <FlatList
+            data={effects}
+            keyExtractor={(item) => item.skuId}
+            renderItem={renderItem}
+            numColumns={3}
+            columnWrapperStyle={{
+                justifyContent: "space-between",
+                paddingHorizontal: 12
+            }}
+            contentContainerStyle={{
+                paddingVertical: 12
+            }}
+            ItemSeparatorComponent={() => (
+                <View style={{ height: 12 }} />
+            )}
+        />
     );
 }

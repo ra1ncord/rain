@@ -10,12 +10,16 @@ export interface CustomEffect {
 }
 
 export let customEffects: Record<string, CustomEffect> = {};
+export let userEffects: CustomEffect[] = [];
 export let userEffectData: Record<string, { skuId: string }> = {};
 
 export async function fetchEffectsData() {
     try {
-        const data: CustomEffect[] = await apiFetch("/presets");
-        customEffects = Object.fromEntries(data.map(e => [e.skuId, e]));
+        const data: CustomEffect[] = await apiFetch("/presets", { method: "POST" });
+        const validEffects = Array.isArray(data)
+            ? data.filter(e => e && e.skuId && e.config)
+            : [];
+        customEffects = Object.fromEntries(validEffects.map(e => [e.skuId, e]));
     } catch (e) {
         console.error("[CustomEffects] Failed to fetch effects", e);
         showToast("Failed to load effects", findAssetId("CircleXIcon"));
@@ -24,12 +28,28 @@ export async function fetchEffectsData() {
 
 export async function fetchUserEffectData() {
     try {
-        const data: Record<string, { selected: string | null }> = await apiFetch("/users");
-        userEffectData = Object.fromEntries(
-            Object.entries(data)
-                .filter(([_, v]) => v.selected)
-                .map(([userId, v]) => [userId, { skuId: v.selected! }])
-        );
+        const data = await apiFetch("/users", { method: "POST" });
+        
+        userEffects = [];
+        userEffectData = {};
+        
+        Object.entries(data || {}).forEach(([userId, userInfo]: [string, any]) => {
+            if (!userInfo) return;
+
+            if (userInfo.selected) {
+                userEffectData[userId] = { skuId: userInfo.selected };
+            }
+
+            if (userInfo.data && userInfo.data.skuId && userInfo.data.config) {
+                const existingEffect = userEffects.find(e => e.skuId === userInfo.data.skuId);
+                if (!existingEffect) {
+                    userEffects.push({
+                        skuId: userInfo.data.skuId,
+                        config: userInfo.data.config
+                    });
+                }
+            }
+        });
     } catch (e) {
         console.error("[CustomEffects] Failed to fetch user effects", e);
         showToast("Failed to load user effects", findAssetId("CircleXIcon"));
