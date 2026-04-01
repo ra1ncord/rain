@@ -8,9 +8,29 @@ import { definePlugin } from "@plugins";
 import AnimalCommandsSettings from "./settings";
 import { AnimalSource, ensureImageUrl, sources } from "./sources";
 import { ensureAnimalDefaults, getAnimalSourceId, isAnimalEnabled, useAnimalCommandsSettings } from "./storage";
+import { Contributors } from "@rain/Developers";
 
 const MessageActions = findByProps("sendMessage");
-const pluginAuthor = { name: "vaiskiainen", id: 1465743112428064955n };
+
+export default definePlugin({
+    name: "AnimalCommands",
+    description: "Adds multiple animal image commands",
+    author: [Contributors.Vaiskiainen],
+    id: "animalcommands",
+    version: "1.0.0",
+    async start() {
+        await waitForHydration(useAnimalCommandsSettings);
+        ensureAnimalDefaults();
+        for (const source of sources) {
+            unregisters.push(registerCommand(buildCommand(source)));
+        }
+    },
+    stop() {
+        for (const unregister of unregisters) unregister();
+        unregisters.length = 0;
+    },
+    settings: AnimalCommandsSettings,
+});
 
 const getSelectedImageSource = (animal: AnimalSource) => {
     const selectedId = getAnimalSourceId(animal.id);
@@ -53,23 +73,3 @@ const buildCommand = (source: AnimalSource): RainApplicationCommand => ({
 });
 
 const unregisters: Array<() => void> = [];
-
-export default definePlugin({
-    name: "AnimalCommands",
-    description: "Adds multiple animal image commands",
-    author: [pluginAuthor],
-    id: "animalcommands",
-    version: "1.0.0",
-    async start() {
-        await waitForHydration(useAnimalCommandsSettings);
-        ensureAnimalDefaults();
-        for (const source of sources) {
-            unregisters.push(registerCommand(buildCommand(source)));
-        }
-    },
-    stop() {
-        for (const unregister of unregisters) unregister();
-        unregisters.length = 0;
-    },
-    settings: AnimalCommandsSettings,
-});
