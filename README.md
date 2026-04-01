@@ -11,7 +11,7 @@
   ![Codeberg Last Commit](https://img.shields.io/gitea/last-commit/raincord/rain?gitea_url=https%3A%2F%2Fwww.codeberg.org&logo=codeberg&logoColor=%23ffffffff)
 </div>
 
-## Install Rain
+## Install rain
 > [!NOTE]
 > rain is currently in beta. **Expect things to break and report bug when you find them**
 
@@ -21,7 +21,7 @@
 
 ### iOS
 
-- **[RainTweak](https://codeberg.org/raincord/RainTweak/releases/latest)**
+- **[rainTweak](https://codeberg.org/raincord/RainTweak/releases/latest)**
 
 ## How can I support the project?
 
