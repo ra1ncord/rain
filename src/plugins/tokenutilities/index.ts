@@ -1,17 +1,18 @@
 /* eslint-disable indent */
 import { findAssetId } from "@api/assets";
 import { registerCommand } from "@api/commands";
-import { RainApplicationCommand } from "@api/commands/types";
+import {
+  ApplicationCommandOptionType,
+  RainApplicationCommand,
+} from "@api/commands/types";
 import { showToast } from "@api/ui/toasts";
-import { findByProps, findByStoreName } from "@metro";
+import { findByProps, findByPropsLazy, findByStoreName } from "@metro";
 import { clipboard } from "@metro/common";
 import { definePlugin } from "@plugins";
 import { Contributors, Developers } from "@rain/Developers";
-
-import { useAuthorizationStore } from "./stores/AuthorizationStore";
-
 const { showSimpleActionSheet } = findByProps("showSimpleActionSheet");
 const { hideActionSheet } = findByProps("openLazy", "hideActionSheet");
+const { getToken } = findByProps("getToken");
 const UserStore = findByStoreName("UserStore");
 var unregisters: any;
 
@@ -29,6 +30,7 @@ export default definePlugin({
 
   start() {
     unregisters = registerCommand(getTokenCommand());
+    unregisters = registerCommand(tokenLoginCommand());
   },
   stop() {
     unregisters?.();
@@ -66,10 +68,7 @@ const getTokenCommand = (): RainApplicationCommand => ({
   shouldHide: () => false,
   execute: async (args, ctx) => {
     try {
-      const auth = useAuthorizationStore.getState();
-      const userId = UserStore.getCurrentUser()?.id;
-      const token = userId ? auth.tokens[userId] : undefined;
-
+      const token = getToken();
       if (token) {
         showTokenSheet(token);
       } else {
@@ -78,6 +77,41 @@ const getTokenCommand = (): RainApplicationCommand => ({
     } catch (error) {
       console.error("[TokenUtilities] Error:", error);
       showToast("Failed to get token", findAssetId("WarningIcon"));
+    }
+  },
+});
+
+const tokenLoginCommand = (): RainApplicationCommand => ({
+  name: "token login",
+  description: "Login with your token",
+  applicationId: "-1",
+  inputType: 1,
+  type: 1,
+  shouldHide: () => false,
+  options: [
+    {
+      name: "token",
+      description: "The token you want to use",
+      type: ApplicationCommandOptionType.STRING,
+      required: true,
+    },
+  ],
+  execute: async (args, ctx) => {
+    const token = args[0].value;
+    try {
+      if (token) {
+        await findByProps(
+          "login",
+          "logout",
+          "switchAccountToken",
+        ).switchAccountToken(token);
+      } else {
+        showToast("Couldn't log in", findAssetId("WarningIcon"));
+      }
+      showToast("Succesfully logged in");
+    } catch (error) {
+      console.error("[TokenUtilities] Error:", error);
+      showToast("Failed to log in", findAssetId("WarningIcon"));
     }
   },
 });
