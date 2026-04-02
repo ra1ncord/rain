@@ -24,7 +24,6 @@ export interface Settings {
   };
   pinnedPlugins: string[];
   experimentsConfirmed?: boolean;
-  takenResponsability?: boolean,
 }
 
 export interface LoaderConfig {
@@ -41,54 +40,51 @@ interface SettingsStore extends Settings {
 }
 
 export const useSettings = create<SettingsStore>()(
-  persist(
-    (set) => ({
-      debuggerUrl: "",
-      devToolsUrl: "",
-      hotReloadThemeUrl: "",
-      developerSettings: false,
-      autoDebugger: false,
-      autoDevTools: false,
-      hotReloadTheme: false,
-      safeMode: false,
-      disableUpdateWarnings: false,
-      settingsPosition: "TOP",
-      pluginCard: {
-        showInfoButton: false,
-        openOnPress: true,
-      },
-      assetBrowser: {
-        enabledFilters: {
-          png: true,
-          jpg: true,
-          jpeg: true,
-          svg: true,
-          gif: true,
-          json: false,
-          jsona: false,
-          lottie: false,
-        },
-      },
-      pinnedPlugins: [], // Initialize empty
-      experimentsConfirmed: false,
-      takenResponsability: false,
-      updateSettings: (newSettings) =>
-        set((state) => ({ ...state, ...newSettings })),
-      togglePinnedPlugin: (id) =>
-        set((state) => {
-          const pinned = state.pinnedPlugins || [];
-          if (pinned.includes(id)) {
-            return { pinnedPlugins: pinned.filter((p) => p !== id) };
-          } else {
-            return { pinnedPlugins: [...pinned, id] };
-          }
+    persist(
+        set => ({
+            debuggerUrl: "",
+            devToolsUrl: "",
+            hotReloadThemeUrl: "",
+            developerSettings: false,
+            autoDebugger: false,
+            autoDevTools: false,
+            hotReloadTheme: false,
+            safeMode: false,
+            disableUpdateWarnings: false,
+            settingsPosition: "TOP",
+            pluginCard: {
+                showInfoButton: false,
+                openOnPress: true,
+            },
+            assetBrowser: {
+                enabledFilters: {
+                    png: true,
+                    jpg: true,
+                    jpeg: true,
+                    svg: true,
+                    gif: true,
+                    json: false,
+                    jsona: false,
+                    lottie: false,
+                }
+            },
+            pinnedPlugins: [], // Initialize empty
+            experimentsConfirmed: false,
+            updateSettings: newSettings => set(state => ({ ...state, ...newSettings })),
+            togglePinnedPlugin: id => set(state => {
+                const pinned = state.pinnedPlugins || [];
+                if (pinned.includes(id)) {
+                    return { pinnedPlugins: pinned.filter(p => p !== id) };
+                } else {
+                    return { pinnedPlugins: [...pinned, id] };
+                }
+            }),
         }),
-    }),
-    {
-      name: "rain-settings",
-      storage: createJSONStorage(() => createFileStorage("rain/RAIN_SETTINGS")),
-    },
-  ),
+        {
+            name: "rain-settings",
+            storage: createJSONStorage(() => createFileStorage("rain/RAIN_SETTINGS")),
+        }
+    )
 );
 
 interface LoaderConfigStore extends LoaderConfig {
@@ -96,38 +92,33 @@ interface LoaderConfigStore extends LoaderConfig {
 }
 
 export const useLoaderConfig = create<LoaderConfigStore>()(
-  persist(
-    (set) => ({
-      customLoadUrl: {
-        enabled: false,
-        url: "http://localhost:4040/rain.js",
-      },
-      loadReactDevTools: false,
-      updateLoaderConfig: (newConfig) =>
-        set((state) => ({ ...state, ...newConfig })),
-    }),
-    {
-      name: "loader-config",
-      storage: createJSONStorage(() =>
-        createFlattenedFileStorage<LoaderConfig>(getLoaderConfigPath()),
-      ),
-    },
-  ),
+    persist(
+        set => ({
+            customLoadUrl: {
+                enabled: false,
+                url: "http://localhost:4040/rain.js",
+            },
+            loadReactDevTools: false,
+            updateLoaderConfig: newConfig => set(state => ({ ...state, ...newConfig })),
+        }),
+        {
+            name: "loader-config",
+            storage: createJSONStorage(() => createFlattenedFileStorage<LoaderConfig>(getLoaderConfigPath())),
+        }
+    )
 );
 
 export const settings = () => useSettings.getState();
 export const loaderConfig = () => useLoaderConfig.getState();
 
 export const useAssetBrowserSettings = () => {
-  const settings = useSettings((state) => state.assetBrowser);
-  const updateSettings = useSettings((state) => state.updateSettings);
+    const settings = useSettings(state => state.assetBrowser);
+    const updateSettings = useSettings(state => state.updateSettings);
 
-  return {
-    enabledFilters: settings.enabledFilters,
-    updateSettings: (newSettings: {
-      enabledFilters?: Record<string, boolean>;
-    }) => {
-      updateSettings({ assetBrowser: { ...settings, ...newSettings } });
-    },
-  };
+    return {
+        enabledFilters: settings.enabledFilters,
+        updateSettings: (newSettings: { enabledFilters?: Record<string, boolean> }) => {
+            updateSettings({ assetBrowser: { ...settings, ...newSettings } });
+        }
+    };
 };
