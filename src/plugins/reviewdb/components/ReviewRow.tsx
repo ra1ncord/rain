@@ -32,7 +32,7 @@ const { TableRowGroup } = findByProps("TableRow");
 export default ({ review, style }: ReviewRowProps) => {
     const styles = useStyles();
 
-    const reviewTimestamps = review.type !== 3 ? new Date(review.timestamp * 1000).toLocaleDateString() : ""
+    const reviewTimestamps = review.type !== 3 ? new Date(review.timestamp * 1000).toLocaleDateString() : "";
 
     return (
         <TableRowGroup style={[style]}>

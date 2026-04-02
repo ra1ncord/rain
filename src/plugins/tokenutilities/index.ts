@@ -30,7 +30,7 @@ export default definePlugin({
   async start() {
     const hasConfirmed = tokenUtilitiesSettings.takenResponsability !== false;
     if (!hasConfirmed) {
-      const confirmed = await new Promise<boolean>((resolve) => {
+      const confirmed = await new Promise<boolean>(resolve => {
         showConfirmationAlert({
           title: "WARNING!!!!",
           content:

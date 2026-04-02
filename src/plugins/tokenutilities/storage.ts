@@ -11,11 +11,11 @@ type TokenUtilitiesSettingsStore = PluginStore<Settings>;
 
 export const useTokenUtilitiesSettings = create<TokenUtilitiesSettingsStore>()(
   persist(
-    (set) => ({
+    set => ({
       takenResponsability: false,
       _hasHydrated: false,
-      updateSettings: (newSettings) =>
-        set((state) => ({ ...state, ...newSettings })),
+      updateSettings: newSettings =>
+        set(state => ({ ...state, ...newSettings })),
       setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
     }),
     {
@@ -23,7 +23,7 @@ export const useTokenUtilitiesSettings = create<TokenUtilitiesSettingsStore>()(
       storage: createJSONStorage(() =>
         createFileStorage("plugins/tokenutilities.json"),
       ),
-      onRehydrateStorage: () => (state) => {
+      onRehydrateStorage: () => state => {
         state?.setHasHydrated(true);
       },
     },

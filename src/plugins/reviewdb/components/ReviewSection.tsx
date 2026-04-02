@@ -6,9 +6,9 @@ import { ReactNative as RN } from "@metro/common";
 
 import { Review } from "../def";
 import { getReviews } from "../lib/api";
+import { useReviewDBSettings } from "../storage";
 import ReviewInput from "./ReviewInput";
 import ReviewRow from "./ReviewRow";
-import { useReviewDBSettings } from "../storage";
 
 const { getCurrentUser } = findByStoreName("UserStore");
 const UserProfileCard = findByName("UserProfileCard");

@@ -26,11 +26,11 @@ export default function Presets() {
 
     React.useEffect(() => {
         load();
-        
+
         const unsubscribe = navigation.addListener("focus", () => {
             load();
         });
-        
+
         return unsubscribe;
     }, [load, navigation]);
 
@@ -66,7 +66,7 @@ export default function Presets() {
     return (
         <FlatList
             data={effects}
-            keyExtractor={(item) => item.skuId}
+            keyExtractor={item => item.skuId}
             renderItem={renderItem}
             numColumns={3}
             columnWrapperStyle={{

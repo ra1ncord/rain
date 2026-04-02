@@ -19,17 +19,17 @@ export default function MyEffects() {
             const myEffects = await apiFetch("/my-effects", { method: "POST" });
 
             setSelected(me?.data?.selected || null);
-            
+
             const myEffectsArray = Array.isArray(myEffects) ? myEffects : [];
             const myEffectIds = new Set(myEffectsArray.map((e: any) => e.skuId));
-            
+
             const uniqueUserEffects = userEffects.filter(e => !myEffectIds.has(e.skuId));
-            
+
             const allEffects = [
                 ...myEffectsArray,
                 ...uniqueUserEffects
             ];
-            
+
             setEffects(allEffects);
         } catch (e) {
             console.error("Failed loading effects", e);
@@ -38,11 +38,11 @@ export default function MyEffects() {
 
     React.useEffect(() => {
         load();
-        
+
         const unsubscribe = navigation.addListener("focus", () => {
             load();
         });
-        
+
         return unsubscribe;
     }, [load, navigation]);
 
@@ -78,7 +78,7 @@ export default function MyEffects() {
     return (
         <FlatList
             data={effects}
-            keyExtractor={(item) => item.skuId}
+            keyExtractor={item => item.skuId}
             renderItem={renderItem}
             numColumns={3}
             columnWrapperStyle={{
