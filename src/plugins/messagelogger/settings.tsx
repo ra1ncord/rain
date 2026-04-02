@@ -1,7 +1,7 @@
 import { findAssetId } from "@api/assets";
 import SettingsTextInput from "@api/ui/components/SettingsTextInput";
 import { findByProps } from "@metro";
-import { Stack, TableRowGroup, TableSwitchRow, TableRow } from "@metro/common/components";
+import { Stack, TableRow,TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import React from "react";
 import { ScrollView } from "react-native";
 
@@ -91,7 +91,7 @@ export default function MessageLoggerSettings() {
                         <SettingsTextInput
                             placeholder="Enter a list of IDs to ignore separated by spaces."
                             value={settings.ignoreLists.user}
-                            onChange={(v: string) => useMessageLoggerSettings.getState().updateSettings({ ignoreLists: { ...settings.ignoreLists, user: v.replaceAll(/[^0-9 ]/g, "") }})}
+                            onChange={(v: string) => useMessageLoggerSettings.getState().updateSettings({ ignoreLists: { ...settings.ignoreLists, user: v.replaceAll(/[^0-9 ]/g, "") } })}
                             isClearable
                         />
                     </Card>
@@ -101,7 +101,7 @@ export default function MessageLoggerSettings() {
                         <SettingsTextInput
                             placeholder="Enter a list of Channel IDs to ignore separated by spaces."
                             value={settings.ignoreLists.channel}
-                            onChange={(v: string) => useMessageLoggerSettings.getState().updateSettings({ ignoreLists: { ...settings.ignoreLists, channel: v.replaceAll(/[^0-9 ]/g, "") }})}
+                            onChange={(v: string) => useMessageLoggerSettings.getState().updateSettings({ ignoreLists: { ...settings.ignoreLists, channel: v.replaceAll(/[^0-9 ]/g, "") } })}
                             isClearable
                         />
                     </Card>

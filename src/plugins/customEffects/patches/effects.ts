@@ -29,10 +29,10 @@ export async function fetchEffectsData() {
 export async function fetchUserEffectData() {
     try {
         const data = await apiFetch("/users", { method: "POST" });
-        
+
         userEffects = [];
         userEffectData = {};
-        
+
         Object.entries(data || {}).forEach(([userId, userInfo]: [string, any]) => {
             if (!userInfo) return;
 
