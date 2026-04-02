@@ -189,30 +189,6 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
         }
     }, [props.installBrowserAction]);
 
-    if (results.length === 0 && !search) {
-        return <View style={{ gap: 32, flexGrow: 1.5, justifyContent: "center", alignItems: "center" }}>
-            <View style={{ gap: 8, alignItems: "center" }}>
-                <Image source={findAssetId("empty_quick_switcher")!} />
-                <Text variant="text-lg/semibold" color="text-strong">
-                    {Strings.NOTHING_TO_SEE}
-                </Text>
-            </View>
-            {props.installAction && <Button
-                size="lg"
-                icon={findAssetId("CompassIcon")}
-                // @ts-expect-error
-                text={props.installBrowserAction.label ?? Strings.INSTALL}
-                onPress={onInstallBrowserPress}
-            />}
-            {props.installAction && <Button
-                size="lg"
-                icon={findAssetId("DownloadIcon")}
-                text={props.installAction.label ?? Strings.INSTALL}
-                onPress={onInstallPress}
-            />}
-        </View>;
-    }
-
     const SortAndFilterActionSheet = React.useCallback(({ sortKey, filterKeys }: { sortKey: string; filterKeys: string[] }) => (
         <ActionSheet>
             {props.sortOptions && (
@@ -272,6 +248,30 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
             {props.ListHeaderComponent && <props.ListHeaderComponent />}
         </View>
     );
+
+    if (results.length === 0 && !search) {
+        return <View style={{ gap: 32, flexGrow: 1.5, justifyContent: "center", alignItems: "center" }}>
+            <View style={{ gap: 8, alignItems: "center" }}>
+                <Image source={findAssetId("empty_quick_switcher")!} />
+                <Text variant="text-lg/semibold" color="text-strong">
+                    {Strings.NOTHING_TO_SEE}
+                </Text>
+            </View>
+            {props.installAction && <Button
+                size="lg"
+                icon={findAssetId("CompassIcon")}
+                // @ts-expect-error
+                text={props.installBrowserAction.label ?? Strings.INSTALL}
+                onPress={onInstallBrowserPress}
+            />}
+            {props.installAction && <Button
+                size="lg"
+                icon={findAssetId("DownloadIcon")}
+                text={props.installAction.label ?? Strings.INSTALL}
+                onPress={onInstallPress}
+            />}
+        </View>;
+    }
 
     return (
         <ErrorBoundary>
