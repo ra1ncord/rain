@@ -34,7 +34,7 @@ export default definePlugin({
         showConfirmationAlert({
           title: "WARNING!!!!",
           content:
-            "Enabling token utilities has it's own risks.\n**do not share your token with anyone, doing so will give unrestricted access to your account to them**\n rain dev team and contributors do not bear any responsibility for any issues faced when using the plugin, including security risks and possible account termination.\n **Use at your own risk**\n",
+            "Enabling token utilities has it's own risks.\n**Do not share your token with anyone, doing so will give unrestricted access to your account to them.**\nRain dev team and contributors do not bear any responsibility for any issues faced when using the plugin, including security risks and possible account termination.\n**Use at your own risk**\n",
           confirmText: "I understand",
           confirmColor: "red",
           onConfirm: () => {
