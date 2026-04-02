@@ -5,15 +5,18 @@ import {
   ApplicationCommandOptionType,
   RainApplicationCommand,
 } from "@api/commands/types";
+import { useSettings } from "@api/settings";
+import { showConfirmationAlert } from "@api/ui/alerts";
 import { showToast } from "@api/ui/toasts";
-import { findByProps, findByPropsLazy, findByStoreName } from "@metro";
+import { findByProps } from "@metro";
 import { clipboard } from "@metro/common";
 import { definePlugin } from "@plugins";
-import { Contributors, Developers } from "@rain/Developers";
+import { Contributors } from "@rain/Developers";
+
 const { showSimpleActionSheet } = findByProps("showSimpleActionSheet");
 const { hideActionSheet } = findByProps("openLazy", "hideActionSheet");
 const { getToken } = findByProps("getToken");
-const UserStore = findByStoreName("UserStore");
+
 var unregisters: any;
 
 export default definePlugin({
@@ -23,9 +26,34 @@ export default definePlugin({
   id: "tokenutilities",
   version: "1.0.0",
 
-  start() {
-    unregisters = registerCommand(getTokenCommand());
-    unregisters = registerCommand(tokenLoginCommand());
+  async start() {
+    const settings = useSettings.getState();
+    const hasConfirmed = settings.takenResponsability !== false;
+    if (!hasConfirmed) {
+      const confirmed = await new Promise<boolean>((resolve) => {
+        showConfirmationAlert({
+          title: "WARNING!!!!",
+          content:
+            "Enabling token utilities has it's own risks.\n**do not share your token with anyone, doing so will give unrestricted access to your account to them**\n rain dev team and contributors do not bear any responsibility for any issues faced when using the plugin, including security risks and possible account termination.\n **Use at your own risk**\n",
+          confirmText: "I understand",
+          confirmColor: "red",
+          onConfirm: () => {
+            resolve(true);
+          },
+          cancelText: "Cancel",
+          onCancel: () => {
+            resolve(false);
+          },
+        });
+      });
+
+      if (!confirmed) {
+        throw new Error("User aborted");
+      }
+      useSettings.setState({ takenResponsability: true });
+      unregisters = registerCommand(getTokenCommand());
+      unregisters = registerCommand(tokenLoginCommand());
+    }
   },
   stop() {
     unregisters?.();
