@@ -148,4 +148,8 @@ export const Contributors = {
         name: "Axolotl.cpp",
         id: 1106563129023930428n,
     },
+    Vaiskiainen: {
+        name: "vaiskiainen.",
+        id: 1465743112428064955n,
+    },
 } satisfies Record<string, developer>;
