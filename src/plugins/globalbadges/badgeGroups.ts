@@ -203,10 +203,11 @@ const badgeGroups = {
         }
         if (Array.isArray(value?.cutie)) {
             value.cutie.forEach((cutie, idx) => {
+                const raw = (cutie as any).image ?? (cutie as any).badge ?? (cutie as any).icon ?? (cutie as any).url ?? "";
                 badges.push({
                     type: `cutie${idx}`,
-                    label: cutie.tooltip,
-                    uri: cutie.image,
+                    label: (cutie as any).tooltip ?? (cutie as any).name ?? "",
+                    uri: convertWebpUrl(raw),
                 });
             });
         }
@@ -223,10 +224,11 @@ const badgeGroups = {
         }
         if (Array.isArray(value?.cutie)) {
             value.cutie.forEach((cutie, idx) => {
+                const raw = (cutie as any).image ?? (cutie as any).badge ?? (cutie as any).icon ?? (cutie as any).url ?? "";
                 badges.push({
                     type: `cutie${idx}`,
-                    label: cutie.tooltip,
-                    uri: cutie.image,
+                    label: (cutie as any).tooltip ?? (cutie as any).name ?? "",
+                    uri: convertWebpUrl(raw),
                 });
             });
         }
