@@ -17,6 +17,9 @@ export default definePlugin({
     id: "chatbubbles",
     version: "1.0.0",
     requiresRestart: true,
+    predicates: [
+	        () => isChatBubblesSupported() === true,
+	    ],
     async eagerStart() {
         BubbleModule?.hookBubbles();
         await waitForHydration(useChatBubblesSettings);
