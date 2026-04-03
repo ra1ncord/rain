@@ -17,9 +17,6 @@ export default definePlugin({
     id: "chatbubbles",
     version: "1.0.0",
     requiresRestart: true,
-    predicates: [
-        () => isChatBubblesSupported() === true,
-    ],
     async eagerStart() {
         BubbleModule?.hookBubbles();
         await waitForHydration(useChatBubblesSettings);
@@ -27,12 +24,14 @@ export default definePlugin({
         const updateBubbleAppearance = () => {
             const { avatarRadius, bubbleChatRadius } = useChatBubblesSettings.getState();
             const color = getBubbleColor();
-            BubbleModule?.configure(avatarRadius, bubbleChatRadius, color)
+            const aR = Math.round(Number(avatarRadius) || 0);
+            const bR = Math.round(Number(bubbleChatRadius) || 0);
+            BubbleModule?.configure(aR, bR, color)
                 .then(() => logger.info("configure succeeded"))
                 .catch(e => logger.error("configure failed:", e));
         };
 
-        const getBubbleColor = (): string => {
+        const getBubbleColor = (): string | null => {
             const { bubbleChatColor } = useChatBubblesSettings.getState();
             if (bubbleChatColor) return bubbleChatColor;
             try {
@@ -41,7 +40,7 @@ export default definePlugin({
                 const resolved = tokens.internal.resolveSemanticColor(theme, token);
                 if (typeof resolved === "string" && resolved.startsWith("#")) return resolved;
             } catch {}
-            return "#00000066";
+            return null;
         };
 
         updateBubbleAppearance();
