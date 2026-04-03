@@ -18,7 +18,7 @@ const getPetPetData = async (image: string) => {
 export default definePlugin({
     name: "PetPet",
     description: "Send a gif of someone being pet",
-    author: [Contributors.Vendicated],
+    author: [Contributors.wolfie],
     id: "petpet",
     version: "1.0.0",
     start() {
