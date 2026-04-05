@@ -39,7 +39,7 @@ export function updateColor(colorManifest: ColorManifest | null, { update = true
             : _colorRef.lastSetDiscordTheme
     });
 
-    if (useColorsPref.getState().iconsEnabled && noCustomIcons === false) {
+    if (useColorsPref.getState().iconsEnabled && noCustomIcons !== true) {
         initPlus();
     }
 
