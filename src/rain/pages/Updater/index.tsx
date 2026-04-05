@@ -42,39 +42,46 @@ export function checkForUpdate() {
     return hasUpdate;
 }
 
-export function versionCheck() {
+export async function versionCheck() {
     if (useLoaderConfig.getState().customLoadUrl.enabled === true) return;
-    if (useSettings.getState().disableUpdateWarnings === true) return;
 
-    const version = getDebugInfo().discord.build;
-    if (!supportedVersions.includes(version)) {
-        openAlert(
-            "incompatible-version-alert",
-            <AlertModal
-                title={Strings.INCOMPATIBLE_VERSION}
-                content={Strings.INCOMPATIBLE_VERSION_DESC}
-                actions={
-                    <AlertActions>
-                        {Platform.OS === "android" && <AlertActionButton
-                            text={Strings.OPEN_MANAGER}
-                            variant="primary"
-                            onPress={() => {
-                                Linking.openURL("raincord://");
-                            }}
-                        />}
-                        {Platform.OS === "ios" && <AlertActionButton
-                            text={Strings.IPA_DOWNLOAD}
-                            variant="primary"
-                            onPress={() => {
-                                Linking.openURL("https://codeberg.org/raincord/RainTweak/releases");
-                            }}
-                        />}
-                        <AlertActionButton text={Strings.CONTINUE_ANYWAYS} variant="destructive" />
-                    </AlertActions>
-                }
-            />,
-        );
-    }
+    // Wait for settings to hydrate before checking
+    const checkSettings = () => {
+        if (useSettings.getState().disableUpdateWarnings === true) return;
+
+        const version = getDebugInfo().discord.build;
+        if (!supportedVersions.includes(version)) {
+            openAlert(
+                "incompatible-version-alert",
+                <AlertModal
+                    title={Strings.INCOMPATIBLE_VERSION}
+                    content={Strings.INCOMPATIBLE_VERSION_DESC}
+                    actions={
+                        <AlertActions>
+                            {Platform.OS === "android" && <AlertActionButton
+                                text={Strings.OPEN_MANAGER}
+                                variant="primary"
+                                onPress={() => {
+                                    Linking.openURL("raincord://");
+                                }}
+                            />}
+                            {Platform.OS === "ios" && <AlertActionButton
+                                text={Strings.IPA_DOWNLOAD}
+                                variant="primary"
+                                onPress={() => {
+                                    Linking.openURL("https://codeberg.org/raincord/RainTweak/releases");
+                                }}
+                            />}
+                            <AlertActionButton text={Strings.CONTINUE_ANYWAYS} variant="destructive" />
+                        </AlertActions>
+                    }
+                />,
+            );
+        }
+    };
+
+    // Use setTimeout to ensure settings has had a chance to load
+    setTimeout(checkSettings, 100);
 }
 
 export default function Updater() {
