@@ -2,7 +2,7 @@ import { ErrorBoundary } from "@api/ui/components";
 import { semanticColors } from "@api/ui/components/color";
 import { createStyles } from "@api/ui/styles";
 import { findByName, findByProps, findByStoreName } from "@metro";
-import { ReactNative as RN } from "@metro/common";
+import { React, ReactNative as RN } from "@metro/common";
 
 import { Review } from "../def";
 import { getReviews } from "../lib/api";

@@ -1,6 +1,7 @@
 import { after } from "@api/patcher";
 import { findInReactTree } from "@lib/utils";
 import { findByTypeName } from "@metro";
+import { React } from "@metro/common";
 
 import ReviewSection from "../components/ReviewSection";
 
