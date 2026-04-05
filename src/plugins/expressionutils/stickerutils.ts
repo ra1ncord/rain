@@ -7,6 +7,7 @@ import React from "react";
 
 const { hideActionSheet } = findByProps("hideActionSheet");
 const UserSettingsProtoStore = findByStoreName("UserSettingsProtoStore");
+const GuildStore = findByStoreName("GuildStore");
 const StickerUtils = findByProps("favoriteSticker", "unfavoriteSticker");
 const { downloadMediaAsset } = findByProps("downloadMediaAsset");
 const LazyActionSheet = findByProps("hideActionSheet");
@@ -31,9 +32,13 @@ export function patchStickerActionSheet() {
             const favoritedStickers = UserSettingsProtoStore.frecencyWithoutFetchingLatest?.favoriteStickers?.stickerIds as Array<string>;
             const isFavorited = !!favoritedStickers?.find((s: string) => s === sticker.id);
             const settings = require("./storage").useExpressionUtilsSettings.getState();
+
+            // Check if user is in the guild that owns this sticker
+            const isInStickerGuild = sticker.guild_id ? GuildStore.getGuild(sticker.guild_id) !== undefined : true;
+
             const buttons = [
-                // Favorites toggle first (only if enabled)
-                settings.showFavoriteButton && {
+                // Favorites toggle first (only if enabled and user is in the guild)
+                settings.showFavoriteButton && isInStickerGuild && {
                     key: "togglefavoritesticker", text: isFavorited ? "Remove from Favorites" : "Add to Favorites", onPress: () => {
                         isFavorited ? StickerUtils.unfavoriteSticker(sticker.id) : StickerUtils.favoriteSticker(sticker.id);
                         isFavorited ? showToast("Removed from favorites!") : showToast("Added to favorites!");
