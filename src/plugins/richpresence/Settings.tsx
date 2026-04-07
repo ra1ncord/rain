@@ -2,9 +2,9 @@ import { findAssetId } from "@api/assets";
 import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro";
 import { Stack, TableRow, TableRowGroup, TableSwitchRow, TextInput } from "@metro/common/components";
-import { ScrollView, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 
-import { type Activity, type ActivityButton,DEFAULT_APP_ID, useRichPresenceSettings } from "./storage";
+import { type Activity, type ActivityButton, DEFAULT_APP_ID, useRichPresenceSettings } from "./storage";
 
 const { showSimpleActionSheet } = findByProps("showSimpleActionSheet");
 const { hideActionSheet } = findByProps("openLazy", "hideActionSheet");
@@ -231,31 +231,39 @@ export default function Settings() {
                 </TableRowGroup>
 
                 <TableRowGroup title="Images">
+                    {profile.application_id.trim() === DEFAULT_APP_ID && (
+                        <TableRow
+                            label="Note"
+                            subLabel="Images require your own Application ID"
+                        />
+                    )}
                     <InputRow
                         label="Large Image"
                         value={profile.assets?.large_image ?? ""}
                         onChange={(v: string) => updateProfile({ assets: { ...profile.assets, large_image: v } })}
                         placeholder="asset_key or URL"
+                        isDisabled={profile.application_id.trim() === DEFAULT_APP_ID}
                     />
                     <InputRow
                         label="Large Image Text"
                         value={profile.assets?.large_text ?? ""}
                         onChange={(v: string) => updateProfile({ assets: { ...profile.assets, large_text: v } })}
                         placeholder="Displayed on hover"
-                        isDisabled={!profile.assets?.large_image}
+                        isDisabled={!profile.assets?.large_image || profile.application_id.trim() === DEFAULT_APP_ID}
                     />
                     <InputRow
                         label="Small Image"
                         value={profile.assets?.small_image ?? ""}
                         onChange={(v: string) => updateProfile({ assets: { ...profile.assets, small_image: v } })}
                         placeholder="asset_key or URL"
+                        isDisabled={profile.application_id.trim() === DEFAULT_APP_ID}
                     />
                     <InputRow
                         label="Small Image Text"
                         value={profile.assets?.small_text ?? ""}
                         onChange={(v: string) => updateProfile({ assets: { ...profile.assets, small_text: v } })}
                         placeholder="Displayed on hover"
-                        isDisabled={!profile.assets?.small_image}
+                        isDisabled={!profile.assets?.small_image || profile.application_id.trim() === DEFAULT_APP_ID}
                     />
                 </TableRowGroup>
 
