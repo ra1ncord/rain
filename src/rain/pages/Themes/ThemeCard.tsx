@@ -4,21 +4,21 @@ import { FluxDispatcher, navigation } from "@metro/common";
 import { applyMonetTheme } from "@plugins/_core/painter/monet";
 import { ThemeInfo,useThemes } from "@plugins/_core/painter/themes";
 import { ColorManifest, RainColorManifest, ThemeManifest } from "@plugins/_core/painter/themes/types";
-import AddonCard, { CardWrapper } from "@rain/pages/Addon/AddonCard";
+import AddonCard, { CardWrapper, CompactCardWrapper } from "@rain/pages/Addon/AddonCard";
 import * as React from "react";
 
-async function selectAndApply(value: boolean, theme: ThemeInfo) {
+function selectAndApply(value: boolean, theme: ThemeInfo) {
     try {
         if (value) {
             applyMonetTheme(null);
         }
-        await useThemes.getState().selectTheme(value ? theme.id : null);
+        useThemes.getState().selectTheme(value ? theme.id : null);
     } catch (e: any) {
         console.error("Error while selectAndApply,", e);
     }
 }
 
-export default function ThemeCard({ item: theme }: CardWrapper<ThemeInfo>) {
+export default function ThemeCard({ item: theme, compact }: CardWrapper<ThemeInfo> | CompactCardWrapper<ThemeInfo>) {
     const isSelected = useThemes(
         React.useCallback(
             state => state.themes[theme.id]?.selected ?? false,
@@ -41,6 +41,7 @@ export default function ThemeCard({ item: theme }: CardWrapper<ThemeInfo>) {
 
     return (
         <AddonCard
+            compact={compact}
             headerLabel={name}
             headerSublabel={authors ? `by ${authors.map((i: any) => i.name).join(", ")}` : ""}
             headerLabelVariant="heading-lg/semibold"

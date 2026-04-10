@@ -6,6 +6,8 @@ const {
     Stack,
     TableRadioGroup,
     TableRadioRow,
+    TableRowGroup,
+    TableSwitchRow,
 } = findByProps("TableRow");
 
 const SETTINGS_POSITIONS = [
@@ -20,11 +22,20 @@ const INFO_OPTIONS = [
 ];
 
 export default function SettingsPage() {
-    const { settingsPosition, pluginCard, updateSettings } = useSettings();
+    const { settingsPosition, pluginCard, compactMode, updateSettings } = useSettings();
 
     return (
         <ScrollView style={{ flex: 1 }}>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
+                <TableRowGroup title="Display">
+                    <TableSwitchRow
+                        label="Compact Mode"
+                        subLabel="Show plugins and themes in a compact list view"
+                        value={compactMode}
+                        onValueChange={(value: boolean) => updateSettings({ compactMode: value })}
+                    />
+                </TableRowGroup>
+
                 <TableRadioGroup
                     title="Settings Position"
                     titleStyle={{ marginTop: 5 }}

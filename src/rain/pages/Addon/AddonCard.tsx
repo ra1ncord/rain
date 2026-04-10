@@ -25,6 +25,12 @@ const useStyles = createStyles({
         justifyContent: "center",
         scale: 1.2
     },
+    headerLeadingCompact: {
+        flex: 1,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8
+    },
     headerTrailing: {
         display: "flex",
         flexDirection: "row",
@@ -33,6 +39,9 @@ const useStyles = createStyles({
     },
     headerLabel: {
         ...TextStyleSheet["heading-lg/semibold"],
+    },
+    headerLabelCompact: {
+        ...TextStyleSheet["text-md/semibold"],
     },
     headerSubtitle: {
         ...TextStyleSheet["text-sm/semibold"],
@@ -72,10 +81,16 @@ interface OverflowAction extends Action {
 export interface CardWrapper<T> {
     item: T;
     result: Fuzzysort.KeysResult<T>;
+    compact?: boolean;
+}
+
+export interface CompactCardWrapper<T> extends CardWrapper<T> {
+    compact: true;
 }
 
 interface CardProps {
     index?: number;
+    compact?: boolean;
     headerLabel: string;
     headerSublabel?: string;
     headerIcon?: string;
@@ -96,12 +111,51 @@ interface CardProps {
 export default function AddonCard(props: CardProps) {
     const styles = useStyles();
 
+    const leadingStyle = props.compact ? styles.headerLeadingCompact : styles.headerLeading;
+    const labelStyle = props.compact ? styles.headerLabelCompact : styles.headerLabel;
+
+    if (props.compact) {
+        return (
+            <Card style={{ paddingVertical: 8, paddingHorizontal: 12 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                    <View style={leadingStyle}>
+                        <Text variant="text-md/semibold" numberOfLines={1} ellipsizeMode="tail" style={labelStyle}>{props.headerLabel}</Text>
+                    </View>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                        {props.actions?.map(({ icon, onPress, disabled }) => (
+                            <IconButton
+                                key={icon}
+                                onPress={onPress}
+                                disabled={disabled}
+                                size="sm"
+                                variant="secondary"
+                                icon={findAssetId(icon)}
+                            />
+                        ))}
+                        {props.toggleType && (props.toggleType === "switch" ?
+                            <FormSwitch
+                                value={props.toggleValue()}
+                                onValueChange={props.onToggleChange}
+                            />
+                            :
+                            <TouchableOpacity onPress={() => {
+                                props.onToggleChange?.(!props.toggleValue());
+                            }}>
+                                <FormRadio selected={props.toggleValue()} />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                </View>
+            </Card >
+        );
+    }
+
     return (
         <Card>
             <Stack spacing={16}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <View style={styles.headerLeading}>
-                        <Text variant={props.headerLabelVariant} numberOfLines={1} ellipsizeMode="tail" style={{ ...styles.headerLabel, ...props.headerLabelStyle }}>{props.headerLabel}</Text>
+                    <View style={leadingStyle}>
+                        <Text variant={props.headerLabelVariant} numberOfLines={1} ellipsizeMode="tail" style={{ ...labelStyle, ...props.headerLabelStyle }}>{props.headerLabel}</Text>
                         {props.headerSublabel && (
                             <Text variant={props.headerSublabelVariant} color={props.headerSublabelColor} style={{ ...styles.headerSubtitle, ...props.headerSublabelStyle }}>{props.headerSublabel}</Text>
                         )}

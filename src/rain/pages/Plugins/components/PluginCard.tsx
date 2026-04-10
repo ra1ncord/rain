@@ -16,7 +16,7 @@ import {
     Text,
 } from "@metro/common/components";
 import { isPluginCore, usePluginSettings } from "@plugins";
-import { CardWrapper } from "@rain/pages/Addon/AddonCard";
+import { CardWrapper, CompactCardWrapper } from "@rain/pages/Addon/AddonCard";
 import { UnifiedPluginModel } from "@rain/pages/Plugins/models";
 import chroma from "chroma-js";
 import { createContext, useContext, useMemo, useState } from "react";
@@ -144,10 +144,13 @@ const Actions = () => {
 export default function PluginCard({
     result,
     item: plugin,
-}: CardWrapper<UnifiedPluginModel>) {
+    compact,
+}: CardWrapper<UnifiedPluginModel> | CompactCardWrapper<UnifiedPluginModel>) {
     const [toggling, setToggling] = useState(false);
     const cardContextValue = useMemo(() => ({ plugin, result }), [plugin, result]);
     const core = isPluginCore(plugin.id);
+    const { pinnedPlugins } = useSettings(s => s);
+    const isPinned = pinnedPlugins?.includes(plugin.id);
 
     const pluginEnabled = usePluginSettings(s => s.settings[plugin.id]?.enabled ?? core);
 
@@ -187,6 +190,58 @@ export default function PluginCard({
     const navigation = NavigationNative.useNavigation();
     const { pluginCard } = useSettings(s => s);
     const openOnPress = pluginCard?.openOnPress;
+
+    if (compact) {
+        return (
+            <CardContext.Provider value={cardContextValue}>
+                <Pressable
+                    style={({ pressed }) => openOnPress && pressed ? [{ opacity: 0.75 }] : []}
+                    onPress={openOnPress
+                        ? () =>
+                            void showSheet(
+                                "PluginInfoActionSheet",
+                                plugin.resolveSheetComponent(),
+                                { plugin, navigation },
+                            )
+                        : undefined
+                    }
+                >
+                    <Card style={{ paddingVertical: 8, paddingHorizontal: 12 }}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                            <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 8 }}>
+                                {isPinned && <Image source={findAssetId("PinIcon")} />}
+                                <Text numberOfLines={1} variant="text-md/semibold">
+                                    {plugin.name}
+                                </Text>
+                            </View>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                                {plugin.getPluginSettingsComponent?.() &&
+                                    <IconButton
+                                        size="sm"
+                                        variant="secondary"
+                                        icon={findAssetId("SettingsIcon")}
+                                        onPress={() =>
+                                            navigation.push("RAIN_CUSTOM_PAGE", {
+                                                title: plugin.name,
+                                                render: plugin.getPluginSettingsComponent?.(),
+                                            })
+                                        }
+                                    />
+                                }
+                                <View style={core ? { opacity: 0.5 } : undefined}>
+                                    <TableSwitch
+                                        value={pluginEnabled}
+                                        disabled={core || toggling}
+                                        onValueChange={handleToggle}
+                                    />
+                                </View>
+                            </View>
+                        </View>
+                    </Card>
+                </Pressable>
+            </CardContext.Provider>
+        );
+    }
 
     return (
         <CardContext.Provider value={cardContextValue}>

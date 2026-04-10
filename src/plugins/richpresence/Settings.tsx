@@ -2,7 +2,7 @@ import { findAssetId } from "@api/assets";
 import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro";
 import { Stack, TableRow, TableRowGroup, TableSwitchRow, TextInput } from "@metro/common/components";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, View } from "react-native";
 
 import { type Activity, type ActivityButton, DEFAULT_APP_ID, useRichPresenceSettings } from "./storage";
 

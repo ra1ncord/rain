@@ -19,6 +19,7 @@ export interface Settings {
     showInfoButton: boolean;
     openOnPress: boolean;
   };
+  compactMode: boolean;
   assetBrowser: {
     enabledFilters: Record<string, boolean>;
   };
@@ -52,6 +53,7 @@ export const useSettings = create<SettingsStore>()(
             safeMode: false,
             disableUpdateWarnings: false,
             settingsPosition: "TOP",
+            compactMode: false,
             pluginCard: {
                 showInfoButton: false,
                 openOnPress: true,

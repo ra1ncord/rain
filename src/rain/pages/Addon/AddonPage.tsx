@@ -13,7 +13,7 @@ import { ComponentType, ReactNode, useCallback, useEffect, useMemo } from "react
 import * as React from "react";
 import { Image, ScrollView, View } from "react-native";
 
-import { CardWrapper } from "./AddonCard";
+import { CardWrapper, CompactCardWrapper } from "./AddonCard";
 
 type SearchKeywords<T> = Array<string | ((obj: T & {}) => string)>;
 
@@ -45,8 +45,9 @@ interface AddonPageProps<T extends object, I = any> {
 
     OptionsActionSheetComponent?: ComponentType<any>;
 
-    CardComponent: ComponentType<CardWrapper<T>>;
-    ListHeaderComponent?: ComponentType<any>;
+    CardComponent: ComponentType<CardWrapper<T> | CompactCardWrapper<T>>;
+    compact?: boolean;
+    ListHeaderComponent?: ComponentType<{ compact?: boolean }>;
     ListFooterComponent?: ComponentType<any>;
 }
 
@@ -121,6 +122,7 @@ function InputAlert(props: { label: string, fetchFn: (url: string) => Promise<vo
 export default function AddonPage<T extends object>({ CardComponent, ...props }: AddonPageProps<T>) {
     const settings = useSettings();
     const [search, setSearch] = React.useState("");
+    const [compact, setCompact] = React.useState(settings.compactMode ?? false);
     const [sortFn, setSortFn] = React.useState<((a: T, b: T) => number) | null>(() => props.defaultSortKey && props.sortOptions ? props.sortOptions[props.defaultSortKey] : null);
     const [selectedSortKey, setSelectedSortKey] = React.useState(props.defaultSortKey || "");
     const [activeFilterKeys, setActiveFilterKeys] = React.useState<string[]>(props.defaultFilterKey ? [props.defaultFilterKey] : []);
@@ -145,6 +147,10 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
             });
         }
     }, [navigation]);
+
+    useEffect(() => {
+        setCompact(settings.compactMode ?? false);
+    }, [settings.compactMode]);
 
     useEffect(() => {
         const sortKey = props.defaultSortKey;
@@ -245,7 +251,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
                     onPress={() => showSheet("SortAndFilterActionSheet", SortAndFilterActionSheet, { sortKey: selectedSortKey, filterKeys: activeFilterKeys })}
                 />}
             </View>
-            {props.ListHeaderComponent && <props.ListHeaderComponent />}
+            {props.ListHeaderComponent && <props.ListHeaderComponent compact={compact} />}
         </View>
     );
 
@@ -278,7 +284,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
             <FlashList
                 data={results}
                 extraData={search}
-                estimatedItemSize={120}
+                estimatedItemSize={compact ? 72 : 120}
                 ListHeaderComponent={headerElement}
                 ListEmptyComponent={() => <View style={{ gap: 12, padding: 12, alignItems: "center" }}>
                     <Image source={findAssetId("devices_not_found")!} />
@@ -289,7 +295,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
                 contentContainerStyle={{ padding: 8, paddingHorizontal: 12, paddingBottom: 90 }}
                 ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
                 ListFooterComponent={props.ListFooterComponent}
-                renderItem={({ item }: any) => <CardComponent item={item.obj} result={item} />}
+                renderItem={({ item }: any) => <CardComponent item={item.obj} result={item} compact={compact} />}
             />
             {props.installBrowserAction && <FloatingActionButton
                 positionBottom={bottomInset + 8}
