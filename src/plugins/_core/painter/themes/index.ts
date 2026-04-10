@@ -66,9 +66,9 @@ function processData(data: ThemeManifest) {
         if (Platform.OS === "android") applyAndroidAlphaKeys(rawColors);
     }
 
-    if (data.spec === undefined) {
+    if ((data.spec as any) == null) {
         if (!("theme_color_map" in data)) {
-            data.spec = 2;
+            (data as any).spec = 2;
         }
     }
 
