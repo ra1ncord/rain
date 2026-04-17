@@ -277,13 +277,13 @@ export default function Settings() {
                         <>
                             <InputRow
                                 label="Start"
-                                value=""
+                                value={profile.timestamps?.start ? formatDuration(Date.now() - profile.timestamps.start) : ""}
                                 onChange={handleStartInput}
                                 placeholder="e.g. 30m, 2h, 1d"
                             />
                             <InputRow
                                 label="End"
-                                value=""
+                                value={profile.timestamps?.end ? formatDuration(profile.timestamps.end - Date.now()) : ""}
                                 onChange={handleEndInput}
                                 placeholder="e.g. 1h, 4h, 24h (leave empty for no end)"
                             />

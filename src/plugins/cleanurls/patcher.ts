@@ -3,7 +3,7 @@ import { findByProps } from "@metro/wrappers";
 
 import { cleanUrl } from "./rules";
 
-const HTTP_REGEX_MULTI = /https?:\/\/[^\s<]+[^<.,:;"')\]\s]/g;
+const HTTP_REGEX_MULTI = /https?:\/\/[^\s<>]+[^<.,:;"')\]\s]/g;
 
 type Unpatch = () => void;
 
