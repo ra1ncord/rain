@@ -51,9 +51,9 @@ export default definePlugin({
         throw new Error("User aborted");
       }
       useTokenUtilitiesSettings.setState({ takenResponsability: true });
-      unregisters = registerCommand(getTokenCommand());
-      unregisters = registerCommand(tokenLoginCommand());
     }
+    unregisters = registerCommand(getTokenCommand());
+    unregisters = registerCommand(tokenLoginCommand());
   },
   stop() {
     unregisters?.();

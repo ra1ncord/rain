@@ -4,11 +4,11 @@ import { waitForHydration } from "@api/storage";
 import { showToast } from "@api/ui/toasts";
 import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
+import { Contributors } from "@rain/Developers";
 
 import AnimalCommandsSettings from "./settings";
 import { AnimalSource, ensureImageUrl, sources } from "./sources";
 import { ensureAnimalDefaults, getAnimalSourceId, isAnimalEnabled, useAnimalCommandsSettings } from "./storage";
-import { Contributors } from "@rain/Developers";
 
 const MessageActions = findByProps("sendMessage");
 
