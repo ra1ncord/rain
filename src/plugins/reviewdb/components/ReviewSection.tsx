@@ -18,7 +18,6 @@ interface ReviewSectionProps {
 }
 
 const { FlashList } = findByProps("FlashList");
-const { getDisplayProfile } = findByProps("getDisplayProfile");
 
 export default function ReviewSection({ userId }: ReviewSectionProps) {
     const [reviews, setReviews] = React.useState<Review[]>([]);
@@ -32,8 +31,6 @@ export default function ReviewSection({ userId }: ReviewSectionProps) {
         reviews.filter(i => i.sender.discordID === getCurrentUser()?.id)
             .length !== 0;
 
-    const themeColors = getDisplayProfile?.(userId)?.themeColors;
-
     const reviewdbSettings = useReviewDBSettings();
 
     const useStyles = createStyles({
@@ -43,18 +40,12 @@ export default function ReviewSection({ userId }: ReviewSectionProps) {
             borderRadius: 18,
         },
         card: {
-            backgroundColor:
-                themeColors === undefined
-                    ? semanticColors.CARD_PRIMARY_BG
-                    : "#00000073",
+            backgroundColor: semanticColors.CARD_PRIMARY_BG,
             borderRadius: 16,
             padding: 8,
         },
         reviewCard: {
-            backgroundColor:
-                themeColors === undefined
-                    ? semanticColors.CARD_SECONDARY_BG
-                    : "#00000083",
+            backgroundColor: semanticColors.CARD_SECONDARY_BG,
         },
     });
 
