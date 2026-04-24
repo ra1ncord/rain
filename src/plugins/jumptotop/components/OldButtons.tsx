@@ -1,7 +1,8 @@
 import { findAssetId } from "@api/assets";
+import { IconButton } from "@metro/common/components";
+
 import { jumpToTop } from "../utils";
 import { UpsideDown } from "./UpsideDown";
-import { IconButton } from "@metro/common/components";
 
 const commonProps = {
     variant: "secondary",

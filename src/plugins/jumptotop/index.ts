@@ -1,8 +1,9 @@
 import { definePlugin } from "@plugins";
-import Settings from "./components/settings";
-import { patchJumpToPresent } from "./patches/jumptopresent";
-import { patchActionSheets } from "./patches/actionsheets";
 import { Contributors } from "@rain/Developers";
+
+import Settings from "./components/settings";
+import { patchActionSheets } from "./patches/actionsheets";
+import { patchJumpToPresent } from "./patches/jumptopresent";
 
 export let patches: (() => void)[] = [];
 

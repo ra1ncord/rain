@@ -1,10 +1,11 @@
-import { findByName, findByProps, findByStoreName } from "@metro";
-import { after } from "@api/patcher";
-import { React } from "@metro/common";
-import JumpToTopButton from "../components/JumpToTopButton";
-import { jumpToTopSettings } from "../storage";
 import { findAssetId } from "@api/assets";
+import { after } from "@api/patcher";
+import { findByName, findByProps, findByStoreName } from "@metro";
+import { React } from "@metro/common";
+
+import JumpToTopButton from "../components/JumpToTopButton";
 import { OldButtons } from "../components/OldButtons";
+import { jumpToTopSettings } from "../storage";
 import { ChannelType } from "../utils";
 
 const JumpToPresentModule = findByName("JumpToPresentButton", false);

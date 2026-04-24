@@ -1,15 +1,16 @@
-import { findByName, findByProps } from "@metro";
-import { after } from "@api/patcher";
 import { findAssetId } from "@api/assets";
+import { after } from "@api/patcher";
 import { findInReactTree } from "@lib/utils";
+import { findByName } from "@metro";
+import { ActionSheetRow } from "@metro/common/components";
+
+import { UpsideDown } from "../components/UpsideDown";
+import { jumpToTopSettings } from "../storage";
 import {
     ChannelType,
     jumpToTopOfDifferentChannel,
     jumpToTopOfForum,
 } from "../utils";
-import { jumpToTopSettings } from "../storage";
-import { UpsideDown } from "../components/UpsideDown";
-import { ActionSheetRow } from "@metro/common/components";
 
 const ForumPostLongPressActionSheet = findByName(
     "ForumPostLongPressActionSheet",
@@ -26,7 +27,7 @@ const SYM_PATCHED = Symbol.for("Patched by JumpToTop");
 function findActionGroups(tree: any) {
     return findInReactTree(
         tree,
-        (node) => node?.[0]?.type?.name === "ActionSheetRowGroup",
+        node => node?.[0]?.type?.name === "ActionSheetRowGroup",
     );
 }
 

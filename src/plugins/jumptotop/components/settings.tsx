@@ -1,4 +1,5 @@
 import { Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
+
 import { useJumpToTopSettings } from "../storage";
 
 export default function Settings() {
@@ -16,7 +17,7 @@ export default function Settings() {
                         "Add the JumpToTop button above the Jump to Present button in chats."
                     }
                     value={settings.jumpToPresent}
-                    onValueChange={(result) => useJumpToTopSettings.getState().updateSettings({ jumpToPresent: result })}
+                    onValueChange={result => useJumpToTopSettings.getState().updateSettings({ jumpToPresent: result })}
                 />
                 <TableSwitchRow
                     label={"Add button to action sheets"}
@@ -24,7 +25,7 @@ export default function Settings() {
                         "Add the JumpToTop button to channel and forum action sheets."
                     }
                     value={settings.actionSheets}
-                    onValueChange={(result) => useJumpToTopSettings.getState().updateSettings({ actionSheets: result })}
+                    onValueChange={result => useJumpToTopSettings.getState().updateSettings({ actionSheets: result })}
                 />
                 <TableSwitchRow
                     label={"Switch back to the old colors"}
@@ -32,7 +33,7 @@ export default function Settings() {
                         "Switch back to old Jump To Present button color in dark mode (grey)."
                     }
                     value={settings.oldButton}
-                    onValueChange={(result) => useJumpToTopSettings.getState().updateSettings({ oldButton: result })}
+                    onValueChange={result => useJumpToTopSettings.getState().updateSettings({ oldButton: result })}
                 />
             </TableRowGroup>
         </Stack>
