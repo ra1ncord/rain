@@ -1,7 +1,6 @@
 import { useSettings } from "@api/settings";
 import { showSheet } from "@api/ui/sheets";
 import { FluxDispatcher, navigation } from "@metro/common";
-import { applyMonetTheme } from "@plugins/_core/painter/monet";
 import { ThemeInfo,useThemes } from "@plugins/_core/painter/themes";
 import { ColorManifest, RainColorManifest, ThemeManifest } from "@plugins/_core/painter/themes/types";
 import AddonCard, { CardWrapper, CompactCardWrapper } from "@rain/pages/Addon/AddonCard";
@@ -9,9 +8,6 @@ import * as React from "react";
 
 function selectAndApply(value: boolean, theme: ThemeInfo) {
     try {
-        if (value) {
-            applyMonetTheme(null);
-        }
         useThemes.getState().selectTheme(value ? theme.id : null);
     } catch (e: any) {
         console.error("Error while selectAndApply,", e);

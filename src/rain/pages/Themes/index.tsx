@@ -11,7 +11,6 @@ import {
     TableRowIcon,
     TableSwitchRow,
 } from "@metro/common/components";
-import MonetCard from "@plugins/_core/painter/monet/MonetCard";
 import initPlus from "@plugins/_core/painter/plus/stuff/loader";
 import { getCurrentTheme, installTheme, ThemeInfo,useThemes } from "@plugins/_core/painter/themes";
 import { useColorsPref } from "@plugins/_core/painter/themes/preferences";
@@ -59,7 +58,6 @@ export default function Themes() {
                 message: Strings.THEMES_DISABLED_IN_SAFE_MODE,
             }}
             CardComponent={ThemeCard}
-            ListHeaderComponent={MonetCard}
             OptionsActionSheetComponent={() => {
                 const { type, customBackground, setType, setCustomBackground } = useColorsPref();
                 const { iconsEnabled, setIconsEnabled } = useColorsPref();
