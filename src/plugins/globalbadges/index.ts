@@ -84,24 +84,24 @@ export default definePlugin({
             after("default", useBadgesModule, ([user], result) => {
                 if (!user) return;
                 const { userId } = user;
-                const cached = customBadgesCache.get(userId);
+                const badges = customBadgesCache.get(userId);
 
-                if (!cached) {
+                if (!badges) {
                     if (!pendingRequests.has(userId)) {
                         pendingRequests.add(userId);
-                        fetchBadges(userId).then(badges => {
-                            customBadgesCache.set(userId, badges);
+                        fetchBadges(userId).then(fetched => {
+                            customBadgesCache.set(userId, fetched);
                             pendingRequests.delete(userId);
-                            processBadges(badges, user);
+                            processBadges(fetched, user);
                             FluxDispatcher.dispatch({ type: "USER_UPDATE", user: { id: userId } });
                         });
                     }
                     return;
                 }
 
-                processBadges(cached, user);
+                processBadges(badges, user);
 
-                Object.entries(cached).forEach(([key, value]: [string, any]) => {
+                Object.entries(badges).forEach(([key, value]: [string, any]) => {
                     const isModBadge = ["aliu", "bd", "enmity", "goosemod", "replugged", "vencord", "equicord"].includes(key);
                     const isCustomBadge = ["customBadgesArray", "reviewdb"].includes(key);
 
