@@ -1,10 +1,10 @@
 import { before } from "@api/patcher";
-import { createFileStorage } from "@api/storage";
 import { showToast } from "@api/ui/toasts";
 import { findByName, findByProps, findByStoreName } from "@metro";
 import { definePlugin } from "@plugins";
 import { Contributors, Developers } from "@rain/Developers";
 
+import { addLogEntry, clearLogs, repairCorruptedLogs } from "./database";
 import Settings from "./settings";
 import { useMessageLoggerSettings } from "./storage";
 
@@ -14,35 +14,22 @@ let MessageStore: any;
 let UserStore: any;
 const deleteable: string[] = [];
 
-const dbStorage = createFileStorage("public/message_logs.json");
-
-async function logToDatabase(message: any, type: "DELETE" | "UPDATE") {
-    try {
-        const rawLogs = dbStorage.getItem("logs");
-        let currentLogs: any[] = [];
-        if (typeof rawLogs === "string") {
-            try { currentLogs = JSON.parse(rawLogs); } catch { currentLogs = []; }
-        }
-        const logEntry = {
-            timestamp: new Date().toISOString(),
-            type,
-            messageId: message.id,
-            channelId: message.channelId,
-            author: {
-                id: message.author?.id,
-                username: message.author?.username,
-                discriminator: message.author?.discriminator,
-                bot: !!message.author?.bot
-            },
-            content: message.content,
-            attachments: message.attachments?.map((a: any) => a.url) || []
-        };
-        currentLogs.push(logEntry);
-        if (currentLogs.length > 1000) currentLogs.shift();
-        dbStorage.setItem("logs", JSON.stringify(currentLogs));
-    } catch (e) {
-        console.error("[MessageLogger] DB Log Error:", e);
-    }
+function logToDatabase(message: any, type: "DELETE" | "UPDATE") {
+    const logEntry = {
+        timestamp: new Date().toISOString(),
+        type,
+        messageId: message.id,
+        channelId: message.channelId,
+        author: {
+            id: message.author?.id,
+            username: message.author?.username,
+            discriminator: message.author?.discriminator,
+            bot: !!message.author?.bot
+        },
+        content: message.content,
+        attachments: message.attachments?.map((a: any) => a.url) || []
+    };
+    addLogEntry(logEntry);
 }
 
 function isBot(author: any): boolean {
@@ -114,7 +101,7 @@ function patchMessageDeleteHandler() {
                 }
 
                 if (storage.databaseLogging) {
-                    logToDatabase(message, "DELETE").catch(() => {});
+                    logToDatabase(message, "DELETE");
                 }
 
                 deleteable.push(id);
@@ -327,6 +314,8 @@ export default definePlugin({
     version: "2.0.0",
     settings: Settings,
     start() {
+        clearLogs();
+        repairCorruptedLogs();
         patches.push(patchDeleteAction());
         patches.push(patchMessageDeleteHandler());
         patches.push(patchMessageEditHandler());
