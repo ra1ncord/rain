@@ -71,7 +71,8 @@ export default function ReviewSection({ userId }: ReviewSectionProps) {
                         )}
                         keyExtractor={(item: any) => item.sender.username}
                         scrollEnabled={false}
-                        estimatedSize={84}
+                        estimatedSize={100}
+                        estimatedItemSize={74}
                     />
                     <ReviewInput
                         userId={userId}
