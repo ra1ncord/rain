@@ -108,7 +108,7 @@ export class ListenBrainzService extends BaseService {
                 }
 
                 // Use a permissive any type for response, then normalize with extractListens
-                const playingNowRaw: any = this.makeRequest(playingNowUrl, {
+                const playingNowRaw: any = await this.makeRequest(playingNowUrl, {
                     headers,
                 });
                 const playingNowListens = extractListens(playingNowRaw);
@@ -135,7 +135,7 @@ export class ListenBrainzService extends BaseService {
                     headers.Authorization = `Token ${token}`;
                 }
 
-                const dataRaw: any = this.makeRequest(url, {
+                const dataRaw: any = await this.makeRequest(url, {
                     headers,
                 });
 
