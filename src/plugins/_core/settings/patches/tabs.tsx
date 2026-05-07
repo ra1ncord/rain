@@ -15,7 +15,6 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
         .flatMap(sect => sect.map(row => ({
             [row.key]: {
                 type: "pressable",
-                title: row.title,
                 icon: row.icon,
                 IconComponent: () => <TableRow.Icon source={row.icon} />,
                 usePredicate: row.usePredicate,
@@ -38,7 +37,6 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
             ...rendererConfigValue,
             RAIN_CUSTOM_PAGE: {
                 type: "route",
-                title: () => "Rain",
                 useTitle: () => "Rain",
                 screen: {
                     route: "RAIN_CUSTOM_PAGE",
