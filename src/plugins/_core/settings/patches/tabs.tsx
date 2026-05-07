@@ -20,6 +20,7 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
                 IconComponent: () => <TableRow.Icon source={row.icon} />,
                 usePredicate: row.usePredicate,
                 useTrailing: row.useTrailing,
+                useTitle: row.title,
                 onPress: wrapOnPress(row.onPress, null, row.render, row.title()),
                 withArrow: true,
                 ...row.rawTabsConfig
@@ -38,6 +39,7 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
             RAIN_CUSTOM_PAGE: {
                 type: "route",
                 title: () => "Rain",
+                useTitle: () => "Rain",
                 screen: {
                     route: "RAIN_CUSTOM_PAGE",
                     getComponent: () => CustomPageRenderer
