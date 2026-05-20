@@ -115,7 +115,7 @@ const fetchFromTinyFoxOtter = async () => {
         const loc = data?.loc || data?.url || data?.image;
         if (typeof loc === "string" && loc) {
             if (loc.startsWith("http://") || loc.startsWith("https://")) return loc;
-            if (loc.startsWith("/")) return `https://tinyfox.dev${loc}`;
+            if (loc.startsWith("/")) return `https://api.tinyfox.dev${loc}`;
         }
     } catch {
 
