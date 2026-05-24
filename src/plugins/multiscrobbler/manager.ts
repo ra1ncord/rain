@@ -390,15 +390,20 @@ class PluginManager {
                     });
             })
             .then(() => {
+                const isLibreFm = currentSettings.service === "librefm";
+                const minInterval = isLibreFm
+                    ? Constants.LIBREFM_MIN_UPDATE_INTERVAL
+                    : Constants.MIN_UPDATE_INTERVAL;
+
                 const interval = Math.max(
                     (Number(currentSettings.timeInterval) ||
-            Constants.DEFAULT_SETTINGS.timeInterval) * 1000,
-                    Constants.MIN_UPDATE_INTERVAL * 1000,
+                        Constants.DEFAULT_SETTINGS.timeInterval) * 1000,
+                    minInterval * 1000,
                 );
 
                 this.updateTimer = setInterval(() => this.updateActivity(), interval);
                 logger.verbose(
-                    `Update timer started with interval: ${interval}ms (${interval / 1000}s)`,
+                    `Update timer started with interval: ${interval}ms (${interval / 1000}s)${isLibreFm ? " (Enforcing Libre.fm minimum)" : ""}`,
                 );
             })
             .catch(error => {

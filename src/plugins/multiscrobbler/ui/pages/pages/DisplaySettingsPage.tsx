@@ -13,6 +13,7 @@ import {
 
 export default function DisplaySettingsPage() {
     const settings = useMultiScrobblerSettings();
+    const isLibreFm = settings.service === "librefm";
 
     return (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 10 }}>
@@ -25,16 +26,23 @@ export default function DisplaySettingsPage() {
                             onChange={(v: string) => setStorage("appName", v)}
                             isClearable
                         />
-                        <Card style={{ padding: 16 }}>
-                            <SliderRow
+                        {!isLibreFm ? (
+                            <Card style={{ padding: 16 }}>
+                                <SliderRow
+                                    label="Update Interval"
+                                    value={settings.timeInterval}
+                                    minimumValue={Constants.MIN_UPDATE_INTERVAL}
+                                    maximumValue={Constants.MAX_UPDATE_INTERVAL}
+                                    suffix="s"
+                                    onChange={(v: number) => setStorage("timeInterval", v)}
+                                />
+                            </Card>
+                        ) : (
+                            <TableRow
                                 label="Update Interval"
-                                value={settings.timeInterval}
-                                minimumValue={Constants.MIN_UPDATE_INTERVAL}
-                                maximumValue={Constants.MAX_UPDATE_INTERVAL}
-                                suffix="s"
-                                onChange={(v: number) => setStorage("timeInterval", v)}
+                                subLabel="Locked to 60s per request of the Libre.fm team to reduce server load."
                             />
-                        </Card>
+                        )}
                     </Stack>
                 </TableRowGroup>
 
@@ -43,14 +51,18 @@ export default function DisplaySettingsPage() {
                         label="App Name"
                         subLabel="The name shown in Discord for your activity"
                     />
-                    <TableRow
-                        label="Update Interval"
-                        subLabel="How often the plugin checks for new tracks (in seconds)"
-                    />
-                    <TableRow
-                        label="Minimum Interval"
-                        subLabel={`The plugin will never check more frequently than ${Constants.MIN_UPDATE_INTERVAL} seconds`}
-                    />
+                    {!isLibreFm && (
+                        <>
+                            <TableRow
+                                label="Update Interval"
+                                subLabel="How often the plugin checks for new tracks (in seconds)"
+                            />
+                            <TableRow
+                                label="Minimum Interval"
+                                subLabel={`The plugin will never check more frequently than ${Constants.MIN_UPDATE_INTERVAL} seconds`}
+                            />
+                        </>
+                    )}
                 </TableRowGroup>
             </Stack>
         </ScrollView>
