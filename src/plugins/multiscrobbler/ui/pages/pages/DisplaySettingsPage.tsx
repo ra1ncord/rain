@@ -26,20 +26,21 @@ export default function DisplaySettingsPage() {
                             onChange={(v: string) => setStorage("appName", v)}
                             isClearable
                         />
-                        <Card style={{ padding: 16 }}>
-                            <SliderRow
-                                label="Update Interval"
-                                value={isLibreFm ? Constants.LIBREFM_MIN_UPDATE_INTERVAL : settings.timeInterval}
-                                minimumValue={isLibreFm ? Constants.LIBREFM_MIN_UPDATE_INTERVAL : Constants.MIN_UPDATE_INTERVAL}
-                                maximumValue={Constants.MAX_UPDATE_INTERVAL}
-                                suffix="s"
-                                onChange={(v: number) => !isLibreFm && setStorage("timeInterval", v)}
-                            />
-                        </Card>
-                        {isLibreFm && (
+                        {!isLibreFm ? (
+                            <Card style={{ padding: 16 }}>
+                                <SliderRow
+                                    label="Update Interval"
+                                    value={settings.timeInterval}
+                                    minimumValue={Constants.MIN_UPDATE_INTERVAL}
+                                    maximumValue={Constants.MAX_UPDATE_INTERVAL}
+                                    suffix="s"
+                                    onChange={(v: number) => setStorage("timeInterval", v)}
+                                />
+                            </Card>
+                        ) : (
                             <TableRow
-                                label="Libre.fm Rate Limit"
-                                subLabel="Locked to 60 seconds per request. Requested by the Libre.fm team."
+                                label="Update Interval"
+                                subLabel="Locked to 60s per request of the Libre.fm team to reduce server load."
                             />
                         )}
                     </Stack>
@@ -50,14 +51,18 @@ export default function DisplaySettingsPage() {
                         label="App Name"
                         subLabel="The name shown in Discord for your activity"
                     />
-                    <TableRow
-                        label="Update Interval"
-                        subLabel="How often the plugin checks for new tracks (in seconds)"
-                    />
-                    <TableRow
-                        label="Minimum Interval"
-                        subLabel={`The plugin will never check more frequently than ${isLibreFm ? Constants.LIBREFM_MIN_UPDATE_INTERVAL : Constants.MIN_UPDATE_INTERVAL} seconds`}
-                    />
+                    {!isLibreFm && (
+                        <>
+                            <TableRow
+                                label="Update Interval"
+                                subLabel="How often the plugin checks for new tracks (in seconds)"
+                            />
+                            <TableRow
+                                label="Minimum Interval"
+                                subLabel={`The plugin will never check more frequently than ${Constants.MIN_UPDATE_INTERVAL} seconds`}
+                            />
+                        </>
+                    )}
                 </TableRowGroup>
             </Stack>
         </ScrollView>
