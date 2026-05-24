@@ -13,6 +13,7 @@ import {
 
 export default function DisplaySettingsPage() {
     const settings = useMultiScrobblerSettings();
+    const isLibreFm = settings.service === "librefm";
 
     return (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 10 }}>
@@ -28,13 +29,19 @@ export default function DisplaySettingsPage() {
                         <Card style={{ padding: 16 }}>
                             <SliderRow
                                 label="Update Interval"
-                                value={settings.timeInterval}
-                                minimumValue={Constants.MIN_UPDATE_INTERVAL}
+                                value={isLibreFm ? Constants.LIBREFM_MIN_UPDATE_INTERVAL : settings.timeInterval}
+                                minimumValue={isLibreFm ? Constants.LIBREFM_MIN_UPDATE_INTERVAL : Constants.MIN_UPDATE_INTERVAL}
                                 maximumValue={Constants.MAX_UPDATE_INTERVAL}
                                 suffix="s"
-                                onChange={(v: number) => setStorage("timeInterval", v)}
+                                onChange={(v: number) => !isLibreFm && setStorage("timeInterval", v)}
                             />
                         </Card>
+                        {isLibreFm && (
+                            <TableRow
+                                label="Libre.fm Rate Limit"
+                                subLabel="Locked to 60 seconds per request. Requested by the Libre.fm team."
+                            />
+                        )}
                     </Stack>
                 </TableRowGroup>
 
@@ -49,7 +56,7 @@ export default function DisplaySettingsPage() {
                     />
                     <TableRow
                         label="Minimum Interval"
-                        subLabel={`The plugin will never check more frequently than ${Constants.MIN_UPDATE_INTERVAL} seconds`}
+                        subLabel={`The plugin will never check more frequently than ${isLibreFm ? Constants.LIBREFM_MIN_UPDATE_INTERVAL : Constants.MIN_UPDATE_INTERVAL} seconds`}
                     />
                 </TableRowGroup>
             </Stack>
