@@ -6,6 +6,7 @@ import getNitroChecks from "./patches/nitroChecks";
 import getNitroThemes from "./patches/nitroThemes";
 import getRemoveGetNitroButton from "./patches/removeGetNitroButton";
 import getSendMessage from "./patches/sendMessage";
+import getStickerSendability from "./patches/stickerSendability";
 import settings from "./settings";
 
 const patches: any[] = [];
@@ -18,6 +19,7 @@ export default definePlugin({
     version: "1.1.1",
     start() {
         patches.push(...getNitroChecks());
+        patches.push(...getStickerSendability());
         patches.push(...getSendMessage());
         patches.push(...getAppIcons());
         patches.push(...getNitroThemes());
