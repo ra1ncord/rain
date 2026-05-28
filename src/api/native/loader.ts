@@ -57,7 +57,7 @@ export function isLoaderConfigSupported() {
 
 export function getThemeFilePath() {
     if (isRainLoader() || isPyonLoader()) {
-        return "current-theme.json"
+        return "current-theme.json";
     }
     return null;
 }
