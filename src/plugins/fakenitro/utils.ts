@@ -54,7 +54,7 @@ export function modifyIfNeeded(msg: Message) {
     msg.content = newContent;
 
     if (extractedEmojis.length > 0)
-        msg.content += "\n" + extractedEmojis.join("\ni");
+        msg.content += "\n" + extractedEmojis.join("\n");
 
     // Set invalidEmojis to empty to prevent Discord yelling to you about you not having nitro
     msg.invalidEmojis = [];
