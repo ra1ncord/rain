@@ -11,7 +11,7 @@ export default definePlugin({
     description: "Bypass Discord's file size limit by uploading to Catbox, Litterbox or Zipline",
     author: [Contributors.LampDelivery, Developers.SerStars],
     id: "bypassuploadlimit",
-    version: "1.1.1",
+    version: "1.2.0",
     start() {
         patches.push(...getUploaderPatch());
     },

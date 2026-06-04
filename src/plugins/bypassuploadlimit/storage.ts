@@ -23,6 +23,8 @@ export interface UploaderSettings {
     ziplineDuration: string;
     /** Default Zipline file name. */
     ziplineFileNameFormat: string;
+    /** Selected Zipline domain override. Empty string means use server default. */
+    ziplineDomain: string;
 }
 
 export const {
@@ -39,4 +41,5 @@ export const {
     ziplineUserToken: "",
     ziplineFileNameFormat: "date",
     ziplineDuration: "never",
+    ziplineDomain: "",
 });

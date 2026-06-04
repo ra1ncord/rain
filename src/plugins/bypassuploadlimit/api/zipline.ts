@@ -8,10 +8,23 @@ import { logger } from "@lib/utils/logger";
  * @param ziplineUserToken  The Zipline account token.
  * @param ziplineDuration   How long the file should be kept before expiring. Default "never".
  * @param ziplineFileName   File name, I'm lazy to add a comment. Default "date".
+ * @param ziplineDomain     The Zipline public domain to use, if any.
  * @returns The URL of the uploaded file, or null on failure.
  */
 
 export type ZiplineDuration = "never" | "1h" | "12h" | "1d" | "3d";
+
+export async function fetchZiplinePublicDomains(serverURL: string): Promise<string[]> {
+    try {
+        const url = new URL("/api/server/public", serverURL).toString();
+        const response = await fetch(url);
+        if (!response.ok) return [];
+        const json = await response.json();
+        return Array.isArray(json?.domains) ? json.domains : [];
+    } catch {
+        return [];
+    }
+}
 
 export async function uploadToZipline(
     file: any,
@@ -19,6 +32,7 @@ export async function uploadToZipline(
     ziplineUserToken: string,
     ziplineDuration: ZiplineDuration | string = "never",
     ziplineFileNameFormat: string | string = "date",
+    ziplineDomain: string = "",
 ): Promise<string | null> {
     try {
         if (!ziplineServerURL) throw new Error("Missing Zipline server URL");
@@ -47,6 +61,10 @@ export async function uploadToZipline(
 
         if (ziplineDuration !== "never") {
             headers["x-zipline-deletes-at"] = ziplineDuration;
+        }
+
+        if (ziplineDomain) {
+            headers["x-zipline-domain"] = ziplineDomain;
         }
 
         const uploadURL = new URL("/api/upload", ziplineServerURL).toString();
