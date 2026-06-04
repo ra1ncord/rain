@@ -8,6 +8,7 @@ import React from "react";
 import { registeredSections } from "..";
 import { CustomPageRenderer, wrapOnPress } from "./shared";
 
+// This is not the best solution but works for now
 const isNewDiscord = Number(NativeClientInfoModule.getConstants().Version) > 329;
 
 const settingConstants = findByPropsLazy("SETTING_RENDERER_CONFIG");
