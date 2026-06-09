@@ -14,13 +14,12 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
     const getRows = () => Object.values(registeredSections)
         .flatMap(sect => sect.map(row => ({
             [row.key]: {
-                title: row.title,
+                useTitle: row.title,
                 type: "pressable",
                 icon: row.icon,
                 IconComponent: () => <TableRow.Icon source={row.icon} />,
                 usePredicate: row.usePredicate,
                 useTrailing: row.useTrailing,
-                // useTitle: row.title,
                 onPress: wrapOnPress(row.onPress, null, row.render, row.title()),
                 withArrow: true,
                 ...row.rawTabsConfig
@@ -38,8 +37,7 @@ export function patchTabsUI(unpatches: (() => void | boolean)[]) {
             ...rendererConfigValue,
             RAIN_CUSTOM_PAGE: {
                 type: "route",
-                title: "Rain",
-                // useTitle: () => "Rain",
+                useTitle: () => "Rain",
                 screen: {
                     route: "RAIN_CUSTOM_PAGE",
                     getComponent: () => CustomPageRenderer
