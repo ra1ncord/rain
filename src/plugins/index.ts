@@ -117,6 +117,8 @@ function ensureSetup(): Promise<void> {
 
         for (const [id, plugin] of Object.entries(rainPlugins)) {
             const instance = plugin as t.rainPlugin;
+            if (!instance) continue;
+
             instance.id = id;
 
             pluginInstances.set(id, instance);
