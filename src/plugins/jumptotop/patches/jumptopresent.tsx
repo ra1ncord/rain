@@ -21,7 +21,6 @@ export function patchJumpToPresent() {
         "default",
         JumpToPresentModule,
         ([{ channelId }], original: React.ReactElement<{ children: any;[SYM_PATCHED]: boolean; }>) => {
-            if (!jumpToTopSettings.jumpToPresent) return;
             if (original == null || (original as any)[SYM_PATCHED]) return;
 
             const JumpToPresentButton = original.props?.children;
@@ -40,6 +39,21 @@ export function patchJumpToPresent() {
 
             // Voice channel text counts as different channel
             const isNotCurrentChannel = channelType === ChannelType.GUILD_VOICE;
+
+            if (!jumpToTopSettings.jumpToPresent) {
+                // Apply old button patch even if the
+                // JumpToTop in chats is disabled
+                if (jumpToTopSettings.oldButton) {
+                    original.props.children = (
+                        <OldButtons
+                            JumpToPresentButton={JumpToPresentButton}
+                            noJumpToPresent
+                        />
+                    );
+                }
+
+                return;
+            }
 
             original.props.children = (
                 <Stack>
