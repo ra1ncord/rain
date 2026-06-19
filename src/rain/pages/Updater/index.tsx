@@ -42,13 +42,12 @@ export function checkForUpdate() {
     return hasUpdate;
 }
 
-export async function versionCheck() {
+export function versionCheck() {
     if (useLoaderConfig.getState().customLoadUrl.enabled === true) return;
+    if (useSettings.getState().disableUpdateWarnings === true) return;
 
     // Wait for settings to hydrate before checking
     const checkSettings = () => {
-        if (useSettings.getState().disableUpdateWarnings === true) return;
-
         const version = getDebugInfo().discord.build;
         if (!supportedVersions.includes(version)) {
             openAlert(
