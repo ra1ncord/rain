@@ -5,7 +5,6 @@ const nitroInfo = findByProps("canUseEmojisEverywhere");
 const emojiUtils = findByProps("getEmojiUnavailableReason");
 const { getCurrentUser } = findByStoreName("UserStore");
 
-
 function patchReaction(args: any[], result: any, response: any) {
     if (args[0]?.intention === 0 && result === null && getCurrentUser?.().premiumType === null) {
         const { emoji, guildId, channel } = args[0];
