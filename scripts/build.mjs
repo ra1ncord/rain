@@ -79,7 +79,7 @@ const config = {
                                 constModules: {
                                     globals: {
                                         "rain-build-info": {
-                                            version: `"v0.9.3"`,
+                                            version: `"v0.9.4"`,
                                             // idk why ios uses funny version names
                                             supportedVersions: '["331014", "103362"]'
                                         }
