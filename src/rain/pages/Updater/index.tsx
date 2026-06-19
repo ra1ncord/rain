@@ -25,12 +25,12 @@ function isNewerVersion(remoteVersion: string, currentVersion: string): boolean 
 
 export async function downloadUpdate() {
     if (!_setIsChecking) return;
-    
+
     try {
         _setIsChecking(true);
-        
-        await UpdateModule.nativeDownload(); 
-        
+
+        await UpdateModule.nativeDownload();
+
         openAlert(
             "rain-update-restart-alert",
             <AlertModal
