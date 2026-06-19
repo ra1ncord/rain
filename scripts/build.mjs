@@ -81,7 +81,7 @@ const config = {
                                         "rain-build-info": {
                                             version: `"v0.9.3"`,
                                             // idk why ios uses funny version names
-                                            supportedVersions: '["320012", "96094"]'
+                                            supportedVersions: '["331014", "103362"]'
                                         }
                                     }
                                 },
