@@ -13,10 +13,6 @@ export default definePlugin({
     author: [Developers.cocobo1],
     id: "noyoubar",
     version: "1.0.0",
-
-    // since this is a demo i should probably mention this isnt needed for all experiment overrides
-    requiresRestart: true,
-
     start() {
         // the number can be changed to change the treatment
         ExperimentManager.overrideBucket("apex", EXPERIMENT_ID, 0);
