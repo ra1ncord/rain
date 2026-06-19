@@ -25,6 +25,8 @@ export default function ReviewSection({ userId }: ReviewSectionProps) {
         getReviews(userId).then(i => setReviews(i));
     };
 
+    if (reviews === undefined) { return; }
+
     React.useEffect(fetchReviews, []);
 
     const hasExistingReview =
