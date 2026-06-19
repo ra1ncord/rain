@@ -23,10 +23,38 @@ function isNewerVersion(remoteVersion: string, currentVersion: string): boolean 
     return remotePatch > currentPatch;
 }
 
-export function downloadUpdate() {
-    _setIsChecking?.(true);
-    UpdateModule.nativeDownload();
-    _setIsChecking?.(false);
+export async function downloadUpdate() {
+    if (!_setIsChecking) return;
+    
+    try {
+        _setIsChecking(true);
+        
+        await UpdateModule.nativeDownload(); 
+        
+        openAlert(
+            "rain-update-restart-alert",
+            <AlertModal
+                title={Strings.RELOAD_DISCORD}
+                content={Strings.UPDATE_RESTART_MESSAGE}
+                actions={
+                    <AlertActions>
+                        <AlertActionButton
+                            text={Strings.RESTART_NOW}
+                            variant="primary"
+                            onPress={() => {
+                                BundleUpdaterManager.reload();
+                            }}
+                        />
+                        <AlertActionButton text={Strings.RESTART_LATER} variant="secondary" />
+                    </AlertActions>
+                }
+            />,
+        );
+    } catch (error) {
+        console.error("Failed to download update bundle:", error);
+    } finally {
+        _setIsChecking(false);
+    }
 }
 
 export function checkForUpdate() {
@@ -109,25 +137,6 @@ export default function Updater() {
                         loading={isCheckingForUpdates}
                         onPress={() => {
                             downloadUpdate();
-                            openAlert(
-                                "rain-update-restart-alert",
-                                <AlertModal
-                                    title={Strings.RELOAD_DISCORD}
-                                    content={Strings.UPDATE_RESTART_MESSAGE}
-                                    actions={
-                                        <AlertActions>
-                                            <AlertActionButton
-                                                text={Strings.RESTART_NOW}
-                                                variant="primary"
-                                                onPress={() => {
-                                                    BundleUpdaterManager.reload();
-                                                }}
-                                            />
-                                            <AlertActionButton text={Strings.RESTART_LATER} variant="secondary" />
-                                        </AlertActions>
-                                    }
-                                />,
-                            );
                         }}
                     />
                 </View>}
