@@ -204,6 +204,7 @@ export function* getModules(uniq: string, all = false) {
     if (cache?.[`_${ModulesMapInternal.NOT_FOUND}`]) return;
 
     const useCache = cache && (!all || cache[`_${ModulesMapInternal.FULL_LOOKUP}`]);
+    const cacheComplete = all && cache?.[`_${ModulesMapInternal.FULL_LOOKUP}`];
 
     if (useCache) {
         for (const id in cache) {
@@ -213,6 +214,8 @@ export function* getModules(uniq: string, all = false) {
             yield [id, exports];
         }
     }
+
+    if (cacheComplete) return;
 
     for (const id of moduleKeys) {
         if (useCache && cache![id]) continue;
@@ -329,13 +332,18 @@ export function waitFor<T = any>(
     }
 
     if (isActive) {
+        let subscribed = 0;
+        const MAX_SUBSCRIPTIONS = 500;
         for (const id of moduleKeys) {
+            if (!isActive) break;
+            if (subscribed >= MAX_SUBSCRIPTIONS) break;
             const numId = Number(id);
             if (!metroModules[numId]?.isInitialized) {
                 const unsub = subscribeModule(numId, () => {
                     checkModule(numId);
                 });
                 unsubscribers.push(unsub);
+                subscribed++;
             }
         }
     }

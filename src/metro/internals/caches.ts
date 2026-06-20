@@ -25,11 +25,20 @@ function buildInitCache() {
         polyfillIndex: {} as Record<string, ModulesMap | undefined>
     } as const;
 
-    setTimeout(() => {
-        for (const id in window.modules) {
-            require("./modules").requireModule(id);
+    const moduleIds = Object.keys(window.modules);
+    const CHUNK_SIZE = 200;
+    let index = 0;
+
+    function initChunk(deadline?: { timeRemaining: () => number }) {
+        const hasTime = !deadline || deadline.timeRemaining() > 5;
+        while (index < moduleIds.length && (hasTime || index % CHUNK_SIZE !== 0)) {
+            require("./modules").requireModule(Number(moduleIds[index++]));
         }
-    }, 20);
+        if (index < moduleIds.length) {
+            setTimeout(initChunk, 0);
+        }
+    }
+    setTimeout(initChunk, 20);
 
     _metroCache = cache;
     return cache;
