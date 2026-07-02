@@ -24,7 +24,7 @@ function tryHasPerm(perms: any, flag: any): boolean {
 
 export default function RolesPage({ guildId }: { guildId: string }) {
     const roles = GuildRoleStore?.getSortedRoles?.(guildId) ?? [];
-    const roleList = Array.isArray(roles) ? roles : Object.values(roles);
+    const roleList = Array.from(roles);
 
     return (
         <ActionSheet>
@@ -49,7 +49,7 @@ export default function RolesPage({ guildId }: { guildId: string }) {
                         trailing: () => React.createElement(TableRow.Arrow, null),
                         onPress: () => {
                             hideSheet("permissionviewer-roles");
-                            setTimeout(() => showSheet("permissionviewer-role-" + role.id, RolePermsPage, { guildId, role }), 100);
+                            showSheet("permissionviewer-role-" + role.id, RolePermsPage, { guildId, role });
                         },
                     });
                 })}
@@ -72,7 +72,7 @@ function RolePermsPage({ guildId, role }: { guildId: string; role: any }) {
             <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: 12, paddingHorizontal: 16 }}>
                 <Text variant="text-md/semibold" style={{ color: rawColors.BRAND_500 }} onPress={() => {
                     hideSheet("permissionviewer-role-" + role.id);
-                    setTimeout(() => showSheet("permissionviewer-roles", RolesPage, { guildId }), 100);
+                    showSheet("permissionviewer-roles", RolesPage, { guildId });
                 }}>Back</Text>
                 <Text variant="heading-md/semibold" style={{ flex: 1, textAlign: "center", ...(titleColor ? { color: titleColor } : {}) }}>
                     {role.name}

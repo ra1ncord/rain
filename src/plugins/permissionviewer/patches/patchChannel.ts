@@ -9,7 +9,6 @@ import { ActionSheetRow } from "@metro/common/components";
 import ChannelPermsView from "../components/ChannelPermissionPage";
 
 const ChannelLongPressActionSheet = findByName("ChannelLongPressActionSheet", false);
-const SYM_PATCHED = Symbol("Patched by PermissionViewer");
 
 function findActionGroups(tree: any) {
     return findInReactTree(
@@ -20,15 +19,16 @@ function findActionGroups(tree: any) {
 
 export default () => {
     if (!ChannelLongPressActionSheet) return () => {};
-    const unpatches: (() => void)[] = [];
 
-    const unpatch = after("default", ChannelLongPressActionSheet, (_, ret) => {
-        if (ret?.[SYM_PATCHED]) return;
+    let innerUnpatch: (() => void) | null = null;
 
+    const outerUnpatch = after("default", ChannelLongPressActionSheet, (_, ret) => {
         const channel = ret?.props?.channel;
         if (!channel || !channel.guild_id) return;
 
-        const innerUnpatch = after("type", ret, (_, component) => {
+        if (innerUnpatch) innerUnpatch();
+
+        innerUnpatch = after("type", ret, (_, component) => {
             const actions = findActionGroups(component);
             if (!actions) return;
 
@@ -44,11 +44,10 @@ export default () => {
                 ),
             );
         });
-
-        unpatches.push(innerUnpatch);
-        ret[SYM_PATCHED] = true;
     });
 
-    unpatches.push(unpatch);
-    return () => { for (const fn of unpatches) fn(); };
+    return () => {
+        if (innerUnpatch) innerUnpatch();
+        outerUnpatch();
+    };
 };

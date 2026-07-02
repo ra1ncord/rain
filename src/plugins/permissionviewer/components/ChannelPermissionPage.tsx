@@ -12,7 +12,6 @@ const { ActionSheetCloseButton } = findByProps("ActionSheetCloseButton") ?? {};
 const showUserProfile = findByNameLazy("showUserProfileActionSheet");
 const ChannelStore = findByStoreName("ChannelStore");
 const GuildRoleStore = findByStoreName("GuildRoleStore");
-const GuildStore = findByStoreName("GuildStore");
 const GuildMemberStore = findByStoreName("GuildMemberStore");
 const UserStore = findByStoreName("UserStore");
 
@@ -45,9 +44,8 @@ export default function ChannelPermsView({ channelId }: { channelId: string }) {
         );
     }
 
-    const guild = GuildStore?.getGuild?.(guildId);
     const roles = GuildRoleStore?.getSortedRoles?.(guildId) ?? [];
-    const roleList = Array.isArray(roles) ? roles : Object.values(roles);
+    const roleList = Array.from(roles);
     const roleMap: Record<string, any> = {};
     for (const r of roleList) roleMap[r.id] = r;
 

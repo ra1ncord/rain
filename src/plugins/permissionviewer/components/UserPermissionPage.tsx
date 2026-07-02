@@ -10,7 +10,6 @@ import { PERMISSION_CATEGORIES, formatPermName } from "../lib/permissions";
 
 const { ActionSheetCloseButton } = findByProps("ActionSheetCloseButton") ?? {};
 const TableCheckboxRow = findByProps("TableCheckboxRow")?.TableCheckboxRow ?? null;
-const Perms = constants?.Permissions ?? {};
 const GuildRoleStore = findByStoreName("GuildRoleStore");
 const GuildMemberStore = findByStoreName("GuildMemberStore");
 const UserStore = findByStoreName("UserStore");
@@ -39,6 +38,7 @@ export default function UserPermissionPage({ guildId, userId }: { guildId: strin
     const perms = getCombinedPerms(guildId, roleIds);
     const avatarUrl = user?.getAvatarURL?.(true, 64) ?? (user ? `https://cdn.discordapp.com/embed/avatars/${Number((BigInt(user.id) >> 22n) % 6n)}.png` : null);
     const name = member?.nick ?? user?.globalName ?? user?.username ?? userId.slice(0, 8);
+    const Perms = constants.Permissions ?? {};
 
     function hasPerm(flagName: string): boolean {
         const flag = Perms[flagName];

@@ -7,7 +7,6 @@ import { TableRow, TableRowGroup } from "@metro/common/components";
 import RolesPage from "../components/PermissionPage";
 
 const GuildActionSheetProgress = findByName("GuildActionSheetProgress", false);
-const SYM_PATCHED = Symbol.for("PermissionViewerPatched");
 
 function PermissionButton({ guild }: { guild: any }) {
     return React.createElement(TableRowGroup, null,
@@ -26,8 +25,7 @@ export default () => {
 
     return after("default", GuildActionSheetProgress, (args, ret) => {
         const guild = args[0]?.guild;
-        if (!guild || !ret || ret?.[SYM_PATCHED]) return;
-        ret[SYM_PATCHED] = true;
+        if (!guild || !ret) return;
 
         return React.createElement(React.Fragment, null,
             ret,
