@@ -23,8 +23,7 @@ export default function CustomBadgesSettings() {
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
                 <TableRowGroup title="Badge Display">
                     <TableSwitchRow
-                        label="Load Badges on left"
-                        subLabel="If enabled, custom badges will load up first than the original badges."
+                        label="Show custom badges first"
                         value={!!settings.left}
                         onValueChange={v => update("left", v)}
                     />
