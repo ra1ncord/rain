@@ -1,49 +1,67 @@
-import { ReactNative } from "@metro/common";
-import { Stack, TableRow,TableRowGroup, TableSwitchRow } from "@metro/common/components";
-import React from "react";
-import { View } from "react-native";
+import { Stack, TableCheckboxRow, TableRadioGroup, TableRadioRow, TableRowGroup, TableRowIcon, TableSwitchRow } from "@metro/common/components";
+import { ScrollView } from "react-native";
 
 import { useCustomBadgesSettings } from "./storage";
 
 export default function CustomBadgesSettings() {
     const settings = useCustomBadgesSettings();
 
-    const openDiscord = () => {
-        const url = ReactNative.Linking;
-        if (url?.openURL) {
-            url.openURL("https://discord.gg/eTvYv95PCG");
-        }
+    const update = (key: string, value: any) => {
+        useCustomBadgesSettings.getState().updateSettings({ [key]: value });
     };
 
     return (
-        <View>
+        <ScrollView>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
-                <TableRowGroup title="Badge Display">
+                <TableRowGroup title="Badge Config">
                     <TableSwitchRow
-                        label="Load Badges on left"
-                        subLabel="If enabled, custom badges will load up first than the original badges."
+                        label="Show custom badges first"
                         value={!!settings.left}
-                        onValueChange={v => useCustomBadgesSettings.getState().updateSettings({ left: v })}
-                    />
-                    <TableSwitchRow
-                        label="Disable Mod Badges"
-                        subLabel="If enabled, it will disable mod client badges but not custom badges."
-                        value={!!settings.mods}
-                        onValueChange={v => useCustomBadgesSettings.getState().updateSettings({ mods: v })}
-                    />
-                    <TableSwitchRow
-                        label="Disable Custom Badges"
-                        subLabel="If enabled, it will disable custom badges but not mod client badges."
-                        value={!!settings.customs}
-                        onValueChange={v => useCustomBadgesSettings.getState().updateSettings({ customs: v })}
-                    />
-                    <TableRow
-                        label="Add Custom badges (not affiliated)"
-                        arrow={true}
-                        onPress={openDiscord}
+                        onValueChange={v => update("left", v)}
                     />
                 </TableRowGroup>
+
+                <TableRadioGroup
+                    title={"Show Mod Style"}
+                    value={settings.showModStyle}
+                    onChange={(value: string) => {
+                        update("showModStyle", value); 
+                    }}
+                >
+                    <TableRadioRow
+                        label="Don't Show Mod"
+                        value="none"
+                    />
+                    <TableRadioRow
+                        label="Show Mod as Prefix"
+                        value="prefix"
+                    />
+                    <TableRadioRow
+                        label="Show Mod as Suffix"
+                        value="suffix"
+                    />
+                </TableRadioGroup>
+
+                <TableRowGroup title="Badge Display">
+                    <TableCheckboxRow label="Aero Badges" checked={!!settings.showAero} onPress={() => update("showAero", !settings.showAero)} />
+                    <TableCheckboxRow label="Aliucord Badges" checked={!!settings.showAliucord} onPress={() => update("showAliucord", !settings.showAliucord)} />
+                    <TableCheckboxRow label="BadgeVault Badges" checked={!!settings.showCustom} onPress={() => update("showCustom", !settings.showCustom)} />
+                    <TableCheckboxRow label="BetterDiscord Badges" checked={!!settings.showBetterDiscord} onPress={() => update("showBetterDiscord", !settings.showBetterDiscord)} />
+                    <TableCheckboxRow label="Bunny Badges" checked={!!settings.showBunny} onPress={() => update("showBunny", !settings.showBunny)} />
+                    <TableCheckboxRow label="Enmity Badges" checked={!!settings.showEnmity} onPress={() => update("showEnmity", !settings.showEnmity)} />
+                    <TableCheckboxRow label="Equicord Badges" checked={!!settings.showEquicord} onPress={() => update("showEquicord", !settings.showEquicord)} />
+                    <TableCheckboxRow label="GooseMod Badges" checked={!!settings.showGooseMod} onPress={() => update("showGooseMod", !settings.showGooseMod)} />
+                    <TableCheckboxRow label="Nekocord Badges" checked={!!settings.showNekocord} onPress={() => update("showNekocord", !settings.showNekocord)} />
+                    <TableCheckboxRow label="Paicord Badges" checked={!!settings.showPaicord} onPress={() => update("showPaicord", !settings.showPaicord)} />
+                    <TableCheckboxRow label="ReCord Badges" checked={!!settings.showReCord} onPress={() => update("showReCord", !settings.showReCord)} />
+                    <TableCheckboxRow label="Replugged Badges" checked={!!settings.showReplugged} onPress={() => update("showReplugged", !settings.showReplugged)} />
+                    <TableCheckboxRow label="Revenge Badges" checked={!!settings.showRevenge} onPress={() => update("showRevenge", !settings.showRevenge)} />
+                    <TableCheckboxRow label="ReviewDB Badges" checked={!!settings.showReviewDB} onPress={() => update("showReviewDB", !settings.showReviewDB)} />
+                    <TableCheckboxRow label="Velocity Badges" checked={!!settings.showVelocity} onPress={() => update("showVelocity", !settings.showVelocity)} />
+                    <TableCheckboxRow label="Vencord Badges" checked={!!settings.showVencord} onPress={() => update("showVencord", !settings.showVencord)} />
+                    <TableCheckboxRow label="Vendroid Enhanced Badges" checked={!!settings.showVendroidEnhanced} onPress={() => update("showVendroidEnhanced", !settings.showVendroidEnhanced)} />
+                </TableRowGroup>
             </Stack>
-        </View>
+        </ScrollView>
     );
 }
