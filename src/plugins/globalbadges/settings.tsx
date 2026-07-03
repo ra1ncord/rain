@@ -1,4 +1,4 @@
-import { Stack, TableCheckboxRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
+import { Stack, TableCheckboxRow, TableRadioGroup, TableRadioRow, TableRowGroup, TableRowIcon, TableSwitchRow } from "@metro/common/components";
 import { ScrollView } from "react-native";
 
 import { useCustomBadgesSettings } from "./storage";
@@ -6,7 +6,7 @@ import { useCustomBadgesSettings } from "./storage";
 export default function CustomBadgesSettings() {
     const settings = useCustomBadgesSettings();
 
-    const update = (key: string, value: boolean) => {
+    const update = (key: string, value: any) => {
         useCustomBadgesSettings.getState().updateSettings({ [key]: value });
     };
 
@@ -19,23 +19,28 @@ export default function CustomBadgesSettings() {
                         value={!!settings.left}
                         onValueChange={v => update("left", v)}
                     />
-                    <TableSwitchRow
-                        label="Show Mod as Prefix"
-                        value={!!settings.showPrefix}
-                        onValueChange={(value: boolean) => {
-                            update("showPrefix", value);
-                            if (value && settings.showSuffix) update("showSuffix", false);
-                        }}
-                    />
-                    <TableSwitchRow
-                        label="Show Mod as Suffix"
-                        value={!!settings.showSuffix}
-                        onValueChange={(value: boolean) => {
-                            update("showSuffix", value);
-                            if (value && settings.showPrefix) update("showPrefix", false);
-                        }}
-                    />
                 </TableRowGroup>
+
+                <TableRadioGroup
+                    title={"Show Mod Style"}
+                    value={settings.showModStyle}
+                    onChange={(value: string) => {
+                        update("showModStyle", value); 
+                    }}
+                >
+                    <TableRadioRow
+                        label="Don't Show Mod"
+                        value="none"
+                    />
+                    <TableRadioRow
+                        label="Show Mod as Prefix"
+                        value="prefix"
+                    />
+                    <TableRadioRow
+                        label="Show Mod as Suffix"
+                        value="suffix"
+                    />
+                </TableRadioGroup>
 
                 <TableRowGroup title="Badge Display">
                     <TableCheckboxRow label="Show Aero Badges" checked={!!settings.showAero} onPress={() => update("showAero", !settings.showAero)} />

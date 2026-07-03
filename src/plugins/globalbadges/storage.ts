@@ -2,8 +2,7 @@ import { createPluginStore } from "@api/storage";
 
 interface CustomBadgesSettings {
     left: boolean;
-    showPrefix: boolean;
-    showSuffix: boolean;
+    showModStyle: string;
     showAero: boolean;
     showVelocity: boolean;
     showCustom: boolean;
@@ -28,8 +27,7 @@ export const {
     settings: customBadgesSettings,
 } = createPluginStore<CustomBadgesSettings>("globalbadges", {
     left: false,
-    showPrefix: false,
-    showSuffix: false,
+    showModStyle: "none",
     showCustom: true,
     showNekocord: true,
     showReviewDB: true,

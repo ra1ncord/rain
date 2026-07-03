@@ -64,11 +64,11 @@ export async function loadBadges() {
                 return true;
             }).map((b: any) => {
                 const modFormatted = serviceMap[b.mod] || b.mod;
-                const showPrefix = customBadgesSettings.showPrefix ?? true;
-                const showSuffix = customBadgesSettings.showSuffix ?? false;
+                let prefix = ""
+                let suffix = ""
+                if(customBadgesSettings.showModStyle == "prefix") { prefix = `${modFormatted} - `;}
+                if(customBadgesSettings.showModStyle == "suffix") { suffix = ` - ${modFormatted}`;}
 
-                const prefix = showPrefix ? `${modFormatted} - ` : "";
-                const suffix = showSuffix ? ` - ${modFormatted}` : "";
                 const tooltip = prefix + b.tooltip + suffix;
                 return {
                     ...b,
