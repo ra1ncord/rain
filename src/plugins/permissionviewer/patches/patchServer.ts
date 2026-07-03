@@ -19,7 +19,7 @@ export default () => {
             ret,
             React.createElement(TableRowGroup, null,
                 React.createElement(TableRow, {
-                    label: "Roles",
+                    label: "Permissions",
                     trailing: TableRow.Arrow,
                     onPress: () => showSheet("permissionviewer-roles", RolesPage, { guildId: guild.id }),
                 }),
