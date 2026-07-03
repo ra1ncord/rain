@@ -12,6 +12,8 @@ export const serviceMap: Record<string, string> = {
     velocity: "Velocity",
     enmity: "Enmity",
     paicord: "Paicord",
+    vencord: "Vencord",
+    equicord: "Equicord"
     bunny: "Bunny",
     goosemod: "GooseMod",
     replugged: "Replugged",
