@@ -4,7 +4,6 @@ import { ReactNative as RN } from "@metro/common";
 import { omit } from "es-toolkit";
 import type { ViewProps } from "react-native";
 
-import { find } from "../lib/utils";
 
 const _ActionSheet = findByProps("ActionSheet").ActionSheet;
 const { BottomSheetTitleHeader } = findByProps("BottomSheetTitleHeader");
@@ -55,7 +54,7 @@ export const ActionSheet = ((props: ActionSheetProps) => {
 
 ActionSheet.open = (sheet, props) => {
     openLazy(
-        new Promise((res) => {
+        new Promise(res => {
             res({
                 default: sheet,
             });

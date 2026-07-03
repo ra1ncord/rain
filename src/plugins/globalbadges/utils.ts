@@ -13,7 +13,7 @@ export const serviceMap: Record<string, string> = {
     enmity: "Enmity",
     paicord: "Paicord",
     vencord: "Vencord",
-    equicord: "Equicord"
+    equicord: "Equicord",
     bunny: "Bunny",
     goosemod: "GooseMod",
     replugged: "Replugged",

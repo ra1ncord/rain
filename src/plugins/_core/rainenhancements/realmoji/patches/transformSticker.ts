@@ -25,16 +25,16 @@ export default [
     before("generate", RowManager.prototype, ([data]) => {
         if (data.rowType !== 1 || !rainenhancementsSettings.transformSticker) return;
 
-        let msg = data.message; //normal
-        if (!msg.content) msg = msg.messageSnapshots?.[0]?.message; //forwarded
+        let msg = data.message; // normal
+        if (!msg.content) msg = msg.messageSnapshots?.[0]?.message; // forwarded
         if (!msg?.content) return;
         let match = msg.content.match(animatedGifRegex);
         if (match) msg.stickerItems = makeStickerItem(match[1], 4);
         else if ((match = msg.content.match(attachmentGifRegex))) msg.stickerItems = makeStickerItem(match[1], 2);
         else if ((match = msg.content.match(staticStickerRegex))) {
-          if (!getStickerById(match[1])) return; // fixes patching actual attachments
-          msg.stickerItems = makeStickerItem(match[1], 1)
-        };
+            if (!getStickerById(match[1])) return; // fixes patching actual attachments
+            msg.stickerItems = makeStickerItem(match[1], 1);
+        }
 
         if (match) {
             msg.content = "";

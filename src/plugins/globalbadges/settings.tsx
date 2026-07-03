@@ -1,33 +1,19 @@
-import { ReactNative } from "@metro/common";
-import { Stack, TableRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
-import { View } from "react-native";
+import { Stack, TableCheckboxRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
+import { ScrollView } from "react-native";
 
 import { useCustomBadgesSettings } from "./storage";
 
 export default function CustomBadgesSettings() {
     const settings = useCustomBadgesSettings();
 
-    const openDiscord = () => {
-        const url = ReactNative.Linking;
-        if (url?.openURL) {
-            url.openURL("https://discord.gg/eTvYv95PCG");
-        }
-    };
-
     const update = (key: string, value: boolean) => {
         useCustomBadgesSettings.getState().updateSettings({ [key]: value });
     };
 
     return (
-        <View>
+        <ScrollView>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
-                <TableRowGroup title="Badge Display">
-                    <TableRow
-                        label="Add Custom badges (not affiliated)"
-                        arrow={true}
-                        onPress={openDiscord}
-                    />
-
+                <TableRowGroup title="Badge Config">
                     <TableSwitchRow
                         label="Show custom badges first"
                         value={!!settings.left}
@@ -49,26 +35,28 @@ export default function CustomBadgesSettings() {
                             if (value && settings.showPrefix) update("showPrefix", false);
                         }}
                     />
+                </TableRowGroup>
 
-                    <TableSwitchRow label="Show Custom Badges" value={!!settings.showCustom} onValueChange={(v: boolean) => update("showCustom", v)} />
-                    <TableSwitchRow label="Show Vencord Badges" value={!!settings.showVencord} onValueChange={(v: boolean) => update("showVencord", v)} />
-                    <TableSwitchRow label="Show Equicord Badges" value={!!settings.showEquicord} onValueChange={(v: boolean) => update("showEquicord", v)} />
-                    <TableSwitchRow label="Show Nekocord Badges" value={!!settings.showNekocord} onValueChange={(v: boolean) => update("showNekocord", v)} />
-                    <TableSwitchRow label="Show ReviewDB Badges" value={!!settings.showReviewDB} onValueChange={(v: boolean) => update("showReviewDB", v)} />
-                    <TableSwitchRow label="Show Aero Badges" value={!!settings.showAero} onValueChange={(v: boolean) => update("showAero", v)} />
-                    <TableSwitchRow label="Show Aliucord Badges" value={!!settings.showAliucord} onValueChange={(v: boolean) => update("showAliucord", v)} />
-                    <TableSwitchRow label="Show Velocity Badges" value={!!settings.showVelocity} onValueChange={(v: boolean) => update("showVelocity", v)} />
-                    <TableSwitchRow label="Show Enmity Badges" value={!!settings.showEnmity} onValueChange={(v: boolean) => update("showEnmity", v)} />
-                    <TableSwitchRow label="Show Paicord Badges" value={!!settings.showPaicord} onValueChange={(v: boolean) => update("showPaicord", v)} />
-                    <TableSwitchRow label="Show Bunny Badges" value={!!settings.showBunny} onValueChange={(v: boolean) => update("showBunny", v)} />
-                    <TableSwitchRow label="Show GooseMod Badges" value={!!settings.showGooseMod} onValueChange={(v: boolean) => update("showGooseMod", v)} />
-                    <TableSwitchRow label="Show Replugged Badges" value={!!settings.showReplugged} onValueChange={(v: boolean) => update("showReplugged", v)} />
-                    <TableSwitchRow label="Show BetterDiscord Badges" value={!!settings.showBetterDiscord} onValueChange={(v: boolean) => update("showBetterDiscord", v)} />
-                    <TableSwitchRow label="Show Vendroid Enhanced Badges" value={!!settings.showVendroidEnhanced} onValueChange={(v: boolean) => update("showVendroidEnhanced", v)} />
-                    <TableSwitchRow label="Show Revenge Badges" value={!!settings.showRevenge} onValueChange={(v: boolean) => update("showRevenge", v)} />
-                    <TableSwitchRow label="Show ReCord Badges" value={!!settings.showReCord} onValueChange={(v: boolean) => update("showReCord", v)} />
+                <TableRowGroup title="Badge Display">
+                    <TableCheckboxRow label="Show Aero Badges" checked={!!settings.showAero} onPress={() => update("showAero", !settings.showAero)} />
+                    <TableCheckboxRow label="Show Aliucord Badges" checked={!!settings.showAliucord} onPress={() => update("showAliucord", !settings.showAliucord)} />
+                    <TableCheckboxRow label="Show BadgeVault Badges" checked={!!settings.showCustom} onPress={() => update("showCustom", !settings.showCustom)} />
+                    <TableCheckboxRow label="Show BetterDiscord Badges" checked={!!settings.showBetterDiscord} onPress={() => update("showBetterDiscord", !settings.showBetterDiscord)} />
+                    <TableCheckboxRow label="Show Bunny Badges" checked={!!settings.showBunny} onPress={() => update("showBunny", !settings.showBunny)} />
+                    <TableCheckboxRow label="Show Enmity Badges" checked={!!settings.showEnmity} onPress={() => update("showEnmity", !settings.showEnmity)} />
+                    <TableCheckboxRow label="Show Equicord Badges" checked={!!settings.showEquicord} onPress={() => update("showEquicord", !settings.showEquicord)} />
+                    <TableCheckboxRow label="Show GooseMod Badges" checked={!!settings.showGooseMod} onPress={() => update("showGooseMod", !settings.showGooseMod)} />
+                    <TableCheckboxRow label="Show Nekocord Badges" checked={!!settings.showNekocord} onPress={() => update("showNekocord", !settings.showNekocord)} />
+                    <TableCheckboxRow label="Show Paicord Badges" checked={!!settings.showPaicord} onPress={() => update("showPaicord", !settings.showPaicord)} />
+                    <TableCheckboxRow label="Show ReCord Badges" checked={!!settings.showReCord} onPress={() => update("showReCord", !settings.showReCord)} />
+                    <TableCheckboxRow label="Show Replugged Badges" checked={!!settings.showReplugged} onPress={() => update("showReplugged", !settings.showReplugged)} />
+                    <TableCheckboxRow label="Show Revenge Badges" checked={!!settings.showRevenge} onPress={() => update("showRevenge", !settings.showRevenge)} />
+                    <TableCheckboxRow label="Show ReviewDB Badges" checked={!!settings.showReviewDB} onPress={() => update("showReviewDB", !settings.showReviewDB)} />
+                    <TableCheckboxRow label="Show Velocity Badges" checked={!!settings.showVelocity} onPress={() => update("showVelocity", !settings.showVelocity)} />
+                    <TableCheckboxRow label="Show Vencord Badges" checked={!!settings.showVencord} onPress={() => update("showVencord", !settings.showVencord)} />
+                    <TableCheckboxRow label="Show Vendroid Enhanced Badges" checked={!!settings.showVendroidEnhanced} onPress={() => update("showVendroidEnhanced", !settings.showVendroidEnhanced)} />
                 </TableRowGroup>
             </Stack>
-        </View>
+        </ScrollView>
     );
 }
