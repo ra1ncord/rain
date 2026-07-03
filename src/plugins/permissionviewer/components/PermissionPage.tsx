@@ -86,15 +86,17 @@ function RolePermsPage({ guildId, role }: { guildId: string; role: any }) {
                     const sectionPerms = section.permissions.filter((p) => Perms[p] != null);
                     if (sectionPerms.length === 0) return null;
                     return (
-                        <TableRowGroup key={section.name}>
-                            {sectionPerms.map((permName) => {
-                                const flag = Perms[permName];
-                                const hasPerm = tryHasPerm(role.permissions, flag);
-                                return TableCheckboxRow
-                                    ? React.createElement(TableCheckboxRow, { key: permName, label: formatPermName(permName), checked: hasPerm, disabled: true })
-                                    : React.createElement(TableRow, { key: permName, label: formatPermName(permName), trailing: () => React.createElement(Text, { variant: "text-sm/medium", style: { color: hasPerm ? rawColors.GREEN_360 : undefined } }, hasPerm ? "Yes" : "No") });
-                            })}
-                        </TableRowGroup>
+                        <View key={section.name} style={{ marginBottom: 8 }}>
+                            <TableRowGroup>
+                                {sectionPerms.map((permName) => {
+                                    const flag = Perms[permName];
+                                    const hasPerm = tryHasPerm(role.permissions, flag);
+                                    return TableCheckboxRow
+                                        ? React.createElement(TableCheckboxRow, { key: permName, label: formatPermName(permName), checked: hasPerm, disabled: true })
+                                        : React.createElement(TableRow, { key: permName, label: formatPermName(permName), trailing: () => React.createElement(Text, { variant: "text-sm/medium", style: { color: hasPerm ? rawColors.GREEN_360 : undefined } }, hasPerm ? "Yes" : "No") });
+                                })}
+                            </TableRowGroup>
+                        </View>
                     );
                 })}
                 <View style={{ height: 80 }} />

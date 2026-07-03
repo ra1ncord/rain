@@ -79,14 +79,16 @@ export default function UserPermissionPage({ guildId, userId }: { guildId: strin
                     const sectionPerms = section.permissions.filter((p) => Perms[p] != null);
                     if (sectionPerms.length === 0) return null;
                     return (
-                        <TableRowGroup key={section.name}>
-                            {sectionPerms.map((permName) => {
-                                const checked = hasPerm(permName);
-                                return TableCheckboxRow
-                                    ? React.createElement(TableCheckboxRow, { key: permName, label: formatPermName(permName), checked, disabled: true })
-                                    : React.createElement(TableRow, { key: permName, label: formatPermName(permName), trailing: () => React.createElement(Text, { variant: "text-sm/medium", style: { color: checked ? rawColors.GREEN_360 : undefined } }, checked ? "Yes" : "No") });
-                            })}
-                        </TableRowGroup>
+                        <View key={section.name} style={{ marginBottom: 8 }}>
+                            <TableRowGroup>
+                                {sectionPerms.map((permName) => {
+                                    const checked = hasPerm(permName);
+                                    return TableCheckboxRow
+                                        ? React.createElement(TableCheckboxRow, { key: permName, label: formatPermName(permName), checked, disabled: true })
+                                        : React.createElement(TableRow, { key: permName, label: formatPermName(permName), trailing: () => React.createElement(Text, { variant: "text-sm/medium", style: { color: checked ? rawColors.GREEN_360 : undefined } }, checked ? "Yes" : "No") });
+                                })}
+                            </TableRowGroup>
+                        </View>
                     );
                 })}
                 <View style={{ height: 80 }} />
