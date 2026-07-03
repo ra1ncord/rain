@@ -14,6 +14,13 @@ interface CustomBadgesSettings {
     showPaicord: boolean;
     showVencord: boolean;
     showEquicord: boolean;
+    showBunny: boolean;
+    showGooseMod: boolean;
+    showReplugged: boolean;
+    showBetterDiscord: boolean;
+    showVendroidEnhanced: boolean;
+    showRevenge: boolean;
+    showReCord: boolean;
 }
 
 export const {
@@ -33,4 +40,11 @@ export const {
     showPaicord: true,
     showVencord: true,
     showEquicord: true,
+    showBunny: true,
+    showGooseMod: true,
+    showReplugged: true,
+    showBetterDiscord: true,
+    showVendroidEnhanced: true,
+    showRevenge: true,
+    showReCord: true,
 });

@@ -22,6 +22,12 @@ export default function CustomBadgesSettings() {
         <View>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
                 <TableRowGroup title="Badge Display">
+                    <TableRow
+                        label="Add Custom badges (not affiliated)"
+                        arrow={true}
+                        onPress={openDiscord}
+                    />
+
                     <TableSwitchRow
                         label="Show custom badges first"
                         value={!!settings.left}
@@ -54,12 +60,13 @@ export default function CustomBadgesSettings() {
                     <TableSwitchRow label="Show Velocity Badges" value={!!settings.showVelocity} onValueChange={(v: boolean) => update("showVelocity", v)} />
                     <TableSwitchRow label="Show Enmity Badges" value={!!settings.showEnmity} onValueChange={(v: boolean) => update("showEnmity", v)} />
                     <TableSwitchRow label="Show Paicord Badges" value={!!settings.showPaicord} onValueChange={(v: boolean) => update("showPaicord", v)} />
-
-                    <TableRow
-                        label="Add Custom badges (not affiliated)"
-                        arrow={true}
-                        onPress={openDiscord}
-                    />
+                    <TableSwitchRow label="Show Bunny Badges" value={!!settings.showBunny} onValueChange={(v: boolean) => update("showBunny", v)} />
+                    <TableSwitchRow label="Show GooseMod Badges" value={!!settings.showGooseMod} onValueChange={(v: boolean) => update("showGooseMod", v)} />
+                    <TableSwitchRow label="Show Replugged Badges" value={!!settings.showReplugged} onValueChange={(v: boolean) => update("showReplugged", v)} />
+                    <TableSwitchRow label="Show BetterDiscord Badges" value={!!settings.showBetterDiscord} onValueChange={(v: boolean) => update("showBetterDiscord", v)} />
+                    <TableSwitchRow label="Show Vendroid Enhanced Badges" value={!!settings.showVendroidEnhanced} onValueChange={(v: boolean) => update("showVendroidEnhanced", v)} />
+                    <TableSwitchRow label="Show Revenge Badges" value={!!settings.showRevenge} onValueChange={(v: boolean) => update("showRevenge", v)} />
+                    <TableSwitchRow label="Show ReCord Badges" value={!!settings.showReCord} onValueChange={(v: boolean) => update("showReCord", v)} />
                 </TableRowGroup>
             </Stack>
         </View>

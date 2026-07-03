@@ -2,18 +2,23 @@ import { customBadgesSettings } from "./storage";
 import { Badge } from "./types";
 
 export let GlobalBadges: Record<string, Badge[]> = {};
-
 export const serviceMap: Record<string, string> = {
     badgevault: "BadgeVault",
     nekocord: "Nekocord",
     reviewdb: "ReviewDB",
     aero: "Aero",
     aliucord: "Aliucord",
+    raincord: "Raincord",
     velocity: "Velocity",
     enmity: "Enmity",
     paicord: "Paicord",
-    vencord: "Vencord",
-    equicord: "Equicord"
+    bunny: "Bunny",
+    goosemod: "GooseMod",
+    replugged: "Replugged",
+    betterdiscord: "BetterDiscord",
+    vendroidenhanced: "VendroidEnhanced",
+    revenge: "Revenge",
+    record: "ReCord",
 };
 
 const blockedMods = ["raincord"];
@@ -43,6 +48,13 @@ export async function loadBadges() {
                     paicord: customBadgesSettings.showPaicord ?? true,
                     vencord: customBadgesSettings.showVencord ?? true,
                     equicord: customBadgesSettings.showEquicord ?? true,
+                    bunny: customBadgesSettings.showBunny ?? true,
+                    goosemod: customBadgesSettings.showGooseMod ?? true,
+                    replugged: customBadgesSettings.showReplugged ?? true,
+                    betterdiscord: customBadgesSettings.showBetterDiscord ?? true,
+                    vendroidenhanced: customBadgesSettings.showVendroidEnhanced ?? true,
+                    revenge: customBadgesSettings.showRevenge ?? true,
+                    record: customBadgesSettings.showReCord ?? true,
                 };
 
                 if (mod in conditionalMods && !conditionalMods[mod as keyof typeof conditionalMods]) return false;
