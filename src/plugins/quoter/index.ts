@@ -1,6 +1,7 @@
 import { definePlugin } from "@plugins";
 import { Contributors } from "@rain/Developers";
 
+import { logCapabilities } from "./lib/capabilities";
 import patchActionSheet from "./patches/ActionSheet";
 import Settings from "./settings";
 
@@ -11,8 +12,9 @@ export default definePlugin({
     description: "Adds a Quote action to message menus and sends a generated quote image as a Discord attachment",
     author: [Contributors.benjii],
     id: "quoter",
-    version: "1.0.0",
+    version: "1.1.0",
     start() {
+        logCapabilities();
         patches.push(patchActionSheet());
     },
     stop() {

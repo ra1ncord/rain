@@ -8,6 +8,7 @@ import { Forms } from "@metro/common/components";
 import { findByPropsLazy } from "@metro/wrappers";
 
 import { openQuoteModal } from "../components/QuotePreview";
+import { isQuoteRenderingSupported } from "../lib/capabilities";
 
 const LazyActionSheet = findByPropsLazy("openLazy", "hideActionSheet");
 
@@ -102,6 +103,7 @@ function injectQuoteRow(sheet: any, message: any) {
 }
 
 export default () => before("openLazy", LazyActionSheet, ([component, key, msg]) => {
+    if (!isQuoteRenderingSupported()) return;
     const message = msg?.message;
     if (key !== "MessageLongPressActionSheet" || !message?.content) return;
 

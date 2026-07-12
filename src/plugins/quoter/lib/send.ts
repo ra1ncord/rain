@@ -136,9 +136,30 @@ async function sendViaRestApi(channelId: string, uri: string, filename: string, 
     }
 }
 
+async function dispatchQuoteFile(channelId: string, uri: string, filename: string, mime: string): Promise<"legacy" | "rest"> {
+    try {
+        if (await sendViaUploadLocalFiles(channelId, uri, filename, mime)) return "legacy";
+    } catch (error) {
+        logger.warn("[Quoter] uploadLocalFiles failed, falling back to REST upload:", error);
+    }
+
+    await sendViaRestApi(channelId, uri, filename, mime);
+    return "rest";
+}
+
 /**
- * Sends the rendered quote as a native Discord attachment: writes the PNG to
- * the app cache and hands it to Discord — no third-party host is involved.
+ * Sends an already-rendered quote PNG file (e.g. a snapshot temp file from
+ * the native renderer) as a Discord attachment — no third-party host is
+ * involved. The temp file is left for the OS to clean up.
+ */
+export async function sendQuoteFile(channelId: string, fileUri: string, filename: string): Promise<void> {
+    await dispatchQuoteFile(channelId, fileUri, filename, "image/png");
+}
+
+/**
+ * Sends a rendered quote data URL as a native Discord attachment: writes the
+ * PNG to the app cache and hands it to Discord — no third-party host is
+ * involved.
  *
  * Note: bypassuploadlimit patches CloudUpload and reroutes uploads above 8 MB
  * (or all of them with "alwaysUpload") to an external host; quote PNGs stay
@@ -154,22 +175,13 @@ export async function sendQuoteAttachment(channelId: string, dataUrl: string, fi
     const filePath = await NativeFileModule.writeFile("cache", tempPath, parsed.body, "base64");
     const uri = String(filePath).startsWith("file://") ? String(filePath) : `file://${filePath}`;
 
-    let usedLegacyPipeline = false;
+    let sendPath: "legacy" | "rest" | null = null;
     try {
-        try {
-            if (await sendViaUploadLocalFiles(channelId, uri, filename, parsed.mime)) {
-                usedLegacyPipeline = true;
-                return;
-            }
-        } catch (error) {
-            logger.warn("[Quoter] uploadLocalFiles failed, falling back to REST upload:", error);
-        }
-
-        await sendViaRestApi(channelId, uri, filename, parsed.mime);
+        sendPath = await dispatchQuoteFile(channelId, uri, filename, parsed.mime);
     } finally {
         // The REST response only resolves after Discord has consumed the
         // body, so a short delay suffices; the legacy pipeline reads the
         // file on its own schedule, hence the generous window there.
-        scheduleCacheCleanup(tempPath, usedLegacyPipeline ? 60_000 : 3_000);
+        scheduleCacheCleanup(tempPath, sendPath === "legacy" ? 60_000 : 3_000);
     }
 }
