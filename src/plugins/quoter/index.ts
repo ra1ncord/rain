@@ -1,7 +1,6 @@
 import { definePlugin } from "@plugins";
 import { Contributors } from "@rain/Developers";
 
-import { logCapabilities } from "./lib/capabilities";
 import patchActionSheet from "./patches/ActionSheet";
 import Settings from "./settings";
 
@@ -13,8 +12,9 @@ export default definePlugin({
     author: [Contributors.benjii],
     id: "quoter",
     version: "1.1.0",
+    // Rendering needs the native RNCWebView view, which only the Android app ships
+    platforms: ["android"],
     start() {
-        logCapabilities();
         patches.push(patchActionSheet());
     },
     stop() {

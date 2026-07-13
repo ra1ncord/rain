@@ -6,9 +6,9 @@ import { logger } from "@lib/utils/logger";
 import { React, ReactNative } from "@metro/common";
 import { Forms } from "@metro/common/components";
 import { findByPropsLazy } from "@metro/wrappers";
+import { Platform } from "react-native";
 
 import { openQuoteModal } from "../components/QuotePreview";
-import { isQuoteRenderingSupported } from "../lib/capabilities";
 
 const LazyActionSheet = findByPropsLazy("openLazy", "hideActionSheet");
 
@@ -103,7 +103,12 @@ function injectQuoteRow(sheet: any, message: any) {
 }
 
 export default () => before("openLazy", LazyActionSheet, ([component, key, msg]) => {
-    if (!isQuoteRenderingSupported()) return;
+    // The quote is rendered via a hidden WebView, whose native view (RNCWebView)
+    // only ships in rain's Android app — mounting it elsewhere crashes natively.
+    // `platforms` on the plugin manifest only hides Quoter from the iOS Plugins
+    // list, it doesn't stop start() running there (e.g. a synced enabled-state
+    // from another device), so this check is the actual crash prevention.
+    if (Platform.OS !== "android") return;
     const message = msg?.message;
     if (key !== "MessageLongPressActionSheet" || !message?.content) return;
 

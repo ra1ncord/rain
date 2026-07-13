@@ -148,15 +148,6 @@ async function dispatchQuoteFile(channelId: string, uri: string, filename: strin
 }
 
 /**
- * Sends an already-rendered quote PNG file (e.g. a snapshot temp file from
- * the native renderer) as a Discord attachment — no third-party host is
- * involved. The temp file is left for the OS to clean up.
- */
-export async function sendQuoteFile(channelId: string, fileUri: string, filename: string): Promise<void> {
-    await dispatchQuoteFile(channelId, fileUri, filename, "image/png");
-}
-
-/**
  * Sends a rendered quote data URL as a native Discord attachment: writes the
  * PNG to the app cache and hands it to Discord — no third-party host is
  * involved.
