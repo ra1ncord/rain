@@ -55,8 +55,8 @@ export const PERMISSION_CATEGORIES: { name: string; permissions: string[] }[] = 
 
 const CHANNEL_CATEGORIES = new Set(["Text", "Voice", "Channel", "Roles", "Expressions", "Misc"]);
 export const OVERWRITE_PERMISSIONS = PERMISSION_CATEGORIES
-    .filter((c) => CHANNEL_CATEGORIES.has(c.name))
-    .flatMap((c) => c.permissions);
+    .filter(c => CHANNEL_CATEGORIES.has(c.name))
+    .flatMap(c => c.permissions);
 
 export function hexToRgba(hex: string, alpha: number): string {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -73,5 +73,5 @@ export function formatPermName(name: string): string {
             if (localized) return localized;
         } catch {}
     }
-    return name.split("_").map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
+    return name.split("_").map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
 }

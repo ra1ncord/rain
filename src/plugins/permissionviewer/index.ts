@@ -1,8 +1,8 @@
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
 
-import patchServer from "./patches/patchServer";
 import patchChannel from "./patches/patchChannel";
+import patchServer from "./patches/patchServer";
 import patchUserProfile from "./patches/patchUserProfile";
 
 const patches: (() => void)[] = [];

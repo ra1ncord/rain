@@ -1,11 +1,11 @@
-import React from "react";
-import { Image, Pressable, ScrollView, View } from "react-native";
-
+import { rawColors, semanticColors } from "@api/ui/components/color";
 import { hideSheet } from "@api/ui/sheets";
 import { findByNameLazy, findByProps, findByStoreName } from "@metro";
 import { constants } from "@metro/common";
 import { ActionSheet, Text } from "@metro/common/components";
-import { rawColors, semanticColors } from "@api/ui/components/color";
+import React from "react";
+import { Image, Pressable, ScrollView, View } from "react-native";
+
 import { formatPermName, hexToRgba, OVERWRITE_PERMISSIONS } from "../lib/permissions";
 
 const { ActionSheetCloseButton } = findByProps("ActionSheetCloseButton") ?? {};
@@ -19,8 +19,8 @@ function getPermsFromOverwrite(ow: any, Perms: Record<string, any>) {
     const allow = typeof ow.allow === "bigint" ? ow.allow : BigInt(ow.allow ?? "0");
     const deny = typeof ow.deny === "bigint" ? ow.deny : BigInt(ow.deny ?? "0");
     return {
-        allowed: OVERWRITE_PERMISSIONS.filter((p) => (allow & (Perms[p] ?? 0n)) !== 0n),
-        denied: OVERWRITE_PERMISSIONS.filter((p) => (deny & (Perms[p] ?? 0n)) !== 0n),
+        allowed: OVERWRITE_PERMISSIONS.filter(p => (allow & (Perms[p] ?? 0n)) !== 0n),
+        denied: OVERWRITE_PERMISSIONS.filter(p => (deny & (Perms[p] ?? 0n)) !== 0n),
     };
 }
 
@@ -90,7 +90,7 @@ export default function ChannelPermsView({ channelId }: { channelId: string }) {
                                     <Text variant="text-md/semibold" style={color ? { color } : {}}>{name}</Text>
                                     {allowed.length > 0 && (
                                         <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 4 }}>
-                                            {allowed.map((p) => (
+                                            {allowed.map(p => (
                                                 <View key={p} style={{ backgroundColor: hexToRgba(rawColors.GREEN_360, 0.15), borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, marginRight: 4, marginBottom: 4 }}>
                                                     <Text variant="text-xs/medium" style={{ color: rawColors.GREEN_360 }}>{formatPermName(p)}</Text>
                                                 </View>
@@ -99,7 +99,7 @@ export default function ChannelPermsView({ channelId }: { channelId: string }) {
                                     )}
                                     {denied.length > 0 && (
                                         <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 4 }}>
-                                            {denied.map((p) => (
+                                            {denied.map(p => (
                                                 <View key={p} style={{ backgroundColor: hexToRgba(rawColors.RED_400, 0.15), borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, marginRight: 4, marginBottom: 4 }}>
                                                     <Text variant="text-xs/medium" style={{ color: rawColors.RED_400 }}>{formatPermName(p)}</Text>
                                                 </View>
@@ -134,7 +134,7 @@ export default function ChannelPermsView({ channelId }: { channelId: string }) {
                                     </View>
                                     {allowed.length > 0 && (
                                         <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 4 }}>
-                                            {allowed.map((p) => (
+                                            {allowed.map(p => (
                                                 <View key={p} style={{ backgroundColor: hexToRgba(rawColors.GREEN_360, 0.15), borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, marginRight: 4, marginBottom: 4 }}>
                                                     <Text variant="text-xs/medium" style={{ color: rawColors.GREEN_360 }}>{formatPermName(p)}</Text>
                                                 </View>
@@ -143,7 +143,7 @@ export default function ChannelPermsView({ channelId }: { channelId: string }) {
                                     )}
                                     {denied.length > 0 && (
                                         <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 4 }}>
-                                            {denied.map((p) => (
+                                            {denied.map(p => (
                                                 <View key={p} style={{ backgroundColor: hexToRgba(rawColors.RED_400, 0.15), borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, marginRight: 4, marginBottom: 4 }}>
                                                     <Text variant="text-xs/medium" style={{ color: rawColors.RED_400 }}>{formatPermName(p)}</Text>
                                                 </View>

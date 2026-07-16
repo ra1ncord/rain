@@ -1,11 +1,12 @@
-import React from "react";
-import { ScrollView, View } from "react-native";
+import { rawColors } from "@api/ui/components/color";
 import { hideSheet, showSheet } from "@api/ui/sheets";
 import { findByProps, findByStoreName } from "@metro";
 import { constants } from "@metro/common";
 import { ActionSheet, TableRow, TableRowGroup, Text } from "@metro/common/components";
-import { rawColors } from "@api/ui/components/color";
-import { PERMISSION_CATEGORIES, formatPermName } from "../lib/permissions";
+import React from "react";
+import { ScrollView, View } from "react-native";
+
+import { formatPermName,PERMISSION_CATEGORIES } from "../lib/permissions";
 
 const { ActionSheetCloseButton } = findByProps("ActionSheetCloseButton") ?? {};
 const TableCheckboxRow = findByProps("TableCheckboxRow")?.TableCheckboxRow ?? null;
@@ -82,13 +83,13 @@ function RolePermsPage({ guildId, role }: { guildId: string; role: any }) {
                     : React.createElement(Text, { variant: "text-md/semibold", style: { color: rawColors.BRAND_500 }, onPress: () => hideSheet("permissionviewer-role-" + role.id) }, "Close")}
             </View>
             <ScrollView>
-                {PERMISSION_CATEGORIES.map((section) => {
-                    const sectionPerms = section.permissions.filter((p) => Perms[p] != null);
+                {PERMISSION_CATEGORIES.map(section => {
+                    const sectionPerms = section.permissions.filter(p => Perms[p] != null);
                     if (sectionPerms.length === 0) return null;
                     return (
                         <View key={section.name} style={{ marginBottom: 8 }}>
                             <TableRowGroup>
-                                {sectionPerms.map((permName) => {
+                                {sectionPerms.map(permName => {
                                     const flag = Perms[permName];
                                     const hasPerm = tryHasPerm(role.permissions, flag);
                                     return TableCheckboxRow
