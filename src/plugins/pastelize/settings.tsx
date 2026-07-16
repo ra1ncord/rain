@@ -14,21 +14,21 @@ export default function PastelizeSettings() {
                     <TableSwitchRow
                         label="Pastelize all"
                         subLabel="Ignores checking for no role"
-                        icon={<TableRow.Icon source={findAssetId("ic_tag")} variant="blurple" />}
+                        icon={<TableRow.Icon source={findAssetId("TagIcon")} />}
                         value={settings.pastelizeAll}
                         onValueChange={(value: boolean) => settings.updateSettings({ pastelizeAll: value })}
                     />
                     <TableSwitchRow
                         label="Pastelize webhooks by display name"
                         subLabel="Otherwise uses the webhook ID"
-                        icon={<TableRow.Icon source={findAssetId("ic_webhook_24px")} variant="blurple" />}
+                        icon={<TableRow.Icon source={findAssetId("WebhookIcon")} />}
                         value={settings.webhookName}
                         onValueChange={(value: boolean) => settings.updateSettings({ webhookName: value })}
                     />
                     <TableSwitchRow
                         label="Pastelize message content"
                         subLabel="Use RoleColorEverywhere for coloring if not using Pastelize All. Same caveats with tapping message content apply."
-                        icon={<TableRow.Icon source={findAssetId("ic_messages")} variant="blurple" />}
+                        icon={<TableRow.Icon source={findAssetId("ChatIcon")} />}
                         value={settings.pastelizeContent}
                         onValueChange={(value: boolean) => settings.updateSettings({ pastelizeContent: value })}
                     />
