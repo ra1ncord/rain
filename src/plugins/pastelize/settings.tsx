@@ -25,13 +25,6 @@ export default function PastelizeSettings() {
                         value={settings.webhookName}
                         onValueChange={(value: boolean) => settings.updateSettings({ webhookName: value })}
                     />
-                    <TableSwitchRow
-                        label="Pastelize message content"
-                        subLabel="Use RoleColorEverywhere for coloring if not using Pastelize All. Same caveats with tapping message content apply."
-                        icon={<TableRow.Icon source={findAssetId("ChatIcon")} />}
-                        value={settings.pastelizeContent}
-                        onValueChange={(value: boolean) => settings.updateSettings({ pastelizeContent: value })}
-                    />
                 </TableRowGroup>
             </Stack>
         </ScrollView>

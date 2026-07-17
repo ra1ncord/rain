@@ -3,7 +3,6 @@ import { createPluginStore } from "@api/storage";
 interface PastelizeSettings {
     pastelizeAll: boolean;
     webhookName: boolean;
-    pastelizeContent: boolean;
 }
 
 export const {
@@ -12,5 +11,4 @@ export const {
 } = createPluginStore<PastelizeSettings>("pastelize", {
     pastelizeAll: false,
     webhookName: true,
-    pastelizeContent: false,
 });

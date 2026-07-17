@@ -51,10 +51,7 @@ function processMessage(
     if (message.guildId && member == null && rowMessage?.webhookId == null)
         return;
 
-    const state = usePastelizeSettings.getState();
-    const pastelizeAll = state.pastelizeAll ?? false;
-    const webhookName = state.webhookName ?? true;
-    const pastelizeContent = state.pastelizeContent ?? false;
+    const { pastelizeAll, webhookName } = usePastelizeSettings.getState();
 
     let toHash: string | null = null;
     if (rowMessage?.webhookId != null) {
@@ -77,27 +74,6 @@ function processMessage(
         message.roleColor = color;
         message.usernameColor = color;
         message.colorString = color;
-
-        if (pastelizeContent && message.content) {
-            const messageColor = pastelize(toHash, 0.85, 0.75);
-            message.content = [
-                {
-                    content: message.content,
-                    type: "link",
-                    target: "usernameOnClick",
-                    context: {
-                        username: 1,
-                        usernameOnClick: {
-                            action: "0",
-                            userId: "0",
-                            linkColor: messageColor,
-                            messageChannelId: "0",
-                        },
-                        medium: true,
-                    },
-                },
-            ];
-        }
     }
 }
 
