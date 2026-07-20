@@ -31,8 +31,8 @@ export default definePlugin({
             unpatches.push(
                 after("render", ChatInputSendButton.type, (args, tree) => {
                     const item = tree?.props?.children?.props?.items?.[0];
-                    if (item && item.sendVoiceMessageEnabled !== undefined) {
-                        item.sendVoiceMessageEnabled = !state.hide?.voice;
+                    if (item && state.hide?.voice) {
+                        item.sendVoiceMessageEnabled = false;
                     }
                     return tree;
                 })
