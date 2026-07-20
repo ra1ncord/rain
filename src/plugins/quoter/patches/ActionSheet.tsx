@@ -103,12 +103,6 @@ function injectQuoteRow(sheet: any, message: any) {
 }
 
 export default () => before("openLazy", LazyActionSheet, ([component, key, msg]) => {
-    // The quote is rendered via a hidden WebView, whose native view (RNCWebView)
-    // only ships in rain's Android app — mounting it elsewhere crashes natively.
-    // `platforms` on the plugin manifest only hides Quoter from the iOS Plugins
-    // list, it doesn't stop start() running there (e.g. a synced enabled-state
-    // from another device), so this check is the actual crash prevention.
-    if (Platform.OS !== "android") return;
     const message = msg?.message;
     if (key !== "MessageLongPressActionSheet" || !message?.content) return;
 
