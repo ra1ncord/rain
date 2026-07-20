@@ -3,11 +3,11 @@ import { Contributors,Developers } from "@rain/Developers";
 import { Strings } from "@rain/i18n";
 
 import { patchConsole, patchMiscellaneous, patchModDetection,patchNetwork, patchSentry } from "./notrack";
+import { oldUI } from "./oldui";
 import patchEmojiActionSheet from "./realmoji/patches/patchEmojiActionSheet";
 import transformEmoji from "./realmoji/patches/transformEmoji";
 import transformSticker from "./realmoji/patches/transformSticker";
 import settings from "./settings";
-import { oldUI } from "./oldui";
 
 let patches: any[] = [];
 
@@ -27,7 +27,7 @@ export default definePlugin({
             patchModDetection(),
         ].filter(Boolean);
 
-        oldUI()
+        oldUI();
     },
     start() {
         // Realmoji
