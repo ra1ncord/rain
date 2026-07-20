@@ -1,12 +1,12 @@
-import React from "react";
-import { Image, ScrollView, View } from "react-native";
-
+import { rawColors, semanticColors } from "@api/ui/components/color";
 import { hideSheet } from "@api/ui/sheets";
 import { findByProps, findByStoreName } from "@metro";
 import { constants } from "@metro/common";
 import { ActionSheet, TableRow, TableRowGroup, Text } from "@metro/common/components";
-import { rawColors, semanticColors } from "@api/ui/components/color";
-import { PERMISSION_CATEGORIES, formatPermName } from "../lib/permissions";
+import React from "react";
+import { Image, ScrollView, View } from "react-native";
+
+import { formatPermName,PERMISSION_CATEGORIES } from "../lib/permissions";
 
 const { ActionSheetCloseButton } = findByProps("ActionSheetCloseButton") ?? {};
 const TableCheckboxRow = findByProps("TableCheckboxRow")?.TableCheckboxRow ?? null;
@@ -75,13 +75,13 @@ export default function UserPermissionPage({ guildId, userId }: { guildId: strin
                 </View>
             )}
             <ScrollView style={{ flex: 1 }}>
-                {PERMISSION_CATEGORIES.map((section) => {
-                    const sectionPerms = section.permissions.filter((p) => Perms[p] != null);
+                {PERMISSION_CATEGORIES.map(section => {
+                    const sectionPerms = section.permissions.filter(p => Perms[p] != null);
                     if (sectionPerms.length === 0) return null;
                     return (
                         <View key={section.name} style={{ marginBottom: 8 }}>
                             <TableRowGroup>
-                                {sectionPerms.map((permName) => {
+                                {sectionPerms.map(permName => {
                                     const checked = hasPerm(permName);
                                     return TableCheckboxRow
                                         ? React.createElement(TableCheckboxRow, { key: permName, label: formatPermName(permName), checked, disabled: true })

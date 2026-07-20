@@ -1,4 +1,4 @@
-import { Stack, TableCheckboxRow, TableRadioGroup, TableRadioRow, TableRowGroup, TableRowIcon, TableSwitchRow } from "@metro/common/components";
+import { Stack, TableCheckboxRow, TableRadioGroup, TableRadioRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import { ScrollView } from "react-native";
 
 import { useCustomBadgesSettings } from "./storage";
@@ -25,7 +25,7 @@ export default function CustomBadgesSettings() {
                     title={"Show Mod Style"}
                     value={settings.showModStyle}
                     onChange={(value: string) => {
-                        update("showModStyle", value); 
+                        update("showModStyle", value);
                     }}
                 >
                     <TableRadioRow
