@@ -1,10 +1,11 @@
 import { instead } from "@api/patcher";
+import { waitForHydration } from "@api/storage";
 import { findByProps } from "@metro";
 import { definePlugin } from "@plugins";
-import { waitForHydration } from "@api/storage";
 import { Developers } from "@rain/Developers";
-import { tenorgifSettings, useTenorGifSearchSettings } from "./storage";
+
 import TenorGifSearchSettings from "./settings";
+import { tenorgifSettings, useTenorGifSearchSettings } from "./storage";
 
 interface TenorMediaFormat {
     url: string;
@@ -232,7 +233,7 @@ export default definePlugin({
                 if (url.endsWith("/select")) {
                     const shareParams: Record<string, string> = { id: q || "", q: q || "" };
                     if (locale) shareParams.locale = locale;
-                    fetch(tenorUrl("registershare", shareParams)).catch((e) => {
+                    fetch(tenorUrl("registershare", shareParams)).catch(e => {
                         console.warn("[TenorGifSearch] register share failed", e);
                     });
                     return makeThenable(Promise.resolve({ body: {} }));

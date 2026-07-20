@@ -6,7 +6,6 @@ import { logger } from "@lib/utils/logger";
 import { React, ReactNative } from "@metro/common";
 import { Forms } from "@metro/common/components";
 import { findByPropsLazy } from "@metro/wrappers";
-import { Platform } from "react-native";
 
 import { openQuoteModal } from "../components/QuotePreview";
 

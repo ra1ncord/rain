@@ -1,5 +1,6 @@
 import { Stack, TableRadioGroup, TableRadioRow } from "@metro/common/components";
 import { ScrollView } from "react-native";
+
 import { GridQualities, useTenorGifSearchSettings } from "./storage";
 
 const labels: Record<string, { label: string; subLabel: string }> = {
