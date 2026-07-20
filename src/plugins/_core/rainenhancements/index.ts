@@ -7,6 +7,7 @@ import patchEmojiActionSheet from "./realmoji/patches/patchEmojiActionSheet";
 import transformEmoji from "./realmoji/patches/transformEmoji";
 import transformSticker from "./realmoji/patches/transformSticker";
 import settings from "./settings";
+import { oldUI } from "./oldui";
 
 let patches: any[] = [];
 
@@ -25,6 +26,8 @@ export default definePlugin({
             patchSentry(),
             patchModDetection(),
         ].filter(Boolean);
+
+        oldUI()
     },
     start() {
         // Realmoji
