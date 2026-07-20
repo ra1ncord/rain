@@ -19,6 +19,16 @@ export default function BetterChatButtonsSettings() {
         forceUpdate();
     };
 
+    const updateShow = (key: keyof typeof settings.show, value: boolean) => {
+        useBetterChatButtonsSettings.getState().updateSettings({
+            show: {
+                ...settings.show,
+                [key]: value
+            }
+        });
+        forceUpdate();
+    };
+
     const updateDismiss = (key: keyof typeof settings.dismiss, value: boolean) => {
         useBetterChatButtonsSettings.getState().updateSettings({
             dismiss: {
@@ -46,10 +56,27 @@ export default function BetterChatButtonsSettings() {
                         onValueChange={v => updateHide("gift", v)}
                     />
                     <TableSwitchRow
+                        icon={<TableRow.Icon source={findAssetId("ThreadPlusIcon")} />}
+                        label="Hide New Thread"
+                        disabled={settings.show.thread}
+                        value={settings.show.thread ? false : settings.hide.thread}
+                        onValueChange={v => updateHide("thread", v)}
+                    />
+                    <TableSwitchRow
                         icon={<TableRow.Icon source={findAssetId("MicrophoneIcon")} />}
                         label="Hide Voice Message"
                         value={settings.hide.voice}
                         onValueChange={v => updateHide("voice", v)}
+                    />
+                </TableRowGroup>
+
+                <TableRowGroup title="Force Show Buttons">
+                    <TableSwitchRow
+                        icon={<TableRow.Icon source={findAssetId("ThreadPlusIcon")} />}
+                        label="Force show New Thread button"
+                        subLabel="Show the thread button even when you can't start threads, or when the chat input is not focused"
+                        value={settings.show.thread}
+                        onValueChange={v => updateShow("thread", v)}
                     />
                 </TableRowGroup>
 

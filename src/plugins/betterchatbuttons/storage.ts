@@ -4,7 +4,11 @@ interface BetterChatButtonsSettings {
     hide: {
         voice: boolean;
         gift: boolean;
+        thread: boolean;
         app: boolean;
+    };
+    show: {
+        thread: boolean;
     };
     dismiss: {
         actions: boolean;
@@ -19,7 +23,11 @@ export const {
     hide: {
         app: true,
         gift: true,
+        thread: true,
         voice: true,
+    },
+    show: {
+        thread: false,
     },
     dismiss: {
         actions: true,

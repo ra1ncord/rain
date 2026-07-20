@@ -51,6 +51,7 @@ export default definePlugin({
             unpatches.push(
                 before("render", ChatInputActions.type, ([props, ref]) => {
                     if (props.isAppLauncherEnabled) props.isAppLauncherEnabled = !state.hide.app;
+                    props.canStartThreads = state.show?.thread || !state.hide.thread;
                     props.shouldShowGiftButton = !state.hide.gift;
                     actionsRef = ref;
                 })
