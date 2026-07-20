@@ -73,11 +73,10 @@ export function checkForUpdate() {
 export function versionCheck() {
     const version = getDebugInfo().discord.build;
 
-    if (useLoaderConfig.getState().customLoadUrl.enabled === true) return;
+    if (useLoaderConfig.getState().customLoadUrl?.enabled) return;
     if (useSettings.getState().disableUpdateWarnings === true) return;
-    if (supportedVersions.includes(version)) return;
 
-    if (!supportedVersions.includes(version)) {
+    if (!supportedVersions.map(String).includes(version)) {
         openAlert(
             "incompatible-version-alert",
             <AlertModal
