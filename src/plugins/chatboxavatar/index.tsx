@@ -1,6 +1,7 @@
 import { after } from "@api/patcher";
 import { findByNameLazy, findByProps, findByPropsLazy, findByStoreName, findByTypeDisplayName } from "@metro";
 import { ReactNative } from "@metro/common";
+import { ChannelStore, SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { definePlugin } from "@plugins";
 import { Contributors } from "@rain/Developers";
 import React, { useEffect, useRef } from "react";
@@ -19,9 +20,6 @@ const avatarCollapse = new Animated.Value(0);
 
 const Avatar = findByPropsLazy("default", "AvatarSizes", "getStatusSize")?.default;
 
-const UserStore = findByStoreName("UserStore");
-const SelectedChannelStore = findByStoreName("SelectedChannelStore");
-const ChannelStore = findByStoreName("ChannelStore");
 const SelfPresenceStore = findByStoreName("SelfPresenceStore");
 const showUserProfileActionSheet = findByNameLazy("showUserProfileActionSheet");
 const showYouAccountActionSheetByProp = findByPropsLazy("showYouAccountActionSheet");

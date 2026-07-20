@@ -2,10 +2,10 @@ import { hideSheet, showSheet } from "@api/ui/sheets";
 import { findByProps } from "@metro";
 import { constants, ReactNative as RN } from "@metro/common";
 import { ActionSheet, Text, TextInput } from "@metro/common/components";
+import { GuildStore, PermissionsStore } from "@metro/common/stores";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
-import { GuildStore, PermissionsStore } from "../../modules";
 import AddToServerRow from "../components/AddToServerRow";
 
 const { ActionSheetCloseButton } = findByProps("ActionSheetCloseButton");

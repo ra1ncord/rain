@@ -1,15 +1,15 @@
 import { before,instead } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
-import { findByProps, findByStoreName } from "@metro";
+import { findByProps } from "@metro";
+import { ChannelStore, StickersStore, UserStore } from "@metro/common/stores";
 
 import { fakenitroSettings } from "../storage";
 import { buildStickerURL,modifyIfNeeded } from "../utils";
 
 const messageModule = findByProps("sendMessage", "receiveMessage");
 const uploadModule = findByProps("uploadLocalFiles");
-const { getCurrentUser } = findByStoreName("UserStore");
-const { getStickerById } = findByStoreName("StickersStore");
-const ChannelStore = findByStoreName("ChannelStore");
+const { getCurrentUser } = UserStore;
+const { getStickerById } = StickersStore;
 
 export default function getPatches() {
     const patches = [

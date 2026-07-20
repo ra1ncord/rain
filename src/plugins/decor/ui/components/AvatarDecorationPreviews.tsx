@@ -1,13 +1,13 @@
 import { semanticColors } from "@api/ui/components/color";
 import { createStyles } from "@api/ui/styles";
-import { findByName, findByStoreName } from "@metro";
+import { findByName } from "@metro";
+import { UserStore } from "@metro/common/stores";
 import { CDN_URL } from "@plugins/decor/lib/constants";
 import { useCurrentUserDecorationsStore } from "@plugins/decor/lib/stores/CurrentUserDecorationsStore";
 import discordifyDecoration from "@plugins/decor/lib/utils/discordifyDecoration";
 import { Image, View } from "react-native";
 
 const HeaderAvatar = findByName("HeaderAvatar");
-const UserStore = findByStoreName("UserStore");
 
 const useStyles = createStyles(_ => ({
     headerAvatarContainer: {
@@ -34,7 +34,7 @@ const useStyles = createStyles(_ => ({
 // TODO: fix/find proper
 // ig not since deco still shows
 
-export default function AvatarDecorationPreviews({ pendingAvatarDecoration }) {
+export default function AvatarDecorationPreviews({ pendingAvatarDecoration }:any) {
     const styles = useStyles();
     const selectedDecoration = useCurrentUserDecorationsStore(s => s.selectedDecoration);
 

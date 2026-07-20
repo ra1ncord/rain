@@ -1,7 +1,8 @@
 import { instead } from "@api/patcher";
 import { safeFetch } from "@lib/utils";
 import { logger } from "@lib/utils/logger";
-import { findByProps, findByStoreName } from "@metro";
+import { findByProps } from "@metro";
+import { UserStore } from "@metro/common/stores";
 
 const dataURL = "https://userpfp.github.io/UserPFP/source/data.json";
 
@@ -38,7 +39,6 @@ export function createUserPFPPatcher(onEnabled: () => boolean) {
         fetchData();
 
         const avatarStuff = findByProps("getUserAvatarURL", "getUserAvatarSource");
-        const UserStore = findByStoreName("UserStore");
 
         dataInterval = setInterval(() => fetchData(), 1000 * 60 * 60);
 

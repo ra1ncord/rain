@@ -1,8 +1,9 @@
 import { rawColors, semanticColors } from "@api/ui/components/color";
 import { hideSheet } from "@api/ui/sheets";
-import { findByProps, findByStoreName } from "@metro";
+import { findByProps } from "@metro";
 import { constants } from "@metro/common";
 import { ActionSheet, TableRow, TableRowGroup, Text } from "@metro/common/components";
+import { GuildMemberStore, GuildRoleStore, UserStore } from "@metro/common/stores";
 import React from "react";
 import { Image, ScrollView, View } from "react-native";
 
@@ -10,9 +11,6 @@ import { formatPermName,PERMISSION_CATEGORIES } from "../lib/permissions";
 
 const { ActionSheetCloseButton } = findByProps("ActionSheetCloseButton") ?? {};
 const TableCheckboxRow = findByProps("TableCheckboxRow")?.TableCheckboxRow ?? null;
-const GuildRoleStore = findByStoreName("GuildRoleStore");
-const GuildMemberStore = findByStoreName("GuildMemberStore");
-const UserStore = findByStoreName("UserStore");
 
 function parsePerms(v: any): bigint {
     if (v == null) return 0n;

@@ -1,9 +1,10 @@
 import { after, instead } from "@api/patcher";
-import { findByProps, findByStoreName } from "@metro";
+import { findByProps } from "@metro";
+import { UserStore } from "@metro/common/stores";
 
 const nitroInfo = findByProps("canUseEmojisEverywhere");
 const emojiUtils = findByProps("getEmojiUnavailableReason");
-const { getCurrentUser } = findByStoreName("UserStore");
+const { getCurrentUser } = UserStore;
 
 function patchReaction(args: any[], result: any, response: any) {
     if (args[0]?.intention === 0 && result === null && getCurrentUser?.().premiumType === null) {

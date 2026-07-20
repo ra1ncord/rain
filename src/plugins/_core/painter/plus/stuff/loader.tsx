@@ -1,4 +1,4 @@
-import { findByStoreName } from "@metro/wrappers";
+import { UserStore } from "@metro/common/stores";
 import { getCurrentTheme } from "@plugins/_core/painter/themes";
 
 import { InactiveReason } from "..";
@@ -9,8 +9,6 @@ import { state, updateState } from "./active";
 import constants from "./constants";
 import getIconpackData, { type FetchedIconpackData } from "./iconpackDataGetter";
 import { cFetch } from "./util";
-
-const UserStore = findByStoreName("UserStore");
 
 export const patches: (() => void)[] = [];
 

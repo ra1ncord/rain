@@ -1,5 +1,6 @@
 import { after } from "@api/patcher";
-import { findByProps, findByStoreName } from "@metro";
+import { findByProps } from "@metro";
+import { GuildMemberStore } from "@metro/common/stores";
 import { findByName } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
 import { Contributors, Developers } from "@rain/Developers";
@@ -9,7 +10,6 @@ import { usePastelizeSettings } from "./storage";
 import { pastelize } from "./util";
 
 const RowManager = findByName("RowManager");
-const GuildMemberStore = findByStoreName("GuildMemberStore");
 const ColorUtils = findByProps("int2hex", "hex2int");
 
 const patches: (() => void)[] = [];

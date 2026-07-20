@@ -1,5 +1,5 @@
-import { findByStoreName } from "@metro";
 import { FluxDispatcher, ReactNative } from "@metro/common";
+import { SelectedChannelStore } from "@metro/common/stores";
 import { definePlugin } from "@plugins";
 import { Contributors,Developers } from "@rain/Developers";
 
@@ -7,7 +7,6 @@ import settings from "./settings";
 import { useMoyaiSettings } from "./storage";
 
 const { DCDSoundManager } = ReactNative.NativeModules;
-const SelectedChannelStore = findByStoreName("SelectedChannelStore");
 
 const THUD_URL =
   "https://raw.githubusercontent.com/Metastruct/garrysmod-chatsounds/master/sound/chatsounds/autoadd/memes/overused%20thud.ogg";

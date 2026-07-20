@@ -1,14 +1,15 @@
 import { after } from "@api/patcher";
-import { findByName, findByProps, findByStoreName } from "@metro";
+import { findByName, findByProps } from "@metro";
 import { ReactNative } from "@metro/common";
+import { SelectedChannelStore, SelectedGuildStore } from "@metro/common/stores";
 
 const { Pressable } = findByProps("Button", "Text", "View");
 const ProfileBanner = findByName("ProfileBanner", false);
 const HeaderAvatar = findByName("HeaderAvatar", false);
 const { openMediaModal } = findByProps("openMediaModal");
 const { hideActionSheet } = findByProps("hideActionSheet");
-const { getChannelId } = findByStoreName("SelectedChannelStore");
-const { getGuildId } = findByStoreName("SelectedGuildStore");
+const { getChannelId } = SelectedChannelStore;
+const { getGuildId } = SelectedGuildStore;
 
 function getImageSize(uri: string): Promise<{ width: number, height: number; }> {
     return new Promise((resolve, reject) => {

@@ -1,6 +1,7 @@
 import { before } from "@api/patcher";
 import { showToast } from "@api/ui/toasts";
-import { findByName, findByProps, findByStoreName } from "@metro";
+import { findByName, findByProps } from "@metro";
+import { MessageStore, UserStore } from "@metro/common/stores";
 import { definePlugin } from "@plugins";
 import { Contributors, Developers } from "@rain/Developers";
 
@@ -10,8 +11,6 @@ import { useMessageLoggerSettings } from "./storage";
 
 let patches: Array<() => void> = [];
 const selfDeletedMessages = new Set<string>();
-let MessageStore: any;
-let UserStore: any;
 const deleteable: string[] = [];
 
 function logToDatabase(message: any, type: "DELETE" | "UPDATE") {
@@ -75,9 +74,6 @@ function patchMessageDeleteHandler() {
 
                 const storage = useMessageLoggerSettings.getState();
                 if (!storage.deleted?.enabled) return args;
-
-                if (!UserStore) UserStore = findByStoreName("UserStore");
-                if (!MessageStore) MessageStore = findByStoreName("MessageStore");
 
                 if (!UserStore || !MessageStore) return args;
 
@@ -153,7 +149,6 @@ function patchMessageDeleteHandler() {
 function patchMessageEditHandler() {
     try {
         const FluxDispatcher = findByProps("dispatch", "_subscriptions");
-        const MessageStore = findByStoreName("MessageStore");
         const emojiRegex = /https:\/\/cdn\.discordapp\.com\/emojis\/\d+\.\w+/g;
 
         if (!FluxDispatcher || !MessageStore) return () => {};
@@ -173,7 +168,7 @@ function patchMessageEditHandler() {
                 const message = event.message;
                 if (!message?.content || !message?.id) return args;
 
-                if (storage.filters?.ignoreSelfEdits && message?.author?.id === findByStoreName("UserStore").getCurrentUser().id) return args;
+                if (storage.filters?.ignoreSelfEdits && message?.author?.id === UserStore.getCurrentUser().id) return args;
 
                 if(storage.ignoreLists.user.split(" ").indexOf(message?.author?.id.toString()) !== -1) return args;
                 if(storage.ignoreLists.channel.split(" ").indexOf(message?.channel_id.toString()) !== -1) return args;

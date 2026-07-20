@@ -1,11 +1,12 @@
 import { before } from "@api/patcher";
-import { findByName, findByStoreName } from "@metro";
+import { findByName } from "@metro";
+import { StickersStore } from "@metro/common/stores";
 
 import { rainenhancementsSettings } from "../../storage";
 
 // heavily based off the godsent work of: https://github.com/Vendicated/Vencord/blob/575421f4d06fe6cda9c1cb3227060a20cd1c700f/src/plugins/fakeNitro/index.tsx
 
-const { getStickerById } = findByStoreName("StickersStore");
+const { getStickerById } = StickersStore;
 const RowManager = findByName("RowManager");
 
 const staticStickerRegex = /https:\/\/(?:media|cdn)\.discordapp\.(?:net|com)\/stickers\/(\d+)\.(?!gif)\w+/;

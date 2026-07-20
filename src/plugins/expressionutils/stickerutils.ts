@@ -1,13 +1,12 @@
 import { after, instead } from "@api/patcher";
 import { showToast } from "@api/ui/toasts";
-import { findByProps, findByStoreName } from "@metro";
+import { findByProps } from "@metro";
 import { clipboard, ReactNative } from "@metro/common";
 import { Button } from "@metro/common/components";
+import { GuildStore, UserSettingsProtoStore } from "@metro/common/stores";
 import React from "react";
 
 const { hideActionSheet } = findByProps("hideActionSheet");
-const UserSettingsProtoStore = findByStoreName("UserSettingsProtoStore");
-const GuildStore = findByStoreName("GuildStore");
 const StickerUtils = findByProps("favoriteSticker", "unfavoriteSticker");
 const { downloadMediaAsset } = findByProps("downloadMediaAsset");
 const LazyActionSheet = findByProps("hideActionSheet");

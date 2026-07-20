@@ -1,9 +1,11 @@
-import { findByStoreName } from "@metro";
+
+import { EmojiStore, SelectedGuildStore } from "@metro/common/stores";
 
 import { Message, Sticker } from "./def";
 import { fakenitroSettings } from "./storage";
-const { getCustomEmojiById } = findByStoreName("EmojiStore");
-const { getGuildId } = findByStoreName("SelectedGuildStore");
+
+const { getCustomEmojiById } = EmojiStore;
+const { getGuildId } = SelectedGuildStore;
 
 // https://github.com/luimu64/nitro-spoof/blob/1bb75a2471c39669d590bfbabeb7b922672929f5/index.js#L25
 const hasEmotesRegex = /<a?:(\w+):(\d+)>/i;

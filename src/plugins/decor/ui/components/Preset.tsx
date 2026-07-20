@@ -1,7 +1,7 @@
 import { findAssetId } from "@api/assets";
 import { semanticColors } from "@api/ui/components/color";
 import { createStyles } from "@api/ui/styles";
-import { findByName, findByProps, findByStoreName } from "@metro";
+import { findByName, findByProps } from "@metro";
 import { NavigationNative, ReactNative } from "@metro/common";
 import { Forms } from "@metro/common/components";
 
@@ -25,7 +25,6 @@ const useStyles = createStyles(_ => ({
 }));
 
 const UserUtils = findByProps("getUser", "fetchCurrentUser");
-const UserStore = findByStoreName("UserStore");
 
 const defaultAvatars = [
     findAssetId("default_avatar_0"),

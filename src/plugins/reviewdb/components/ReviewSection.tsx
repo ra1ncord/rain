@@ -1,8 +1,9 @@
 import { ErrorBoundary } from "@api/ui/components";
 import { semanticColors } from "@api/ui/components/color";
 import { createStyles } from "@api/ui/styles";
-import { findByName, findByProps, findByStoreName } from "@metro";
+import { findByName, findByProps } from "@metro";
 import { React, ReactNative as RN } from "@metro/common";
+import { UserStore } from "@metro/common/stores";
 
 import { Review } from "../def";
 import { getReviews } from "../lib/api";
@@ -10,7 +11,7 @@ import { useReviewDBSettings } from "../storage";
 import ReviewInput from "./ReviewInput";
 import ReviewRow from "./ReviewRow";
 
-const { getCurrentUser } = findByStoreName("UserStore");
+const { getCurrentUser } = UserStore;
 const UserProfileCard = findByName("UserProfileCard");
 
 interface ReviewSectionProps {

@@ -1,6 +1,7 @@
 import { after, instead } from "@api/patcher";
-import { findByProps, findByStoreName } from "@metro";
+import { findByProps } from "@metro";
 import { ReactNative } from "@metro/common";
+import { UserStore } from "@metro/common/stores";
 import { definePlugin } from "@plugins";
 import { Contributors, Developers } from "@rain/Developers";
 
@@ -10,7 +11,6 @@ import { subscriptions as CurrentUserDecorationsStoreSubscriptions, useCurrentUs
 import { subscriptions as UserDecorationsStoreSubscriptions, useUsersDecorationsStore } from "./lib/stores/UsersDecorationsStore";
 import Settings from "./ui/pages/Settings";
 
-const UserStore = findByStoreName("UserStore");
 const ImageResolver = findByProps("getAvatarDecorationURL", "default");
 const AvatarDecorationUtils = findByProps("isAnimatedAvatarDecoration");
 

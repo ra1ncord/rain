@@ -1,8 +1,9 @@
 import { findAssetId } from "@api/assets";
 import { showConfirmationAlert } from "@api/ui/alerts";
 import { showToast } from "@api/ui/toasts";
-import { findByProps, findByStoreName } from "@metro";
+import { findByProps } from "@metro";
 import { clipboard,ReactNative } from "@metro/common";
+import { UserStore } from "@metro/common/stores";
 
 import { Decoration } from "../api";
 import { useCurrentUserDecorationsStore } from "../stores/CurrentUserDecorationsStore";
@@ -11,7 +12,6 @@ import discordifyDecoration from "./discordifyDecoration";
 const ImageResolver = findByProps("getAvatarDecorationURL", "default");
 const { showSimpleActionSheet } = findByProps("showSimpleActionSheet");
 const { hideActionSheet } = findByProps("openLazy", "hideActionSheet");
-const UserStore = findByStoreName("UserStore");
 
 const { Image } = ReactNative;
 

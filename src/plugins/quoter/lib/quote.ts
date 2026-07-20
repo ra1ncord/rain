@@ -1,11 +1,12 @@
-import { findByProps, findByStoreName } from "@metro";
+import { findByProps } from "@metro";
+import { UserStore } from "@metro/common/stores";
 
 import { QuoterSettings } from "../storage";
 
 // Resolved on first use rather than at plugin-import time, so a disabled
 // plugin adds no metro lookups to startup.
 let _userStore: any;
-const getUserStore = () => _userStore ??= findByStoreName("UserStore");
+const getUserStore = () => _userStore ??= UserStore;
 let _avatarUtils: any;
 const getAvatarUtils = () => _avatarUtils ??= findByProps("getUserAvatarURL");
 

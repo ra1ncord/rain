@@ -14,5 +14,3 @@ export const SelfPresenceStore = findByStoreName("SelfPresenceStore") as {
     getActivities: () => any[];
     findActivity: (filter: (activity: any) => boolean) => any;
 };
-
-export const UserStore = findByStoreName("UserStore");

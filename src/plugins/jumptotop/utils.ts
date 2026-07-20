@@ -1,7 +1,6 @@
-import { findByProps, findByStoreName } from "@metro";
+import { findByProps } from "@metro";
+import { ChannelStore, SelectedChannelStore } from "@metro/common/stores";
 
-const SelectedChannelStore = findByStoreName("SelectedChannelStore");
-const ChannelStore = findByStoreName("ChannelStore");
 const messageUtil = findByProps("jumpToMessage");
 
 const { openUrl } = findByProps("openUrl");

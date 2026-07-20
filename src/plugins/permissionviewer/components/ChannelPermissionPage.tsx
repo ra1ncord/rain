@@ -1,8 +1,9 @@
 import { rawColors, semanticColors } from "@api/ui/components/color";
 import { hideSheet } from "@api/ui/sheets";
-import { findByNameLazy, findByProps, findByStoreName } from "@metro";
+import { findByNameLazy, findByProps } from "@metro";
 import { constants } from "@metro/common";
 import { ActionSheet, Text } from "@metro/common/components";
+import { ChannelStore, GuildMemberStore, GuildRoleStore, UserStore } from "@metro/common/stores";
 import React from "react";
 import { Image, Pressable, ScrollView, View } from "react-native";
 
@@ -10,10 +11,6 @@ import { formatPermName, hexToRgba, OVERWRITE_PERMISSIONS } from "../lib/permiss
 
 const { ActionSheetCloseButton } = findByProps("ActionSheetCloseButton") ?? {};
 const showUserProfile = findByNameLazy("showUserProfileActionSheet");
-const ChannelStore = findByStoreName("ChannelStore");
-const GuildRoleStore = findByStoreName("GuildRoleStore");
-const GuildMemberStore = findByStoreName("GuildMemberStore");
-const UserStore = findByStoreName("UserStore");
 
 function getPermsFromOverwrite(ow: any, Perms: Record<string, any>) {
     const allow = typeof ow.allow === "bigint" ? ow.allow : BigInt(ow.allow ?? "0");

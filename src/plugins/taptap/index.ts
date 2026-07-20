@@ -2,7 +2,7 @@ import { after, instead } from "@api/patcher";
 import { waitForHydration } from "@api/storage";
 import { logger } from "@lib/utils/logger";
 import { ReactNative } from "@metro/common";
-import { findByProps, findByStoreName } from "@metro/wrappers";
+import { findByProps } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
 import { Contributors } from "@rain/Developers";
 
@@ -338,9 +338,6 @@ function hookMessagesHandlersGetter() {
 }
 
 function resolveRuntimeModules() {
-    ChannelStore = findByStoreName("ChannelStore");
-    MessageStore = findByStoreName("MessageStore");
-    UserStore = findByStoreName("UserStore");
     Messages = findByProps("sendMessage", "startEditMessage");
     ReplyManager = findByProps("createPendingReply");
     ChatInputRef = findByProps("insertText");

@@ -1,5 +1,5 @@
-import { findByStoreName } from "@metro";
 import { FluxDispatcher } from "@metro/common";
+import { UserStore } from "@metro/common/stores";
 import { debounce } from "lodash";
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
@@ -9,8 +9,6 @@ import decorationToString from "../utils/decorationToString";
 import discordifyDecoration from "../utils/discordifyDecoration";
 import subscribeToFluxDispatcher from "../utils/subscribeToFluxDispatcher";
 import { useUsersDecorationsStore } from "./UsersDecorationsStore";
-
-const UserStore = findByStoreName("UserStore");
 
 interface CurrentUserDecorationsState {
     decorations: Decoration[];

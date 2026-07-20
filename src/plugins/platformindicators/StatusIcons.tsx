@@ -1,13 +1,9 @@
-import { findByStoreName } from "@metro";
+
+import { PresenceStore, SessionsStore, UserStore } from "@metro/common/stores";
 
 import { getStatusColor } from "./colors";
 import StatusIcon from "./StatusIcon";
 import { usePlatformIndicatorSettings } from "./storage";
-
-const PresenceStore = findByStoreName("PresenceStore");
-const SessionsStore = findByStoreName("SessionsStore");
-const UserStore = findByStoreName("UserStore");
-
 
 let statusCache: any;
 let statusCacheHits = 0;

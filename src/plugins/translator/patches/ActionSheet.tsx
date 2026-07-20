@@ -5,15 +5,14 @@ import { showToast } from "@api/ui/toasts";
 import { findInReactTree } from "@lib/utils";
 import { logger } from "@lib/utils/logger";
 import { FluxDispatcher, React, ReactNative } from "@metro/common";
-import { findByProps, findByStoreName } from "@metro/wrappers";
+import { ChannelStore, MessageStore } from "@metro/common/stores";
+import { findByProps } from "@metro/wrappers";
 
 import { DeepL, GTranslate } from "../api";
 import { getLangName } from "../lang";
 import { translatorSettings as settings } from "../storage";
 
 const LazyActionSheet = findByProps("openLazy", "hideActionSheet");
-const MessageStore = findByStoreName("MessageStore");
-const ChannelStore = findByStoreName("ChannelStore");
 const separator = "\n";
 
 const styles = {

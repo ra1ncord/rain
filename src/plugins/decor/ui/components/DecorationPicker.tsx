@@ -1,9 +1,10 @@
 import { findAssetId } from "@api/assets";
 import { semanticColors } from "@api/ui/components/color";
 import { createStyles } from "@api/ui/styles";
-import { findByProps, findByStoreName } from "@metro";
+import { findByProps } from "@metro";
 import { NavigationNative, ReactNative } from "@metro/common";
 import { TableRow, TableRowGroup } from "@metro/common/components";
+import { UserStore } from "@metro/common/stores";
 
 import { getPresets,Preset as PresetInterface } from "../../lib/api";
 import { useAuthorizationStore } from "../../lib/stores/AuthorizationStore";
@@ -16,7 +17,6 @@ import AvatarDecorationPreviews from "./AvatarDecorationPreviews";
 const { View, ActivityIndicator, Pressable } = ReactNative;
 const { TextStyleSheet, Text } = findByProps("TextStyleSheet");
 
-const UserStore = findByStoreName("UserStore");
 const Parser = findByProps("parse", "parseToAST");
 const { showUserProfile } = findByProps("showUserProfile");
 const UserUtils = findByProps("getUser", "fetchCurrentUser");

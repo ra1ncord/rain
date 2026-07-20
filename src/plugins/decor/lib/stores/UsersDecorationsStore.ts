@@ -4,16 +4,12 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { findByStoreName } from "@metro";
+import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { debounce } from "lodash";
 import { create } from "zustand";
 
 import { getUsersDecorations } from "../api";
 import subscribeToFluxDispatcher from "../utils/subscribeToFluxDispatcher";
-
-const UserStore = findByStoreName("UserStore");
-const SelectedChannelStore = findByStoreName("SelectedChannelStore");
-
 
 interface UsersDecorationsState {
 	usersDecorations: Map<string, string | null>;

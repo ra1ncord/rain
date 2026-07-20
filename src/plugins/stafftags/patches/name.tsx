@@ -1,6 +1,7 @@
 import { after } from "@api/patcher";
 import { findInReactTree } from "@lib/utils";
-import { findByName, findByProps, findByStoreName } from "@metro";
+import { findByName, findByProps } from "@metro";
+import { ChannelStore, GuildStore } from "@metro/common/stores";
 
 import getTag, { BUILT_IN_TAGS } from "../lib/getTag";
 
@@ -9,9 +10,6 @@ const HeaderName = findByName("HeaderName", false);
 
 const TagModule = findByProps("getBotLabel");
 const getBotLabel = TagModule?.getBotLabel;
-
-const GuildStore = findByStoreName("GuildStore");
-const ChannelStore = findByStoreName("ChannelStore");
 
 export default () => {
     const patches: any[] = [];

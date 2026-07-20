@@ -19,7 +19,8 @@
 
 import patcher from "@api/patcher";
 import { logger } from "@lib/utils/logger";
-import { findByProps, findByStoreName } from "@metro/wrappers";
+import { UserStore } from "@metro/common/stores";
+import { findByProps } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
 import { Contributors,Developers } from "@rain/Developers";
 
@@ -27,7 +28,6 @@ const dialog = findByProps("show", "confirm", "close");
 const relationshipManager = findByProps("addRelationship");
 const callManager = findByProps("handleStartCall");
 const actionSheetManager = findByProps("hideActionSheet");
-const UserStore = findByStoreName("UserStore");
 
 const patches: (() => void)[] = [];
 

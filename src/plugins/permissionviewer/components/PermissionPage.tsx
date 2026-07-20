@@ -1,8 +1,9 @@
 import { rawColors } from "@api/ui/components/color";
 import { hideSheet, showSheet } from "@api/ui/sheets";
-import { findByProps, findByStoreName } from "@metro";
+import { findByProps } from "@metro";
 import { constants } from "@metro/common";
 import { ActionSheet, TableRow, TableRowGroup, Text } from "@metro/common/components";
+import { GuildRoleStore } from "@metro/common/stores";
 import React from "react";
 import { ScrollView, View } from "react-native";
 
@@ -10,7 +11,6 @@ import { formatPermName,PERMISSION_CATEGORIES } from "../lib/permissions";
 
 const { ActionSheetCloseButton } = findByProps("ActionSheetCloseButton") ?? {};
 const TableCheckboxRow = findByProps("TableCheckboxRow")?.TableCheckboxRow ?? null;
-const GuildRoleStore = findByStoreName("GuildRoleStore");
 
 function tryHasPerm(perms: any, flag: any): boolean {
     if (perms == null || flag == null) return false;

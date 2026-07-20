@@ -1,7 +1,8 @@
 import { semanticColors } from "@api/ui/components/color";
 import { metro } from "@lib";
 import { cyrb64Hash } from "@lib/utils/cyrb64";
-import { findByProps, findByStoreName } from "@metro";
+import { findByProps } from "@metro";
+import { UserStore } from "@metro/common/stores";
 
 import { admins } from "..";
 import { APIResponse, Review } from "../def";
@@ -15,7 +16,7 @@ export const find = (filter: (m: any) => boolean) => {
     );
 };
 
-const { getCurrentUser } = findByStoreName("UserStore");
+const { getCurrentUser } = UserStore;
 const resolveSemanticColor: (theme: string, semanticColor: object) => string =
     find(m => m.default?.internal?.resolveSemanticColor)?.default.internal
         .resolveSemanticColor ??

@@ -1,11 +1,9 @@
 import { createFileStorage, PluginStore } from "@api/storage";
-import { findByStoreName } from "@metro";
+import { UserStore } from "@metro/common/stores";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 import subscribeToFluxDispatcher from "../utils/subscribeToFluxDispatcher";
-
-const UserStore = findByStoreName("UserStore");
 
 interface AuthorizationState {
   token: string | null;
