@@ -8,7 +8,7 @@ import { CodebergIcon, RainIcon } from "@assets";
 import { Strings } from "@i18n";
 import { CODEBERG } from "@lib/info";
 import { AlertActionButton, AlertActions, AlertModal, Button, Stack, TableRow, TableRowGroup } from "@metro/common/components";
-import { supportedVersions } from "rain-build-info";
+import { supportedVersionsIOS, supportedVersionsAndroid } from "rain-build-info";
 import { useState } from "react";
 import { Linking, Platform, ScrollView, View } from "react-native";
 
@@ -71,12 +71,12 @@ export function checkForUpdate() {
 }
 
 export function versionCheck() {
-    const version = getDebugInfo().discord.build;
+    const version =  Number(getDebugInfo().discord.build);
 
     if (useLoaderConfig.getState().customLoadUrl?.enabled) return;
     if (useSettings.getState().disableUpdateWarnings === true) return;
 
-    if (!supportedVersions.map(String).includes(version)) {
+    if (supportedVersionsAndroid > version || supportedVersionsIOS > version) {
         openAlert(
             "incompatible-version-alert",
             <AlertModal
@@ -98,6 +98,28 @@ export function versionCheck() {
                                 Linking.openURL("https://codeberg.org/raincord/RainTweak/releases");
                             }}
                         />}
+                        <AlertActionButton text={Strings.CONTINUE_ANYWAYS} variant="destructive" />
+                    </AlertActions>
+                }
+            />,
+        );
+    }
+
+    if (supportedVersionsAndroid < version || supportedVersionsIOS < version) {
+        openAlert(
+            "incompatible-version-alert",
+            <AlertModal
+                title={Strings.INCOMPATIBLE_VERSION}
+                content={Strings.INCOMPATIBLE_VERSION_DESC}
+                actions={
+                    <AlertActions>
+                        <AlertActionButton
+                            text={Strings.UPDATE}
+                            variant="primary"
+                            onPress={() => {
+                                downloadUpdate();
+                            }}
+                        />
                         <AlertActionButton text={Strings.CONTINUE_ANYWAYS} variant="destructive" />
                     </AlertActions>
                 }

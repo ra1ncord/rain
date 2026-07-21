@@ -80,7 +80,8 @@ const config = {
                                     globals: {
                                         "rain-build-info": {
                                             version: `"v0.9.6"`,
-                                            supportedVersions: [337010, 105860]
+                                            supportedVersionsAndroid: '337010',
+                                            supportedVersionsIOS: '105860'
                                         }
                                     }
                                 },
