@@ -16,7 +16,7 @@ const formatFactResponse = (fact: { text: string; source?: string; length?: numb
 export default definePlugin({
     name: "AnimalFacts",
     description: "Adds the catfact and dogfact commands",
-    author: [Contributors.jdev082],
+    author: [Contributors.jdev082, Contributors.baxter],
     id: "animalfacts",
     version: "1.0.0",
     start() {
