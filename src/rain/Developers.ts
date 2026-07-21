@@ -171,5 +171,9 @@ export const Contributors = {
     benjii: {
         name: "Benjii",
         id: 463702169443368970n,
+    },
+    baxter: {
+        name: "baxter.zip",
+        id: 554042298053427211,
     }
 } satisfies Record<string, developer>;
