@@ -24,6 +24,8 @@ export default definePlugin({
         unregisters.push(registerCommand(dogFactCommand()));
         unregisters.push(registerCommand(duckFactCommand()));
         unregisters.push(registerCommand(foxFactCommand()));
+        unregisters.push(registerCommand(pandaFactCommand()));
+        unregisters.push(registerCommand(birdFactCommand()));
     },
     stop() {
         unregisters.forEach(unregister => unregister());
@@ -142,6 +144,62 @@ const foxFactCommand = (): RainApplicationCommand => ({
     },
 });
 
+const pandaFactCommand = (): RainApplicationCommand => ({
+    name: "pandafact",
+    displayName: "pandafact",
+    description: "Sends a panda fact.",
+    displayDescription: "Sends a panda fact.",
+    applicationId: "-1",
+    inputType: 1,
+    type: 1,
+    shouldHide: () => false,
+    execute: async (args, ctx) => {
+        try {
+            const fact = await pandaFact();
+            const fixNonce = Date.now().toString();
+
+            MessageActions.sendMessage(
+                ctx.channel.id,
+                { content: formatFactResponse(fact) },
+                void 0,
+                { nonce: fixNonce }
+            );
+        } catch (error) {
+            console.error("[PandaFact] Error:", error);
+            // Show toast on error
+            showToast("Failed to fetch panda fact", 3000);
+        }
+    },
+});
+
+const birdFactCommand = (): RainApplicationCommand => ({
+    name: "birdfact",
+    displayName: "birdfact",
+    description: "Sends a bird fact.",
+    displayDescription: "Sends a bird fact.",
+    applicationId: "-1",
+    inputType: 1,
+    type: 1,
+    shouldHide: () => false,
+    execute: async (args, ctx) => {
+        try {
+            const fact = await birdFact();
+            const fixNonce = Date.now().toString();
+
+            MessageActions.sendMessage(
+                ctx.channel.id,
+                { content: formatFactResponse(fact) },
+                void 0,
+                { nonce: fixNonce }
+            );
+        } catch (error) {
+            console.error("[BirdFact] Error:", error);
+            // Show toast on error
+            showToast("Failed to fetch bird fact", 3000);
+        }
+    },
+});
+
 export const dogFact = async () => {
     const response = await fetch("https://dogapi.dog/api/v2/facts?limit=1");
     const resp = await response.json();
@@ -160,6 +218,22 @@ export const duckFact = async () => {
 
 export const foxFact = async () => {
     const response = await fetch("https://api.some-random-api.com/animal/fox");
+    const resp = await response.json();
+    return {
+        text: resp.fact,
+    };
+};
+
+export const pandaFact = async () => {
+    const response = await fetch("https://api.some-random-api.com/animal/panda");
+    const resp = await response.json();
+    return {
+        text: resp.fact,
+    };
+};
+
+export const birdFact = async () => {
+    const response = await fetch("https://api.some-random-api.com/animal/bird");
     const resp = await response.json();
     return {
         text: resp.fact,
