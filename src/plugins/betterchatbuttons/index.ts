@@ -9,6 +9,9 @@ import BetterChatButtonsSettings from "./settings";
 import { useBetterChatButtonsSettings } from "./storage";
 
 const ChatInputActions = findByTypeDisplayName("ChatInputActions");
+const ChatInputSendButton = findByTypeDisplayName("ChatInputSendButton");
+const ChatInputRightActions = findByTypeDisplayName("ChatInputRightActions");
+
 let actionsRef: React.RefObject<{ onShowActions(): void; onDismissActions(): void }>;
 
 type Unpatch = () => void;
@@ -20,44 +23,35 @@ export default definePlugin({
     description: "Customize all the annoying chat buttons",
     author: [Contributors.palmdevs],
     id: "betterchatbuttons",
-    version: "1.0.0",
-    async eagerStart() {
-        if (ChatInputActions?.type) {
-            unpatches.push(
-                before("render", ChatInputActions.type, ([props, ref]) => {
-                    const state = useBetterChatButtonsSettings.getState();
-                    if (props.isAppLauncherEnabled) props.isAppLauncherEnabled = !state.hide.app;
-                    props.canStartThreads = state.show.thread || !state.hide.thread;
-                    props.shouldShowGiftButton = !state.hide.gift;
-                    actionsRef = ref;
-                })
-            );
+    version: "1.1.0",
+    async start() {
+        const state = useBetterChatButtonsSettings.getState();
 
+        if (ChatInputSendButton?.type) {
             unpatches.push(
-                after("render", ChatInputActions.type, () => {
-                    setImmediate(() =>
-                        setImmediate(() => {
-                            if (actionsRef?.current) {
-                                const { onDismissActions } = actionsRef.current;
-                                unpatches.push(() => (actionsRef.current.onDismissActions = onDismissActions));
-                                actionsRef.current.onDismissActions = () => {
-                                    const state = useBetterChatButtonsSettings.getState();
-                                    if (state.dismiss.actions) return onDismissActions();
-                                };
-                            }
-                        })
-                    );
+                after("render", ChatInputSendButton.type, (args, tree) => {
+                    const item = tree?.props?.children?.props?.items?.[0];
+                    if (item && state.hide?.voice) {
+                        item.sendVoiceMessageEnabled = false;
+                    }
+                    return tree;
                 })
             );
         }
-    },
-    async start() {
+
+        if (ChatInputRightActions?.type) {
+            unpatches.push(
+                before("render", ChatInputRightActions.type, ([props]) => {
+                    if (props) props.shouldShowGiftButton = !state.hide?.gift;
+                })
+            );
+        }
+
         if (ChatInputActions?.type) {
             unpatches.push(
                 before("render", ChatInputActions.type, ([props, ref]) => {
-                    const state = useBetterChatButtonsSettings.getState();
                     if (props.isAppLauncherEnabled) props.isAppLauncherEnabled = !state.hide.app;
-                    props.canStartThreads = state.show.thread || !state.hide.thread;
+                    props.canStartThreads = state.show?.thread || !state.hide.thread;
                     props.shouldShowGiftButton = !state.hide.gift;
                     actionsRef = ref;
                 })
@@ -71,8 +65,7 @@ export default definePlugin({
                                 const { onDismissActions } = actionsRef.current;
                                 unpatches.push(() => (actionsRef.current.onDismissActions = onDismissActions));
                                 actionsRef.current.onDismissActions = () => {
-                                    const state = useBetterChatButtonsSettings.getState();
-                                    if (state.dismiss.actions) return onDismissActions();
+                                    if (state.dismiss?.actions) return onDismissActions();
                                 };
                             }
                         })
