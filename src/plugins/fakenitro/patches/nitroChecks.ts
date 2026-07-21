@@ -6,17 +6,7 @@ const nitroInfo = findByProps("canUseEmojisEverywhere");
 const emojiUtils = findByProps("getEmojiUnavailableReason");
 const { getCurrentUser } = UserStore;
 
-function patchReaction(args: any[], result: any, response: any) {
-    if (args[0]?.intention === 0 && result === null && getCurrentUser?.().premiumType === null) {
-        const { emoji, guildId, channel } = args[0];
-        if (emoji.type === 0) return result; // type 0 is twemoji
-        const currentGuildId = guildId ?? channel?.getGuildId?.();
-        if (emoji.guildId !== currentGuildId || emoji.animated) {
-            return response;
-        }
-    }
-    return result;
-}
+const BYPASSABLE = [3, 4]; // CHAT, GUILD_STICKER_RELATED_EMOJI
 
 function patchNitro(orig: Function, args: any[]) {
     if (getCurrentUser?.().premiumType !== null)
@@ -26,21 +16,29 @@ function patchNitro(orig: Function, args: any[]) {
 
 export default function getPatches() {
     return [
-        instead("canUseEmojisEverywhere", nitroInfo, (args, orig) => {
-            return patchNitro(orig, args);
-        }),
-        instead("canUseAnimatedEmojis", nitroInfo, (args, orig) => {
-            return patchNitro(orig, args);
-        }),
-
-        // blocks reactions from the big modal
-        after("getEmojiUnavailableReason", emojiUtils, (args, result) => {
-            return patchReaction(args, result, 0); // 0 = DISALLOW_EXTERNAL
+        instead("getEmojiUnavailableReason", emojiUtils, (args, result) => {
+            if (getCurrentUser?.().premiumType !== null) return result;
+            if (result !== null && BYPASSABLE.includes(args[0]?.intention)) return null;
+            return result;
         }),
 
-        // blocks reactions from the quick selector
+        after("getEmojiUnavailableReasons", emojiUtils, (args, result) => {
+            if (getCurrentUser?.().premiumType !== null) return result;
+            if (BYPASSABLE.includes(args[0]?.intention)) {
+                return {
+                    emojisDisabled: new Set(),
+                    emojisUnfiltered: args[0]?.categoryEmojis ?? [],
+                    emojisPremiumLockedCount: 0,
+                    emojiNitroLocked: false,
+                };
+            }
+            return result;
+        }),
+
         after("isEmojiPremiumLocked", emojiUtils, (args, result) => {
-            patchReaction(args, result, true);
+            if (getCurrentUser?.().premiumType !== null) return result;
+            if (result === true && BYPASSABLE.includes(args[0]?.intention)) return false;
+            return result;
         }),
 
         // sticker patch credits: https://github.com/aliernfrog/vd-plugins/blob/master/plugins/FreeStickers/src/patches/nitro.ts
@@ -49,3 +47,4 @@ export default function getPatches() {
         }),
     ];
 }
+
