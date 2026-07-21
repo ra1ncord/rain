@@ -8,7 +8,7 @@ import { Developers } from "@rain/Developers";
 import Settings from "./Settings";
 import { coolBarSettings } from "./storage";
 
-const { TouchableOpacity, Image, View } = ReactNative;
+const { Image, View } = ReactNative;
 let patches: (() => void)[] = [];
 
 export default definePlugin({
@@ -24,7 +24,7 @@ export default definePlugin({
         const YouBarNotificationsButton = findByTypeName("YouBarNotificationsButton");
         const { IconButton } = findByProps("IconButton") || {};
 
-        if (YouBarNotificationsButton) {
+        if (YouBarNotificationsButton) { // this should always exist though
             patches.push(
                 after("type", YouBarNotificationsButton, (args, res) => {
                     const hasNameplate = args[0]?.hasNameplate;
@@ -58,7 +58,7 @@ export default definePlugin({
                                     icon={starIconElement}
                                     onPress={() => {
                                         if (transitionToGuild) {
-                                            transitionToGuild("@favorites");
+                                            transitionToGuild(coolBarSettings.targetServerId || "@favorites");
                                         }
                                     }}
                                 />

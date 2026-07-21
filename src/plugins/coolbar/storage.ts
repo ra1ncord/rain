@@ -1,14 +1,16 @@
 import { createPluginStore } from "@api/storage";
 
-interface CoolBarSettings {
+interface CoolbarSettings {
     showStar: boolean;
     showSettings: boolean;
+    targetServerId: string;
 }
 
 export const {
-    useStore: useCoolBarSettings,
+    useStore: useCoolbarSettings,
     settings: coolBarSettings,
-} = createPluginStore<CoolBarSettings>("coolbar", {
+} = createPluginStore<CoolbarSettings>("coolbar", {
     showStar: true,
     showSettings: true,
+    targetServerId: "@favorites",
 });
