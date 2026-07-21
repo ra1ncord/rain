@@ -174,6 +174,6 @@ export const Contributors = {
     },
     baxter: {
         name: "baxter.zip",
-        id: 554042298053427211,
+        id: 554042298053427211n,
     }
 } satisfies Record<string, developer>;
