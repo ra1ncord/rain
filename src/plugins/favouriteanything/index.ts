@@ -218,16 +218,6 @@ export default definePlugin({
                 origType = null;
                 memoWrapper = null;
             }
-
-            if (unpatchAddFavorite) {
-                unpatchAddFavorite();
-                unpatchAddFavorite = null;
-            }
-
-            if (unpatchMobileFavorites) {
-                unpatchMobileFavorites();
-                unpatchMobileFavorites = null;
-            }
         } catch (e) {
             logger.error("[FavouriteAnything] stop error:", e);
         }
