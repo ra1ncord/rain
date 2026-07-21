@@ -85,7 +85,7 @@ const dogFactCommand = (): RainApplicationCommand => ({
     },
 });
 
-const dogFactCommand = (): RainApplicationCommand => ({
+const duckFactCommand = (): RainApplicationCommand => ({
     name: "duckfact",
     displayName: "duckfact",
     description: "Sends a duck fact.",
