@@ -73,10 +73,14 @@ export function checkForUpdate() {
 export function versionCheck() {
     const version =  Number(getDebugInfo().discord.build);
 
+    let supportedVersions:number
+    if (Platform.OS === "android") { supportedVersions = supportedVersionsAndroid}
+    else { supportedVersions = supportedVersionsIOS}
+
     if (useLoaderConfig.getState().customLoadUrl?.enabled) return;
     if (useSettings.getState().disableUpdateWarnings === true) return;
 
-    if (supportedVersionsAndroid > version || supportedVersionsIOS > version) {
+    if (supportedVersions> version || supportedVersions > version) {
         openAlert(
             "incompatible-version-alert",
             <AlertModal
@@ -105,7 +109,7 @@ export function versionCheck() {
         );
     }
 
-    if (supportedVersionsAndroid < version || supportedVersionsIOS < version) {
+    if (supportedVersions < version || supportedVersions < version) {
         openAlert(
             "incompatible-version-alert",
             <AlertModal
