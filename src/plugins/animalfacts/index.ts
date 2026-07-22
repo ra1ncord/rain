@@ -30,7 +30,6 @@ export default definePlugin({
         unregisters.push(registerCommand(whaleFactCommand()));
         unregisters.push(registerCommand(kangarooFactCommand()));
         unregisters.push(registerCommand(birdFactCommand()));
-        unregisters.push(registerCommand(redPandaFactCommand()));
     },
     stop() {
         unregisters.forEach(unregister => unregister());
@@ -317,34 +316,6 @@ const kangarooFactCommand = (): RainApplicationCommand => ({
     },
 });
 
-const redPandaFactCommand = (): RainApplicationCommand => ({
-    name: "redpandafact",
-    displayName: "redpandafact",
-    description: "Sends a red panda fact.",
-    displayDescription: "Sends a red panda fact.",
-    applicationId: "-1",
-    inputType: 1,
-    type: 1,
-    shouldHide: () => false,
-    execute: async (args, ctx) => {
-        try {
-            const fact = await redPandaFact();
-            const fixNonce = Date.now().toString();
-
-            MessageActions.sendMessage(
-                ctx.channel.id,
-                { content: formatFactResponse(fact) },
-                void 0,
-                { nonce: fixNonce }
-            );
-        } catch (error) {
-            console.error("[RedPandaFact] Error:", error);
-            // Show toast on error
-            showToast("Failed to fetch red panda fact", 3000);
-        }
-    },
-});
-
 export const dogFact = async () => {
     const response = await fetch("https://dogapi.dog/api/v2/facts?limit=1");
     const resp = await response.json();
@@ -411,14 +382,6 @@ export const kangarooFact = async () => {
 
 export const whaleFact = async () => {
     const response = await fetch("https://api.some-random-api.com/animal/whale");
-    const resp = await response.json();
-    return {
-        text: resp.fact,
-    };
-};
-
-export const redPandaFact = async () => {
-    const response = await fetch("https://api.some-random-api.com/animal/red_panda");
     const resp = await response.json();
     return {
         text: resp.fact,
