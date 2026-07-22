@@ -8,7 +8,7 @@ import { CodebergIcon, RainIcon } from "@assets";
 import { Strings } from "@i18n";
 import { CODEBERG } from "@lib/info";
 import { AlertActionButton, AlertActions, AlertModal, Button, Stack, TableRow, TableRowGroup } from "@metro/common/components";
-import { supportedVersionsIOS, supportedVersionsAndroid } from "rain-build-info";
+import { supportedVersionsAndroid,supportedVersionsIOS } from "rain-build-info";
 import { useState } from "react";
 import { Linking, Platform, ScrollView, View } from "react-native";
 
@@ -71,12 +71,16 @@ export function checkForUpdate() {
 }
 
 export function versionCheck() {
-    const version =  Number(getDebugInfo().discord.build);
+    const version = Number(getDebugInfo().discord.build);
+
+    let supportedVersions:number;
+    if (Platform.OS === "android") { supportedVersions = supportedVersionsAndroid; }
+    else { supportedVersions = supportedVersionsIOS; }
 
     if (useLoaderConfig.getState().customLoadUrl?.enabled) return;
     if (useSettings.getState().disableUpdateWarnings === true) return;
 
-    if (supportedVersionsAndroid > version || supportedVersionsIOS > version) {
+    if (supportedVersions> version) {
         openAlert(
             "incompatible-version-alert",
             <AlertModal
@@ -105,7 +109,7 @@ export function versionCheck() {
         );
     }
 
-    if (supportedVersionsAndroid < version || supportedVersionsIOS < version) {
+    if (supportedVersions < version) {
         openAlert(
             "incompatible-version-alert",
             <AlertModal
