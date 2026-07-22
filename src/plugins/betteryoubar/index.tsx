@@ -41,6 +41,8 @@ export default definePlugin({
                 patches.push(...patchActual(ThemedYouBarModule, options));
             }
         }
+
+        UserStore?.emitChange?.();
     },
     stop() {
         for (const unpatch of patches) {
