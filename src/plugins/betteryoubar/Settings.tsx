@@ -1,8 +1,8 @@
 import { findAssetId } from "@api/assets";
 import { findByProps, findByStoreName } from "@metro";
-import { Stack, TableRadioGroup, TableRadioRow, TableRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
+import { Stack, TableRadioGroup, TableRadioRow, TableRow, TableRowGroup, TableSwitchRow, TextInput } from "@metro/common/components";
 import React from "react";
-import { ScrollView, TextInput } from "react-native";
+import { ScrollView } from "react-native";
 
 import { betteryoubarSettings, useBetterYouBarSettings } from "./storage";
 
@@ -63,7 +63,7 @@ export default function Settings() {
                             placeholder="https://example.com/image.png"
                             placeholderTextColor="#80848e"
                             value={settings.customImageUrl}
-                            onChangeText={(text: string) => (betteryoubarSettings.customImageUrl = text)}
+                            onChange={(text: string) => (betteryoubarSettings.customImageUrl = text)}
                         />
                     </TableRowGroup>
                 )}
