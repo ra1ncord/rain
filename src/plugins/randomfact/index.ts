@@ -20,9 +20,7 @@ export default definePlugin({
     id: "animalfacts",
     version: "1.0.0",
     start() {
-        patches = [
-            registerCommand(factCommand()),
-        ].filter(Boolean);
+            unregisters.push(registerCommand(factCommand())),
     },
     stop() {
         unregisters.forEach(unregister => unregister());
