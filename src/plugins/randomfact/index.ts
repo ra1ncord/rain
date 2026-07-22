@@ -59,7 +59,7 @@ export const catFact = async () => {
     const response = await fetch("https://uselessfacts.jsph.pl/api/v2/facts/random");
     const resp = await response.json();
     return {
-        text: resp.text,
+        resp.text,
     };
 };
 
