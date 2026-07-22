@@ -1,0 +1,83 @@
+import { findAssetId } from "@api/assets";
+import { after } from "@api/patcher";
+import { React, ReactNative } from "@metro/common";
+
+import { betteryoubarSettings } from "../storage";
+import { applyBannerLogic, createIconElement, PatchOptions } from "./shared";
+
+export function patchActual(ThemedYouBarModule: any, options: PatchOptions): (() => void)[] {
+    if (!ThemedYouBarModule?.ThemedYouBar) return [];
+
+    const patches: (() => void)[] = [];
+    const { transitionToGuild, openUserSettings, IconButton } = options;
+
+    const StarAsset = findAssetId("StarIcon");
+    const SettingsAsset = findAssetId("SettingsIcon");
+
+    let npPatched = false;
+    let fakeNameplate = false;
+
+    patches.push(
+        after("type", ThemedYouBarModule.ThemedYouBar, (_, res) => {
+            const kids = res?.props?.children;
+            if (!kids) return res;
+
+            const nameplate = kids[1]?.type;
+            if (nameplate && !npPatched) {
+                npPatched = true;
+                patches.push(
+                    after("type", nameplate, (_args, npRes) => {
+                        const rowKids = npRes?.props?.children;
+                        if (!Array.isArray(rowKids)) return npRes;
+
+                        if (betteryoubarSettings.backgroundMode === "none") {
+                            rowKids[1] = null;
+                        } else {
+                            if (!rowKids[1]) {
+                                const style = rowKids[0]?.props?.style;
+                                const flatStyle = Array.isArray(style) ? style.flat(10) : [style];
+                                const avatarSize = flatStyle.find((s: any) => s?.width >= 32 && s?.width <= 80)?.width || 60;
+
+                                const rStyle = npRes.props?.style;
+                                const flatRStyle = Array.isArray(rStyle) ? rStyle.flat(10) : [rStyle];
+                                const barRadius = flatRStyle.find((s: any) => typeof s?.borderRadius === "number")?.borderRadius || 24;
+
+                                rowKids[1] = (
+                                    <ReactNative.View
+                                        key="custom-np"
+                                        style={{ position: "absolute", top: 0, left: avatarSize, right: 0, bottom: 0, overflow: "hidden", borderTopRightRadius: barRadius, borderBottomRightRadius: barRadius }}
+                                        pointerEvents="none"
+                                    />
+                                );
+                            }
+
+                            rowKids[1] = applyBannerLogic(rowKids[1]);
+                            fakeNameplate = true;
+                        }
+
+                        const btnParent = rowKids[3];
+                        if (btnParent?.props?.children) {
+                            const btnKids = Array.isArray(btnParent.props.children) ? [...btnParent.props.children] : [btnParent.props.children];
+                            const hasNp = btnKids[0]?.props?.hasNameplate || fakeNameplate;
+
+                            const mkIcon = (asset: any, onPress: any) => (
+                                <IconButton key={asset} size="sm" variant={hasNp ? "secondary-overlay" : "tertiary"} icon={createIconElement(asset, hasNp)} onPress={onPress} />
+                            );
+
+                            if (betteryoubarSettings.showStar) btnKids.unshift(mkIcon(StarAsset, () => transitionToGuild?.(betteryoubarSettings.targetServerId || "@favorites")));
+                            if (betteryoubarSettings.showSettings) btnKids.push(mkIcon(SettingsAsset, () => openUserSettings?.()));
+
+                            btnParent.props.children = btnKids;
+                        }
+
+                        return npRes;
+                    })
+                );
+            }
+
+            return res;
+        })
+    );
+
+    return patches;
+}
