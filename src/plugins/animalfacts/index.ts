@@ -19,8 +19,7 @@ export default definePlugin({
     author: [Contributors.jdev082, Contributors.baxter],
     id: "animalfacts",
     version: "1.1.0",
-    eagerStart() {
-        // NoTrack
+    start() {
         patches = [
             registerCommand(catFactCommand()),
             registerCommand(dogFactCommand()),
