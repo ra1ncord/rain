@@ -21,7 +21,7 @@ export default definePlugin({
     version: "1.0.0",
     start() {
             unregisters.push(registerCommand(factCommand())),
-    },
+    };
     stop() {
         unregisters.forEach(unregister => unregister());
     }
