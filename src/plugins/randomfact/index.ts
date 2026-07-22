@@ -55,11 +55,11 @@ const factCommand = (): RainApplicationCommand => ({
     },
 });
 
-export const catFact = async () => {
+export const randomFact = async () => {
     const response = await fetch("https://uselessfacts.jsph.pl/api/v2/facts/random");
     const resp = await response.json();
     return {
-        resp.text,
+        text: resp.text,
     };
 };
 
