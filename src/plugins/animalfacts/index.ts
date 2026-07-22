@@ -25,7 +25,12 @@ export default definePlugin({
         unregisters.push(registerCommand(duckFactCommand()));
         unregisters.push(registerCommand(foxFactCommand()));
         unregisters.push(registerCommand(pandaFactCommand()));
+        unregisters.push(registerCommand(racoonFactCommand()));
+        unregisters.push(registerCommand(koalaFactCommand()));
+        unregisters.push(registerCommand(whaleFactCommand()));
+        unregisters.push(registerCommand(kangarooFactCommand()));
         unregisters.push(registerCommand(birdFactCommand()));
+        unregisters.push(registerCommand(redPandaFactCommand()));
     },
     stop() {
         unregisters.forEach(unregister => unregister());
@@ -200,6 +205,146 @@ const birdFactCommand = (): RainApplicationCommand => ({
     },
 });
 
+const koalaFactCommand = (): RainApplicationCommand => ({
+    name: "koalafact",
+    displayName: "koalafact",
+    description: "Sends a koala fact.",
+    displayDescription: "Sends a koala fact.",
+    applicationId: "-1",
+    inputType: 1,
+    type: 1,
+    shouldHide: () => false,
+    execute: async (args, ctx) => {
+        try {
+            const fact = await koalaFact();
+            const fixNonce = Date.now().toString();
+
+            MessageActions.sendMessage(
+                ctx.channel.id,
+                { content: formatFactResponse(fact) },
+                void 0,
+                { nonce: fixNonce }
+            );
+        } catch (error) {
+            console.error("[KoalaFact] Error:", error);
+            // Show toast on error
+            showToast("Failed to fetch koala fact", 3000);
+        }
+    },
+});
+
+const racoonFactCommand = (): RainApplicationCommand => ({
+    name: "racoonfact",
+    displayName: "racoonfact",
+    description: "Sends a racoon fact.",
+    displayDescription: "Sends a racoon fact.",
+    applicationId: "-1",
+    inputType: 1,
+    type: 1,
+    shouldHide: () => false,
+    execute: async (args, ctx) => {
+        try {
+            const fact = await racoonFact();
+            const fixNonce = Date.now().toString();
+
+            MessageActions.sendMessage(
+                ctx.channel.id,
+                { content: formatFactResponse(fact) },
+                void 0,
+                { nonce: fixNonce }
+            );
+        } catch (error) {
+            console.error("[RacoonFact] Error:", error);
+            // Show toast on error
+            showToast("Failed to fetch racoon fact", 3000);
+        }
+    },
+});
+
+const whaleFactCommand = (): RainApplicationCommand => ({
+    name: "whalefact",
+    displayName: "whalefact",
+    description: "Sends a whale fact.",
+    displayDescription: "Sends a whale fact.",
+    applicationId: "-1",
+    inputType: 1,
+    type: 1,
+    shouldHide: () => false,
+    execute: async (args, ctx) => {
+        try {
+            const fact = await whaleFact();
+            const fixNonce = Date.now().toString();
+
+            MessageActions.sendMessage(
+                ctx.channel.id,
+                { content: formatFactResponse(fact) },
+                void 0,
+                { nonce: fixNonce }
+            );
+        } catch (error) {
+            console.error("[WhaleFact] Error:", error);
+            // Show toast on error
+            showToast("Failed to fetch whale fact", 3000);
+        }
+    },
+});
+
+const kangarooFactCommand = (): RainApplicationCommand => ({
+    name: "kangaroofact",
+    displayName: "kangaroofact",
+    description: "Sends a kangaroo fact.",
+    displayDescription: "Sends a kangaroo fact.",
+    applicationId: "-1",
+    inputType: 1,
+    type: 1,
+    shouldHide: () => false,
+    execute: async (args, ctx) => {
+        try {
+            const fact = await kangarooFact();
+            const fixNonce = Date.now().toString();
+
+            MessageActions.sendMessage(
+                ctx.channel.id,
+                { content: formatFactResponse(fact) },
+                void 0,
+                { nonce: fixNonce }
+            );
+        } catch (error) {
+            console.error("[KangarooFact] Error:", error);
+            // Show toast on error
+            showToast("Failed to fetch kangaroo fact", 3000);
+        }
+    },
+});
+
+const redPandaFactCommand = (): RainApplicationCommand => ({
+    name: "redpandafact",
+    displayName: "redpandafact",
+    description: "Sends a red panda fact.",
+    displayDescription: "Sends a red panda fact.",
+    applicationId: "-1",
+    inputType: 1,
+    type: 1,
+    shouldHide: () => false,
+    execute: async (args, ctx) => {
+        try {
+            const fact = await redPandaFact();
+            const fixNonce = Date.now().toString();
+
+            MessageActions.sendMessage(
+                ctx.channel.id,
+                { content: formatFactResponse(fact) },
+                void 0,
+                { nonce: fixNonce }
+            );
+        } catch (error) {
+            console.error("[RedPandaFact] Error:", error);
+            // Show toast on error
+            showToast("Failed to fetch red panda fact", 3000);
+        }
+    },
+});
+
 export const dogFact = async () => {
     const response = await fetch("https://dogapi.dog/api/v2/facts?limit=1");
     const resp = await response.json();
@@ -239,6 +384,47 @@ export const birdFact = async () => {
         text: resp.fact,
     };
 };
+
+export const koalaFact = async () => {
+    const response = await fetch("https://api.some-random-api.com/animal/koala");
+    const resp = await response.json();
+    return {
+        text: resp.fact,
+    };
+};
+
+export const racoonFact = async () => {
+    const response = await fetch("https://api.some-random-api.com/animal/racoon");
+    const resp = await response.json();
+    return {
+        text: resp.fact,
+    };
+};
+
+export const kangarooFact = async () => {
+    const response = await fetch("https://api.some-random-api.com/animal/kangaroo");
+    const resp = await response.json();
+    return {
+        text: resp.fact,
+    };
+};
+
+export const whaleFact = async () => {
+    const response = await fetch("https://api.some-random-api.com/animal/whale");
+    const resp = await response.json();
+    return {
+        text: resp.fact,
+    };
+};
+
+export const redPandaFact = async () => {
+    const response = await fetch("https://api.some-random-api.com/animal/red_panda");
+    const resp = await response.json();
+    return {
+        text: resp.fact,
+    };
+};
+
 
 export const catFact = async () => {
     const response = await fetch("https://catfact.ninja/fact");
