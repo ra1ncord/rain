@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { View } from "react-native";
 import { after } from "@api/patcher";
 import { findByDisplayName, findByName } from "@metro";
+import { Text } from "@metro/common/components";
 import { Search } from "@api/ui/components";
 import ErrorBoundary from "@api/ui/components/ErrorBoundary";
 import { definePlugin } from "@plugins";
@@ -75,7 +76,13 @@ function FavoriteSearchWrapper({ OriginalComponent, ...props }: any) {
           />
         </ErrorBoundary>
       </View>
-      <OriginalComponent {...props} resultItems={filteredItems} />
+      {query && filteredItems?.length === 0 ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <Text variant="text-md/medium" color="text-muted">No search results found</Text>
+        </View>
+      ) : (
+        <OriginalComponent key={query || "all"} {...props} resultItems={filteredItems} />
+      )}
     </View>
   );
 }
