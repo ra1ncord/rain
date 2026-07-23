@@ -9,6 +9,8 @@ import { developer } from "@plugins/types";
 import { Developers } from "@rain/Developers";
 import { useMemo } from "react";
 import { Image, ScrollView, View } from "react-native";
+import { Strings } from "@i18n";
+
 
 const showUserProfileActionSheet = findByName("showUserProfileActionSheet");
 const { getUser: maybeFetchUser } = lazyDestructure(() => findByProps("getUser", "fetchProfile"));
@@ -21,12 +23,13 @@ type Credit = {
 
 const developers: Credit[] = [
     { name: "cocobo1", role: "Founder & Main Developer", dev: Developers.cocobo1 },
-    { name: "bwlok", role: "Rain Developer", dev: Developers.Bwlok },
-    { name: "kmmiio99o", role: "Rain Developer", dev: Developers.kmmiio99o },
-    { name: "CatStars", role: "Rain Developer", dev: Developers.SerStars },
-    { name: "J", role: "Rain Developer", dev: Developers.j },
-    { name: "Reyyan", role: "Rain Contributor", dev: Developers.reyyan1 },
-    { name: "John", role: "Rain Contributor", dev: Developers.John },
+    { name: "bwlok", role: Strings.RAIN_DEVELOPER, dev: Developers.Bwlok },
+    { name: "kmmiio99o", role: Strings.RAIN_DEVELOPER, dev: Developers.kmmiio99o },
+    { name: "CatStars", role: Strings.RAIN_DEVELOPER, dev: Developers.SerStars },
+    { name: "J", role: Strings.RAIN_DEVELOPER, dev: Developers.j },
+    { name: "Reyyan", role: Strings.RAIN_DEVELOPER, dev: Developers.reyyan1 },
+    { name: "John", role: Strings.RAIN_DEVELOPER, dev: Developers.John },
+    { name: "Livie", role: Strings.RAIN_DEVELOPER, dev: Developers.Livie }
 ];
 
 const donators = [
@@ -39,6 +42,14 @@ const donators = [
     "Clover",
     "Stella",
     "Twimble Time Mods",
+    "Bread Cat",
+    "/usr/choccy-chan ツ",
+    "the-ocean-in-motion",
+    "han",
+    "nyx",
+    "force",
+    "Plank",
+    "Ibby"
 
 ];
 
