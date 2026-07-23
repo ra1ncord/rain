@@ -3,7 +3,7 @@ import { after } from "@api/patcher";
 import { React, ReactNative } from "@metro/common";
 
 import { betteryoubarSettings } from "../storage";
-import { applyBannerLogic, createIconElement, PatchOptions } from "./shared";
+import { applyBannerLogic, createIconElement, getNotificationButtonHandlers, PatchOptions } from "./shared";
 
 export function patchActual(ThemedYouBarModule: any, options: PatchOptions): (() => void)[] {
     if (!ThemedYouBarModule?.ThemedYouBar) return [];
@@ -13,6 +13,7 @@ export function patchActual(ThemedYouBarModule: any, options: PatchOptions): (()
 
     const StarAsset = findAssetId("StarIcon");
     const SettingsAsset = findAssetId("SettingsIcon");
+    const BellAsset = findAssetId("BellIcon");
 
     let npPatched = false;
     let fakeNameplate = false;
@@ -55,19 +56,37 @@ export function patchActual(ThemedYouBarModule: any, options: PatchOptions): (()
                             fakeNameplate = true;
                         }
 
-                        const btnParent = rowKids[3];
+                        const btnParent = rowKids.find((k: any) => {
+                            if (!k?.props?.children) return false;
+                            const kids = Array.isArray(k.props.children) ? k.props.children : [k.props.children];
+                            return kids.some((child: any) => child?.props?.hasNameplate !== undefined || child?.type?.name === "YouBarNotificationsButton");
+                        }) || rowKids[3];
+
                         if (btnParent?.props?.children) {
                             const btnKids = Array.isArray(btnParent.props.children) ? [...btnParent.props.children] : [btnParent.props.children];
-                            const hasNp = btnKids[0]?.props?.hasNameplate || fakeNameplate;
+                            const validOriginalBtn = btnKids.find((k: any) => k && k.props);
+                            const hasNp = validOriginalBtn?.props?.hasNameplate || fakeNameplate;
 
-                            const mkIcon = (asset: any, onPress: any) => (
-                                <IconButton key={asset} size="sm" variant={hasNp ? "secondary-overlay" : "tertiary"} icon={createIconElement(asset, hasNp)} onPress={onPress} />
+                            const mkIcon = (asset: any, onPress: any, onLongPress?: any) => (
+                                <IconButton key={asset} size="sm" variant={hasNp ? "secondary-overlay" : "tertiary"} icon={createIconElement(asset, hasNp)} onPress={onPress} onLongPress={onLongPress} />
                             );
 
-                            if (betteryoubarSettings.showStar) btnKids.unshift(mkIcon(StarAsset, () => transitionToGuild?.(betteryoubarSettings.targetServerId || "@favorites")));
-                            if (betteryoubarSettings.showSettings) btnKids.push(mkIcon(SettingsAsset, () => openUserSettings?.()));
+                            const originalBtnIndex = btnKids.findIndex((k: any) => k && k.props);
 
-                            btnParent.props.children = btnKids;
+                            const { onPress, onLongPress } = getNotificationButtonHandlers();
+
+                            if (originalBtnIndex !== -1) {
+                                btnKids[originalBtnIndex] = mkIcon(BellAsset, onPress, onLongPress);
+                            } else {
+                                btnKids.push(mkIcon(BellAsset, onPress, onLongPress));
+                            }
+
+                            const cleanKids = btnKids.filter(Boolean);
+
+                            if (betteryoubarSettings.showStar) cleanKids.unshift(mkIcon(StarAsset, () => transitionToGuild?.(betteryoubarSettings.targetServerId || "@favorites")));
+                            if (betteryoubarSettings.showSettings) cleanKids.push(mkIcon(SettingsAsset, () => openUserSettings?.()));
+
+                            btnParent.props.children = cleanKids;
                         }
 
                         return npRes;

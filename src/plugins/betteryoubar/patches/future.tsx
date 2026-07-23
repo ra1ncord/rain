@@ -3,7 +3,7 @@ import { after } from "@api/patcher";
 import { React } from "@metro/common";
 
 import { betteryoubarSettings } from "../storage";
-import { applyBannerLogic, createIconElement, PatchOptions } from "./shared";
+import { applyBannerLogic, createIconElement, getNotificationButtonHandlers, PatchOptions } from "./shared";
 
 export function patchFuture(YouBarNameplate: any, YouBarNotificationsButton: any, options: PatchOptions): (() => void)[] {
     const patches: (() => void)[] = [];
@@ -11,6 +11,7 @@ export function patchFuture(YouBarNameplate: any, YouBarNotificationsButton: any
 
     const StarAsset = findAssetId("StarIcon");
     const SettingsAsset = findAssetId("SettingsIcon");
+    const BellAsset = findAssetId("BellIcon");
 
     if (YouBarNameplate) {
         patches.push(
@@ -22,32 +23,31 @@ export function patchFuture(YouBarNameplate: any, YouBarNotificationsButton: any
 
     if (YouBarNotificationsButton) {
         patches.push(
-            after("type", YouBarNotificationsButton, (args, res) => {
+            after("type", YouBarNotificationsButton, args => {
                 const hasNameplate = args[0]?.hasNameplate;
+
+                const { onPress, onLongPress } = getNotificationButtonHandlers();
+
+                const mkIcon = (asset: any, onPress: any, onLongPress?: any) => (
+                    <IconButton
+                        key={asset}
+                        size="sm"
+                        variant={hasNameplate ? "secondary-overlay" : "tertiary"}
+                        icon={createIconElement(asset, hasNameplate)}
+                        onPress={onPress}
+                        onLongPress={onLongPress}
+                    />
+                );
 
                 return (
                     <React.Fragment>
-                        {betteryoubarSettings.showStar && (
-                            <IconButton
-                                size="sm"
-                                variant={hasNameplate ? "secondary-overlay" : "tertiary"}
-                                icon={createIconElement(StarAsset, hasNameplate)}
-                                onPress={() => {
-                                    if (transitionToGuild) transitionToGuild(betteryoubarSettings.targetServerId || "@favorites");
-                                }}
-                            />
-                        )}
-                        {res}
-                        {betteryoubarSettings.showSettings && (
-                            <IconButton
-                                size="sm"
-                                variant={hasNameplate ? "secondary-overlay" : "tertiary"}
-                                icon={createIconElement(SettingsAsset, hasNameplate)}
-                                onPress={() => {
-                                    if (openUserSettings) openUserSettings();
-                                }}
-                            />
-                        )}
+                        {betteryoubarSettings.showStar && mkIcon(StarAsset, () => {
+                            if (transitionToGuild) transitionToGuild(betteryoubarSettings.targetServerId || "@favorites");
+                        })}
+                        {mkIcon(BellAsset, onPress, onLongPress)}
+                        {betteryoubarSettings.showSettings && mkIcon(SettingsAsset, () => {
+                            if (openUserSettings) openUserSettings();
+                        })}
                     </React.Fragment>
                 );
             })

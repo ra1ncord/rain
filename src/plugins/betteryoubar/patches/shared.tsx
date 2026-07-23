@@ -1,4 +1,5 @@
 import { resolveSemanticColor, semanticColors } from "@api/ui/components/color";
+import { findByProps } from "@metro";
 import { ReactNative } from "@metro/common";
 import { findByName } from "@metro/wrappers";
 
@@ -83,4 +84,30 @@ export function createIconElement(asset: any, hasNameplate: boolean) {
             />
         </View>
     );
+}
+
+let triggerHapticFeedback: any, HapticFeedbackTypes: any, getRootNavigationRef: any, Navigation: any, ForLaterModalModule: any;
+
+export function getNotificationButtonHandlers() {
+    if (!Navigation) {
+        const haptics = findByProps("triggerHapticFeedback", "HapticFeedbackTypes") || {};
+        triggerHapticFeedback = haptics.triggerHapticFeedback;
+        HapticFeedbackTypes = haptics.HapticFeedbackTypes;
+        getRootNavigationRef = (findByProps("getRootNavigationRef") || {}).getRootNavigationRef;
+        Navigation = findByProps("pushLazy", "push");
+        ForLaterModalModule = findByProps("ForLaterModal");
+    }
+
+    const onPress = () => {
+        getRootNavigationRef?.()?.navigate("notifications", { inNestedNavigator: true });
+    };
+
+    const onLongPress = () => {
+        if (triggerHapticFeedback && HapticFeedbackTypes) triggerHapticFeedback(HapticFeedbackTypes.SOFT);
+        if (Navigation?.pushLazy && ForLaterModalModule?.ForLaterModal) {
+            Navigation.pushLazy(() => Promise.resolve(ForLaterModalModule.ForLaterModal), {}, "for-later-modal", { presentation: "modal" });
+        }
+    };
+
+    return { onPress, onLongPress };
 }
