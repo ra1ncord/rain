@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { View } from "react-native";
 import { after } from "@api/patcher";
 import { findByDisplayName, findByName } from "@metro";
@@ -9,19 +9,60 @@ import { Developers } from "@rain/Developers";
 
 const patches: (() => boolean)[] = [];
 
+function fuzzySearch(searchQuery: string, searchString: string) {
+  let searchIndex = 0;
+  let score = 0;
+
+  for (let i = 0; i < searchString.length; i++) {
+    if (searchString[i] === searchQuery[searchIndex]) {
+      score++;
+      searchIndex++;
+    } else {
+      score--;
+    }
+
+    if (searchIndex === searchQuery.length) return score;
+  }
+
+  return null;
+}
+
+function normalizeUrl(urlStr: string) {
+  let url: string;
+  try {
+    url = new URL(urlStr).pathname.split("/").at(-1) ?? urlStr;
+  } catch {
+    url = urlStr;
+  }
+  return url.replace(/(%20|[_-])/g, " ").toLowerCase();
+}
+
 function FavoriteSearchWrapper({ OriginalComponent, ...props }: any) {
   const [query, setQuery] = useState("");
+  const deadRef = useRef(false);
   const resultItems = props.resultItems;
 
   const filteredItems = useMemo(() => {
     if (!query || !resultItems) return resultItems?.slice();
+
     const q = query.toLowerCase();
-    return resultItems.filter((item: any) => {
-      const title = (item.title || "").toLowerCase();
-      const url = (item.url || item.src || "").toLowerCase();
-      return title.includes(q) || url.includes(q);
-    });
+
+    const scored = resultItems
+      .map((item: any) => {
+        const target = normalizeUrl(item.url || item.src || "");
+        const title = (item.title || "").toLowerCase();
+        const score = fuzzySearch(q, target) ?? fuzzySearch(q, title);
+        return score != null ? { item, score } : null;
+      })
+      .filter(Boolean) as { item: any; score: number }[];
+
+    scored.sort((a, b) => b.score - a.score);
+    return scored.map((s) => s.item);
   }, [resultItems, query]);
+
+  useEffect(() => {
+    return () => { deadRef.current = true; };
+  }, []);
 
   return (
     <View style={{ flex: 1 }}>
