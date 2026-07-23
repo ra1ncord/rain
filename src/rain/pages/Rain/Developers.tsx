@@ -23,13 +23,13 @@ type Credit = {
 
 const developers: Credit[] = [
     { name: "cocobo1", role: "Founder & Main Developer", dev: Developers.cocobo1 },
-    { name: "bwlok", role: DEVELOPER_STRING, dev: Developers.Bwlok },
-    { name: "kmmiio99o", role: DEVELOPER_STRING, dev: Developers.kmmiio99o },
-    { name: "CatStars", role: DEVELOPER_STRING, dev: Developers.SerStars },
-    { name: "J", role: DEVELOPER_STRING, dev: Developers.j },
-    { name: "Reyyan", role: DEVELOPER_STRING, dev: Developers.reyyan1 },
-    { name: "John", role: DEVELOPER_STRING, dev: Developers.John },
-    { name: "Livie", role: DEVELOPER_STRING, dev: Developers.Livie }
+    { name: "bwlok", role: Strings.RAIN_DEVELOPER, dev: Developers.Bwlok },
+    { name: "kmmiio99o", role: Strings.RAIN_DEVELOPER, dev: Developers.kmmiio99o },
+    { name: "CatStars", role: Strings.RAIN_DEVELOPER, dev: Developers.SerStars },
+    { name: "J", role: Strings.RAIN_DEVELOPER, dev: Developers.j },
+    { name: "Reyyan", role: Strings.RAIN_DEVELOPER, dev: Developers.reyyan1 },
+    { name: "John", role: Strings.RAIN_DEVELOPER, dev: Developers.John },
+    { name: "Livie", role: Strings.RAIN_DEVELOPER, dev: Developers.Livie }
 ];
 
 const donators = [
