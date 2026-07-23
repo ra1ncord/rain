@@ -43,7 +43,7 @@ const donators = [
     "Stella",
     "Twimble Time Mods",
     "Bread Cat",
-    "/usr/choccy-chan ツ"
+    "/usr/choccy-chan ツ",
     "the-ocean-in-motion",
     "han",
     "nyx",
