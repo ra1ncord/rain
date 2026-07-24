@@ -3,7 +3,7 @@ import { hideSheet } from "@api/ui/sheets";
 import { findByProps } from "@metro";
 import { constants } from "@metro/common";
 import { ActionSheet, TableRow, TableRowGroup, Text } from "@metro/common/components";
-import { GuildMemberStore, GuildRoleStore, UserStore } from "@metro/common/stores";
+import { GuildMemberStore, GuildRoleStore, GuildStore, UserStore } from "@metro/common/stores";
 import React from "react";
 import { Image, ScrollView, View } from "react-native";
 
@@ -31,6 +31,8 @@ function getCombinedPerms(guildId: string, roleIds: string[]): bigint {
 export default function UserPermissionPage({ guildId, userId }: { guildId: string; userId: string }) {
     const member = GuildMemberStore?.getMember?.(guildId, userId);
     const user = UserStore?.getUser?.(userId);
+    const guild = GuildStore?.getGuild?.(guildId);
+    const isOwner = guild?.ownerId === userId;
     const roleIds = member?.roles ?? [];
     const roles = roleIds.map((id: string) => GuildRoleStore?.getRole?.(guildId, id)).filter(Boolean);
     const perms = getCombinedPerms(guildId, roleIds);
@@ -39,6 +41,7 @@ export default function UserPermissionPage({ guildId, userId }: { guildId: strin
     const Perms = constants.Permissions ?? {};
 
     function hasPerm(flagName: string): boolean {
+        if (isOwner) return true;
         const flag = Perms[flagName];
         if (flag == null) return false;
         const f = typeof flag === "bigint" ? flag : BigInt(flag);
