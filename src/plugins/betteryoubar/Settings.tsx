@@ -2,7 +2,7 @@ import { findAssetId } from "@api/assets";
 import { findByProps, findByStoreName } from "@metro";
 import { Stack, TableRadioGroup, TableRadioRow, TableRow, TableRowGroup, TableSwitchRow, TextInput } from "@metro/common/components";
 import React from "react";
-import { ScrollView } from "react-native";
+import { Keyboard, ScrollView } from "react-native";
 
 import { betteryoubarSettings, useBetterYouBarSettings } from "./storage";
 
@@ -14,8 +14,29 @@ export default function Settings() {
     const GuildStore = findByStoreName("GuildStore");
     const guilds = Object.values(GuildStore?.getGuilds?.() || {}) as { id: string; name: string }[];
 
+    // thanks serstars for the keyboard code i yoinked :P
+    const [keyboardHeight, setKeyboardHeight] = React.useState(0);
+
+    React.useEffect(() => {
+        const showSub = Keyboard.addListener("keyboardDidShow", e => {
+            setKeyboardHeight(e.endCoordinates.height);
+        });
+        const hideSub = Keyboard.addListener("keyboardDidHide", () => {
+            setKeyboardHeight(0);
+        });
+
+        return () => {
+            showSub.remove();
+            hideSub.remove();
+        };
+    }, []);
+
     return (
-        <ScrollView style={{ flex: 1 }}>
+        <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingBottom: keyboardHeight + 38 }}
+            keyboardShouldPersistTaps="handled"
+        >
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
                 <TableRowGroup title="Button Visibility">
                     <TableSwitchRow
