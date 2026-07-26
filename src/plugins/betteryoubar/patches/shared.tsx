@@ -16,7 +16,7 @@ export interface PatchOptions {
     IconButton: any;
 }
 
-const FadeOverlay = ({ color }: { color: string }) => (
+export const FadeOverlay = ({ color }: { color: string }) => (
     <LinearGradient
         pointerEvents="none"
         colors={[color, "transparent"]}

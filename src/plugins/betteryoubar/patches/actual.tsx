@@ -31,10 +31,28 @@ export function patchActual(ThemedYouBarModule: any, options: PatchOptions): (()
                         const rowKids = npRes?.props?.children;
                         if (!Array.isArray(rowKids)) return npRes;
 
+                        const btnParentIndex = rowKids.findIndex((k: any) => {
+                            if (!k?.props?.children) return false;
+                            const children = Array.isArray(k.props.children) ? k.props.children : [k.props.children];
+                            return children.some((child: any) => child?.props?.hasNameplate !== undefined || child?.type?.name === "YouBarNotificationsButton");
+                        });
+                        const youRowRightIndex = btnParentIndex !== -1 ? btnParentIndex : rowKids.length - 1;
+                        const btnParent = rowKids[youRowRightIndex];
+
+                        let npIndex = rowKids.findIndex((k: any) => {
+                            if (!k?.props?.children) return false;
+                            const children = Array.isArray(k.props.children) ? k.props.children : [k.props.children];
+                            return children.some((child: any) => child?.props?.nameplate !== undefined);
+                        });
+
+                        if (npIndex === -1) {
+                            npIndex = Math.max(1, youRowRightIndex - 2);
+                        }
+
                         if (betteryoubarSettings.backgroundMode === "none") {
-                            rowKids[1] = null;
-                        } else {
-                            if (!rowKids[1]) {
+                            rowKids[npIndex] = null;
+                        } else if (betteryoubarSettings.backgroundMode === "custom_image") {
+                            if (!rowKids[npIndex]) {
                                 const style = rowKids[0]?.props?.style;
                                 const flatStyle = Array.isArray(style) ? style.flat(10) : [style];
                                 const avatarSize = flatStyle.find((s: any) => s?.width >= 32 && s?.width <= 80)?.width || 60;
@@ -43,7 +61,7 @@ export function patchActual(ThemedYouBarModule: any, options: PatchOptions): (()
                                 const flatRStyle = Array.isArray(rStyle) ? rStyle.flat(10) : [rStyle];
                                 const barRadius = flatRStyle.find((s: any) => typeof s?.borderRadius === "number")?.borderRadius || 24;
 
-                                rowKids[1] = (
+                                rowKids[npIndex] = (
                                     <ReactNative.View
                                         key="custom-np"
                                         style={{ position: "absolute", top: 0, left: avatarSize, right: 0, bottom: 0, overflow: "hidden", borderTopRightRadius: barRadius, borderBottomRightRadius: barRadius }}
@@ -52,15 +70,13 @@ export function patchActual(ThemedYouBarModule: any, options: PatchOptions): (()
                                 );
                             }
 
-                            rowKids[1] = applyBannerLogic(rowKids[1]);
+                            rowKids[npIndex] = applyBannerLogic(rowKids[npIndex]);
                             fakeNameplate = true;
+                        } else {
+                            if (rowKids[npIndex]) {
+                                rowKids[npIndex] = applyBannerLogic(rowKids[npIndex]);
+                            }
                         }
-
-                        const btnParent = rowKids.find((k: any) => {
-                            if (!k?.props?.children) return false;
-                            const kids = Array.isArray(k.props.children) ? k.props.children : [k.props.children];
-                            return kids.some((child: any) => child?.props?.hasNameplate !== undefined || child?.type?.name === "YouBarNotificationsButton");
-                        }) || rowKids[3];
 
                         if (btnParent?.props?.children) {
                             const btnKids = Array.isArray(btnParent.props.children) ? [...btnParent.props.children] : [btnParent.props.children];

@@ -29,12 +29,13 @@ export default definePlugin({
             IconButton
         };
 
+        const YouBarBackground = findByTypeName("YouBarBackground");
         const YouBarNameplate = findByTypeName("YouBarNameplate");
         const YouBarNotificationsButton = findByTypeName("YouBarNotificationsButton");
 
         // on future rain releases, there will not be a conditional here
-        if (YouBarNameplate || YouBarNotificationsButton) {
-            patches.push(...patchFuture(YouBarNameplate, YouBarNotificationsButton, options));
+        if (YouBarBackground || YouBarNameplate || YouBarNotificationsButton) {
+            patches.push(...patchFuture(YouBarBackground, YouBarNameplate, YouBarNotificationsButton, options));
         } else {
             const ThemedYouBarModule = findByProps("ThemedYouBar");
             if (ThemedYouBarModule) {
