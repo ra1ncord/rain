@@ -16,14 +16,14 @@ function patchNitro(orig: Function, args: any[]) {
 
 export default function getPatches() {
     return [
-        instead("getEmojiUnavailableReason", emojiUtils, (args, result) => {
-            if (getCurrentUser?.().premiumType !== null) return result;
-            if (result !== null && BYPASSABLE.includes(args[0]?.intention)) return null;
-            return result;
+        instead("getEmojiUnavailableReason", emojiUtils, (args, origFunc) => {
+            if (getCurrentUser?.().premiumType !== null) return origFunc(...args);
+            if (BYPASSABLE.includes(args[0]?.intention)) return null;
+            return origFunc(...args);
         }),
 
-        after("getEmojiUnavailableReasons", emojiUtils, (args, result) => {
-            if (getCurrentUser?.().premiumType !== null) return result;
+        after("getEmojiUnavailableReasons", emojiUtils, args => {
+            if (getCurrentUser?.().premiumType !== null) return;
             if (BYPASSABLE.includes(args[0]?.intention)) {
                 return {
                     emojisDisabled: new Set(),
@@ -32,13 +32,13 @@ export default function getPatches() {
                     emojiNitroLocked: false,
                 };
             }
-            return result;
+            return;
         }),
 
         after("isEmojiPremiumLocked", emojiUtils, (args, result) => {
-            if (getCurrentUser?.().premiumType !== null) return result;
+            if (getCurrentUser?.().premiumType !== null) return;
             if (result === true && BYPASSABLE.includes(args[0]?.intention)) return false;
-            return result;
+            return;
         }),
 
         // sticker patch credits: https://github.com/aliernfrog/vd-plugins/blob/master/plugins/FreeStickers/src/patches/nitro.ts
