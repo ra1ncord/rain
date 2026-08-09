@@ -20,18 +20,16 @@ export default definePlugin({
     id: "animalfacts",
     version: "1.1.0",
     start() {
-        patches = [
-            registerCommand(catFactCommand()),
-            registerCommand(dogFactCommand()),
-            registerCommand(duckFactCommand()),
-            registerCommand(foxFactCommand()),
-            registerCommand(pandaFactCommand()),
-            registerCommand(racoonFactCommand()),
-            registerCommand(koalaFactCommand()),
-            registerCommand(whaleFactCommand()),
-            registerCommand(kangarooFactCommand()),
-            registerCommand(birdFactCommand()),
-        ].filter(Boolean);
+        unregisters.push(registerCommand(catFactCommand()));
+        unregisters.push(registerCommand(dogFactCommand()));
+        unregisters.push(registerCommand(duckFactCommand()));
+        unregisters.push(registerCommand(foxFactCommand()));
+        unregisters.push(registerCommand(pandaFactCommand()));
+        unregisters.push(registerCommand(racoonFactCommand()));
+        unregisters.push(registerCommand(koalaFactCommand()));
+        unregisters.push(registerCommand(whaleFactCommand()));
+        unregisters.push(registerCommand(kangarooFactCommand()));
+        unregisters.push(registerCommand(birdFactCommand()));
     },
     stop() {
         unregisters.forEach(unregister => unregister());
