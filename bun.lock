@@ -43,7 +43,7 @@
         "eslint-plugin-simple-import-sort": "^12.1.1",
         "eslint-plugin-unused-imports": "^4.4.1",
         "globals": "^17.4.0",
-        "hermes-compiler": "0.16.0",
+        "hermes-compiler": "250829098.0.15",
         "semantic-release": "^25.0.3",
         "type-fest": "^5.5.0",
         "typescript": "^5.9.3",
@@ -916,7 +916,7 @@
 
     "hasown": ["hasown@2.0.2", "", { "dependencies": { "function-bind": "^1.1.2" } }, "sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ=="],
 
-    "hermes-compiler": ["hermes-compiler@0.16.0", "", {}, "sha512-igryUm6Ys5cx6WoLHZrbu087OvJzU2PuP8H3+RwAUe/EBrQEubNQYcfRE6IHtHZ/fJhGHAcbmFx1v6SKRcuDTQ=="],
+    "hermes-compiler": ["hermes-compiler@250829098.0.15", "", {}, "sha512-GJiEBl2JgT8FsRcY9DOBYW9L0KGRij58y7FeINJOaqWdYIrf/o3hi8NCsW3CV+XbG1vAwEeuXvwg4+xMJ8cc3g=="],
 
     "hermes-estree": ["hermes-estree@0.32.0", "", {}, "sha512-KWn3BqnlDOl97Xe1Yviur6NbgIZ+IP+UVSpshlZWkq+EtoHg6/cwiDj/osP9PCEgFE15KBm1O55JRwbMEm5ejQ=="],
 
