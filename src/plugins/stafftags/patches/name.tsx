@@ -3,7 +3,7 @@ import { findInReactTree } from "@lib/utils";
 import { findByName, findByProps } from "@metro";
 import { ChannelStore, GuildStore } from "@metro/common/stores";
 
-import getTag, { BUILT_IN_TAGS } from "../lib/getTag";
+import getTag, { getBuiltInTags } from "../lib/getTag";
 
 const DisplayName = findByName("DisplayName", false);
 const HeaderName = findByName("HeaderName", false);
@@ -24,7 +24,7 @@ export default () => {
         patches.push(after("default", DisplayName, ([{ guildId, channelId, user }]: any, ret: any) => {
             const tagComponent = findInReactTree(ret, (c: any) => c?.type?.Types);
             const labelText = getBotLabel?.(tagComponent?.props?.type);
-            if (!tagComponent || (labelText && !BUILT_IN_TAGS.includes(labelText))) {
+            if (!tagComponent || (labelText && !getBuiltInTags().includes(labelText))) {
                 const guild = GuildStore?.getGuild?.(guildId);
                 const channel = ChannelStore?.getChannel?.(channelId);
                 const tag = getTag(guild, channel, user);

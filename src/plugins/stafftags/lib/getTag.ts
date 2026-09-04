@@ -1,6 +1,6 @@
 import { rawColors } from "@api/ui/components/color";
 import { findByProps } from "@metro";
-import { constants, i18n } from "@metro/common";
+import { constants } from "@metro/common";
 import { GuildMemberStore } from "@metro/common/stores";
 import chroma from "chroma-js";
 
@@ -8,16 +8,27 @@ import { useStaffTagsSettings } from "../storage";
 
 const { computePermissions } = findByProps("computePermissions", "canEveryoneRole") ?? {};
 
-const getBuiltInTags = () => [
-    i18n?.Messages?.AI_TAG,
-    i18n?.Messages?.BOT_TAG_BOT,
-    i18n?.Messages?.BOT_TAG_SERVER,
-    i18n?.Messages?.SYSTEM_DM_TAG_SYSTEM,
-    i18n?.Messages?.GUILD_AUTOMOD_USER_BADGE_TEXT,
-    i18n?.Messages?.REMIXING_TAG
-].filter(Boolean);
+const messageCache = new Map<string, string>();
 
-export const BUILT_IN_TAGS = getBuiltInTags();
+const getMessage = (key: string) => {
+    if (messageCache.has(key)) return messageCache.get(key);
+
+    const { intl, t } = findByProps("intl", "t") ?? {};
+    const hash = findByProps("runtimeHashMessageKey", "MessageLoader")?.runtimeHashMessageKey?.(key);
+    const value = t?.[hash];
+    const resolved = value ? intl?.string?.(value) : undefined;
+    if (resolved) messageCache.set(key, resolved);
+    return resolved;
+};
+
+export const getBuiltInTags = () => [
+    getMessage("AI_TAG"),
+    getMessage("BOT_TAG_BOT"),
+    getMessage("BOT_TAG_SERVER"),
+    getMessage("SYSTEM_DM_TAG_SYSTEM"),
+    getMessage("GUILD_AUTOMOD_USER_BADGE_TEXT"),
+    getMessage("REMIXING_TAG")
+].filter(Boolean);
 
 interface Tag {
     text: string
