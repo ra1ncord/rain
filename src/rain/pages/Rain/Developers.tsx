@@ -1,5 +1,6 @@
 import { findAssetId } from "@api/assets";
 import { resolveSemanticColor, semanticColors } from "@api/ui/components/color";
+import { Strings } from "@i18n";
 import { lazyDestructure } from "@lib/utils/lazy";
 import { findByName, findByProps } from "@metro";
 import { FluxUtils } from "@metro/common";
@@ -9,7 +10,6 @@ import { developer } from "@plugins/types";
 import { Developers } from "@rain/Developers";
 import { useMemo } from "react";
 import { Image, ScrollView, View } from "react-native";
-import { Strings } from "@i18n";
 
 
 const showUserProfileActionSheet = findByName("showUserProfileActionSheet");
