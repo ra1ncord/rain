@@ -16,7 +16,7 @@ export default definePlugin({
     version: "1.0.0",
     author: [Developers.j],
     settings: Settings,
-    start() {
+    eagerStart() {
         const UserStore = findByStoreName("UserStore");
         const { transitionToGuild } = findByProps("transitionToGuild") || {};
         const { openUserSettings } = findByProps("openUserSettings") || {};
