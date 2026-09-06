@@ -1,16 +1,14 @@
 import { semanticColors } from "@api/ui/components/color";
 import { createStyles } from "@api/ui/styles";
-import { findByName } from "@metro";
+import { Avatar } from "@metro/common/components";
 import { UserStore } from "@metro/common/stores";
 import { CDN_URL } from "@plugins/decor/lib/constants";
 import { useCurrentUserDecorationsStore } from "@plugins/decor/lib/stores/CurrentUserDecorationsStore";
 import discordifyDecoration from "@plugins/decor/lib/utils/discordifyDecoration";
 import { Image, View } from "react-native";
 
-const HeaderAvatar = findByName("HeaderAvatar");
-
 const useStyles = createStyles(_ => ({
-    headerAvatarContainer: {
+    avatarContainer: {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -43,12 +41,11 @@ export default function AvatarDecorationPreviews({ pendingAvatarDecoration }:any
 
     return (
         <View style={styles.container}>
-            <View style={styles.headerAvatarContainer}>
-                <HeaderAvatar
+            <View style={styles.avatarContainer}>
+                <Avatar
                     user={UserStore.getCurrentUser()}
-                    pendingAvatarDecoration={decoration}
-                    size="editAvatarDecoration"
-                    decorationStyle={{ margin: -12 }}
+                    size="large"
+                    style={{ transform: [{ scale: 3 }] }}
                 />
                 {decoration && (
                     <Image

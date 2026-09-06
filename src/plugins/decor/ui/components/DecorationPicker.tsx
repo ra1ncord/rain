@@ -166,7 +166,7 @@ export default function DecorationPicker() {
                             ? `Current preset: ${decorPreset?.name ?? "Unknown"}`
                             : "Explore decoration presets"
                     }
-                    icon={<TableRow.Icon source={findAssetId("ic_reaction_smile")} />}
+                    icon={<TableRow.Icon source={findAssetId("ReactionIcon")} />}
                     arrow
                     disabled={isDisabled}
                     trailing={loadingTrailing ?? TableRow.Arrow}
