@@ -5,19 +5,7 @@ import type { ExtraClutterSettings } from "./surfaces";
 interface DeclutterSettings extends ExtraClutterSettings {
     hideServerBoostGoal: boolean;
     hideDmActivityCards: boolean;
-    hide: {
-        voice: boolean;
-        gift: boolean;
-        thread: boolean;
-        app: boolean;
-    };
-    show: {
-        thread: boolean;
-    };
-    dismiss: {
-        actions: boolean;
-        send: boolean;
-    };
+
 }
 
 export const {
@@ -39,17 +27,4 @@ export const {
     hidePaymentGifts: false,
     hideServerBoostGoal: true,
     hideDmActivityCards: true,
-    hide: {
-        app: true,
-        gift: true,
-        thread: true,
-        voice: true,
-    },
-    show: {
-        thread: false,
-    },
-    dismiss: {
-        actions: true,
-        send: false,
-    },
 });
