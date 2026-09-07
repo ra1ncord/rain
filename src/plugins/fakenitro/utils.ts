@@ -10,56 +10,24 @@ const { getGuildId } = SelectedGuildStore;
 // https://github.com/luimu64/nitro-spoof/blob/1bb75a2471c39669d590bfbabeb7b922672929f5/index.js#L25
 const hasEmotesRegex = /<a?:(\w+):(\d+)>/i;
 
-function extractUnusableEmojis(messageString: string, size: number) {
-    const emojiStrings = messageString.matchAll(/<a?:(\w+):(\d+)>/gi);
-    const emojiUrls = [];
-    for (const emojiString of emojiStrings) {
-        // Fetch required info about the emoji
-        const emoji = getCustomEmojiById(emojiString[2]);
-        if (emoji.guildId === undefined) { return; }
-        // Check emoji usability
-        if (emoji.guildId !== getGuildId() || emoji.animated) {
-            // Remove emote from original msg
-            messageString = messageString.replace(emojiString[0], "");
-            const url =
-				emoji?.url ??
-				`https://cdn.discordapp.com/emojis/${emoji.id}.webp?size=44&animated=${emoji.animated}`;
-            const animated = emoji.animated
-                ? `&animated=${emoji.animated}`
-                : "";
-            // Add to emotes to send
-            if (fakenitroSettings.hyperLink)
-                emojiUrls.push(
-                    `[${emoji.name}](${url.split("?")[0]}?size=${size}&name=${emoji.name}${animated})`,
-                );
-            else
-                emojiUrls.push(
-                    `${url.split("?")[0]}?size=${size}&name=${emoji.name}${animated}`,
-                );
-        }
-    }
+function replaceUnusableEmojis(messageString: string, size: number) {
+    return messageString.replace(/<a?:(\w+):(\d+)>/gi, (original, _name, id) => {
+        const emoji = getCustomEmojiById(id);
+        if (emoji.guildId === undefined) return original;
+        if (emoji.guildId === getGuildId() && !emoji.animated) return original;
 
-    return {
-        newContent: messageString.trim(),
-        extractedEmojis: emojiUrls,
-    };
+        const url = emoji.url ?? `https://cdn.discordapp.com/emojis/${emoji.id}.webp`;
+        const animated = emoji.animated ? "&animated=true" : "";
+        const target = `${url.split("?")[0]}?size=${size}&name=${emoji.name}${animated}`;
+        return fakenitroSettings.hyperLink ? `[${emoji.name}](${target})` : target;
+    });
 }
 
 export function modifyIfNeeded(msg: Message) {
     if (!msg.content.match(hasEmotesRegex)) return;
 
-    // Find all emojis from the captured message string and return object with emojiURLS and content
-    const { newContent, extractedEmojis } = extractUnusableEmojis(
-        msg.content,
-        fakenitroSettings.emojiSize,
-    );
-
-    msg.content = newContent;
-
-    if (extractedEmojis.length > 0)
-        msg.content += "\n" + extractedEmojis.join("\n");
-
-    // Set invalidEmojis to empty to prevent Discord yelling to you about you not having nitro
+    // Preserve emoji positions and all surrounding Markdown/whitespace.
+    msg.content = replaceUnusableEmojis(msg.content, fakenitroSettings.emojiSize);
     msg.invalidEmojis = [];
 }
 
