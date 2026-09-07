@@ -57,7 +57,7 @@ export default definePlugin({
     description: "Hide chat clutter, profile cosmetics and payment settings",
     author: [Contributors.palmdevs],
     id: "declutter",
-    version: "2.1.1",
+    version: "2.1.2",
     requiresRestart: true,
     start() {
         stop();

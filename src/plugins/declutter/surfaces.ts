@@ -106,12 +106,22 @@ export function installProfileAndPaymentSurfaces(
         add("modules/guild_tag/native/GuildTag.tsx", key, "hideGuildTags", true);
     }
     add("modules/display_name_styles/hooks/useDisplayNameStyles.tsx", "default", "hideDisplayNameStyles");
+    const individualPreview = find("modules/collectibles/native/IndividualProductPreview.tsx");
+    // 343.12 split these previews into separate modules; retain the old exports
+    // for earlier Discord versions and keep validation before installation.
+    const productPreviews = [
+        ["ProfileEffectPreview", "modules/collectibles/profile_effects/native/previews/ProfileEffectUserPreview.tsx"],
+        ["AvatarDecorationPreview", "modules/collectibles/native/AvatarDecorationProductPreview.tsx"],
+        ["NameplatePreview", "modules/collectibles/nameplates/native/NameplateProductPreview.tsx"],
+    ].map(([key, path]) => typeof individualPreview?.[key] === "function"
+        ? [individualPreview, key] : [find(path), "default"]);
     const previewTargets = [
         [find("modules/collectibles/native/CollectiblesShopV2.tsx"), "default"],
         [find("modules/collectibles/native/CollectiblesShopV2.tsx"), "CollectiblesShopV2"],
         [find("modules/collectibles/native/CollectiblesShopCardV2.tsx")?.default, "type"],
         [find("modules/collectibles/native/ProductDetailsActionSheet.tsx"), "default"],
-        ...["ProfileEffectPreview", "AvatarDecorationPreview", "NameplatePreview", "IndividualProductPreview"].map(key => [find("modules/collectibles/native/IndividualProductPreview.tsx"), key]),
+        [individualPreview, "IndividualProductPreview"],
+        ...productPreviews,
     ] as [any, string][];
     const messages = find("modules/messages/native/renderer/createMessageContent.tsx");
     const lists = find("modules/settings/native/renderer/SettingRendererUtils.tsx");
