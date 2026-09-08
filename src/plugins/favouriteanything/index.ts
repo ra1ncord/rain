@@ -133,15 +133,16 @@ export default definePlugin({
     version: "1.0.0",
     start() {
         try {
-            unpatchGIFFavButton = instead("type", GIFFavButton, (props: any, original: any) => {
+            unpatchGIFFavButton = instead("type", GIFFavButton, (args: any[], original: any) => {
                 try {
+                    const props = args?.[0] ?? {};
                     if (props?.source && !props.source.isGIFV) {
                         return original({ ...props, source: patchSource(props.source) });
                     }
                 } catch (e) {
                     logger.error("[FavouriteAnything] render error:", e);
                 }
-                return original(props);
+                return original(...args);
             });
         } catch (e) {
             logger.error("[FavouriteAnything] applyPatch error:", e);
