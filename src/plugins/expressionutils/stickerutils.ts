@@ -21,7 +21,7 @@ export function patchStickerActionSheet() {
     const patches: Array<() => void> = [];
     let patched = false;
 
-    const unpatchLazy = before("openLazy", LazyActionSheet, ([lazySheet, name]: [any, string]) => {
+    const unpatchLazy = before("openLazy", LazyActionSheet, ([lazySheet, name]) => {
         if (typeof name !== "string" || !name.includes("StickerDetailActionSheet")) return;
 
         lazySheet.then((module: any) => {
