@@ -35,7 +35,7 @@ async function openModal(src: string, event: any) {
             channelId: getChannelId(),
         }],
         initialIndex: 0,
-        originLayout: {
+        originViewOrOriginLayout: {
             width: 0, // this would ideally be the size of the small pfp but this proved very hard to implement
             height: 0,
             x: event.pageX,

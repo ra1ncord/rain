@@ -50,7 +50,6 @@ interface TenorCategoriesResponse {
     results?: TenorCategory[];
 }
 
-// GBoard-included Tenor API key (shipped with Google apps)
 const TENOR_KEY = "3Z0688EVWYKH";
 const MAX_PAGES = 5;
 
@@ -163,6 +162,16 @@ export default definePlugin({
         if (ProviderConfig) {
             patches.push(
                 instead("getProviderForAPIRequest", ProviderConfig, () => "tenor"),
+            );
+        }
+
+        const GifProvider = findByProps("getSearchPlaceholder");
+        if (GifProvider) {
+            patches.push(
+                instead("getSearchPlaceholder", GifProvider, (_args: any[], orig: Function) => {
+                    const placeholder = orig();
+                    return typeof placeholder === "string" ? placeholder.replace(/klipy/gi, "Tenor") : placeholder;
+                }),
             );
         }
 
