@@ -66,7 +66,6 @@ export default function DeclutterSettings() {
                         />
                     ))}
                 </TableRowGroup>
-
             </Stack>
         </ScrollView>
     );

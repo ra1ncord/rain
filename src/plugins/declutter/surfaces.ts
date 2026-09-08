@@ -86,45 +86,49 @@ export function filterPaymentRows(rows: any[], settings: ExtraClutterSettings): 
 }
 
 export function installProfileAndPaymentSurfaces(
-    find: (path: string) => any, settings: () => ExtraClutterSettings, instead: Instead,
+    find: {
+        byName: (name: string, expDefault: boolean) => any;
+        byTypeName: (name: string, expDefault: boolean) => any;
+        byProps: (...props: string[]) => any;
+    },
+    settings: () => ExtraClutterSettings, instead: Instead,
     preview: { useIsPreview: () => boolean; wrap: (component: any, props: any) => any },
 ): Unpatch[] {
     const targets: [any, string, keyof ExtraClutterSettings][] = [];
-    const add = (path: string, key: string, flag: keyof ExtraClutterSettings, memo = false) => {
-        const module = find(path);
+    const add = (module: any, key: string, flag: keyof ExtraClutterSettings, memo = false) => {
         targets.push([memo ? module?.[key] : module, memo ? "type" : key, flag]);
     };
-    add("modules/collectibles/native/components/CutoutableAvatarDecoration.tsx", "default", "hideAvatarDecorations");
-    add("modules/collectibles/avatar_decorations/useAvatarDecoration.tsx", "useAvatarDecoration", "hideAvatarDecorations");
-    add("modules/collectibles/nameplates/native/Nameplate.tsx", "default", "hideNameplates");
-    add("modules/main_tabs_v2/native/you_bar/YouBarNameplate.tsx", "default", "hideNameplates", true);
-    add("modules/collectibles/nameplates/hooks/useNameplate.tsx", "useNameplate", "hideNameplates");
-    add("modules/collectibles/profile_effects/native/ProfileEffect.tsx", "default", "hideProfileEffects");
-    add("modules/collectibles/profile_frames/native/ProfileFrame.tsx", "default", "hideProfileFrames");
-    add("modules/collectibles/profile_frames/hooks/useProfileFrame.tsx", "default", "hideProfileFrames");
+    add(find.byName("CutoutableAvatarDecoration", false), "default", "hideAvatarDecorations");
+    add(find.byProps("useAvatarDecoration", "getAvatarDecoration"), "useAvatarDecoration", "hideAvatarDecorations");
+    add(find.byName("Nameplate", false), "default", "hideNameplates");
+    add(find.byTypeName("YouBarNameplate", false), "default", "hideNameplates", true);
+    add(find.byProps("useNameplate"), "useNameplate", "hideNameplates");
+    add(find.byProps("usePreloadProfileEffect"), "default", "hideProfileEffects");
+    add(find.byName("ProfileFrame", false), "default", "hideProfileFrames");
+    add(find.byName("useProfileFrame", false), "default", "hideProfileFrames");
     for (const key of ["default", "GuildTagBadge", "BaseGuildTagChiplet"]) {
-        add("modules/guild_tag/native/GuildTag.tsx", key, "hideGuildTags", true);
+        add(find.byProps("GuildTagBadge", "BaseGuildTagChiplet"), key, "hideGuildTags", true);
     }
-    add("modules/display_name_styles/hooks/useDisplayNameStyles.tsx", "default", "hideDisplayNameStyles");
-    const individualPreview = find("modules/collectibles/native/IndividualProductPreview.tsx");
+    add(find.byName("useDisplayNameStyles", false), "default", "hideDisplayNameStyles");
+    const individualPreview = find.byProps("IndividualProductPreview");
     // 343.12 split these previews into separate modules; retain the old exports
     // for earlier Discord versions and keep validation before installation.
     const productPreviews = [
-        ["ProfileEffectPreview", "modules/collectibles/profile_effects/native/previews/ProfileEffectUserPreview.tsx"],
-        ["AvatarDecorationPreview", "modules/collectibles/native/AvatarDecorationProductPreview.tsx"],
-        ["NameplatePreview", "modules/collectibles/nameplates/native/NameplateProductPreview.tsx"],
-    ].map(([key, path]) => typeof individualPreview?.[key] === "function"
-        ? [individualPreview, key] : [find(path), "default"]);
+        ["ProfileEffectPreview", "ProfileEffectUserPreview"],
+        ["AvatarDecorationPreview", "AvatarDecorationProductPreview"],
+        ["NameplatePreview", "NameplateProductPreview"],
+    ].map(([key, name]) => typeof individualPreview?.[key] === "function"
+        ? [individualPreview, key] : [find.byName(name, false), "default"]);
     const previewTargets = [
-        [find("modules/collectibles/native/CollectiblesShopV2.tsx"), "default"],
-        [find("modules/collectibles/native/CollectiblesShopV2.tsx"), "CollectiblesShopV2"],
-        [find("modules/collectibles/native/CollectiblesShopCardV2.tsx")?.default, "type"],
-        [find("modules/collectibles/native/ProductDetailsActionSheet.tsx"), "default"],
+        [find.byProps("CollectiblesShopV2"), "default"],
+        [find.byProps("CollectiblesShopV2"), "CollectiblesShopV2"],
+        [find.byProps("COLLECTIBLES_SHOP_CARD_HEIGHT", "COLLECTIBLES_SHOP_CARD_WIDTH")?.default, "type"],
+        [find.byName("ProductDetailsActionSheet", false), "default"],
         [individualPreview, "IndividualProductPreview"],
         ...productPreviews,
     ] as [any, string][];
-    const messages = find("modules/messages/native/renderer/createMessageContent.tsx");
-    const lists = find("modules/settings/native/renderer/SettingRendererUtils.tsx");
+    const messages = find.byName("createMessageContent", false);
+    const lists = find.byProps("toSettingListItems", "getScoredSettingListSearchResultItems");
     for (const [target, key] of [...targets, ...previewTargets, [messages, "default"], [lists, "toSettingListItems"], [lists, "getScoredSettingListSearchResultItems"]] as [any, string][]) {
         if (typeof target?.[key] !== "function") throw new Error(`Declutter: required profile/payment surface ${key} is unavailable`);
     }

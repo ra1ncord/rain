@@ -1,6 +1,6 @@
 import { instead } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
-import { findByFilePath } from "@metro";
+import { findByName, findByProps, findByTypeName } from "@metro";
 import { definePlugin } from "@plugins";
 import { Contributors } from "@rain/Developers";
 import React from "react";
@@ -39,7 +39,7 @@ function stop() {
 export default definePlugin({
     name: "Declutter",
     description: "Hide server boost goals, DM activity cards, profile cosmetics and payment settings",
-    author: [Contributors.palmdevs],
+    author: [Contributors.benjii],
     id: "declutter",
     version: "2.2.0",
     requiresRestart: true,
@@ -48,12 +48,16 @@ export default definePlugin({
         try {
             const settings = () => useDeclutterSettings.getState();
             unpatches.push(...installClutterSurfaces(
-                findByFilePath("modules/guild_sidebar/useGuildActionRows.tsx"),
-                findByFilePath("modules/main_tabs_v2/native/tabs/messages/items/MessagesItemHappeningNow.tsx"),
+                findByName("useGuildActionRows", false),
+                findByProps("getMessagesItemHappeningNowHeight"),
                 settings,
                 instead,
             ));
-            unpatches.push(...installProfileAndPaymentSurfaces(findByFilePath, settings, instead, previewScope));
+            unpatches.push(...installProfileAndPaymentSurfaces({
+                byName: findByName,
+                byTypeName: findByTypeName,
+                byProps: findByProps,
+            }, settings, instead, previewScope));
         } catch (error) {
             stop();
             throw error;
