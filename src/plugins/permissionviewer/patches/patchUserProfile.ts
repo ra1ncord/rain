@@ -1,5 +1,6 @@
 import { after } from "@api/patcher";
 import { showSheet } from "@api/ui/sheets";
+import { findInReactTree } from "@lib/utils";
 import { findByName } from "@metro";
 import { byName } from "@metro/filters";
 import { waitFor } from "@metro/internals/modules";
@@ -10,16 +11,13 @@ const NAMES = ["UserProfileOverflowMenu", "BotUserProfileOverflowMenu"];
 let unpatches: (() => void)[] = [];
 
 function getMainItems(ret: any): any[] | null {
-    let items = ret?.props?.items;
-    if (Array.isArray(items) && Array.isArray(items[0])) return items[0];
-    items = ret?.props?.children?.props?.items;
-    if (Array.isArray(items) && Array.isArray(items[0])) return items[0];
-    return null;
+    const node = findInReactTree(ret, (n: any) => Array.isArray(n?.props?.items) && Array.isArray(n.props.items[0]));
+    return node?.props?.items[0] ?? null;
 }
 
 function patchFn(args: any[], ret: any) {
     const props = args[0] ?? {};
-    const guildId = props.guildId ?? props.channel?.guild_id;
+    const guildId = props.guildId ?? props.displayProfile?.guildId ?? props.channel?.guild_id;
     const userId = props.user?.id;
     if (!guildId || !userId) return;
     const items = getMainItems(ret);
@@ -38,7 +36,7 @@ export default () => {
         if (mod) {
             unpatches.push(after("default", mod, patchFn));
         } else {
-            const cancel = waitFor(byName(name), (exports: any) => {
+            const cancel = waitFor(byName(name) as any, (exports: any) => {
                 unpatches.push(after("default", exports, patchFn));
             });
             unpatches.push(cancel);
