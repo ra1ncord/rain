@@ -1,6 +1,7 @@
 import { instead } from "@api/patcher";
 import { waitForHydration } from "@api/storage";
 import { findByProps } from "@metro";
+import { findByFilePathLazy } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
 
@@ -165,15 +166,13 @@ export default definePlugin({
             );
         }
 
-        const GifProvider = findByProps("getSearchPlaceholder");
-        if (GifProvider) {
-            patches.push(
-                instead("getSearchPlaceholder", GifProvider, (_args: any[], orig: Function) => {
-                    const placeholder = orig();
-                    return typeof placeholder === "string" ? placeholder.replace(/klipy/gi, "Tenor") : placeholder;
-                }),
-            );
-        }
+        const GifProvider = findByFilePathLazy("modules/gif_picker/GifProvider.tsx");
+        patches.push(
+            instead("getSearchPlaceholder", GifProvider, (_args: any[], orig: Function) => {
+                const placeholder = orig();
+                return typeof placeholder === "string" ? placeholder.replace(/klipy/gi, "Tenor") : placeholder;
+            }),
+        );
 
         patches.push(
             instead("get", httpModule.HTTP, (args: any[], orig: Function) => {
