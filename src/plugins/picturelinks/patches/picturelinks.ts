@@ -1,11 +1,11 @@
 import { after } from "@api/patcher";
-import { findByName, findByProps } from "@metro";
+import { findByFilePath, findByName, findByProps } from "@metro";
 import { ReactNative } from "@metro/common";
 import { SelectedChannelStore, SelectedGuildStore } from "@metro/common/stores";
 
 const { Pressable } = findByProps("Button", "Text", "View");
 const ProfileBanner = findByName("ProfileBanner", false);
-const HeaderAvatar = findByName("HeaderAvatar", false);
+const HeaderAvatar = findByFilePath("modules/profile_customization/native/HeaderAvatar.tsx").default;
 const { openMediaModal } = findByProps("openMediaModal");
 const { hideActionSheet } = findByProps("hideActionSheet");
 const { getChannelId } = SelectedChannelStore;
@@ -46,7 +46,7 @@ async function openModal(src: string, event: any) {
 }
 
 export function unpatchAvatar() {
-    return after("default", HeaderAvatar, ([{ user, style, guildId }], res) => {
+    return after("render", HeaderAvatar, ([{ user, style, guildId }], res) => {
         let ext = "png";
         if (typeof user.guildMemberAvatars?.[guildId] === "string") {
             if (user.guildMemberAvatars?.[guildId].includes("a_")) { ext = "gif"; }
