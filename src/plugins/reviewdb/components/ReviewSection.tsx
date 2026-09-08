@@ -7,6 +7,7 @@ import { UserStore } from "@metro/common/stores";
 
 import { Review } from "../def";
 import { getReviews } from "../lib/api";
+import { useThemedColor } from "../lib/utils";
 import { useReviewDBSettings } from "../storage";
 import ReviewInput from "./ReviewInput";
 import ReviewRow from "./ReviewRow";
@@ -22,8 +23,12 @@ const { FlashList } = findByProps("FlashList");
 
 export default function ReviewSection({ userId }: ReviewSectionProps) {
     const [reviews, setReviews] = React.useState<Review[]>([]);
+    const [reviewCount, setReviewCount] = React.useState(0);
     const fetchReviews = () => {
-        getReviews(userId).then(i => setReviews(i));
+        getReviews(userId).then(({ reviews, reviewCount }) => {
+            setReviews(reviews);
+            setReviewCount(reviewCount);
+        });
     };
 
     if (reviews === undefined) { return; }
@@ -57,7 +62,19 @@ export default function ReviewSection({ userId }: ReviewSectionProps) {
     return (
         <ErrorBoundary>
             <RN.View style={[styles.card]}>
-                <UserProfileCard title="Reviews" styles={[styles.card]}>
+                <UserProfileCard
+                    title={
+                        <RN.Text>
+                            {"Reviews"}
+                            {reviewCount > 0 && (
+                                <RN.Text style={{ color: useThemedColor("TEXT_MUTED") }}>
+                                    {` (${reviewCount})`}
+                                </RN.Text>
+                            )}
+                        </RN.Text>
+                    }
+                    styles={[styles.card]}
+                >
                     <FlashList
                         ItemSeparatorComponent={() => (
                             <RN.View style={{ height: 8 }} />
