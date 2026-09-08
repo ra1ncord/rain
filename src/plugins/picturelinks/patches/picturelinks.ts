@@ -1,10 +1,10 @@
 import { after } from "@api/patcher";
-import { findByFilePath, findByName, findByProps } from "@metro";
+import { findByFilePath, findByProps } from "@metro";
 import { ReactNative } from "@metro/common";
 import { SelectedChannelStore, SelectedGuildStore } from "@metro/common/stores";
 
 const { Pressable } = findByProps("Button", "Text", "View");
-const ProfileBanner = findByName("ProfileBanner", false);
+const ProfileBanner = findByFilePath("modules/profile_customization/native/Banner.tsx");
 const HeaderAvatar = findByFilePath("modules/profile_customization/native/HeaderAvatar.tsx").default;
 const { openMediaModal } = findByProps("openMediaModal");
 const { hideActionSheet } = findByProps("hideActionSheet");
@@ -22,7 +22,11 @@ function getImageSize(uri: string): Promise<{ width: number, height: number; }> 
 }
 
 async function openModal(src: string, event: any) {
-    const { width, height } = await getImageSize(src);
+    let width = 0;
+    let height = 0;
+    try {
+        ({ width, height } = await getImageSize(src));
+    } catch {}
 
     hideActionSheet(); // hide user sheet
     openMediaModal({
@@ -76,12 +80,11 @@ export function unpatchAvatar() {
 }
 
 export function unpatchBanner() {
-    return after("default", ProfileBanner, ([{ bannerSource }], res) => {
+    return after("default", ProfileBanner, ([bannerHeight], res) => {
+        const bannerSource = bannerHeight?.bannerSource;
         if (typeof bannerSource?.uri !== "string" || !res) return res;
 
-        const url = bannerSource.uri
-            .replace(/(?:\?size=\d{3,4})?$/, "?size=4096")
-            .replace(".webp", ".png");
+        const url = `${bannerSource.uri.split("?")[0]}?size=4096`;
 
         return React.createElement(
             Pressable,
