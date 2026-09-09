@@ -5,7 +5,7 @@ import { findByName, findByProps } from "@metro";
 import { React, ReactNative as RN } from "@metro/common";
 import { UserStore } from "@metro/common/stores";
 
-import { Review } from "../def";
+import { Review, ReviewData } from "../def";
 import { getReviews } from "../lib/api";
 import { useThemedColor } from "../lib/utils";
 import { useReviewDBSettings } from "../storage";
@@ -22,18 +22,17 @@ interface ReviewSectionProps {
 const { FlashList } = findByProps("FlashList");
 
 export default function ReviewSection({ userId }: ReviewSectionProps) {
-    const [reviews, setReviews] = React.useState<Review[]>([]);
-    const [reviewCount, setReviewCount] = React.useState(0);
+    const [data, setData] = React.useState<ReviewData | null>(null);
     const fetchReviews = () => {
-        getReviews(userId).then(({ reviews, reviewCount }) => {
-            setReviews(reviews);
-            setReviewCount(reviewCount);
-        });
+        getReviews(userId)
+            .then(setData)
+            .catch(() => setData(null));
     };
 
-    if (reviews === undefined) { return; }
-
     React.useEffect(fetchReviews, []);
+
+    const reviews = data?.reviews ?? [];
+    const reviewCount = data?.reviewCount ?? 0;
 
     const hasExistingReview =
         reviews.filter(i => i.sender.discordID === getCurrentUser()?.id)
@@ -83,14 +82,14 @@ export default function ReviewSection({ userId }: ReviewSectionProps) {
                             ? reviews
                             : reviews.filter(review => review.type !== 3)
                         }
-                        renderItem={({ item }: any) => (
+                        renderItem={({ item }: { item: Review }) => (
                             <ReviewRow
                                 style={styles.reviewCard}
                                 review={item}
                                 userId={userId}
                             />
                         )}
-                        keyExtractor={(item: any) => item.sender.username}
+                        keyExtractor={(item: Review) => item.id}
                         scrollEnabled={false}
                         estimatedSize={100}
                         estimatedItemSize={74}

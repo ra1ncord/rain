@@ -33,6 +33,15 @@ export interface ReviewVote {
     isUpvote: boolean;
 }
 
+export interface ReviewsResponse {
+    reviews: Review[];
+    reviewCount: number;
+}
+
+export interface ReviewVotesResponse {
+    votes: ReviewVote[];
+}
+
 export interface ReviewData {
     reviews: Review[];
     reviewCount: number;

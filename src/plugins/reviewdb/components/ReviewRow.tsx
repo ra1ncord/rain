@@ -112,25 +112,19 @@ export default ({ review, userId, style }: ReviewRowProps) => {
             return;
         }
 
+        const direction = isUpvote ? 1 : -1;
+
         setIsVoting(true);
 
         try {
             if (localVote === isUpvote) {
                 if (await deleteReviewVote(review.id)) {
                     setLocalVote(null);
-                    setScore(current => current + (isUpvote ? -1 : 1));
+                    setScore(current => current - direction);
                 }
             } else if (await voteReview(review.id, isUpvote)) {
-                const delta =
-                    localVote === null
-                        ? isUpvote
-                            ? 1
-                            : -1
-                        : isUpvote
-                            ? 2
-                            : -2;
                 setLocalVote(isUpvote);
-                setScore(current => current + delta);
+                setScore(current => current + (localVote === null ? direction : direction * 2));
             }
         } catch (err) {
             showToast(
@@ -169,7 +163,7 @@ export default ({ review, userId, style }: ReviewRowProps) => {
                     subLabel={
                         <FormSubLabel
                             text={review.comment}
-                            style={{ color: useThemedColor("TEXT_NORMAL") }}
+                            style={{ color: neutralColor }}
                         />
                     }
                     leading={
@@ -193,42 +187,29 @@ export default ({ review, userId, style }: ReviewRowProps) => {
                                         {score}
                                     </RN.Text>
                                     <RN.View style={styles.voteButtons}>
-                                        <RN.Pressable
-                                            style={styles.voteButton}
-                                            disabled={isVoting}
-                                            onPress={() => submitVote(true)}
-                                        >
-                                            <RN.Image
-                                                style={[
-                                                    styles.voteArrow,
-                                                    {
-                                                        tintColor:
-                                                        localVote === true
-                                                            ? positiveColor
-                                                            : mutedColor,
-                                                    },
-                                                ]}
-                                                source={ArrowUpId}
-                                            />
-                                        </RN.Pressable>
-                                        <RN.Pressable
-                                            style={styles.voteButton}
-                                            disabled={isVoting}
-                                            onPress={() => submitVote(false)}
-                                        >
-                                            <RN.Image
-                                                style={[
-                                                    styles.voteArrow,
-                                                    {
-                                                        tintColor:
-                                                        localVote === false
-                                                            ? dangerColor
-                                                            : mutedColor,
-                                                    },
-                                                ]}
-                                                source={ArrowDownId}
-                                            />
-                                        </RN.Pressable>
+                                        {[true, false].map(isUpvote => (
+                                            <RN.Pressable
+                                                key={isUpvote ? "up" : "down"}
+                                                style={styles.voteButton}
+                                                disabled={isVoting}
+                                                onPress={() => submitVote(isUpvote)}
+                                            >
+                                                <RN.Image
+                                                    style={[
+                                                        styles.voteArrow,
+                                                        {
+                                                            tintColor:
+                                                                localVote === isUpvote
+                                                                    ? (isUpvote
+                                                                        ? positiveColor
+                                                                        : dangerColor)
+                                                                    : mutedColor,
+                                                        },
+                                                    ]}
+                                                    source={isUpvote ? ArrowUpId : ArrowDownId}
+                                                />
+                                            </RN.Pressable>
+                                        ))}
                                     </RN.View>
                                 </RN.View>
                             )

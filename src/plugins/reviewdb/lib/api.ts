@@ -1,4 +1,4 @@
-import { Review, ReviewData } from "../def";
+import { ReviewData, ReviewsResponse, ReviewVotesResponse } from "../def";
 import { reviewdbSettings } from "../storage";
 import { API_URL,BASE_URL } from "./constants";
 import { jsonFetch } from "./utils";
@@ -6,22 +6,20 @@ import { jsonFetch } from "./utils";
 export const getReviews = async (userId: string): Promise<ReviewData> => {
     const token = reviewdbSettings.authToken;
     const [data, votes] = await Promise.all([
-        jsonFetch<any>(API_URL + `/users/${userId}/reviews`),
+        jsonFetch<ReviewsResponse>(API_URL + `/users/${userId}/reviews`),
         token
-            ? jsonFetch<any>(API_URL + `/users/${userId}/reviews/votes`, {
+            ? jsonFetch<ReviewVotesResponse>(API_URL + `/users/${userId}/reviews/votes`, {
                 headers: { Authorization: token },
             }).catch(() => ({ votes: [] }))
             : Promise.resolve({ votes: [] }),
     ]);
 
-    const voteByReviewId = new Map<number, boolean>(
-        (votes.votes ?? []).map(
-            (vote: { reviewID: number; isUpvote: boolean }) => [vote.reviewID, vote.isUpvote],
-        ),
+    const voteByReviewId = new Map(
+        (votes.votes ?? []).map(vote => [vote.reviewID, vote.isUpvote]),
     );
 
     return {
-        reviews: (data.reviews as Review[]).map(review => ({
+        reviews: data.reviews.map(review => ({
             ...review,
             userVote: voteByReviewId.get(review.id) ?? null,
         })),
