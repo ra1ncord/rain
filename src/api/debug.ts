@@ -238,69 +238,6 @@ export function isConnectedToDebugger(): boolean {
     return socket?.readyState === WebSocket.OPEN;
 }
 
-const rdtPort = 8097;
-export let rdtClient: WebSocket | null = null;
-export let rdtConnected = false;
-const changeHooks = new Set<(value: boolean) => void>();
-
-function bump() {
-    for (const x of changeHooks) x(rdtConnected);
-}
-
-function cleanupRdt() {
-    rdtClient = null;
-    rdtConnected = false;
-    bump();
-}
-
-/** @internal */
-export function connectRdt(url: string, quiet?: boolean) {
-    if (!isReactDevToolsPreloaded() || rdtClient) return;
-
-    const base = url.split(":").slice(0, -1).join(":");
-    const ws = (rdtClient = new WebSocket(`ws://${base}:${rdtPort}`));
-
-    ws.addEventListener("open", () => {
-        if (!quiet) showToast("Connected to React DevTools", findAssetId("CheckmarkSmallIcon"));
-        rdtConnected = true;
-        bump();
-    });
-
-    ws.addEventListener("close", () => {
-        cleanupRdt();
-    });
-
-    ws.addEventListener("error", (e: any) => {
-        cleanupRdt();
-        const err = e?.message ?? e?.stack ?? String(e);
-        logger.error("React DevTools error:", err);
-        if (!quiet) showToast(err, findAssetId("CircleXIcon-primary"));
-    });
-
-    const devTools = window[getReactDevToolsProp() || "__vendetta_rdc"];
-    if (devTools?.connectToDevTools) {
-        devTools.connectToDevTools({
-            websocket: ws,
-            resolveRNStyle: StyleSheet.flatten,
-        });
-    }
-}
-
-export function disconnectRdt() {
-    rdtClient?.close();
-}
-
-export function useIsRdtConnected() {
-    const [connected, update] = React.useState(rdtConnected);
-
-    React.useEffect(() => {
-        changeHooks.add(update);
-        return () => void changeHooks.delete(update);
-    }, []);
-
-    return connected;
-}
-
 /**
  * @internal
  */
@@ -404,15 +341,6 @@ export function initDebugger() {
             connectToDebugger(currentSettings.debuggerUrl);
         } catch (e) {
             logger.error("Failed to connect to Debugger during startup:", e);
-        }
-    }
-    if (currentSettings.autoDevTools) {
-        try {
-            if (currentSettings.devToolsUrl) {
-                connectRdt(currentSettings.devToolsUrl, true);
-            }
-        } catch (e) {
-            logger.error("Failed to connect to ReactDevTools during startup:", e);
         }
     }
     if (currentSettings.hotReloadTheme) {

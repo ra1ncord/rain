@@ -69,15 +69,6 @@ export function isReactDevToolsPreloaded() {
 export function getReactDevToolsProp(): string | null {
     if (!isReactDevToolsPreloaded()) return null;
 
-    if (isRainLoader()) {
-        window.__rain_rdt = window.__REACT_DEVTOOLS__.exports;
-        return "__rain_rdt";
-    }
-
-    if (isPyonLoader()) {
-        window.__pyoncord_rdt = window.__REACT_DEVTOOLS__.exports;
-        return "__pyoncord_rdt";
-    }
 
     return null;
 }
