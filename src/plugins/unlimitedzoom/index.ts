@@ -9,7 +9,7 @@ let unpatch: (() => void) | null = null;
 let cancelWait: (() => void) | null = null;
 
 function patchRet(_args: any[], ret: any) {
-    ret.maximumZoomScale = 100;
+    if (ret) ret.maximumZoomScale = 100;
     return ret;
 }
 
