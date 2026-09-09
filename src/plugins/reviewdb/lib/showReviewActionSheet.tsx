@@ -5,75 +5,75 @@ import { findByProps } from "@metro";
 import { clipboard } from "@metro/common";
 
 import { Review } from "../def";
-import { useReviewDBSettings } from "../storage";
+import { reviewdbSettings } from "../storage";
 import { deleteReview, reportReview } from "./api";
 import { canDeleteReview } from "./utils";
-const { hideActionSheet } = findByProps("openLazy", "hideActionSheet");
-const { showSimpleActionSheet } = findByProps("showSimpleActionSheet");
 
-export default (review: Review) =>
+const { showSimpleActionSheet } = findByProps("showSimpleActionSheet");
+const { hideActionSheet } = findByProps("openLazy", "hideActionSheet");
+
+export default (review: Review, userId: string) => {
+    const isSystem = review.type === 3;
+
+    const confirmDelete = () =>
+        showConfirmationAlert({
+            title: "Delete Review",
+            content: "Are you sure you want to delete this review?",
+            confirmText: "Yes",
+            cancelText: "No",
+            confirmColor: "red",
+            onConfirm: () => deleteReview(userId, review.id),
+        });
+
+    const confirmReport = () =>
+        showConfirmationAlert({
+            title: "Report Review",
+            content: "Are you sure you want to report this review?",
+            confirmText: "Yes",
+            cancelText: "No",
+            confirmColor: "red",
+            onConfirm: () => reportReview(review.id),
+        });
+
     showSimpleActionSheet({
-        key: "ReviewOverflow",
+        key: "ReviewActionsSheet",
         header: {
-            title:
-                review.type !== 3
-                    ? `Review by ${review.sender.username}`
-                    : "ReviewDB System Message",
-            // TODO: Return to the user profile
-            onClose: () => hideActionSheet(),
+            title: isSystem
+                ? "ReviewDB System Message"
+                : `Review by ${review.sender.username}`,
+            onClose: () => hideActionSheet()
         },
         options: [
             {
+                icon: findAssetId("CopyIcon"),
                 label: "Copy Text",
                 onPress: () => {
                     clipboard.setString(review.comment);
-                    showToast(
-                        "Copied Review Text",
-                        findAssetId("CopyIcon"),
-                    );
-                },
+                    showToast("Copied Review Text", findAssetId("CopyIcon"));
+                }
             },
-            ...(useReviewDBSettings().authToken && review.type !== 3
+            ...(reviewdbSettings.authToken &&
+                !isSystem &&
+                canDeleteReview(review, userId)
                 ? [
-                    ...(canDeleteReview(review)
-                        ? [
-                            {
-                                label: "Delete Review",
-                                isDestructive: true,
-                                onPress: () =>
-                                    showConfirmationAlert({
-                                        title: "Delete Review",
-                                        content:
-                                                "Are you sure you want to delete this review?",
-                                        confirmText: "Yes",
-                                        cancelText: "No",
-                                        // @ts-ignore
-                                        confirmColor: "red",
-                                        onConfirm: () =>
-                                            deleteReview(
-                                                review.sender.discordID,
-                                                review.id,
-                                            ),
-                                    }),
-                            },
-                        ]
-                        : []),
                     {
-                        label: "Report Review",
+                        icon: findAssetId("TrashIcon"),
+                        label: "Delete Review",
                         isDestructive: true,
-                        onPress: () =>
-                            showConfirmationAlert({
-                                title: "Report Review",
-                                content:
-                                      "Are you sure you want to report this review?",
-                                confirmText: "Yes",
-                                cancelText: "No",
-                                // @ts-ignore
-                                confirmColor: "red",
-                                onConfirm: () => reportReview(review.id),
-                            }),
-                    },
+                        onPress: confirmDelete
+                    }
                 ]
                 : []),
-        ],
+            ...(reviewdbSettings.authToken && !isSystem
+                ? [
+                    {
+                        icon: findAssetId("FlagIcon"),
+                        label: "Report Review",
+                        isDestructive: true,
+                        onPress: confirmReport
+                    }
+                ]
+                : [])
+        ]
     });
+};

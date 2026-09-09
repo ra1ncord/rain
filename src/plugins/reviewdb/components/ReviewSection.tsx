@@ -87,6 +87,7 @@ export default function ReviewSection({ userId }: ReviewSectionProps) {
                             <ReviewRow
                                 style={styles.reviewCard}
                                 review={item}
+                                userId={userId}
                             />
                         )}
                         keyExtractor={(item: any) => item.sender.username}

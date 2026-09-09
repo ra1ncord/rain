@@ -17,6 +17,7 @@ import ReviewUsername from "./ReviewUsername";
 
 interface ReviewRowProps {
     review: Review;
+    userId: string;
     style: ViewProps["style"];
 }
 
@@ -73,7 +74,7 @@ const useStyles = createStyles({
 const { FormRow, FormSubLabel } = Forms;
 const { TableRowGroup } = findByProps("TableRow");
 
-export default ({ review, style }: ReviewRowProps) => {
+export default ({ review, userId, style }: ReviewRowProps) => {
     const styles = useStyles();
     const reviewdbSettings = useReviewDBSettings();
     const [localVote, setLocalVote] = React.useState<boolean | null>(
@@ -88,8 +89,9 @@ export default ({ review, style }: ReviewRowProps) => {
             : "";
 
     const mutedColor = useThemedColor("TEXT_MUTED");
-    const positiveColor = useThemedColor("STATUS_POSITIVE");
-    const dangerColor = useThemedColor("STATUS_DANGER");
+    const neutralColor = useThemedColor("TEXT_NORMAL");
+    const positiveColor = useThemedColor("TEXT_FEEDBACK_POSITIVE");
+    const dangerColor = useThemedColor("TEXT_FEEDBACK_CRITICAL");
 
     const submitVote = async (isUpvote: boolean) => {
         if (isVoting) return;
@@ -142,89 +144,98 @@ export default ({ review, style }: ReviewRowProps) => {
 
     return (
         <TableRowGroup style={[style]}>
-            <FormRow
-                style={[style]}
-                label={
-                    <ReviewUsername
-                        username={review.sender.username}
-                        badges={review.sender.badges}
-                        timestamp={reviewTimestamps}
-                    />
-                }
-                subLabel={
-                    <FormSubLabel
-                        text={review.comment}
-                        style={{ color: useThemedColor("TEXT_NORMAL") }}
-                    />
-                }
-                leading={
-                    <RN.Image
-                        style={styles.avatar}
-                        source={{ uri: review.sender.profilePhoto }}
-                    />
+            <RN.Pressable
+                style={({ pressed }) =>
+                    pressed && { opacity: 0.6 }
                 }
                 onPress={() =>
                     showUserProfileActionSheet?.({
                         userId: review.sender.discordID,
                     })
                 }
-                onLongPress={() => showReviewActionSheet(review)}
-                trailing={
-                    review.type !== 3 && review.id !== 0 && ArrowUpId && ArrowDownId
-                        ? (
-                            <RN.View style={styles.voteColumn}>
-                                <RN.Text
-                                    style={[
-                                        styles.voteScore,
-                                        score > 0 && { color: positiveColor },
-                                        score < 0 && { color: dangerColor },
-                                    ]}
-                                >
-                                    {score}
-                                </RN.Text>
-                                <RN.View style={styles.voteButtons}>
-                                    <RN.Pressable
-                                        style={styles.voteButton}
-                                        disabled={isVoting}
-                                        onPress={() => submitVote(true)}
+                onLongPress={() =>
+                    showReviewActionSheet(review, userId)
+                }
+            >
+                <FormRow
+                    style={[style]}
+                    label={
+                        <ReviewUsername
+                            username={review.sender.username}
+                            badges={review.sender.badges}
+                            timestamp={reviewTimestamps}
+                        />
+                    }
+                    subLabel={
+                        <FormSubLabel
+                            text={review.comment}
+                            style={{ color: useThemedColor("TEXT_NORMAL") }}
+                        />
+                    }
+                    leading={
+                        <RN.Image
+                            style={styles.avatar}
+                            source={{ uri: review.sender.profilePhoto }}
+                        />
+                    }
+                    trailing={
+                        review.type !== 3 && review.id !== 0 && ArrowUpId && ArrowDownId
+                            ? (
+                                <RN.View style={styles.voteColumn}>
+                                    <RN.Text
+                                        style={[
+                                            styles.voteScore,
+                                            { color: neutralColor },
+                                            score > 0 && { color: positiveColor },
+                                            score < 0 && { color: dangerColor },
+                                        ]}
                                     >
-                                        <RN.Image
-                                            style={[
-                                                styles.voteArrow,
-                                                {
-                                                    tintColor:
+                                        {score}
+                                    </RN.Text>
+                                    <RN.View style={styles.voteButtons}>
+                                        <RN.Pressable
+                                            style={styles.voteButton}
+                                            disabled={isVoting}
+                                            onPress={() => submitVote(true)}
+                                        >
+                                            <RN.Image
+                                                style={[
+                                                    styles.voteArrow,
+                                                    {
+                                                        tintColor:
                                                         localVote === true
                                                             ? positiveColor
                                                             : mutedColor,
-                                                },
-                                            ]}
-                                            source={ArrowUpId}
-                                        />
-                                    </RN.Pressable>
-                                    <RN.Pressable
-                                        style={styles.voteButton}
-                                        disabled={isVoting}
-                                        onPress={() => submitVote(false)}
-                                    >
-                                        <RN.Image
-                                            style={[
-                                                styles.voteArrow,
-                                                {
-                                                    tintColor:
+                                                    },
+                                                ]}
+                                                source={ArrowUpId}
+                                            />
+                                        </RN.Pressable>
+                                        <RN.Pressable
+                                            style={styles.voteButton}
+                                            disabled={isVoting}
+                                            onPress={() => submitVote(false)}
+                                        >
+                                            <RN.Image
+                                                style={[
+                                                    styles.voteArrow,
+                                                    {
+                                                        tintColor:
                                                         localVote === false
                                                             ? dangerColor
                                                             : mutedColor,
-                                                },
-                                            ]}
-                                            source={ArrowDownId}
-                                        />
-                                    </RN.Pressable>
+                                                    },
+                                                ]}
+                                                source={ArrowDownId}
+                                            />
+                                        </RN.Pressable>
+                                    </RN.View>
                                 </RN.View>
-                            </RN.View>
-                        )
-                        : undefined
-                }
-            />
+                            )
+                            : undefined
+                    }
+                />
+            </RN.Pressable>
         </TableRowGroup>
     );
 };
