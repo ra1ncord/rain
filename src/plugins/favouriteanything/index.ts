@@ -1,12 +1,13 @@
-import { after } from "@api/patcher";
+import { after, instead } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
 import { findByProps } from "@metro";
+import { findByFilePathLazy } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
 import { Contributors,Developers } from "@rain/Developers";
 
-let origType: Function | null = null;
-let memoWrapper: any = null;
-let retryTimeout: ReturnType<typeof setTimeout> | null = null;
+const GIFFavButton = findByFilePathLazy("modules/media_viewer/native/components/overlay/MediaViewerOverlayButtonFavoriteGIF.tsx", true);
+
+let unpatchGIFFavButton: (() => void) | null = null;
 let unpatchAddFavorite: (() => void) | null = null;
 let unpatchMobileFavorites: (() => void) | null = null;
 let origUseFavoriteGIFsMobile: Function | null = null;
@@ -36,31 +37,6 @@ function makeVideoThumbnail(url: string): string {
     return url;
 }
 
-function findGIFFavButton(): any {
-    const modules = (window as any).rain?.metro?.modules ?? (window as any).modules;
-    if (!modules) return null;
-
-    for (const id in modules) {
-        try {
-            const mod = modules[id]?.publicModule?.exports;
-            if (!mod) continue;
-
-            const def = mod.default;
-
-            if (def?.$$typeof?.toString().includes("memo") && def.type) {
-                if (def.type.displayName === "GIFFavButton" || def.type.name === "GIFFavButton") {
-                    return def;
-                }
-            }
-
-            if (typeof mod === "function" && (mod.displayName === "GIFFavButton" || mod.name === "GIFFavButton")) {
-                return mod;
-            }
-        } catch {}
-    }
-    return null;
-}
-
 function patchSource(source: any): any {
     if (!source || source.isGIFV) return source;
     return {
@@ -70,35 +46,6 @@ function patchSource(source: any): any {
         videoURI: source.videoURI || source.uri,
         embedProviderName: source.embedProviderName || "",
     };
-}
-
-function applyPatch(): boolean {
-    try {
-        memoWrapper = findGIFFavButton();
-        if (!memoWrapper) return false;
-
-        const original = memoWrapper.type ?? memoWrapper;
-        if (typeof original !== "function") return false;
-        origType = original;
-
-        memoWrapper.type = function PatchedGIFFavButton(this: any, props: any) {
-            try {
-                if (props?.source && !props.source.isGIFV) {
-                    return original.call(this, { ...props, source: patchSource(props.source) });
-                }
-                return original.call(this, props);
-            } catch (e) {
-                logger.error("[FavouriteAnything] render error:", e);
-                return original.call(this, props);
-            }
-        };
-        (memoWrapper.type as any).displayName = "GIFFavButton";
-
-        return true;
-    } catch (e) {
-        logger.error("[FavouriteAnything] applyPatch error:", e);
-        return false;
-    }
 }
 
 function patchAddFavorite() {
@@ -185,19 +132,20 @@ export default definePlugin({
     id: "favouriteanything",
     version: "1.0.0",
     start() {
-        if (applyPatch()) {
-        } else {
-            let retries = 0;
-            const tryPatch = () => {
-                if (applyPatch()) {
-                    retryTimeout = null;
-                } else if (retries++ < 50) {
-                    retryTimeout = setTimeout(tryPatch, 300);
-                } else {
-                    logger.error("[FavouriteAnything] GIFFavButton not found after retries.");
+        try {
+            unpatchGIFFavButton = instead("type", GIFFavButton, (args: any[], original: any) => {
+                try {
+                    const props = args?.[0] ?? {};
+                    if (props?.source && !props.source.isGIFV) {
+                        return original({ ...props, source: patchSource(props.source) });
+                    }
+                } catch (e) {
+                    logger.error("[FavouriteAnything] render error:", e);
                 }
-            };
-            retryTimeout = setTimeout(tryPatch, 300);
+                return original(...args);
+            });
+        } catch (e) {
+            logger.error("[FavouriteAnything] applyPatch error:", e);
         }
 
         patchAddFavorite();
@@ -205,29 +153,14 @@ export default definePlugin({
     },
     stop() {
         try {
-            if (retryTimeout) {
-                clearTimeout(retryTimeout);
-                retryTimeout = null;
-            }
+            unpatchGIFFavButton?.();
+            unpatchGIFFavButton = null;
 
-            if (memoWrapper && origType) {
-                const current = memoWrapper.type;
-                if ((current as any)?.__original === origType) {
-                    memoWrapper.type = origType;
-                }
-                origType = null;
-                memoWrapper = null;
-            }
+            unpatchAddFavorite?.();
+            unpatchAddFavorite = null;
 
-            if (unpatchAddFavorite) {
-                unpatchAddFavorite();
-                unpatchAddFavorite = null;
-            }
-
-            if (unpatchMobileFavorites) {
-                unpatchMobileFavorites();
-                unpatchMobileFavorites = null;
-            }
+            unpatchMobileFavorites?.();
+            unpatchMobileFavorites = null;
         } catch (e) {
             logger.error("[FavouriteAnything] stop error:", e);
         }

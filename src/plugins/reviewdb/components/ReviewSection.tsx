@@ -5,8 +5,9 @@ import { findByName, findByProps } from "@metro";
 import { React, ReactNative as RN } from "@metro/common";
 import { UserStore } from "@metro/common/stores";
 
-import { Review } from "../def";
+import { Review, ReviewData } from "../def";
 import { getReviews } from "../lib/api";
+import { useThemedColor } from "../lib/utils";
 import { useReviewDBSettings } from "../storage";
 import ReviewInput from "./ReviewInput";
 import ReviewRow from "./ReviewRow";
@@ -21,14 +22,17 @@ interface ReviewSectionProps {
 const { FlashList } = findByProps("FlashList");
 
 export default function ReviewSection({ userId }: ReviewSectionProps) {
-    const [reviews, setReviews] = React.useState<Review[]>([]);
+    const [data, setData] = React.useState<ReviewData | null>(null);
     const fetchReviews = () => {
-        getReviews(userId).then(i => setReviews(i));
+        getReviews(userId)
+            .then(setData)
+            .catch(() => setData(null));
     };
 
-    if (reviews === undefined) { return; }
-
     React.useEffect(fetchReviews, []);
+
+    const reviews = data?.reviews ?? [];
+    const reviewCount = data?.reviewCount ?? 0;
 
     const hasExistingReview =
         reviews.filter(i => i.sender.discordID === getCurrentUser()?.id)
@@ -57,7 +61,19 @@ export default function ReviewSection({ userId }: ReviewSectionProps) {
     return (
         <ErrorBoundary>
             <RN.View style={[styles.card]}>
-                <UserProfileCard title="Reviews" styles={[styles.card]}>
+                <UserProfileCard
+                    title={
+                        <RN.Text>
+                            {"Reviews"}
+                            {reviewCount > 0 && (
+                                <RN.Text style={{ color: useThemedColor("TEXT_MUTED") }}>
+                                    {` (${reviewCount})`}
+                                </RN.Text>
+                            )}
+                        </RN.Text>
+                    }
+                    styles={[styles.card]}
+                >
                     <FlashList
                         ItemSeparatorComponent={() => (
                             <RN.View style={{ height: 8 }} />
@@ -66,13 +82,14 @@ export default function ReviewSection({ userId }: ReviewSectionProps) {
                             ? reviews
                             : reviews.filter(review => review.type !== 3)
                         }
-                        renderItem={({ item }: any) => (
+                        renderItem={({ item }: { item: Review }) => (
                             <ReviewRow
                                 style={styles.reviewCard}
                                 review={item}
+                                userId={userId}
                             />
                         )}
-                        keyExtractor={(item: any) => item.sender.username}
+                        keyExtractor={(item: Review) => item.id}
                         scrollEnabled={false}
                         estimatedSize={100}
                         estimatedItemSize={74}

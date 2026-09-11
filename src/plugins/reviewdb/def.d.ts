@@ -24,6 +24,27 @@ export interface Review {
     comment: string;
     type: ReviewType;
     timestamp: number;
+    score?: number;
+    userVote?: boolean | null;
+}
+
+export interface ReviewVote {
+    reviewID: number;
+    isUpvote: boolean;
+}
+
+export interface ReviewsResponse {
+    reviews: Review[];
+    reviewCount: number;
+}
+
+export interface ReviewVotesResponse {
+    votes: ReviewVote[];
+}
+
+export interface ReviewData {
+    reviews: Review[];
+    reviewCount: number;
 }
 
 export interface Badge {

@@ -1,6 +1,7 @@
 import { instead } from "@api/patcher";
 import { waitForHydration } from "@api/storage";
 import { findByProps } from "@metro";
+import { findByFilePathLazy } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
 import { Developers } from "@rain/Developers";
 
@@ -50,7 +51,6 @@ interface TenorCategoriesResponse {
     results?: TenorCategory[];
 }
 
-// GBoard-included Tenor API key (shipped with Google apps)
 const TENOR_KEY = "3Z0688EVWYKH";
 const MAX_PAGES = 5;
 
@@ -165,6 +165,14 @@ export default definePlugin({
                 instead("getProviderForAPIRequest", ProviderConfig, () => "tenor"),
             );
         }
+
+        const GifProvider = findByFilePathLazy("modules/gif_picker/GifProvider.tsx");
+        patches.push(
+            instead("getSearchPlaceholder", GifProvider, (_args: any[], orig: Function) => {
+                const placeholder = orig();
+                return typeof placeholder === "string" ? placeholder.replace(/klipy/gi, "Tenor") : placeholder;
+            }),
+        );
 
         patches.push(
             instead("get", httpModule.HTTP, (args: any[], orig: Function) => {

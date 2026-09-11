@@ -24,9 +24,14 @@ const resolveSemanticColor: (theme: string, semanticColor: object) => string =
     (() => {});
 const { useThemeContext } = findByProps("useThemeContext");
 
-export const canDeleteReview = (review: Review) =>
-    review.sender.discordID === getCurrentUser()?.id ||
-    admins.includes(getCurrentUser()?.id);
+export const canModifyReview = (review: Review, profileOwnerId: string) => {
+    const currentUserId = getCurrentUser()?.id;
+    return (
+        review.sender.discordID === currentUserId ||
+        profileOwnerId === currentUserId ||
+        admins.includes(currentUserId)
+    );
+};
 
 export async function jsonFetch<T = APIResponse>(
     input: RequestInfo | URL,

@@ -22,7 +22,11 @@ function getImageSize(uri: string): Promise<{ width: number, height: number; }> 
 }
 
 async function openModal(src: string, event: any) {
-    const { width, height } = await getImageSize(src);
+    let width = 0;
+    let height = 0;
+    try {
+        ({ width, height } = await getImageSize(src));
+    } catch {}
 
     hideActionSheet(); // hide user sheet
     openMediaModal({
@@ -35,7 +39,7 @@ async function openModal(src: string, event: any) {
             channelId: getChannelId(),
         }],
         initialIndex: 0,
-        originLayout: {
+        originViewOrOriginLayout: {
             width: 0, // this would ideally be the size of the small pfp but this proved very hard to implement
             height: 0,
             x: event.pageX,
@@ -76,12 +80,11 @@ export function unpatchAvatar() {
 }
 
 export function unpatchBanner() {
-    return after("default", ProfileBanner, ([{ bannerSource }], res) => {
+    return after("default", ProfileBanner, ([bannerHeight], res) => {
+        const bannerSource = bannerHeight?.bannerSource;
         if (typeof bannerSource?.uri !== "string" || !res) return res;
 
-        const url = bannerSource.uri
-            .replace(/(?:\?size=\d{3,4})?$/, "?size=4096")
-            .replace(".webp", ".png");
+        const url = `${bannerSource.uri.split("?")[0]}?size=4096`;
 
         return React.createElement(
             Pressable,
