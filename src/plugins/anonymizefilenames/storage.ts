@@ -6,7 +6,7 @@ interface Settings {
 }
 
 export const { useStore: useAnonymizeSettings, settings: anonymizeSettings } =
-    createPluginStore<Settings>("anonymizefilename", {
+    createPluginStore<Settings>("anonymizefilenames", {
         useCustomName: false,
         customName: "",
     });

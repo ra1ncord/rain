@@ -7,10 +7,10 @@ import settings from "./settings";
 const patches: (() => void)[] = [];
 
 export default definePlugin({
-    name: "AnonymizeFileName",
+    name: "AnonymizeFileNames",
     description: "Changes the name of any file you send to a random or custom name",
     author: [Developers.Livie],
-    id: "anonymizefilename",
+    id: "anonymizefilenames",
     version: "1.0.0",
     start() {
         patches.push(...getUploadPatch());
