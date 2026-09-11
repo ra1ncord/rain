@@ -22,6 +22,7 @@ const Avatar = findByPropsLazy("default", "AvatarSizes", "getStatusSize")?.defau
 
 const SelfPresenceStore = findByStoreName("SelfPresenceStore");
 const showUserProfileActionSheet = findByNameLazy("showUserProfileActionSheet");
+const ProfileNavigation = findByPropsLazy("getRootNavigationRef");
 const showYouAccountActionSheetByProp = findByPropsLazy("showYouAccountActionSheet");
 
 function AvatarAction() {
@@ -58,7 +59,7 @@ function AvatarAction() {
         const fn = showYouAccountActionSheetByProp?.showYouAccountActionSheet;
         if (typeof fn === "function") {
             try {
-                fn(true, true);
+                fn(false, true);
                 return;
             } catch (err) {
             }
@@ -69,7 +70,7 @@ function AvatarAction() {
     const handlePress = () => {
         switch (settings.pressAction) {
             case "profile":
-                showUserProfileActionSheet?.({ userId: self.id, channelId: channel?.id ?? channelId });
+                ProfileNavigation.getRootNavigationRef()?.navigate("you");
                 break;
             case "server":
                 openAccountSheet();
@@ -82,7 +83,7 @@ function AvatarAction() {
     const handleLongPress = () => {
         switch (settings.longPressAction) {
             case "profile":
-                showUserProfileActionSheet?.({ userId: self.id, channelId: channel?.id ?? channelId });
+                ProfileNavigation.getRootNavigationRef()?.navigate("you");
                 break;
             case "server":
                 openAccountSheet();
