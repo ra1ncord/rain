@@ -1,11 +1,11 @@
 import { after } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
-import { chatInput, messageActions, MessageView, replyActions } from "@metro/common";
-import { ChannelStore, MessageStore, UserStore } from "@metro/common/stores";
+import { chatInput, constants, messageActions, MessageView, replyActions } from "@metro/common";
+import { ChannelStore, MessageStore, PermissionsStore, SelectedChannelStore, UserStore } from "@metro/common/stores";
+import { findByPropsLazy } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
 import { Contributors } from "@rain/Developers";
 import React, { type ReactNode } from "react";
-import { Platform } from "react-native";
 
 import TapTapSettings from "./settings";
 import { taptapSettings } from "./storage";
@@ -14,6 +14,15 @@ import type { MessageTapEvent, MessageViewProps } from "./types";
 let unpatch: (() => unknown) | undefined;
 let active = false;
 
+const autocompleteUtils = findByPropsLazy("getMentionTextWithUser");
+const threadHooks = findByPropsLazy("computeIsReadOnlyThread");
+
+function getActiveChannelId(event: MessageTapEvent): string | null {
+    const { channelId } = event.nativeEvent;
+
+    return channelId ?? SelectedChannelStore.getChannelId() ?? null;
+}
+
 function openKeyboard(channelId: string) {
     if (!taptapSettings.keyboardPopup) return;
 
@@ -21,22 +30,23 @@ function openKeyboard(channelId: string) {
 }
 
 function handleDoubleTap(event: MessageTapEvent) {
-    const { channelId, messageId } = event.nativeEvent;
-    const message = MessageStore.getMessage(channelId, messageId);
+    const channelId = getActiveChannelId(event);
+    const { messageId } = event.nativeEvent;
+    const message = channelId ? MessageStore.getMessage(channelId, messageId) : null;
 
     if (!message) return false;
 
     const isAuthor = message.author.id === UserStore.getCurrentUser()?.id;
 
     if (isAuthor && taptapSettings.userEdit) {
-        messageActions.startEditMessage(channelId, messageId, message.content);
+        messageActions.startEditMessage(channelId!, messageId, message.content);
     } else if (taptapSettings.reply) {
-        replyActions.createPendingReply({ channel: ChannelStore.getChannel(channelId), message, shouldMention: true });
+        replyActions.createPendingReply({ channel: ChannelStore.getChannel(channelId!), message, shouldMention: true });
     } else {
         return false;
     }
 
-    openKeyboard(channelId);
+    openKeyboard(channelId!);
 
     if (taptapSettings.debugMode) logger.log("TapTap: native double-tap handled", { channelId, messageId, isAuthor });
 
@@ -44,16 +54,30 @@ function handleDoubleTap(event: MessageTapEvent) {
 }
 
 function handleTapUsername(event: MessageTapEvent) {
-    if (Platform.OS !== "ios" || !taptapSettings.tapUsernameMention) return false;
+    if (taptapSettings.tapUsernameAction !== "mention") return false;
 
-    const { channelId, messageId } = event.nativeEvent;
+    const channelId = getActiveChannelId(event);
+
+    if (!channelId) return false;
+
+    const { messageId, userId } = event.nativeEvent;
     const message = MessageStore.getMessage(channelId, messageId);
     const input = chatInput.getChatInputRef(channelId, 0);
 
-    if (!message || !input) return false;
+    if (!input) return false;
 
-    const discriminator = message.author.discriminator !== "0" ? `#${message.author.discriminator}` : "";
-    input.insertText(`@${message.author.username}${discriminator}`);
+    const user = userId ? UserStore.getUser(userId) : message?.author;
+    const channel = ChannelStore.getChannel(channelId);
+
+    if (!user || !channel) return false;
+
+    const isPrivate = channel.isPrivate?.() ?? false;
+    const canSendMessages = isPrivate || PermissionsStore.can(constants.Permissions.SEND_MESSAGES, channel) === true;
+    const isReadOnlyThread = threadHooks.computeIsReadOnlyThread(channel) === true;
+
+    if (!canSendMessages || isReadOnlyThread) return false;
+
+    input.insertText(autocompleteUtils.getMentionTextWithUser(channel, user), null, true);
 
     return true;
 }
@@ -79,7 +103,7 @@ function patchMessageView(element: ReactNode): ReactNode {
             }
         };
 
-        if (Platform.OS === "ios" && typeof props.onTapUsername === "function") {
+        if (typeof props.onTapUsername === "function") {
             const onTapUsername = props.onTapUsername;
             callbacks.onTapUsername = event => {
                 if (active && handleTapUsername(event)) return;

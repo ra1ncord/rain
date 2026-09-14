@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { NativeSyntheticEvent } from "react-native";
 
-export type MessageTapEvent = NativeSyntheticEvent<{ channelId: string; messageId: string }>;
+export type MessageTapEvent = NativeSyntheticEvent<{ userId?: string; channelId?: string; messageId: string }>;
 
 export interface MessageViewProps {
     children?: ReactNode;

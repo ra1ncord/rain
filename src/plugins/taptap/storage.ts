@@ -1,8 +1,7 @@
 import { createPluginStore } from "@api/storage";
-import { ReactNative } from "@metro/common";
 
 interface TapTapSettings {
-    tapUsernameMention: boolean;
+    tapUsernameAction: "mention" | "profile";
     reply: boolean;
     userEdit: boolean;
     keyboardPopup: boolean;
@@ -14,7 +13,7 @@ export const {
     useStore: useTapTapSettings,
     settings: taptapSettings,
 } = createPluginStore<TapTapSettings>("taptap", {
-    tapUsernameMention: ReactNative.Platform.select({ ios: true, android: false, default: true })!,
+    tapUsernameAction: "mention",
     reply: true,
     userEdit: true,
     keyboardPopup: true,

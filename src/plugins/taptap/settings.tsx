@@ -1,6 +1,5 @@
 import { useSettings } from "@api/settings";
-import { ReactNative } from "@metro/common";
-import { Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
+import { Stack, TableRadioGroup, TableRadioRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import React from "react";
 import { View } from "react-native";
 
@@ -27,7 +26,7 @@ export default function TapTapSettings() {
     return (
         <View>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
-                <TableRowGroup title={"Behavior"}>
+                <TableRowGroup title="Behavior">
                     <TableSwitchRow
                         label="Reply on double-tap"
                         subLabel="Creates a pending reply when double-tapping messages"
@@ -40,22 +39,28 @@ export default function TapTapSettings() {
                         value={!!taptapSettings.userEdit}
                         onValueChange={v => useTapTapSettings.getState().updateSettings({ userEdit: v })}
                     />
-                    {ReactNative.Platform.OS === "ios" && (
-                        <TableSwitchRow
-                            label="Tap username to mention"
-                            subLabel="Tap a username to insert an @mention into the chat input"
-                            value={!!taptapSettings.tapUsernameMention}
-                            onValueChange={v => useTapTapSettings.getState().updateSettings({ tapUsernameMention: v })}
-                        />
-                    )}
                     <TableSwitchRow
                         label="Open keyboard after action"
                         value={!!taptapSettings.keyboardPopup}
                         onValueChange={v => useTapTapSettings.getState().updateSettings({ keyboardPopup: v })}
                     />
                 </TableRowGroup>
+                <TableRadioGroup
+                    title="Tap Username Action"
+                    value={taptapSettings.tapUsernameAction}
+                    onChange={(value: string) => useTapTapSettings.getState().updateSettings({ tapUsernameAction: value })}
+                >
+                    <TableRadioRow
+                        label="Insert @mention"
+                        value="mention"
+                    />
+                    <TableRadioRow
+                        label="Open profile"
+                        value="profile"
+                    />
+                </TableRadioGroup>
                 {developerSettings === true && (
-                    <TableRowGroup title={"Debug"}>
+                    <TableRowGroup title="Debug">
                         <TableSwitchRow
                             label="Debug logging"
                             subLabel="Log gesture state to console"
