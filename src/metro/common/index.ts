@@ -1,5 +1,5 @@
 import { lazyDestructure } from "@lib/utils/lazy";
-import { findByFilePathLazy, findByProps, findByPropsLazy } from "@metro/wrappers";
+import { findByFilePathLazy, findByProps, findByPropsLazy, findByTypeDisplayNameLazy } from "@metro/wrappers";
 import { Linking } from "react-native";
 
 import type { Dispatcher } from "./types/flux";
@@ -18,6 +18,10 @@ export const commands = findByPropsLazy("getBuiltInCommands");
 export const navigation = findByPropsLazy("pushLazy");
 export const toasts = findByFilePathLazy("modules/toast/native/ToastActionCreators.tsx", true);
 export const messageUtil = findByPropsLazy("sendBotMessage");
+export const messageActions = findByPropsLazy("sendMessage", "startEditMessage");
+export const replyActions = findByPropsLazy("createPendingReply");
+export const chatInput = findByPropsLazy("getChatInputRef");
+export const MessageView = findByTypeDisplayNameLazy("Messages");
 export const navigationStack = findByPropsLazy("createStackNavigator");
 export const NavigationNative = findByPropsLazy("NavigationContainer");
 export const semver = findByPropsLazy("parse", "clean");
