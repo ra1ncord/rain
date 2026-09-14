@@ -1,7 +1,6 @@
 import { useSettings } from "@api/settings";
 import { Stack, TableRadioGroup, TableRadioRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
-import React from "react";
-import { View } from "react-native";
+import { ScrollView } from "react-native";
 
 import { useTapTapSettings } from "./storage";
 
@@ -9,22 +8,8 @@ export default function TapTapSettings() {
     const { developerSettings } = useSettings();
     const taptapSettings = useTapTapSettings();
 
-    const [delayStr, setDelayStr] = React.useState(taptapSettings.delay ?? "300");
-
-    React.useEffect(() => {
-        setDelayStr(taptapSettings.delay ?? "300");
-    }, [taptapSettings.delay]);
-
-    const applyDelay = React.useCallback((val: string) => {
-        const parsed = parseInt(val, 10);
-        if (!Number.isNaN(parsed)) {
-            const clamped = Math.max(150, parsed);
-            useTapTapSettings.getState().updateSettings({ delay: String(clamped) });
-        }
-    }, []);
-
     return (
-        <View>
+        <ScrollView>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
                 <TableRowGroup title="Behavior">
                     <TableSwitchRow
@@ -70,6 +55,6 @@ export default function TapTapSettings() {
                     </TableRowGroup>
                 )}
             </Stack>
-        </View>
+        </ScrollView>
     );
 }

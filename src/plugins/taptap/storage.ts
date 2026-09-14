@@ -5,7 +5,6 @@ interface TapTapSettings {
     reply: boolean;
     userEdit: boolean;
     keyboardPopup: boolean;
-    delay: string;
     debugMode: boolean;
 }
 
@@ -17,6 +16,5 @@ export const {
     reply: true,
     userEdit: true,
     keyboardPopup: true,
-    delay: "300",
     debugMode: false,
 });

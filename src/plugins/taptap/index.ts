@@ -29,24 +29,31 @@ function openKeyboard(channelId: string) {
     chatInput.getChatInputRef(channelId, 0)?.openSystemKeyboard();
 }
 
+function canMentionInChannel(channel: { isPrivate: () => boolean }): boolean {
+    return channel.isPrivate() || PermissionsStore.can(constants.Permissions.SEND_MESSAGES, channel);
+}
+
 function handleDoubleTap(event: MessageTapEvent) {
     const channelId = getActiveChannelId(event);
+
+    if (!channelId) return false;
+
     const { messageId } = event.nativeEvent;
-    const message = channelId ? MessageStore.getMessage(channelId, messageId) : null;
+    const message = MessageStore.getMessage(channelId, messageId);
 
     if (!message) return false;
 
     const isAuthor = message.author.id === UserStore.getCurrentUser()?.id;
 
     if (isAuthor && taptapSettings.userEdit) {
-        messageActions.startEditMessage(channelId!, messageId, message.content);
+        messageActions.startEditMessage(channelId, messageId, message.content);
     } else if (taptapSettings.reply) {
-        replyActions.createPendingReply({ channel: ChannelStore.getChannel(channelId!), message, shouldMention: true });
+        replyActions.createPendingReply({ channel: ChannelStore.getChannel(channelId), message, shouldMention: true });
     } else {
         return false;
     }
 
-    openKeyboard(channelId!);
+    openKeyboard(channelId);
 
     if (taptapSettings.debugMode) logger.log("TapTap: native double-tap handled", { channelId, messageId, isAuthor });
 
@@ -71,15 +78,19 @@ function handleTapUsername(event: MessageTapEvent) {
 
     if (!user || !channel) return false;
 
-    const isPrivate = channel.isPrivate?.() ?? false;
-    const canSendMessages = isPrivate || PermissionsStore.can(constants.Permissions.SEND_MESSAGES, channel) === true;
-    const isReadOnlyThread = threadHooks.computeIsReadOnlyThread(channel) === true;
-
-    if (!canSendMessages || isReadOnlyThread) return false;
+    if (!canMentionInChannel(channel) || threadHooks.computeIsReadOnlyThread(channel)) return false;
 
     input.insertText(autocompleteUtils.getMentionTextWithUser(channel, user), null, true);
 
     return true;
+}
+
+function wrapHandler(handler: (event: MessageTapEvent) => boolean, fallback: (event: MessageTapEvent) => void) {
+    return (event: MessageTapEvent) => {
+        if (active && handler(event)) return;
+
+        fallback(event);
+    };
 }
 
 function patchMessageView(element: ReactNode): ReactNode {
@@ -92,26 +103,17 @@ function patchMessageView(element: ReactNode): ReactNode {
     if (!React.isValidElement<MessageViewProps>(element)) return element;
 
     const { props } = element;
+    const callbacks: Partial<MessageViewProps> = {};
 
     if (typeof props.onDoubleTapMessage === "function") {
-        const onDoubleTapMessage = props.onDoubleTapMessage;
-        const callbacks: Partial<MessageViewProps> = {
-            onDoubleTapMessage: event => {
-                if (active && handleDoubleTap(event)) return;
+        callbacks.onDoubleTapMessage = wrapHandler(handleDoubleTap, props.onDoubleTapMessage);
+    }
 
-                return onDoubleTapMessage(event);
-            }
-        };
+    if (typeof props.onTapUsername === "function") {
+        callbacks.onTapUsername = wrapHandler(handleTapUsername, props.onTapUsername);
+    }
 
-        if (typeof props.onTapUsername === "function") {
-            const onTapUsername = props.onTapUsername;
-            callbacks.onTapUsername = event => {
-                if (active && handleTapUsername(event)) return;
-
-                return onTapUsername(event);
-            };
-        }
-
+    if (Object.keys(callbacks).length > 0) {
         return React.cloneElement(element, callbacks);
     }
 
