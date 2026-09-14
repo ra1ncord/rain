@@ -81,7 +81,7 @@ export function versionCheck() {
     if (useLoaderConfig.getState().customLoadUrl?.enabled) return;
     if (useSettings.getState().disableUpdateWarnings === true) return;
 
-    if (supportedVersions> version) {
+    if (supportedVersions > version) {
         openAlert(
             "incompatible-version-alert",
             <AlertModal
