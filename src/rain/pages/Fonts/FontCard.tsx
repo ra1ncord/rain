@@ -11,7 +11,7 @@ import { Button, Card, IconButton, Stack, Text } from "@metro/common/components"
 import { FontDefinition, selectFont, useFonts } from "@plugins/_core/painter/fonts";
 import { CardWrapper } from "@rain/pages/Addon/AddonCard";
 import { useEffect, useMemo, useState } from "react";
-import { PixelRatio, Platform,View } from "react-native";
+import { PixelRatio,View } from "react-native";
 
 import FontEditor from "./FontEditor";
 import previewHtml from "./preview.html";

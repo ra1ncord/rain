@@ -2,10 +2,10 @@ import { showToast } from "@api/ui/toasts";
 import { logger } from "@lib/utils/logger";
 import { useThemes } from "@plugins/_core/painter/themes";
 import { version } from "rain-build-info";
-import { Platform, type PlatformConstants, StyleSheet } from "react-native";
+import { Platform, type PlatformConstants } from "react-native";
 
 import { findAssetId } from "./assets";
-import { getLoaderName, getLoaderVersion, getReactDevToolsProp, isReactDevToolsPreloaded } from "./native/loader";
+import { getLoaderName, getLoaderVersion } from "./native/loader";
 import { NativeClientInfoModule, NativeDeviceModule } from "./native/modules";
 import { after } from "./patcher";
 import { settings } from "./settings";
