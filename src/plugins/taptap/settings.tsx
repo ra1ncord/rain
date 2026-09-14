@@ -1,6 +1,6 @@
 import { useSettings } from "@api/settings";
 import { Stack, TableRadioGroup, TableRadioRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
-import { ScrollView } from "react-native";
+import { Platform, ScrollView } from "react-native";
 
 import { useTapTapSettings } from "./storage";
 
@@ -30,20 +30,31 @@ export default function TapTapSettings() {
                         onValueChange={v => useTapTapSettings.getState().updateSettings({ keyboardPopup: v })}
                     />
                 </TableRowGroup>
-                <TableRadioGroup
-                    title="Tap Username Action"
-                    value={taptapSettings.tapUsernameAction}
-                    onChange={(value: string) => useTapTapSettings.getState().updateSettings({ tapUsernameAction: value })}
-                >
-                    <TableRadioRow
-                        label="Insert @mention"
-                        value="mention"
-                    />
-                    <TableRadioRow
-                        label="Open profile"
-                        value="profile"
-                    />
-                </TableRadioGroup>
+                {Platform.OS === "ios" ? (
+                    <TableRadioGroup
+                        title="Tap Username Action"
+                        value={taptapSettings.tapUsernameAction}
+                        onChange={(value: string) => useTapTapSettings.getState().updateSettings({ tapUsernameAction: value })}
+                    >
+                        <TableRadioRow
+                            label="Insert @mention"
+                            value="mention"
+                        />
+                        <TableRadioRow
+                            label="Open profile"
+                            value="profile"
+                        />
+                    </TableRadioGroup>
+                ) : (
+                    <TableRowGroup title="Tap Username Action">
+                        <TableSwitchRow
+                            label="Open profile on tap"
+                            subLabel="Default behavior inserts an @mention"
+                            value={!!taptapSettings.openProfileOnTap}
+                            onValueChange={v => useTapTapSettings.getState().updateSettings({ openProfileOnTap: v })}
+                        />
+                    </TableRowGroup>
+                )}
                 {developerSettings === true && (
                     <TableRowGroup title="Debug">
                         <TableSwitchRow

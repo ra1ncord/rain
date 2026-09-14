@@ -2,10 +2,11 @@ import { after } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
 import { chatInput, constants, messageActions, MessageView, replyActions } from "@metro/common";
 import { ChannelStore, MessageStore, PermissionsStore, SelectedChannelStore, UserStore } from "@metro/common/stores";
-import { findByPropsLazy } from "@metro/wrappers";
+import { findByNameLazy,findByPropsLazy } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
 import { Contributors } from "@rain/Developers";
 import React, { type ReactNode } from "react";
+import { Platform } from "react-native";
 
 import TapTapSettings from "./settings";
 import { taptapSettings } from "./storage";
@@ -16,6 +17,7 @@ let active = false;
 
 const autocompleteUtils = findByPropsLazy("getMentionTextWithUser");
 const threadHooks = findByPropsLazy("computeIsReadOnlyThread");
+const showUserProfileActionSheet = findByNameLazy("showUserProfileActionSheet");
 
 function getActiveChannelId(event: MessageTapEvent): string | null {
     const { channelId } = event.nativeEvent;
@@ -61,13 +63,24 @@ function handleDoubleTap(event: MessageTapEvent) {
 }
 
 function handleTapUsername(event: MessageTapEvent) {
-    if (taptapSettings.tapUsernameAction !== "mention") return false;
+    if (Platform.OS === "android" && !taptapSettings.openProfileOnTap) return false;
 
     const channelId = getActiveChannelId(event);
 
     if (!channelId) return false;
 
     const { messageId, userId } = event.nativeEvent;
+
+    if (Platform.OS === "android") {
+        if (!userId) return false;
+
+        showUserProfileActionSheet?.({ userId, channelId });
+
+        return true;
+    }
+
+    if (taptapSettings.tapUsernameAction !== "mention") return false;
+
     const message = MessageStore.getMessage(channelId, messageId);
     const input = chatInput.getChatInputRef(channelId, 0);
 
