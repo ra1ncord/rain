@@ -4,7 +4,7 @@ import { findByPropsLazy } from "@metro";
 type Callback = (Component: any, ret: JSX.Element) => JSX.Element;
 const callbacks = new Map<string, Callback[]>();
 
-const jsxRuntime = findByPropsLazy("jsx", "jsxs");
+export const jsxRuntime = findByPropsLazy("jsx", "jsxs");
 
 export function onJsxCreate(Component: string, callback: Callback) {
     if (!callbacks.has(Component)) callbacks.set(Component, []);

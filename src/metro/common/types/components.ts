@@ -1,7 +1,7 @@
 import { TextStyles, ThemeColors } from "@api/ui/types";
 import { Nullish } from "@lib/utils/types";
 import { Falsey } from "lodash";
-import { FC, JSX, MutableRefObject, PropsWithoutRef, ReactNode, RefObject } from "react";
+import { FC, JSX, MutableRefObject, PropsWithoutRef, ReactNode, Ref, RefObject } from "react";
 import type * as RN from "react-native";
 import { ImageSourcePropType, PressableProps } from "react-native";
 import { SharedValue } from "react-native-reanimated";
@@ -272,10 +272,15 @@ interface ContextMenuItem {
 
 interface ContextMenuProps {
     triggerOnLongPress?: boolean;
+    disableGesture?: boolean;
     items: ContextMenuItem[] | ContextMenuItem[][];
     align?: "left" | "right" | "above" | "below" | "auto" | null;
     title?: string;
-    children: React.FC<Record<"onPress" | "onLongPress" | "accessibilityActions" | "onAccessibilityAction", any>>;
+    children: FC<Pick<PressableProps, "accessibilityActions" | "onAccessibilityAction"> & {
+        ref: Ref<RN.View>;
+        onPress(): void;
+        onLongPress?: () => void;
+    }>;
 }
 
 export type ContextMenu = FC<ContextMenuProps>;
