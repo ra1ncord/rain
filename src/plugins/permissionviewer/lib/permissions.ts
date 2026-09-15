@@ -3,6 +3,28 @@ import { constants } from "@metro/common";
 
 const getPermName = findByProps("getPermissionName")?.getPermissionName ?? findByName("getPermissionName", false);
 
+export const PERMISSIONS: Record<string, any> = constants?.Permissions ?? {};
+
+export function parseBits(v: any): bigint {
+    if (v == null) return 0n;
+    try { return typeof v === "bigint" ? v : BigInt(v); } catch { return 0n; }
+}
+
+export function hasBits(bits: any, flag: any): boolean {
+    if (flag == null) return false;
+    const b = parseBits(bits);
+    const f = parseBits(flag);
+    return (b & f) === f;
+}
+
+export function roleColorHex(role: any): string | null {
+    return role?.colorString ?? (role?.color > 0 ? `#${role.color.toString(16).padStart(6, "0")}` : null);
+}
+
+export function parsePermissionOverwrites(v: any): any[] {
+    return v ? Object.values(v) : [];
+}
+
 export const PERMISSION_CATEGORIES: { name: string; permissions: string[] }[] = [
     {
         name: "General",
@@ -66,7 +88,7 @@ export function hexToRgba(hex: string, alpha: number): string {
 }
 
 export function formatPermName(name: string): string {
-    const bit = constants?.Permissions?.[name];
+    const bit = PERMISSIONS[name];
     if (bit != null && getPermName) {
         try {
             const localized = getPermName(bit);
