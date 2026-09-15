@@ -2,7 +2,7 @@ import { after } from "@api/patcher";
 import { deleteJsxCreate, onJsxCreate } from "@api/react/jsx";
 import { showToast } from "@api/ui/toasts";
 import { logger } from "@lib/utils/logger";
-import { findByProps, findByTypeName } from "@metro";
+import { findByName, findByProps, findByTypeName } from "@metro";
 import { definePlugin } from "@plugins";
 import { computeGuildDockSpecs, createController, createServerDrawerSurface, DOCK_REST_OFFSET } from "@plugins/serverdrawer/surface";
 import { Contributors, Developers } from "@rain/Developers";
@@ -28,7 +28,7 @@ export default definePlugin({
         const abort = new AbortController();
         let DrawerSurface: React.ComponentType<t.ServerDrawerSurfaceProps>;
         let useInset: () => number;
-        let unpatchShade: (() => void) | undefined;
+        const unpatch: (() => void)[] = [];
         let initializationError: string | undefined;
 
         const useActive = () => React.useSyncExternalStore(listener => {
@@ -53,9 +53,7 @@ export default definePlugin({
 
             return active ? transformLeftPanelContent(rendered,
                 <DrawerSurface key="rain-server-drawer" bottomInset={bottomInset} onWidthChange={setWidth} />,
-                bottomInset + computeGuildDockSpecs(width - 16).dockHeight - DOCK_REST_OFFSET,
-                rail => <Native.View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" pointerEvents="none"
-                    style={{ height: 1, width: 1, position: "absolute", left: -10000, opacity: 0 }}>{rail}</Native.View>) : rendered;
+                computeGuildDockSpecs(width - 16).dockHeight - DOCK_REST_OFFSET) : rendered;
         }
 
         const wrapPanel = (_Original: t.PanelComponent, element: t.PanelElement) => {
@@ -66,13 +64,19 @@ export default definePlugin({
 
                     const shade = findByTypeName("YouBarFloatingShade");
                     if (typeof shade?.type !== "function") throw new Error("ServerDrawer: native YouBar shade is unavailable");
+                    const channelWidth = findByName("useChannelListWidth", false);
+                    if (typeof channelWidth?.default !== "function") throw new Error("ServerDrawer: native channel width is unavailable");
+                    const { DM_WIDTH } = findByProps("DM_WIDTH");
                     const surface = createServerDrawerSurface(createController(), abort.signal);
                     useInset = () => {
                         const height = inset.useYouBarTotalHeight();
 
                         return Math.max(0, Number.isFinite(height) ? height : 0);
                     };
-                    unpatchShade = after("type", shade, (_args, element) => <YouBarBackdrop element={element} />);
+                    unpatch.push(after("type", shade, (_args, element) => <YouBarBackdrop element={element} />));
+
+                    // The channel panel now occupies the space reserved for the native server rail.
+                    unpatch.push(after("default", channelWidth, (_args, width: number) => width + DM_WIDTH));
                     DrawerSurface = surface;
                 }
             } catch (error) {
@@ -89,7 +93,7 @@ export default definePlugin({
         onJsxCreate("LeftPanelContent", wrapPanel);
         dispose = () => {
             deleteJsxCreate("LeftPanelContent", wrapPanel);
-            unpatchShade?.();
+            unpatch.forEach(dispose => dispose());
             abort.abort();
             dispose = undefined;
         };
@@ -103,14 +107,12 @@ export function reportActionFailure(operation: string, error: unknown): void {
     showToast(`Could not ${operation}. Please try again.`);
 }
 
-// LeftPanelContent owns a HomePanelContent rail and a container with two NativeFreezeScreens children.
-export function transformLeftPanelContent(rendered: t.NativePanel, dock: React.ReactNode, dockHeight: number, hideRail: (rail: React.ReactNode) => React.ReactNode) {
+// Reserve only the dock: native channel screens already account for the You bar.
+export function transformLeftPanelContent(rendered: t.NativePanel, dock: React.ReactNode, dockHeight: number) {
     const [rail, content] = rendered.props.children;
-    const screens = content.props.children;
-    const children = screens.props.children.map(screen => React.cloneElement(screen, { style: [screen.props.style, { paddingBottom: dockHeight }] }));
 
-    return React.cloneElement(rendered, { children: [hideRail(rail), React.cloneElement(content, {
-        style: [content.props.style, { bottom: 0, left: 0, right: 0, width: "100%" }],
-        children: React.cloneElement(screens, { children }),
+    return React.cloneElement(rendered, { children: [<Native.View key="rail" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" pointerEvents="none"
+        style={{ height: 1, width: 1, position: "absolute", left: -10000, opacity: 0 }}>{rail}</Native.View>, React.cloneElement(content, {
+        style: [content.props.style, { bottom: dockHeight, left: 0, right: 0, width: "100%", borderLeftWidth: 0 }],
     }), dock] });
 }
