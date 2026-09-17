@@ -1,8 +1,6 @@
 import { useSettings } from "@api/settings";
-import { ReactNative } from "@metro/common";
-import { Stack, TableRowGroup, TableSwitchRow } from "@metro/common/components";
-import React from "react";
-import { View } from "react-native";
+import { Stack, TableRadioGroup, TableRadioRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
+import { Platform, ScrollView } from "react-native";
 
 import { useTapTapSettings } from "./storage";
 
@@ -10,24 +8,10 @@ export default function TapTapSettings() {
     const { developerSettings } = useSettings();
     const taptapSettings = useTapTapSettings();
 
-    const [delayStr, setDelayStr] = React.useState(taptapSettings.delay ?? "300");
-
-    React.useEffect(() => {
-        setDelayStr(taptapSettings.delay ?? "300");
-    }, [taptapSettings.delay]);
-
-    const applyDelay = React.useCallback((val: string) => {
-        const parsed = parseInt(val, 10);
-        if (!Number.isNaN(parsed)) {
-            const clamped = Math.max(150, parsed);
-            useTapTapSettings.getState().updateSettings({ delay: String(clamped) });
-        }
-    }, []);
-
     return (
-        <View>
+        <ScrollView>
             <Stack style={{ paddingVertical: 24, paddingHorizontal: 12 }} spacing={24}>
-                <TableRowGroup title={"Behavior"}>
+                <TableRowGroup title="Behavior">
                     <TableSwitchRow
                         label="Reply on double-tap"
                         subLabel="Creates a pending reply when double-tapping messages"
@@ -40,22 +24,39 @@ export default function TapTapSettings() {
                         value={!!taptapSettings.userEdit}
                         onValueChange={v => useTapTapSettings.getState().updateSettings({ userEdit: v })}
                     />
-                    {ReactNative.Platform.OS === "ios" && (
-                        <TableSwitchRow
-                            label="Tap username to mention"
-                            subLabel="Tap a username to insert an @mention into the chat input"
-                            value={!!taptapSettings.tapUsernameMention}
-                            onValueChange={v => useTapTapSettings.getState().updateSettings({ tapUsernameMention: v })}
-                        />
-                    )}
                     <TableSwitchRow
                         label="Open keyboard after action"
                         value={!!taptapSettings.keyboardPopup}
                         onValueChange={v => useTapTapSettings.getState().updateSettings({ keyboardPopup: v })}
                     />
                 </TableRowGroup>
+                {Platform.OS === "ios" ? (
+                    <TableRadioGroup
+                        title="Tap Username Action"
+                        value={taptapSettings.tapUsernameAction}
+                        onChange={(value: string) => useTapTapSettings.getState().updateSettings({ tapUsernameAction: value })}
+                    >
+                        <TableRadioRow
+                            label="Insert @mention"
+                            value="mention"
+                        />
+                        <TableRadioRow
+                            label="Open profile"
+                            value="profile"
+                        />
+                    </TableRadioGroup>
+                ) : (
+                    <TableRowGroup title="Tap Username Action">
+                        <TableSwitchRow
+                            label="Open profile on tap"
+                            subLabel="Default behavior inserts an @mention"
+                            value={!!taptapSettings.openProfileOnTap}
+                            onValueChange={v => useTapTapSettings.getState().updateSettings({ openProfileOnTap: v })}
+                        />
+                    </TableRowGroup>
+                )}
                 {developerSettings === true && (
-                    <TableRowGroup title={"Debug"}>
+                    <TableRowGroup title="Debug">
                         <TableSwitchRow
                             label="Debug logging"
                             subLabel="Log gesture state to console"
@@ -65,6 +66,6 @@ export default function TapTapSettings() {
                     </TableRowGroup>
                 )}
             </Stack>
-        </View>
+        </ScrollView>
     );
 }

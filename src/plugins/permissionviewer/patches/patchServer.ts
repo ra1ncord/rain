@@ -4,7 +4,7 @@ import { findByName } from "@metro";
 import { React } from "@metro/common";
 import { TableRow, TableRowGroup } from "@metro/common/components";
 
-import RolesPage from "../components/PermissionPage";
+import RolesPage from "../components/RolesPage";
 
 const GuildActionSheetProgress = findByName("GuildActionSheetProgress", false);
 

@@ -58,6 +58,7 @@ export default defineConfig([
             "semi-style": ["error", "last"],
             "no-trailing-spaces": "error",
             "no-multi-spaces": "error",
+            "unicode-bom": ["error", "never"],
             "eol-last": ["error", "always"],
             "prefer-const": "error",
             "yoda": "error",

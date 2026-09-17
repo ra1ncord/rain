@@ -1,7 +1,8 @@
 import { after } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
-import { chatInput, messageActions, MessageView, replyActions } from "@metro/common";
-import { ChannelStore, MessageStore, UserStore } from "@metro/common/stores";
+import { chatInput, constants, messageActions, MessageView, replyActions } from "@metro/common";
+import { ChannelStore, MessageStore, PermissionsStore, SelectedChannelStore, UserStore } from "@metro/common/stores";
+import { findByNameLazy,findByPropsLazy } from "@metro/wrappers";
 import { definePlugin } from "@plugins";
 import { Contributors } from "@rain/Developers";
 import React, { type ReactNode } from "react";
@@ -14,14 +15,32 @@ import type { MessageTapEvent, MessageViewProps } from "./types";
 let unpatch: (() => unknown) | undefined;
 let active = false;
 
+const autocompleteUtils = findByPropsLazy("getMentionTextWithUser");
+const threadHooks = findByPropsLazy("computeIsReadOnlyThread");
+const showUserProfileActionSheet = findByNameLazy("showUserProfileActionSheet");
+
+function getActiveChannelId(event: MessageTapEvent): string | null {
+    const { channelId } = event.nativeEvent;
+
+    return channelId ?? SelectedChannelStore.getChannelId() ?? null;
+}
+
 function openKeyboard(channelId: string) {
     if (!taptapSettings.keyboardPopup) return;
 
     chatInput.getChatInputRef(channelId, 0)?.openSystemKeyboard();
 }
 
+function canMentionInChannel(channel: { isPrivate: () => boolean }): boolean {
+    return channel.isPrivate() || PermissionsStore.can(constants.Permissions.SEND_MESSAGES, channel);
+}
+
 function handleDoubleTap(event: MessageTapEvent) {
-    const { channelId, messageId } = event.nativeEvent;
+    const channelId = getActiveChannelId(event);
+
+    if (!channelId) return false;
+
+    const { messageId } = event.nativeEvent;
     const message = MessageStore.getMessage(channelId, messageId);
 
     if (!message) return false;
@@ -44,18 +63,47 @@ function handleDoubleTap(event: MessageTapEvent) {
 }
 
 function handleTapUsername(event: MessageTapEvent) {
-    if (Platform.OS !== "ios" || !taptapSettings.tapUsernameMention) return false;
+    if (Platform.OS === "android" && !taptapSettings.openProfileOnTap) return false;
 
-    const { channelId, messageId } = event.nativeEvent;
+    const channelId = getActiveChannelId(event);
+
+    if (!channelId) return false;
+
+    const { messageId, userId } = event.nativeEvent;
+
+    if (Platform.OS === "android") {
+        if (!userId) return false;
+
+        showUserProfileActionSheet?.({ userId, channelId });
+
+        return true;
+    }
+
+    if (taptapSettings.tapUsernameAction !== "mention") return false;
+
     const message = MessageStore.getMessage(channelId, messageId);
     const input = chatInput.getChatInputRef(channelId, 0);
 
-    if (!message || !input) return false;
+    if (!input) return false;
 
-    const discriminator = message.author.discriminator !== "0" ? `#${message.author.discriminator}` : "";
-    input.insertText(`@${message.author.username}${discriminator}`);
+    const user = userId ? UserStore.getUser(userId) : message?.author;
+    const channel = ChannelStore.getChannel(channelId);
+
+    if (!user || !channel) return false;
+
+    if (!canMentionInChannel(channel) || threadHooks.computeIsReadOnlyThread(channel)) return false;
+
+    input.insertText(autocompleteUtils.getMentionTextWithUser(channel, user), null, true);
 
     return true;
+}
+
+function wrapHandler(handler: (event: MessageTapEvent) => boolean, fallback: (event: MessageTapEvent) => void) {
+    return (event: MessageTapEvent) => {
+        if (active && handler(event)) return;
+
+        fallback(event);
+    };
 }
 
 function patchMessageView(element: ReactNode): ReactNode {
@@ -68,26 +116,17 @@ function patchMessageView(element: ReactNode): ReactNode {
     if (!React.isValidElement<MessageViewProps>(element)) return element;
 
     const { props } = element;
+    const callbacks: Partial<MessageViewProps> = {};
 
     if (typeof props.onDoubleTapMessage === "function") {
-        const onDoubleTapMessage = props.onDoubleTapMessage;
-        const callbacks: Partial<MessageViewProps> = {
-            onDoubleTapMessage: event => {
-                if (active && handleDoubleTap(event)) return;
+        callbacks.onDoubleTapMessage = wrapHandler(handleDoubleTap, props.onDoubleTapMessage);
+    }
 
-                return onDoubleTapMessage(event);
-            }
-        };
+    if (typeof props.onTapUsername === "function") {
+        callbacks.onTapUsername = wrapHandler(handleTapUsername, props.onTapUsername);
+    }
 
-        if (Platform.OS === "ios" && typeof props.onTapUsername === "function") {
-            const onTapUsername = props.onTapUsername;
-            callbacks.onTapUsername = event => {
-                if (active && handleTapUsername(event)) return;
-
-                return onTapUsername(event);
-            };
-        }
-
+    if (Object.keys(callbacks).length > 0) {
         return React.cloneElement(element, callbacks);
     }
 
