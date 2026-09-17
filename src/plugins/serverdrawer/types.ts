@@ -93,9 +93,7 @@ export interface DrawerState { expanded: boolean; view: DrawerView; filter: "all
 
 export interface NativePanEvent { absoluteX: number; absoluteY: number }
 
-export type NativeScreens = ReactElement<{ children: ReactElement<ViewProps>[] }>;
-
-export type NativePanel = ReactElement<{ children: [ReactNode, ReactElement<ViewProps & { children: NativeScreens }>, ReactNode?] }>;
+export type NativePanel = ReactElement<{ children: [ReactNode, ReactElement<ViewProps>, ReactNode?] }>;
 
 export interface FolderOverlayProps {
     folder: DrawerFolder; width: number; height: number; closeFolder(): void;

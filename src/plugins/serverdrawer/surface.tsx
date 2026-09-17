@@ -274,6 +274,7 @@ export function createGuildMenu(signal: AbortSignal) {
 
 export function createServerDrawerSurface(controller: ReturnType<typeof createController>, signal: AbortSignal) {
     const GuildMenu = createGuildMenu(signal);
+    const { useSafeAreaInsets } = findByProps("useSafeAreaInsets");
     const { useNavigatorBackPressHandler } = findByProps("useNavigatorBackPressHandler");
     const { Gesture, GestureDetector }: t.NativeGestureModule = findByProps("Gesture", "GestureDetector");
     const { Image, Pressable, ScrollView, Text, View, TextInput } = Native;
@@ -617,7 +618,7 @@ export function createServerDrawerSurface(controller: ReturnType<typeof createCo
         const scrollY = useRef(0);
         const data = useDrawerData();
         const { dockSpecs, drawerHeight, panelLeft, grid, columns, columnStep, previewWidth, previewTransform, columnOffset } =
-            getDrawerGeometry(viewportWidth, viewportHeight - bottomInset, data.layout);
+            getDrawerGeometry(viewportWidth, viewportHeight - bottomInset - useSafeAreaInsets().top, data.layout);
 
         const drawerFolder = data.nodes.find((node): node is t.DrawerFolder => node.kind === "folder" && node.id === folderId);
         const overlayFolder = data.nodes.find((node): node is t.DrawerFolder => node.kind === "folder" && node.id === folderOverlayId);
