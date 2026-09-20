@@ -1,7 +1,8 @@
 import { findAssetId } from "@api/assets";
+import { instead } from "@api/patcher";
 import { showToast } from "@api/ui/toasts";
 import { logger } from "@lib/utils/logger";
-import { findByProps } from "@metro";
+import { findByProps, findByPropsLazy } from "@metro";
 import { clipboard } from "@metro/common";
 import { findByProps as findByPropsWrappers } from "@metro/wrappers";
 
@@ -17,6 +18,7 @@ import { uploaderSettings } from "../storage";
 const CloudUpload = findByProps("CloudUpload")?.CloudUpload;
 const MessageSender = findByProps("sendMessage");
 const PendingMessages = findByProps("getPendingMessages", "deletePendingMessage");
+const FileUtils = findByPropsLazy("maxFileSize", "anyFileTooLarge");
 
 /** Cleans up any failed pending messages in the channel after an upload. */
 function cleanupPendingMessages(channelId: string) {
@@ -195,7 +197,10 @@ export default function getUploaderPatch(): (() => boolean)[] {
     // Patch sendMessage to support the "insert link" mode
     const sendMessagePatch = patchSendMessage();
 
-    return [unpatch, sendMessagePatch];
+    // Discord cancels oversized uploads before they ever reach the patch above
+    const limitPatch = instead("maxFileSize", FileUtils, () => Number.MAX_SAFE_INTEGER);
+
+    return [unpatch, sendMessagePatch, limitPatch];
 }
 
 // Module-level variable to hold a pending link for the "insert" mode
