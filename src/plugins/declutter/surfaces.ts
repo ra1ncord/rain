@@ -1,3 +1,5 @@
+import React from "react";
+
 type Unpatch = () => unknown;
 type Instead = (key: string, target: any, callback: (args: any[], original: Function) => any) => Unpatch;
 
@@ -61,8 +63,27 @@ export const paymentOptions = [
     ["hidePaymentGifts", "Gift Inventory", "PREMIUM_GIFTING"],
 ] as const;
 
+export const userAreaOptions = [
+    ["removeUserQuests", "Quests", "quests"],
+    ["removeUserShop", "Shop", "shop"],
+    ["removeUserNitro", "Nitro", "nitro"],
+] as const;
+
+function removeElements(tree: React.ReactNode, remove: (element: React.ReactElement) => boolean): React.ReactNode {
+    if (Array.isArray(tree)) {
+        const children = tree.map(child => removeElements(child, remove)).filter((child, index) => child !== null || tree[index] === null);
+        return children.length === tree.length && children.every((child, index) => child === tree[index]) ? tree : children;
+    }
+
+    if (!React.isValidElement<{ children?: React.ReactNode }>(tree)) return tree;
+    if (remove(tree)) return null;
+
+    const children = removeElements(tree.props.children, remove);
+    return children === tree.props.children ? tree : React.cloneElement(tree, { children });
+}
+
 export type ExtraClutterSettings = Record<
-    typeof profileOptions[number][0] | typeof paymentOptions[number][0] | "hidePaymentSettings", boolean
+    typeof profileOptions[number][0] | typeof paymentOptions[number][0] | typeof userAreaOptions[number][0] | "hidePaymentSettings", boolean
 >;
 
 export function filterPaymentRows(rows: any[], settings: ExtraClutterSettings): any[] {
@@ -134,6 +155,33 @@ export function installProfileAndPaymentSurfaces(
     }
     const patches: Unpatch[] = [];
     try {
+        const state = settings();
+        if (state.hideGuildTags) {
+            const primaryInfo = find.byProps("DisplayName", "ProfileBadgeRows");
+            const youBar = find.byProps("useIsYouBarGuildTagEnabled", "getIsYouBarGuildTagEnabled");
+            if (typeof primaryInfo?.default !== "function" || typeof youBar?.useIsYouBarGuildTagEnabled !== "function") {
+                throw new Error("Declutter: required guild tag surfaces are unavailable");
+            }
+
+            patches.push(instead("default", primaryInfo, (args, original) => removeElements(original(...args), element =>
+                typeof element.type === "function" && element.type.name === "GuildTag")));
+            patches.push(instead("useIsYouBarGuildTagEnabled", youBar, (args, original) => {
+                original(...args);
+                return false;
+            }));
+        }
+
+        const hiddenUserEntries = new Set<string>(userAreaOptions.filter(([key]) => state[key]).map(([, , key]) => key));
+        if (state.removeUserNitro) hiddenUserEntries.add("nitro-subscriber");
+
+        if (hiddenUserEntries.size) {
+            const userArea = find.byProps("useHasSettingsBadge")?.default;
+            if (typeof userArea?.type !== "function") throw new Error("Declutter: user area surface is unavailable");
+
+            patches.push(instead("type", userArea, (args, original) => removeElements(original(...args), element =>
+                element.key !== null && hiddenUserEntries.has(String(element.key)))));
+        }
+
         for (const [target, key] of previewTargets) {
             patches.push(instead(key, target, (args, original) => preview.wrap(original, args[0])));
         }
