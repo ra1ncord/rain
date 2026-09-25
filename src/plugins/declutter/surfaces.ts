@@ -171,6 +171,25 @@ export function installProfileAndPaymentSurfaces(
             }));
         }
 
+        if (state.removeUserQuests) {
+            const dock = find.byProps("QuestDockQuestContent")?.default;
+            const hooks = find.byProps("useIsMobileQuestDockRendered", "useMobileQuestDockHeight");
+            if (typeof dock?.type !== "function" || typeof hooks?.useIsMobileQuestDockRendered !== "function"
+                || typeof hooks?.useMobileQuestDockHeight !== "function") {
+                throw new Error("Declutter: quest dock surfaces are unavailable");
+            }
+
+            patches.push(instead("type", dock, () => null));
+            patches.push(instead("useIsMobileQuestDockRendered", hooks, (args, original) => {
+                original(...args);
+                return false;
+            }));
+            patches.push(instead("useMobileQuestDockHeight", hooks, (args, original) => {
+                original(...args);
+                return 0;
+            }));
+        }
+
         const hiddenUserEntries = new Set<string>(userAreaOptions.filter(([key]) => state[key]).map(([, , key]) => key));
         if (state.removeUserNitro) hiddenUserEntries.add("nitro-subscriber");
 
