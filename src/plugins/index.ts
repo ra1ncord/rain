@@ -123,6 +123,13 @@ function ensureSetup(): Promise<void> {
 
             pluginInstances.set(id, instance);
         }
+
+        try {
+            const { registerExternalPlugins } = await import("@api/external/plugins");
+            await registerExternalPlugins();
+        } catch (e) {
+            logger.error("Failed to load external plugins", e);
+        }
     })();
 
     return _setupPromise;

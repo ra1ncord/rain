@@ -14,6 +14,8 @@ import { waitForColorsPrefHydration } from "./preferences";
 import { ThemeManifest } from "./types";
 import { updateColor } from "./updater";
 
+export const LOCAL_THEME_PREFIX = "local:";
+
 export interface ThemeInfo {
     id: string;
     selected: boolean;
@@ -137,6 +139,16 @@ export const useThemes = create<ThemesStore>()(
             },
             fetchTheme: async (url: string, selected = false) => {
                 let themeJSON: any;
+
+                if (url.startsWith(LOCAL_THEME_PREFIX)) {
+                    const local = get().themes[url];
+                    if (!local) throw new Error("Local theme not found");
+                    if (selected) {
+                        writeThemeToNative(local);
+                        updateColor(local.data, { update: true }, { noCustomIcons: false });
+                    }
+                    return;
+                }
 
                 try {
                     themeJSON = await (await safeFetch(url, { cache: "no-store" })).json();
@@ -325,3 +337,29 @@ export async function initThemes() {
 }
 
 export { getStoredTheme };
+
+export async function installThemeFromJSON(text: string, fileName?: string) {
+    let themeJSON: any;
+    try {
+        themeJSON = JSON.parse(text.trim());
+    } catch {
+        throw new Error("Not a theme");
+    }
+
+    if (!validateTheme(themeJSON)) throw new Error("Not a theme");
+
+    const data = processData(themeJSON);
+    const name: string = (data as any).display?.name ?? data.name ?? fileName?.replace(/\.json$/i, "") ?? "Imported theme";
+    const id = LOCAL_THEME_PREFIX + (name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "theme");
+
+    const { themes: current, setTheme } = useThemes.getState();
+    const wasSelected = current[id]?.selected ?? false;
+    const themeInfo: ThemeInfo = { id, selected: wasSelected, data };
+
+    setTheme(id, themeInfo);
+    if (wasSelected) {
+        writeThemeToNative(themeInfo);
+        updateColor(themeInfo.data, { update: true }, { noCustomIcons: false });
+    }
+    FluxDispatcher.dispatch({ type: "RAIN_SETTING_UPDATED" });
+}

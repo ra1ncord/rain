@@ -80,6 +80,7 @@ const config = {
                                     globals: {
                                         "rain-build-info": {
                                             version: `"v0.10.0"`,
+                                            revision: JSON.stringify(context?.hash ?? "dev"),
                                             supportedVersionsAndroid: '344013',
                                             supportedVersionsIOS: '110861'
                                         }
@@ -240,7 +241,7 @@ export async function compileToBytecode(jsPath, customOutputPath = null) {
 
 export async function buildBundle(overrideConfig = {}) {
     context = {
-        hash: releaseBranch ? execSync("git rev-parse --short HEAD").toString().trim() : crypto.randomBytes(8).toString("hex").slice(0, 7)
+        hash: context?.hash ?? (releaseBranch ? execSync("git rev-parse --short HEAD").toString().trim() : crypto.randomBytes(8).toString("hex").slice(0, 7))
     };
 
     const initialStartTime = performance.now();

@@ -1,9 +1,15 @@
+import { findAssetId } from "@api/assets";
+import { installPluginFromCode, installPluginFromUrl, updateAllExternalPlugins, useExternalPlugins } from "@api/external/plugins";
 import { useSettings } from "@api/settings";
+import { hideSheet } from "@api/ui/sheets";
 import { Strings } from "@i18n";
-import { pluginInstances } from "@plugins";
+import { ActionSheet, BottomSheetTitleHeader, TableRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
+import { pluginInstances, usePluginSettings } from "@plugins";
 import { developer } from "@plugins/types";
+import { openAddonInstallAlert } from "@rain/pages/Addon/AddonInstallAlert";
 import AddonPage from "@rain/pages/Addon/AddonPage";
 import { ComponentProps, useMemo } from "react";
+import { View } from "react-native";
 
 import PluginCard from "./components/PluginCard";
 import { UnifiedPluginModel } from "./models";
@@ -36,12 +42,12 @@ function PluginPage(props: PluginPageProps) {
         [Strings.ENABLED]: (a: UnifiedPluginModel, b: UnifiedPluginModel) => {
             if (isCore(a.id) !== isCore(b.id)) return isCore(a.id) ? -1 : 1;
             if (isPinned(a.id) !== isPinned(b.id)) return isPinned(b.id) ? 1 : -1;
-            return Number(b.isEnabled()) - Number(a.isEnabled());
+            return Number(b.isEnabled()) - Number(a.isEnabled()) || a.name.localeCompare(b.name);
         },
         [Strings.DISABLED]: (a: UnifiedPluginModel, b: UnifiedPluginModel) => {
             if (isCore(a.id) !== isCore(b.id)) return isCore(a.id) ? -1 : 1;
             if (isPinned(a.id) !== isPinned(b.id)) return isPinned(b.id) ? 1 : -1;
-            return Number(a.isEnabled()) - Number(b.isEnabled());
+            return Number(a.isEnabled()) - Number(b.isEnabled()) || a.name.localeCompare(b.name);
         },
     };
 
@@ -73,11 +79,17 @@ function PluginPage(props: PluginPageProps) {
                 },
             ]}
             sortOptions={sortOptions}
-            defaultSortKey="Name (A-Z)"
+            defaultSortKey={Strings.ENABLED}
             filterOptions={{
                 [Strings.HIDE_CORE]: p => !p.id.startsWith("core"),
                 [Strings.SHOW_CORE]: () => true,
+                "Third-party": p => !!p.isExternal,
             }}
+            installAction={{
+                label: "Install Plugin",
+                onPress: openPluginInstallAlert,
+            }}
+            OptionsActionSheetComponent={ExternalOptionsSheet}
             safeModeHint={{ message: Strings.HINT_SAFE_MODE }}
             defaultFilterKey={Strings.HIDE_CORE}
             items={filteredItems}
@@ -86,12 +98,56 @@ function PluginPage(props: PluginPageProps) {
     );
 }
 
+function openPluginInstallAlert() {
+    openAddonInstallAlert({
+        title: "Install Plugin",
+        description: "Link or .js file. Only install stuff you trust.",
+        onUrl: installPluginFromUrl,
+        onCode: installPluginFromCode,
+    });
+}
+
+function ExternalOptionsSheet() {
+    const autoUpdate = useExternalPlugins(s => s.autoUpdate);
+    const count = useExternalPlugins(s => Object.keys(s.plugins).length);
+
+    return (
+        <ActionSheet>
+            <BottomSheetTitleHeader title="Plugins" />
+            <View style={{ paddingVertical: 20, gap: 12 }}>
+                <TableRowGroup title={`${count} installed`}>
+                    <TableRow
+                        label="Install Plugin"
+                        icon={<TableRow.Icon source={findAssetId("DownloadIcon")} />}
+                        onPress={() => {
+                            hideSheet("AddonMoreSheet");
+                            openPluginInstallAlert();
+                        }}
+                    />
+                    <TableRow
+                        label="Check for Updates"
+                        icon={<TableRow.Icon source={findAssetId("RetryIcon")} />}
+                        onPress={() => void updateAllExternalPlugins()}
+                    />
+                    <TableSwitchRow
+                        label="Auto-update"
+                        value={autoUpdate}
+                        onValueChange={(v: boolean) => useExternalPlugins.getState().setAutoUpdate(v)}
+                    />
+                </TableRowGroup>
+            </View>
+        </ActionSheet>
+    );
+}
+
 export default function Plugins() {
     useSettings();
+    const external = useExternalPlugins(s => s.plugins);
+    usePluginSettings(s => s.settings);
 
     const items = useMemo(() => {
         return Array.from(pluginInstances.values()).map(unifyRainPlugin);
-    }, []);
+    }, [external]);
 
     return (
         <PluginPage

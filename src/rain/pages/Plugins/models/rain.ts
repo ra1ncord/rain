@@ -10,6 +10,8 @@ import { rainPlugin } from "@plugins/types";
 import { Developers } from "@rain/Developers";
 import { Platform } from "react-native";
 
+const EXTERNAL_MARKER = Symbol.for("rain.plugin.external");
+
 import { UnifiedPluginModel } from ".";
 
 function isDeveloper(author: { name: string }): boolean {
@@ -42,6 +44,7 @@ export default function unifyRainPlugin(
         isPlatformSupported: () => isPlatformSupported,
         arePredicatesMet: () => arePredicatesMet,
         devOnly: manifest.devOnly,
+        isExternal: !!(manifest as any)[EXTERNAL_MARKER],
         toggle(start: boolean) {
             try {
                 start ? startPlugin(manifest.id) : stopPlugin(manifest.id);

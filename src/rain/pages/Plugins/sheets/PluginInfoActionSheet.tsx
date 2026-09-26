@@ -10,6 +10,7 @@ import { UserStore } from "@metro/common/stores";
 import { ScrollView, View } from "react-native";
 
 import { PluginInfoActionSheetProps } from "./common";
+import ExternalPluginCard from "./ExternalPluginCard";
 import TitleComponent from "./TitleComponent";
 
 const showUserProfileActionSheet = findByNameLazy("showUserProfileActionSheet");
@@ -20,7 +21,7 @@ function AuthorCard({ title, authors }: { title: string; authors: { name: string
 
     const users: any[] = FluxUtils.useStateFromStoresArray([UserStore], () => {
         authors.forEach(a => a.id && maybeFetchUser(a.id));
-        return authors.map(a => UserStore.getUser(a.id));
+        return authors.map(a => a.id ? UserStore.getUser(a.id) : undefined);
     });
 
     return (
@@ -48,10 +49,10 @@ function AuthorCard({ title, authors }: { title: string; authors: { name: string
                             borderRadius: 8,
                         }}
                     >
-                        <Avatar
+                        {users[index] ? <Avatar
                             size="small"
                             user={users[index]}
-                        />
+                        /> : null}
                         <Text
                             variant="text-md/medium"
                             onPress={() => showUserProfileActionSheet({ userId: author.id })}
@@ -117,6 +118,8 @@ export default function PluginInfoActionSheet({
                     </Text>
                     <Text variant="text-md/medium">{plugin.description}</Text>
                 </Card>
+
+                {plugin.isExternal ? <ExternalPluginCard id={plugin.id} /> : null}
 
                 {plugin.developers?.length ? (
                     <AuthorCard title="Developers" authors={plugin.developers} />

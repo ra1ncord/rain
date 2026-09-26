@@ -9,6 +9,7 @@ export interface UnifiedPluginModel {
     contributors?: developer[];
     requiresRestart?: boolean;
     devOnly?: boolean;
+    isExternal?: boolean;
     isEnabled(): boolean;
     isCore(): boolean;
     isPlatformSupported?(): boolean;

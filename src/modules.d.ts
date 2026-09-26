@@ -15,6 +15,7 @@ declare module "#rain-plugins" {
 
 declare module "rain-build-info" {
     const version: string;
+    const revision: string;
     const supportedVersionsAndroid: number;
     const supportedVersionsIOS: number;
 }

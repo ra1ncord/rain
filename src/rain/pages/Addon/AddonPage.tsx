@@ -263,10 +263,9 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
                     {Strings.NOTHING_TO_SEE}
                 </Text>
             </View>
-            {props.installAction && <Button
+            {props.installBrowserAction && <Button
                 size="lg"
                 icon={findAssetId("CompassIcon")}
-                // @ts-expect-error
                 text={props.installBrowserAction.label ?? Strings.INSTALL}
                 onPress={onInstallBrowserPress}
             />}
@@ -304,7 +303,7 @@ export default function AddonPage<T extends object>({ CardComponent, ...props }:
             />}
             {props.installAction && <FloatingActionButton
                 positionBottom={bottomInset + 8}
-                positionRight={rightInset + 86}
+                positionRight={props.installBrowserAction ? rightInset + 86 : undefined}
                 icon={findAssetId("PlusLargeIcon")}
                 onPress={onInstallPress}
             />}

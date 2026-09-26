@@ -12,10 +12,11 @@ import {
     TableSwitchRow,
 } from "@metro/common/components";
 import initPlus from "@plugins/_core/painter/plus/stuff/loader";
-import { getCurrentTheme, installTheme, ThemeInfo,useThemes } from "@plugins/_core/painter/themes";
+import { getCurrentTheme, installTheme, installThemeFromJSON, ThemeInfo,useThemes } from "@plugins/_core/painter/themes";
 import { useColorsPref } from "@plugins/_core/painter/themes/preferences";
 import { Author } from "@plugins/_core/painter/themes/types";
 import { updateColor } from "@plugins/_core/painter/themes/updater";
+import { openAddonInstallAlert } from "@rain/pages/Addon/AddonInstallAlert";
 import AddonPage from "@rain/pages/Addon/AddonPage";
 import ThemeBrowser from "@rain/pages/Browser/Themes";
 import { View } from "react-native";
@@ -37,6 +38,7 @@ export default function Themes() {
                 p => p.data.authors?.map((a: Author) => a.name).join(", ") ?? "",
             ]}
             sortOptions={{
+                [Strings.ENABLED]: (a, b) => Number(b.selected) - Number(a.selected) || a.data.name.localeCompare(b.data.name),
                 [Strings.SORT_NAME_AZ]: (a, b) => a.data.name.localeCompare(b.data.name),
                 [Strings.SORT_NAME_ZA]: (a, b) => b.data.name.localeCompare(a.data.name),
             }}
@@ -51,8 +53,14 @@ export default function Themes() {
             }}
             installAction={{
                 label: Strings.INSTALL_FROM_URL,
-                fetchFn: installTheme,
+                onPress: () => openAddonInstallAlert({
+                    title: "Install Theme",
+                    description: "Link or .json file.",
+                    onUrl: installTheme,
+                    onCode: installThemeFromJSON,
+                }),
             }}
+            defaultSortKey={Strings.ENABLED}
             items={themesList}
             safeModeHint={{
                 message: Strings.THEMES_DISABLED_IN_SAFE_MODE,
