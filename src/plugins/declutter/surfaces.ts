@@ -175,12 +175,16 @@ export function installProfileAndPaymentSurfaces(
             const dock = find.byProps("QuestDockQuestContent")?.default;
             const hooks = find.byProps("useIsMobileQuestDockRendered", "useMobileQuestDockHeight");
             if (typeof dock?.type !== "function" || typeof hooks?.useIsMobileQuestDockRendered !== "function"
-                || typeof hooks?.useMobileQuestDockHeight !== "function") {
+                || typeof hooks?.useMobileQuestDockHeight !== "function" || typeof hooks?.useIsMobileQuestDockRenderedBase !== "function") {
                 throw new Error("Declutter: quest dock surfaces are unavailable");
             }
 
             patches.push(instead("type", dock, () => null));
             patches.push(instead("useIsMobileQuestDockRendered", hooks, (args, original) => {
+                original(...args);
+                return false;
+            }));
+            patches.push(instead("useIsMobileQuestDockRenderedBase", hooks, (args, original) => {
                 original(...args);
                 return false;
             }));
