@@ -3,10 +3,13 @@ import { BundleUpdaterManager } from "@api/native/modules";
 import UpdateModule from "@api/native/modules/update";
 import { useLoaderConfig } from "@api/settings";
 import { createPluginStore, waitForHydration } from "@api/storage";
+import { openAlert } from "@api/ui/alerts";
 import { showToast } from "@api/ui/toasts";
 import { cyrb64Hash } from "@lib/utils/cyrb64";
 import { logger } from "@lib/utils/logger";
 import { findByProps, findByStoreName } from "@metro";
+import { React } from "@metro/common";
+import { AlertActionButton, AlertActions, AlertModal } from "@metro/common/components";
 import { SelectedChannelStore } from "@metro/common/stores";
 import { fetchTheme, getCurrentTheme, useThemes } from "@plugins/_core/painter/themes";
 import { revision } from "rain-build-info";
@@ -22,6 +25,8 @@ const ADDONS_MS = 5 * 60_000;
 let running = false;
 let busy = false;
 let pending: string | null = null;
+let prompted: string | null = null;
+const readyListeners = new Set<() => void>();
 let lastCheck = 0;
 let lastAddons = 0;
 let timer: ReturnType<typeof setInterval> | null = null;
@@ -50,8 +55,10 @@ async function latestRevision(): Promise<string | null> {
     return typeof info?.revision === "string" ? info.revision : null;
 }
 
-async function applyBuild(target: string) {
-    if (busy || (state.target === target && state.tries >= 2)) return;
+const stuck = (target: string) => state.target === target && state.tries >= 2;
+
+async function applyBuild(target: string, manual = false) {
+    if (busy || (!manual && stuck(target))) return;
     busy = true;
     state.tries = state.target === target ? state.tries + 1 : 1;
     state.target = target;
@@ -67,8 +74,35 @@ async function applyBuild(target: string) {
     setTimeout(() => BundleUpdaterManager.reload(), 300);
 }
 
-function maybeApply() {
-    if (running && pending && foreground()) void applyBuild(pending);
+function maybePrompt() {
+    if (!running || !pending || !foreground() || prompted === pending || stuck(pending)) return;
+    const target = pending;
+    prompted = target;
+    openAlert("cheeseburger-update", (
+        <AlertModal
+            title="Update ready"
+            content="Reloads Discord"
+            actions={
+                <AlertActions>
+                    <AlertActionButton text="Reload" variant="primary" onPress={() => void applyBuild(target, true)} />
+                    <AlertActionButton text="Later" variant="secondary" />
+                </AlertActions>
+            }
+        />
+    ));
+}
+
+export function useUpdateReady(): boolean {
+    const [, force] = React.useReducer((n: number) => n + 1, 0);
+    React.useEffect(() => {
+        readyListeners.add(force);
+        return () => void readyListeners.delete(force);
+    }, []);
+    return !!pending;
+}
+
+export function updateNow() {
+    if (pending) void applyBuild(pending, true);
 }
 
 function videoOn(): boolean {
@@ -127,18 +161,20 @@ async function check() {
     lastCheck = Date.now();
     try {
         const latest = await latestRevision();
+        const prev = pending;
         pending = latest && latest !== revision ? latest : null;
+        if (pending !== prev) readyListeners.forEach(l => l());
     } catch { } finally {
         checking = false;
     }
-    maybeApply();
+    maybePrompt();
     if (!pending && Date.now() - lastAddons >= ADDONS_MS) void checkAddons();
 }
 
 function onAppState(s: string) {
     if (s !== "active") return;
     if (Date.now() - lastCheck > 3_000) void check();
-    else maybeApply();
+    else maybePrompt();
 }
 
 export default {
