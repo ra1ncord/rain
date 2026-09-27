@@ -121,6 +121,43 @@ const config = {
     ]
 };
 
+export async function buildCheeseburger() {
+    const registrySource = await fs.readFile("src/api/hot/registry.ts", "utf-8");
+    const exposed = new Set([...registrySource.matchAll(/^\s*"([^"]+)":/gm)].map(m => m[1]));
+    const used = new Set();
+    const swc = config.plugins.find(p => p.name === "swc");
+    const registry = {
+        name: "rain-registry",
+        setup(b) {
+            b.onResolve({ filter: /^[^./]/ }, args => {
+                if (args.kind === "entry-point" || args.path.startsWith("@swc/helpers")) return undefined;
+                used.add(args.path);
+                return { path: args.path, namespace: "rain-registry" };
+            });
+            b.onLoad({ filter: /.*/, namespace: "rain-registry" }, args => ({
+                contents: `module.exports = globalThis.__rainRequire(${JSON.stringify(args.path)});`,
+                loader: "js"
+            }));
+        }
+    };
+    await build({
+        ...config,
+        entryPoints: ["src/cheeseburger/index.ts"],
+        outfile: "dist/cheeseburger.js",
+        format: "cjs",
+        footer: undefined,
+        alias: {},
+        plugins: [registry, swc]
+    });
+    const missing = [...used].filter(id => !exposed.has(id));
+    if (missing.length) throw new Error(`cheeseburger uses modules rain does not expose: ${missing.join(", ")}`);
+    const code = await fs.readFile("dist/cheeseburger.js");
+    const revision = crypto.createHash("sha1").update(code).digest("hex").slice(0, 12);
+    await fs.writeFile("dist/cheeseburger.json", JSON.stringify({ revision, size: code.length }, null, 2));
+    console.log(`Built cheeseburger (${revision}), uses ${used.size} rain modules`);
+    return [...used];
+}
+
 function findHermescPath() {
     const possiblePaths = [
         "node_modules/hermes-compiler/hermesc/linux64-bin/hermesc",
@@ -239,9 +276,29 @@ export async function compileToBytecode(jsPath, customOutputPath = null) {
     }
 }
 
+async function sourceHash() {
+    const hash = crypto.createHash("sha1");
+    const walk = async dir => {
+        const entries = (await fs.readdir(dir, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name));
+        for (const entry of entries) {
+            const file = path.join(dir, entry.name);
+            if (file === path.join("src", "cheeseburger")) continue;
+            if (entry.isDirectory()) await walk(file);
+            else {
+                hash.update(file);
+                hash.update(await fs.readFile(file));
+            }
+        }
+    };
+    await walk("src");
+    await walk("shims");
+    for (const file of ["package.json", "scripts/build.mjs"]) hash.update(await fs.readFile(file));
+    return hash.digest("hex").slice(0, 7);
+}
+
 export async function buildBundle(overrideConfig = {}) {
     context = {
-        hash: context?.hash ?? (releaseBranch ? execSync("git rev-parse --short HEAD").toString().trim() : crypto.randomBytes(8).toString("hex").slice(0, 7))
+        hash: context?.hash ?? (releaseBranch ? execSync("git rev-parse --short HEAD").toString().trim() : await sourceHash())
     };
 
     const initialStartTime = performance.now();
@@ -336,6 +393,8 @@ if (isThisFileBeingRunViaCLI) {
             2
         )
     );
+
+    await buildCheeseburger();
 
     console.log(`\nAvailable paths: ${availablePaths.join(", ")}`);
     console.log(`Info file written to ${infoPath}`);

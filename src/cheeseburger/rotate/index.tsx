@@ -2,7 +2,7 @@ import { after } from "@api/patcher";
 import { jsxRuntime } from "@api/react/jsx";
 import { FluxDispatcher, React } from "@metro/common";
 
-import { orientationDebug, resetOrientation, startOrientation, stopOrientation } from "./orientation";
+import { orientationDebug, resetOrientation, setLandscape, startOrientation, stopOrientation } from "./orientation";
 import { TopBarRotate } from "./RotateButton";
 
 const SPEAKER = "Change Audio Output";
@@ -36,6 +36,10 @@ export function rotateDebug(): string[] {
 export default {
     start() {
         startOrientation();
+        if ((globalThis as any).__cheeseburgerLandscape) {
+            delete (globalThis as any).__cheeseburgerLandscape;
+            setLandscape(true);
+        }
         unpatches.push(after("jsx", jsxRuntime, onJsx));
         unpatches.push(after("jsxs", jsxRuntime, onJsx));
         FluxDispatcher.subscribe("RTC_CONNECTION_STATE", onRtc);

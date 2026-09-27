@@ -3,7 +3,7 @@ import { deleteJsxCreate, jsxRuntime, onJsxCreate } from "@api/react/jsx";
 import { waitForHydration } from "@api/storage";
 import { React } from "@metro/common";
 
-import { startLayoutPatches, stopLayoutPatches } from "./layout";
+import { isSplitActive, setSplitActive, startLayoutPatches, stopLayoutPatches } from "./layout";
 import { startPip, stopPip } from "./pip";
 import { SplitViewButton } from "./SplitView";
 import { useSplitViewSettings } from "./storage";
@@ -23,10 +23,15 @@ export default {
         startLayoutPatches();
         startPip();
         onJsxCreate(ANCHOR, inject);
+        if ((globalThis as any).__cheeseburgerSplit) {
+            delete (globalThis as any).__cheeseburgerSplit;
+            setTimeout(() => setSplitActive(true, true), 200);
+        }
         unpatches.push(before("jsx", jsxRuntime, registerTile));
         unpatches.push(before("jsxs", jsxRuntime, registerTile));
     },
     stop() {
+        if ((globalThis as any).__cheeseburgerSwapping) (globalThis as any).__cheeseburgerSplit = isSplitActive();
         deleteJsxCreate(ANCHOR, inject);
         stopPip();
         stopLayoutPatches();

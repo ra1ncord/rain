@@ -125,6 +125,13 @@ function ensureSetup(): Promise<void> {
         }
 
         try {
+            const { registerHotPlugins } = await import("@api/hot");
+            registerHotPlugins();
+        } catch (e) {
+            logger.error("Failed to set up hot plugins", e);
+        }
+
+        try {
             const { registerExternalPlugins } = await import("@api/external/plugins");
             await registerExternalPlugins();
         } catch (e) {

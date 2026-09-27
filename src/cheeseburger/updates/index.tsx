@@ -1,4 +1,5 @@
 import { updateAllExternalPlugins, useExternalPlugins } from "@api/external/plugins";
+import { revision } from "@api/hot/build";
 import { BundleUpdaterManager } from "@api/native/modules";
 import UpdateModule from "@api/native/modules/update";
 import { useLoaderConfig } from "@api/settings";
@@ -12,7 +13,6 @@ import { React } from "@metro/common";
 import { AlertActionButton, AlertActions, AlertModal } from "@metro/common/components";
 import { SelectedChannelStore } from "@metro/common/stores";
 import { fetchTheme, getCurrentTheme, useThemes } from "@plugins/_core/painter/themes";
-import { revision } from "rain-build-info";
 import { AppState } from "react-native";
 
 interface Rejoin { channelId: string; video: boolean; at: number; }
@@ -20,7 +20,7 @@ interface Rejoin { channelId: string; video: boolean; at: number; }
 const { useStore: useLiveUpdates, settings: state } = createPluginStore<{ target: string; tries: number; rejoin: Rejoin | null; }>("liveupdates", { target: "", tries: 0, rejoin: null });
 
 const CHECK_MS = 10_000;
-const ADDONS_MS = 5 * 60_000;
+const ADDONS_MS = 30_000;
 
 let running = false;
 let busy = false;

@@ -121,6 +121,12 @@ export function startOrientation() {
 }
 
 export function stopOrientation() {
+    if ((globalThis as any).__cheeseburgerSwapping && forced) {
+        (globalThis as any).__cheeseburgerLandscape = true;
+        forced = false;
+        if (retryTimer) clearInterval(retryTimer);
+        retryTimer = null;
+    }
     if (forced) setLandscape(false);
     for (const u of unpatches.splice(0)) u();
     dimsSub?.remove();

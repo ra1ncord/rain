@@ -29,7 +29,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest dist/rain.js dist/info.json addons/* \
+          gh release create latest dist/rain.js dist/info.json dist/cheeseburger.js dist/cheeseburger.json addons/* \
             --title "Latest build ($(git rev-parse --short HEAD))" \
             --notes "Auto-built from ${{ github.sha }}" \
             --latest
