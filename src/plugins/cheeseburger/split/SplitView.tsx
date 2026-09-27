@@ -6,7 +6,7 @@ import { Image, Pressable, Text, View } from "react-native";
 
 import { isLandscapeLocked, onRotateChange, toggleLandscape } from "../rotate/orientation";
 import { useCheeseburger } from "../storage";
-import { isSplitActive, onSplitChange, setSplitActive } from "./layout";
+import { isSplitActive, onSplitChange, setSplitActive, toggleSplit } from "./layout";
 import { useSplitViewSettings } from "./storage";
 import { currentOrder, moveKind, TileKind } from "./tiles";
 
@@ -76,7 +76,7 @@ export function SplitViewButton() {
         <Pressable
             accessibilityRole="button"
             accessibilityLabel="Split view"
-            onPress={() => setSplitActive(!active)}
+            onPress={toggleSplit}
             onLongPress={() => {
                 if (!isSplitActive()) setSplitActive(true);
                 showSheet("CheeseburgerArrange", ArrangeSheet);

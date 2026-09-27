@@ -36,9 +36,14 @@ let pollTimer: ReturnType<typeof setTimeout> | null = null;
 let burstUntil = 0;
 let gridW: { ww: number; w: number; } | null = null;
 let held = 0;
+let fullscreen = false;
+let origin: { x: number; y: number; } | null = null;
 let moved = 0;
 
-const GAP = 10;
+const GRID_GAP = 10;
+const FS_GAP = 4;
+const FS_TOP = 36;
+const FS_BOTTOM = 136;
 const SETTLE_MS = 1000;
 const DEFAULT_ORDER: TileKind[] = ["stream", "them", "me"];
 const SNAPS = [16 / 9, 4 / 3, 1, 3 / 4, 9 / 16];
@@ -380,13 +385,43 @@ function gridWidth(list: Tile[], ww: number): number {
     return gridW?.ww === ww ? gridW.w : Math.max(200, ww - 24);
 }
 
+function measureOrigin(list: Tile[]) {
+    const win = Dimensions.get("window");
+    let best: any = null;
+    for (const t of list) {
+        const c = readCoords(t.coords);
+        if (c && c.width > 0 && c.height > 0 && (!best || c.width * c.height > best.width * best.height)) best = c;
+    }
+    return best ? { x: win.width / 2 - (best.x + best.width / 2), y: win.height / 2 - (best.y + best.height / 2) } : { x: 0, y: 0 };
+}
+
+export function setTilesFullscreen(v: boolean) {
+    if (fullscreen === v) return;
+    fullscreen = v;
+    origin = null;
+    if (active) scheduleApply();
+}
+
 function computeRects(list: Tile[]): Map<string, Rect> {
     const out = new Map<string, Rect>();
     if (!list.length) return out;
 
     const win = Dimensions.get("window");
-    const W = gridWidth(list, win.width);
-    const H = Math.max(300, win.height - 245);
+    let W: number, H: number, X0: number, Y0: number, GAP: number;
+    if (fullscreen) {
+        origin ??= measureOrigin(list);
+        W = win.width;
+        H = Math.max(300, win.height - FS_TOP - FS_BOTTOM);
+        X0 = -origin.x;
+        Y0 = FS_TOP - origin.y;
+        GAP = FS_GAP;
+    } else {
+        W = gridWidth(list, win.width);
+        H = Math.max(300, win.height - 245);
+        X0 = 0;
+        Y0 = 0;
+        GAP = GRID_GAP;
+    }
     const asp = list.map(aspectOf);
     const tall = (i: number) => asp[i] < 1;
 
@@ -426,7 +461,7 @@ function computeRects(list: Tile[]): Map<string, Rect> {
         const rowW = widths.reduce((a, b) => a + b, 0) + GAP * (r.length - 1);
         let x = Math.max(0, (W - rowW) / 2);
         r.forEach((i, j) => {
-            out.set(list[i].key, { x: Math.round(x), y: Math.round(y), width: Math.round(widths[j]), height: Math.round(h) });
+            out.set(list[i].key, { x: Math.round(X0 + x), y: Math.round(Y0 + y), width: Math.round(widths[j]), height: Math.round(h) });
             x += widths[j] + GAP;
         });
         y += h + GAP;
@@ -516,6 +551,7 @@ export function tilesDebug(): string[] {
     const list = orderedTiles();
     return [
         `window: ${Math.round(Dimensions.get("window").width)}x${Math.round(Dimensions.get("window").height)}, tiles: ${list.length} (registered ${tiles.size}), call videos: ${(callParts() ?? []).map(p => p.streamId ?? "preview").join(",") || "?"}`,
+        `mode: ${fullscreen ? `full screen, origin ${origin ? `${Math.round(origin.x)},${Math.round(origin.y)}` : "?"}` : "grid"}`,
         `held: ${held}, moved: ${moved}, guarded: ${guards.size}, grid: ${gridW ? `${gridW.w}/${gridW.ww}` : "?"}`,
         `order setting: ${currentOrder().join(" > ")}`,
         `video sizes: ${[...videoSizes.entries()].map(([id, s]) => `${id}=${s.w}x${s.h}${aspects.has(id) ? ` (${aspects.get(id)!.value.toFixed(2)}${aspects.get(id)!.pending ? ` -> ${aspects.get(id)!.pending!.toFixed(2)}` : ""})` : ""}`).join(", ") || "none yet"}`,

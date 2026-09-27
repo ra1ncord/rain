@@ -1,8 +1,8 @@
 import { findAssetId } from "@api/assets";
 import { React } from "@metro/common";
-import { Image, Pressable, Text } from "react-native";
+import { Image, Text } from "react-native";
 
-import { isLandscapeLocked, onRotateChange, toggleLandscape } from "./orientation";
+import { isLandscapeLocked, onRotateChange } from "./orientation";
 
 const ICONS = ["ic_screen_rotation", "screen-rotation", "ScreenRotationIcon", "RotateIcon", "ic_rotate", "RetryIcon"];
 
@@ -12,34 +12,14 @@ const icon = () => {
     return iconId;
 };
 
-export function RotateButton({ size = 32 }: { size?: number; }) {
+export function RotateFace() {
     const [, force] = React.useReducer((n: number) => n + 1, 0);
     React.useEffect(() => onRotateChange(force), []);
 
-    const on = isLandscapeLocked();
+    const color = isLandscapeLocked() ? "#5865f2" : "#ffffff";
     const src = icon();
-    const tint = on ? "#000000" : "#ffffff";
 
-    return (
-        <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={on ? "Portrait" : "Landscape"}
-            onPress={toggleLandscape}
-            hitSlop={8}
-            style={({ pressed }) => ({
-                width: size,
-                height: size,
-                borderRadius: size * 0.3,
-                marginRight: 12,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: on ? "#ffffff" : "rgba(0,0,0,0.6)",
-                opacity: pressed ? 0.6 : 1,
-            })}
-        >
-            {src != null
-                ? <Image source={src} style={{ width: size * 0.6, height: size * 0.6, tintColor: tint }} />
-                : <Text style={{ color: tint, fontSize: size * 0.55 }}>⟳</Text>}
-        </Pressable>
-    );
+    return src != null
+        ? <Image source={src} style={{ width: 20, height: 20, tintColor: color }} />
+        : <Text style={{ color, fontSize: 18 }}>⟳</Text>;
 }

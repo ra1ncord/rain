@@ -5,9 +5,10 @@ import { FluxDispatcher } from "@metro/common";
 import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { AppState, Dimensions } from "react-native";
 
-import { setTilesActive, tilesDebug } from "./tiles";
+import { setTilesActive, setTilesFullscreen, tilesDebug } from "./tiles";
 
 let active = false;
+let fullscreen = false;
 const listeners = new Set<() => void>();
 const unpatches: (() => unknown)[] = [];
 let salt = 0;
@@ -78,6 +79,7 @@ function mainParticipantId(): string | null {
 
 let away = false;
 let resumeAfterAway = false;
+let awayFocus: string | null = null;
 let returnTimer: ReturnType<typeof setTimeout> | null = null;
 
 function onAppState(state: string) {
@@ -86,7 +88,8 @@ function onAppState(state: string) {
         away = false;
         if (!resumeAfterAway) return;
         resumeAfterAway = false;
-        unselectParticipant();
+        if (fullscreen && awayFocus) selectParticipant(awayFocus);
+        else unselectParticipant();
         returnTimer = setTimeout(() => {
             returnTimer = null;
             if (!active && !away) setSplitActive(true, true);
@@ -100,6 +103,7 @@ function onAppState(state: string) {
         returnTimer = null;
     } else {
         if (!active) return;
+        awayFocus = selectedParticipant();
         setSplitActive(false, true);
     }
     resumeAfterAway = true;
@@ -153,16 +157,33 @@ export function setSplitActive(v: boolean, fromFocus = false) {
     }
     if (active === v) return;
     active = v;
-    if (v && !fromFocus) unselectParticipant();
+    if (v && !fromFocus) {
+        fullscreen = !!selectedParticipant();
+        if (!fullscreen) unselectParticipant();
+    }
+    if (!v && !fromFocus) fullscreen = false;
+    setTilesFullscreen(fullscreen);
     setTilesActive(v);
     refresh();
 }
+
+export function toggleSplit() {
+    if (active) return setSplitActive(false);
+    if (resumeAfterFocus && selectedParticipant()) {
+        resumeAfterFocus = false;
+        return setSplitActive(true);
+    }
+    setSplitActive(!isSplitActive());
+}
+
+export const isFullscreenSplit = () => active && fullscreen;
 
 function onRtcState(e: any) {
     if (/DISCONNECTED/.test(String(e?.state))) {
         resumeAfterFocus = false;
         resumeAfterAway = false;
         if (active) setSplitActive(false);
+        fullscreen = false;
     }
 }
 
@@ -176,7 +197,7 @@ function selectedParticipant(): string | null {
 }
 
 function onSelect(e: any) {
-    if (!active || e?.id == null) return;
+    if (!active || fullscreen || e?.id == null) return;
     resumeAfterFocus = true;
     setTilesActive(false);
     setTimeout(() => {
@@ -186,6 +207,14 @@ function onSelect(e: any) {
 
 function watchFocus() {
     const selected = selectedParticipant();
+    if (active && fullscreen) {
+        if (!selected) {
+            fullscreen = false;
+            setTilesFullscreen(false);
+            refresh();
+        }
+        return;
+    }
     if (active && selected) {
         resumeAfterFocus = true;
         setSplitActive(false, true);
@@ -252,7 +281,7 @@ export function layoutDebug(): string[] {
     const safe = (f: () => any) => { try { return f(); } catch (e) { return `err ${e}`; } };
     const parts = channelId ? safe(() => store?.getParticipants?.(channelId)) : [];
     return [
-        `split active: ${active}`,
+        `split active: ${active}${fullscreen ? " (full screen)" : ""}`,
         `store fns: ${["getParticipants", "getFilteredParticipants", "getSelectedParticipantId", "getVoiceParticipantsHidden", "getParticipantsVersion", "emitChange"].filter(f => typeof store?.[f] === "function").join(",")}`,
         `selected: ${channelId ? safe(() => store?.getSelectedParticipantId?.(channelId)) : "-"}`,
         `grid order: ${Array.isArray(parts) ? parts.map((p: any) => (p.stream ? "stream" : hasVideo(p) ? "cam" : "novideo")).join(", ") : String(parts)}`,

@@ -1,37 +1,56 @@
 import { getNativeModule } from "@api/native/modules";
 import { instead } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
+import { Dimensions } from "react-native";
 
 const DISCORD_PATH = "modules/device/native/DeviceOrientation.tsx";
 const RELOCKS = ["lockToPortrait", "unlockAllOrientations", "lockToPortraitUpsideDown"];
+const WATCH = ["lockToPortrait", "lockToLandscape", "lockToLandscapeLeft", "lockToLandscapeRight", "unlockAllOrientations", "ignoreAutoRotate"];
 
 let forced = false;
 let locker: any = null;
 let native: any = null;
 let discord: any = null;
-let patched: string[] = [];
+let discordLock: Function | null = null;
+let discordUnlock: Function | null = null;
+let hooked: string[] = [];
 let lastError = "";
+let prevLock: any = null;
+let dimsSub: { remove(): void; } | null = null;
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
+const trail: string[] = [];
 const unpatches: (() => unknown)[] = [];
 const listeners = new Set<() => void>();
 
-function modules(): any {
+const brief = (v: any) => {
+    try {
+        return (JSON.stringify(v) ?? String(v)).slice(0, 60);
+    } catch {
+        return String(v).slice(0, 60);
+    }
+};
+
+function note(text: string) {
+    trail.push(`${new Date().toISOString().slice(17, 23)} ${text}`);
+    if (trail.length > 24) trail.splice(0, trail.length - 24);
+}
+
+function mods(): any {
     return (window as any).modules ?? {};
 }
 
 function byPath(path: string): any {
-    const mods = modules();
-    for (const id of Object.keys(mods)) {
-        const m = mods[id];
-        if (m?.__filePath === path) return m.isInitialized ? m.publicModule?.exports : undefined;
+    const m = mods();
+    for (const id of Object.keys(m)) {
+        if (m[id]?.__filePath === path) return m[id].isInitialized ? m[id].publicModule?.exports : undefined;
     }
 }
 
 function scan(test: (exp: any) => boolean): any {
-    const mods = modules();
-    for (const id of Object.keys(mods)) {
-        const m = mods[id];
-        if (!m?.isInitialized) continue;
-        const exp = m.publicModule?.exports;
+    const m = mods();
+    for (const id of Object.keys(m)) {
+        if (!m[id]?.isInitialized) continue;
+        const exp = m[id].publicModule?.exports;
         if (!exp || typeof exp !== "object") continue;
         try {
             if (test(exp)) return exp;
@@ -42,32 +61,71 @@ function scan(test: (exp: any) => boolean): any {
 
 const isLocker = (e: any) => typeof e.lockToLandscape === "function" && typeof e.lockToPortrait === "function" && typeof e.unlockAllOrientations === "function";
 
-function hook(target: any, label: string) {
+function wrap(target: any, name: string, label: string, body: (args: any[], orig: Function) => any) {
+    const before = target?.[name];
+    if (typeof before !== "function") return;
+    try {
+        unpatches.push(instead(name, target, body));
+        hooked.push(`${label}.${name}${target[name] === before ? "(no)" : ""}`);
+    } catch {
+        hooked.push(`${label}.${name}(no)`);
+    }
+}
+
+function hookLocker(target: any, label: string) {
     if (!target) return;
     const landscape = target.lockToLandscape;
-    if (typeof landscape !== "function") return;
-    for (const name of RELOCKS) {
-        if (typeof target[name] !== "function") continue;
-        try {
-            unpatches.push(instead(name, target, (args: any[], orig: Function) => (forced ? landscape.call(target) : orig(...args))));
-            patched.push(`${label}.${name}`);
-        } catch { }
+    for (const name of WATCH) {
+        wrap(target, name, label, (args, orig) => {
+            note(`${label}.${name}(${args.map(brief).join(",")})${forced && RELOCKS.includes(name) ? " -> landscape" : ""}`);
+            if (forced && RELOCKS.includes(name) && typeof landscape === "function") return landscape.call(target);
+            return orig(...args);
+        });
     }
+}
+
+function landscapeType(): any {
+    const types = discord?.OrientationType;
+    if (!types || typeof types !== "object") return undefined;
+    const keys = Object.keys(types);
+    const key = keys.find(k => /^landscape$/i.test(k)) ?? keys.find(k => /landscape/i.test(k) && !/right/i.test(k)) ?? keys.find(k => /landscape/i.test(k));
+    return key !== undefined ? types[key] : undefined;
+}
+
+function onDims({ window: w }: any) {
+    note(`screen ${Math.round(w.width)}x${Math.round(w.height)}`);
 }
 
 export function startOrientation() {
     locker = scan(isLocker) ?? null;
     native = getNativeModule<any>("Orientation") ?? null;
     discord = byPath(DISCORD_PATH) ?? null;
-    patched = [];
-    hook(locker, "js");
-    if (native !== locker) hook(native, "native");
+    hooked = [];
+    hookLocker(locker, "js");
+    if (native && native !== locker) hookLocker(native, "native");
+    if (discord) {
+        discordLock = typeof discord.lockOrientation === "function" ? discord.lockOrientation : null;
+        discordUnlock = typeof discord.unlockOrientation === "function" ? discord.unlockOrientation : null;
+        const lt = landscapeType();
+        wrap(discord, "lockOrientation", "discord", (args, orig) => {
+            note(`discord.lockOrientation(${args.map(brief).join(",")})${forced && lt !== undefined ? " -> landscape" : ""}`);
+            return orig(...(forced && lt !== undefined ? [lt] : args));
+        });
+        wrap(discord, "unlockOrientation", "discord", (args, orig) => {
+            note(`discord.unlockOrientation()${forced ? " -> kept" : ""}`);
+            if (forced) return;
+            return orig(...args);
+        });
+    }
+    dimsSub = Dimensions.addEventListener("change", onDims);
 }
 
 export function stopOrientation() {
     if (forced) setLandscape(false);
     for (const u of unpatches.splice(0)) u();
-    patched = [];
+    dimsSub?.remove();
+    dimsSub = null;
+    hooked = [];
 }
 
 export const isLandscapeLocked = () => forced;
@@ -77,29 +135,67 @@ export function onRotateChange(l: () => void) {
     return () => void listeners.delete(l);
 }
 
-function restore() {
+function attempt(label: string, fn: () => any) {
     try {
-        const lock = discord?.getOrientationLock?.();
-        if (lock != null && typeof discord?.lockOrientation === "function") return void discord.lockOrientation(lock);
-    } catch { }
-    (locker ?? native)?.lockToPortrait?.();
-}
-
-export function setLandscape(v: boolean) {
-    if (!locker && !native) startOrientation();
-    const target = locker ?? native;
-    if (!target) {
-        lastError = "no orientation api";
+        const r = fn();
+        if (r && typeof r.catch === "function") r.catch((e: any) => note(`${label} failed: ${e?.message ?? e}`));
+        return true;
+    } catch (e: any) {
+        lastError = `${label}: ${e?.message ?? e}`;
+        note(`${label} failed: ${e?.message ?? e}`);
+        logger.error("[Cheeseburger] rotate", e);
         return false;
     }
-    forced = v;
-    try {
-        if (v) target.lockToLandscape();
-        else restore();
-        lastError = "";
-    } catch (e: any) {
-        lastError = String(e?.message ?? e);
-        logger.error("[Cheeseburger] rotate failed", e);
+}
+
+function setIgnoreAutoRotate(v: boolean) {
+    for (const t of [locker, native]) {
+        if (!t) continue;
+        if (typeof t.ignoreAutoRotate === "function") attempt(`ignoreAutoRotate(${v})`, () => t.ignoreAutoRotate(v));
+        else if (typeof t.ignoreAutoRotate === "boolean") t.ignoreAutoRotate = v;
+    }
+}
+
+const portrait = () => {
+    const w = Dimensions.get("window");
+    return w.height >= w.width;
+};
+
+export function setLandscape(v: boolean) {
+    if (!locker && !native && !discord) startOrientation();
+    lastError = "";
+    if (retryTimer) clearTimeout(retryTimer);
+    retryTimer = null;
+
+    if (v) {
+        prevLock = (() => {
+            try {
+                return discord?.getOrientationLock?.() ?? null;
+            } catch {
+                return null;
+            }
+        })();
+        forced = true;
+        note("rotate on");
+        setIgnoreAutoRotate(true);
+        const lt = landscapeType();
+        if (discordLock && lt !== undefined) attempt("discord lock", () => discordLock!.call(discord, lt));
+        const target = locker ?? native;
+        if (target) attempt("lockToLandscape", () => target.lockToLandscape());
+        retryTimer = setTimeout(() => {
+            retryTimer = null;
+            if (!forced || !portrait()) return;
+            note("still portrait, trying left");
+            const t = native ?? locker;
+            if (t?.lockToLandscapeLeft) attempt("lockToLandscapeLeft", () => t.lockToLandscapeLeft());
+        }, 1200);
+    } else {
+        forced = false;
+        note("rotate off");
+        setIgnoreAutoRotate(false);
+        if (prevLock != null && discordLock) attempt("discord relock", () => discordLock!.call(discord, prevLock));
+        else if (discordUnlock) attempt("discord unlock", () => discordUnlock!.call(discord));
+        else (locker ?? native)?.unlockAllOrientations?.();
     }
     listeners.forEach(l => l());
     return true;
@@ -114,14 +210,18 @@ export function resetOrientation() {
 export function orientationDebug(): string[] {
     const safe = (f: () => any) => {
         try {
-            return JSON.stringify(f()) ?? "undefined";
+            return brief(f());
         } catch (e) {
             return `err ${e}`;
         }
     };
+    const w = Dimensions.get("window");
     return [
-        `rotate: ${locker ? "js" : native ? "native" : "none"}${lastError ? ` (${lastError})` : ""}, landscape: ${forced}`,
-        `hooked: ${patched.join(",") || "none"}`,
-        `discord lock: ${safe(() => discord?.getOrientationLock?.())}, now: ${safe(() => discord?.getOrientation?.())}`,
+        `rotate: ${locker ? "js" : native ? "native" : "none"}${discord ? " + discord" : ""}${lastError ? ` (${lastError})` : ""}, on: ${forced}, screen ${Math.round(w.width)}x${Math.round(w.height)}`,
+        `hooked: ${hooked.join(",") || "none"}`,
+        `ignoreAutoRotate: ${typeof locker?.ignoreAutoRotate}${typeof locker?.ignoreAutoRotate === "function" ? `/${locker.ignoreAutoRotate.length}` : ""}, native: ${typeof native?.ignoreAutoRotate}`,
+        `discord types: ${safe(() => discord?.OrientationType)}, lock: ${safe(() => discord?.getOrientationLock?.())}, now: ${safe(() => discord?.getOrientation?.())}`,
+        "rotate log:",
+        ...(trail.length ? trail.map(t => `  ${t}`) : ["  none yet"]),
     ];
 }
