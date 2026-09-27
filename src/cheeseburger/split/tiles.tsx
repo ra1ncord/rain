@@ -290,6 +290,7 @@ export function registerTile(args: any[]) {
         return args;
     }
 
+    if (props.sharedCoords) kickTiles();
     if (!props.sharedCoords || !isVideoRenderer(props) || props.streamId == null) return;
 
     const current = readCoords(props.sharedCoords);
@@ -476,14 +477,30 @@ const maxTop = new Map<string, number>();
 
 const statusBar = () => (typeof StatusBar?.currentHeight === "number" ? StatusBar.currentHeight : 24);
 
+const restSince = new WeakMap<object, { r: Rect; since: number; }>();
+let frameNote = "";
+
 function updateFrame(win: { width: number; height: number; }) {
     const p = measured.parent;
-    if (!p || Date.now() - p.at > 2000 || !isCoords(p.coords)) return;
-    const isTile = Math.abs(p.width - p.coords.width) < 16 && Math.abs(p.height - p.coords.height) < 16;
-    const o = isTile ? { x: p.x - p.coords.x, y: p.y - p.coords.y } : { x: p.x, y: p.y };
+    if (!p || Date.now() - p.at > 1000 || !isCoords(p.coords)) return;
+    const rest = restSince.get(p.sv);
+    if (!rest || !near(p.coords, rest.r) || Date.now() - rest.since < 700) {
+        frameNote = "moving";
+        return;
+    }
+    if (Math.abs(p.width - p.coords.width) > 16 || Math.abs(p.height - p.coords.height) > 16) {
+        frameNote = `skipped ${Math.round(p.width)}x${Math.round(p.height)}`;
+        return;
+    }
+    let o = { x: p.x - p.coords.x - (p.coords.width - p.width) / 2, y: p.y - p.coords.y - (p.coords.height - p.height) / 2 };
     const stable = lastOrigin && Math.abs(lastOrigin.x - o.x) < 1.5 && Math.abs(lastOrigin.y - o.y) < 1.5;
     lastOrigin = o;
-    if (!stable) return;
+    if (!stable) {
+        frameNote = "checking";
+        return;
+    }
+    frameNote = "";
+    if (frame && Math.abs(frame.origin.x - o.x) < 3 && Math.abs(frame.origin.y - o.y) < 3) o = frame.origin;
     const land = win.width > win.height;
     const key = `${Math.round(win.width)}x${Math.round(win.height)}`;
     const top0 = Math.max(maxTop.get(key) ?? o.y, o.y);
@@ -493,7 +510,7 @@ function updateFrame(win: { width: number; height: number; }) {
     const hidden = o.y < top0 - 30 || toolbarGone;
     const top = hidden ? (land ? 8 : statusBar() + 6) : o.y + 4;
     const bottom = hidden ? win.height - (land ? 8 : 56) : (tb && tb.y < win.height - 4 ? tb.y - 16 : win.height - (land ? 90 : 136)) - 8;
-    frame = { origin: o, parent: isTile ? "tile" : "area", hidden, top, bottom };
+    frame = { origin: o, parent: "tile", hidden, top: Math.round(top), bottom: Math.round(bottom) };
 }
 
 export function setTilesFullscreen(v: boolean) {
@@ -665,7 +682,8 @@ function noteMove(t: Tile, cur: any, now: number) {
 function applyLayout() {
     if (!active || !mine()) return;
     const list = orderedTiles();
-    measureAll(readCoords, list[0]?.coords);
+    const square = (t: Tile) => !t.streamId || Math.abs((aspects.get(t.streamId)?.value ?? 16 / 9) - aspectOf(t)) < 0.1;
+    measureAll(readCoords, (list.find(t => t.kind === "stream" && square(t)) ?? list.find(square))?.coords);
     updateFrame(Dimensions.get("window"));
     if (!list.length) {
         if (touched.size) restoreAll();
@@ -694,6 +712,8 @@ function applyLayout() {
         if (!r || !t.coords) continue;
         const prev = targets.get(t.coords);
         targets.set(t.coords, r);
+        const rs = restSince.get(t.coords);
+        if (!rs || !near(rs.r, r)) restSince.set(t.coords, { r, since: now });
         touched.add(t.coords);
         guard(t.coords);
         const cur = current.get(t.coords);
@@ -713,6 +733,13 @@ function poll() {
     if (!active || !mine()) return;
     applyLayout();
     pollTimer = setTimeout(poll, Date.now() < burstUntil ? 40 : 150);
+}
+
+export function kickTiles() {
+    const now = Date.now();
+    if (!active || now < burstUntil) return;
+    burstUntil = now + 1500;
+    setTimeout(applyLayout, 30);
 }
 
 let applyScheduled = false;
@@ -764,7 +791,7 @@ export function tilesDebug(): string[] {
     return [
         `copy ${copy} of ${shared.copies}, owner ${shared.owner}, ${hotStatus.source} ${hotStatus.revision.slice(0, 7)}`,
         `window: ${Math.round(Dimensions.get("window").width)}x${Math.round(Dimensions.get("window").height)}, tiles: ${list.length} (registered ${tiles.size}), call videos: ${(callParts() ?? []).filter(p => p.video).map(p => p.streamId ?? "preview").join(",") || "none"}, camera off: ${voice.length}`,
-        `mode: ${fullscreen ? "full screen" : "grid"}, ${frame ? `area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} (${frame.parent}), controls ${frame.hidden ? "hidden" : "shown"}, fit ${Math.round(frame.top)}-${Math.round(frame.bottom)}` : "area not measured"}${measured.toolbar ? `, toolbar y ${Math.round(measured.toolbar.y)}` : ""}`,
+        `mode: ${fullscreen ? "full screen" : "grid"}, ${frame ? `area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} (${frame.parent}), controls ${frame.hidden ? "hidden" : "shown"}, fit ${Math.round(frame.top)}-${Math.round(frame.bottom)}` : "area not measured"}${frameNote ? ` (${frameNote})` : ""}${measured.toolbar ? `, toolbar y ${Math.round(measured.toolbar.y)}` : ""}`,
         `held: ${held}, moved: ${moved}, guarded: ${guards.size}, touched: ${touched.size}, grid: ${gridW ? `${Math.round(gridW.w)}/${gridW.ww}` : "?"}`,
         ...(moves.length ? ["last moves:", ...moves.map(m => `  ${m}`)] : []),
         `order setting: ${currentOrder().join(" > ")}`,

@@ -7,7 +7,7 @@ const tileRefs = new Map<object, { current: any; }>();
 let toolbarRef: { current: any; } | null = null;
 let toolbarSeen = false;
 
-export const measured: { parent?: Box & { coords: any; }; toolbar?: Box; } = {};
+export const measured: { parent?: Box & { coords: any; sv: object; }; toolbar?: Box; } = {};
 
 const FILL = { position: "absolute", left: 0, top: 0, right: 0, bottom: 0, opacity: 0 } as const;
 
@@ -50,13 +50,11 @@ function measure(node: any, done: (b: Box) => void) {
 }
 
 export function measureAll(read: (sv: any) => any, prefer?: object) {
-    const entries = [...tileRefs.entries()];
-    const pick = entries.find(([sv]) => sv === prefer) ?? entries[0];
-    if (pick) {
-        const [sv, ref] = pick;
-        const coords = read(sv);
+    const ref = prefer ? tileRefs.get(prefer) : undefined;
+    if (prefer && ref) {
+        const coords = read(prefer);
         measure(ref.current, b => {
-            measured.parent = { ...b, coords };
+            measured.parent = { ...b, coords, sv: prefer };
         });
     } else {
         delete measured.parent;
