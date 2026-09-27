@@ -1,6 +1,9 @@
 import SettingsTextInput from "@api/ui/components/SettingsTextInput";
+import { showToast } from "@api/ui/toasts";
+import { clipboard } from "@metro/common";
 import { TableRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 
+import { volumeDebug } from ".";
 import { useVolumeBoostSettings } from "./storage";
 
 export default function VolumeSettings() {
@@ -32,6 +35,13 @@ export default function VolumeSettings() {
                 label="Debug"
                 value={s.debugSliders}
                 onValueChange={(v: boolean) => s.updateSettings({ debugSliders: v })}
+            />
+            <TableRow
+                label="Copy debug"
+                onPress={() => {
+                    clipboard.setString(volumeDebug().join("\n"));
+                    showToast("Copied");
+                }}
             />
         </TableRowGroup>
     );

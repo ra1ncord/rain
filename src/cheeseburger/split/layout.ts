@@ -5,11 +5,14 @@ import { FluxDispatcher } from "@metro/common";
 import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { AppState, Dimensions } from "react-native";
 
+import { isLandscapeLocked } from "../rotate/orientation";
 import { setTilesActive, setTilesFullscreen, tilesDebug } from "./tiles";
 
 let active = false;
 let fullscreen = false;
 let lastSel: string | null = null;
+let fsSel: string | null = null;
+let watchedAt = 0;
 const listeners = new Set<() => void>();
 const unpatches: (() => unknown)[] = [];
 let salt = 0;
@@ -84,10 +87,25 @@ const NOISY = /^(SPEAKING|RTC_CONNECTION_PING|RTC_CONNECTION_STATS|MEDIA_ENGINE|
 function onAction(args: any[]) {
     const a = args[0];
     const type = a?.type;
-    if (typeof type !== "string" || NOISY.test(type)) return;
-    const extra = ["id", "channelId", "participantId", "streamKey", "userId", "focused", "mode", "layout"].filter(k => a[k] !== undefined).map(k => `${k}=${String(a[k]).slice(0, 40)}`).join(" ");
-    actions.push(`${new Date().toISOString().slice(17, 23)} ${type}${extra ? ` ${extra}` : ""}`);
-    if (actions.length > 25) actions.splice(0, actions.length - 25);
+    if (typeof type !== "string") return;
+    if (/^STREAM_(WATCH|START|CREATE)/.test(type)) watchedAt = Date.now();
+    const kept = type === "CHANNEL_RTC_SELECT_PARTICIPANT" && a.id != null && active && !rotated();
+    if (!NOISY.test(type)) {
+        const extra = ["id", "channelId", "participantId", "streamKey", "userId", "focused", "mode", "layout"].filter(k => a[k] !== undefined).map(k => `${k}=${String(a[k]).slice(0, 40)}`).join(" ");
+        actions.push(`${new Date().toISOString().slice(17, 23)} ${type}${extra ? ` ${extra}` : ""}${kept ? " (split)" : ""}`);
+        if (actions.length > 25) actions.splice(0, actions.length - 25);
+    }
+    if (!kept) return;
+    maximized(String(a.id));
+    return [{ ...a, id: null }, ...args.slice(1)];
+}
+
+function maximized(id: string) {
+    const watched = Date.now() - watchedAt < 1500;
+    if (watched) return;
+    fsSel = id;
+    const next = !fullscreen;
+    setTimeout(() => setFullscreen(next), 0);
 }
 
 function moduleExports(path: string): any {
@@ -185,14 +203,38 @@ export function setSplitActive(v: boolean, fromFocus = false) {
     }
     if (active === v) return;
     active = v;
+    let back: string | null = null;
     if (v && !fromFocus) {
-        fullscreen = !!(selectedParticipant() ?? lastSel);
+        fsSel = selectedParticipant() ?? lastSel;
+        fullscreen = !!fsSel;
         unselectParticipant();
     }
-    if (!v && !fromFocus) fullscreen = false;
+    if (!v && !fromFocus) {
+        if (fullscreen && fsSel && isParticipant(fsSel)) back = fsSel;
+        fullscreen = false;
+        fsSel = null;
+    }
     setTilesFullscreen(fullscreen);
     setTilesActive(v);
     refresh();
+    if (back) selectParticipant(back);
+}
+
+function isParticipant(id: string) {
+    const channelId = SelectedChannelStore?.getVoiceChannelId?.();
+    if (!channelId) return false;
+    try {
+        return (rtcStore()?.getParticipants?.(channelId) ?? []).some((p: any) => String(p?.id) === id);
+    } catch {
+        return false;
+    }
+}
+
+function setFullscreen(v: boolean) {
+    if (!active || fullscreen === v) return;
+    fullscreen = v;
+    setTilesFullscreen(v);
+    listeners.forEach(l => l());
 }
 
 export function toggleSplit() {
@@ -217,6 +259,7 @@ function onRtcState(e: any) {
         resumeAfterAway = false;
         if (active) setSplitActive(false);
         fullscreen = false;
+        fsSel = lastSel = null;
     }
 }
 
@@ -229,19 +272,31 @@ function selectedParticipant(): string | null {
     try { return rtcStore()?.getSelectedParticipantId?.(channelId) ?? null; } catch { return null; }
 }
 
+const rotated = () => isLandscapeLocked() || isLandscape();
+
 function onSelect(e: any) {
-    lastSel = e?.id ?? null;
-    if (!active || e?.id == null) return;
-    resumeAfterFocus = true;
-    setTilesActive(false);
+    const id = e?.id != null ? String(e.id) : null;
+    lastSel = id;
+    if (!active || id == null) return;
+    if (rotated()) {
+        resumeAfterFocus = true;
+        setTilesActive(false);
+        setTimeout(() => {
+            if (active) setSplitActive(false, true);
+        }, 0);
+        return;
+    }
+    maximized(id);
     setTimeout(() => {
-        if (active) setSplitActive(false, true);
+        if (active) unselectParticipant();
     }, 0);
 }
 
 function watchFocus() {
     const selected = selectedParticipant();
-    if (active && selected) {
+    if (active && selected && !rotated()) {
+        unselectParticipant();
+    } else if (active && selected) {
         resumeAfterFocus = true;
         setSplitActive(false, true);
     } else if (!active && resumeAfterFocus && !selected) {
@@ -308,7 +363,7 @@ export function layoutDebug(): string[] {
     const safe = (f: () => any) => { try { return f(); } catch (e) { return `err ${e}`; } };
     const parts = channelId ? safe(() => store?.getParticipants?.(channelId)) : [];
     return [
-        `split active: ${active}${fullscreen ? " (full screen)" : ""}`,
+        `split active: ${active}${fullscreen ? ` (full screen${fsSel ? ` from ${fsSel.slice(0, 24)}` : ""})` : ""}${resumeAfterFocus ? ", waiting for focus" : ""}${resumeAfterRotate ? ", waiting for portrait" : ""}`,
         `store fns: ${["getParticipants", "getFilteredParticipants", "getSelectedParticipantId", "getVoiceParticipantsHidden", "getParticipantsVersion", "emitChange"].filter(f => typeof store?.[f] === "function").join(",")}`,
         `selected: ${channelId ? safe(() => store?.getSelectedParticipantId?.(channelId)) : "-"}`,
         `grid order: ${Array.isArray(parts) ? parts.map((p: any) => (p.stream ? "stream" : hasVideo(p) ? "cam" : "novideo")).join(", ") : String(parts)}`,

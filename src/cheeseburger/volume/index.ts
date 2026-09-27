@@ -52,7 +52,64 @@ function forEachConnection(cb: (conn: any) => void): boolean {
     return true;
 }
 
+const trail: string[] = [];
+let observed = new WeakSet<object>();
+
+function note(line: string) {
+    trail.push(`${new Date().toISOString().slice(17, 23)} ${line}`);
+    if (trail.length > 20) trail.shift();
+}
+
+const short = (v: any) => (typeof v === "string" && v.length > 8 ? `…${v.slice(-4)}` : typeof v === "number" ? String(Math.round(v * 1000) / 1000) : typeof v);
+
+function connContext(conn: any): string {
+    const c = conn?.context ?? conn?.mediaContext ?? conn?._context;
+    if (typeof c === "string") return c;
+    if (conn?.streamUserId != null || conn?.isStream || conn?.streamKey != null) return "stream";
+    return "default";
+}
+
+function observe(obj: any, label: string) {
+    if (!obj || typeof obj !== "object" || observed.has(obj)) return;
+    observed.add(obj);
+    let names: string[] = [];
+    try {
+        names = [...new Set([...Object.keys(obj), ...Object.getOwnPropertyNames(Object.getPrototypeOf(obj) ?? {})])];
+    } catch { }
+    for (const name of names) {
+        if (!/^(set|update|apply)/.test(name) || !/volume|gain/i.test(name) || name === "setLocalVolume" && label === "conn") continue;
+        try {
+            if (typeof obj[name] !== "function") continue;
+            const orig = obj[name];
+            obj[name] = function (this: any, ...a: any[]) {
+                note(`${label}.${name}(${a.map(short).join(",")})`);
+                return orig.apply(this, a);
+            };
+            unpatches.push(() => {
+                try {
+                    obj[name] = orig;
+                } catch { }
+            });
+        } catch { }
+    }
+}
+
+function observeConnection(conn: any) {
+    observe(conn, "conn");
+    for (const key of Object.keys(conn ?? {})) {
+        const v = conn[key];
+        if (v && typeof v === "object" && !Array.isArray(v)) {
+            try {
+                const proto = Object.getPrototypeOf(v);
+                const fns = [...Object.keys(v), ...Object.getOwnPropertyNames(proto ?? {})];
+                if (fns.some(n => /volume/i.test(n))) observe(v, key);
+            } catch { }
+        }
+    }
+}
+
 function patchConnection(conn: any) {
+    observeConnection(conn);
     const proto = Object.getPrototypeOf(conn);
     const target = proto && typeof proto.setLocalVolume === "function" ? proto : conn;
     if (typeof target?.setLocalVolume !== "function" || patchedProtos.has(target)) return;
@@ -60,19 +117,80 @@ function patchConnection(conn: any) {
 
     unpatches.push(before("setLocalVolume", target, function (this: any, args: any[]) {
         const [userId, volume] = args;
-        const boost = typeof userId === "string" ? getBoost(userId, this?.context ?? "default") : undefined;
-        if (boost && boost > DISCORD_MAX) {
+        const ctx = connContext(this);
+        const boost = typeof userId === "string" ? getBoost(userId, ctx) : undefined;
+        const out = boost && boost > DISCORD_MAX ? boost : volume;
+        note(`${ctx} ${short(userId)} ${short(volume)}${out !== volume ? ` -> ${out}` : ""}`);
+        if (out !== volume) {
             debug(`engine ${userId}: ${volume} -> ${boost}`);
-            args[1] = boost;
+            args[1] = out;
             return args;
         }
     }));
 }
 
+function localVolumesOf(conn: any, userId: string): string {
+    const hits: string[] = [];
+    for (const key of Object.keys(conn ?? {})) {
+        const v = conn[key];
+        try {
+            if (v instanceof Map && v.has(userId)) hits.push(`${key}=${short(v.get(userId))}`);
+            else if (v && typeof v === "object" && !Array.isArray(v) && userId in v) hits.push(`${key}=${short(v[userId])}`);
+        } catch { }
+    }
+    return hits.join(" ") || "-";
+}
+
+function modulePaths(): string[] {
+    const mods: any = (window as any).modules ?? {};
+    const out: string[] = [];
+    for (const id of Object.keys(mods)) {
+        const p = mods[id]?.__filePath;
+        if (typeof p !== "string" || !/media_?engine|voice_?engine|MediaEngine|audio_?output|NativeVoice/i.test(p)) continue;
+        const exp = mods[id].isInitialized ? mods[id].publicModule?.exports : undefined;
+        let keys = "";
+        try {
+            keys = exp ? Object.keys(exp).slice(0, 8).join(",") : "not loaded";
+        } catch { }
+        out.push(`  ${p} [${keys}]`);
+        if (out.length >= 14) break;
+    }
+    return out;
+}
+
+export function volumeDebug(): string[] {
+    const store = getMediaEngineStore();
+    const lines: string[] = [`max ${maxPercent()}%, boosted: ${Object.entries(volumeBoostSettings.boosted ?? {}).map(([k, v]) => `${k.split(":")[0]} ${short(k.split(":")[1])}=${v}`).join(", ") || "none"}`];
+    const users = [...new Set(Object.keys(volumeBoostSettings.boosted ?? {}).map(k => k.split(":")[1]))];
+    for (const u of users) {
+        const safe = (ctx: string) => {
+            try {
+                return short(store?.getLocalVolume?.(u, ctx));
+            } catch {
+                return "err";
+            }
+        };
+        lines.push(`store ${short(u)}: default=${safe("default")} stream=${safe("stream")}`);
+    }
+    const found = forEachConnection(conn => {
+        let methods = "";
+        try {
+            methods = Object.getOwnPropertyNames(Object.getPrototypeOf(conn) ?? {}).filter(n => /volume|gain|context|stream|mute/i.test(n)).join(",");
+        } catch { }
+        lines.push(`conn ${conn?.constructor?.name ?? "?"} context=${String(conn?.context)} -> ${connContext(conn)} keys=${Object.keys(conn ?? {}).slice(0, 14).join(",")}`);
+        lines.push(`  methods: ${methods || "-"}`);
+        for (const u of users) lines.push(`  ${short(u)}: ${localVolumesOf(conn, u)}`);
+    });
+    if (!found) lines.push("no media engine");
+    lines.push("files:", ...modulePaths());
+    lines.push("calls:", ...(trail.length ? trail.map(t => `  ${t}`) : ["  none yet"]));
+    return lines;
+}
+
 function applyToConnections(userId?: string) {
     const ok = forEachConnection(conn => {
         patchConnection(conn);
-        const ctx = conn?.context ?? "default";
+        const ctx = connContext(conn);
         for (const [key, volume] of Object.entries(volumeBoostSettings.boosted ?? {})) {
             const [kctx, kuser] = key.split(":");
             if (kctx !== ctx || (userId && kuser !== userId)) continue;
@@ -357,5 +475,7 @@ export default {
         tickQueries = [];
         lastSliderContext = null;
         patchedProtos = new WeakSet<object>();
+        observed = new WeakSet<object>();
+        trail.length = 0;
     },
 };
