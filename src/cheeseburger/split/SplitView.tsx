@@ -7,6 +7,7 @@ import { Image, Pressable, Text, View } from "react-native";
 import { isLandscapeLocked, onRotateChange, toggleLandscape } from "../rotate/orientation";
 import { useCheeseburger } from "../storage";
 import { isSplitActive, onSplitChange, setSplitActive, toggleSplit } from "./layout";
+import { useToolbarRef } from "./probe";
 import { useSplitViewSettings } from "./storage";
 import { currentOrder, moveKind, TileKind } from "./tiles";
 
@@ -65,6 +66,7 @@ export function SplitViewButton() {
     const { showButton, iconSize } = useSplitViewSettings();
     const [, force] = React.useReducer((n: number) => n + 1, 0);
     React.useEffect(() => onSplitChange(force), []);
+    const ref = useToolbarRef();
     if (!showButton) return null;
 
     const active = isSplitActive();
@@ -74,6 +76,7 @@ export function SplitViewButton() {
 
     return (
         <Pressable
+            ref={ref}
             accessibilityRole="button"
             accessibilityLabel="Split view"
             onPress={toggleSplit}

@@ -6,7 +6,7 @@ import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { AppState, Dimensions } from "react-native";
 
 import { isLandscapeLocked } from "../rotate/orientation";
-import { setTilesActive, setTilesFullscreen, tilesDebug } from "./tiles";
+import { hasVideo, setTilesActive, setTilesFullscreen, tilesDebug } from "./tiles";
 
 let active = false;
 let fullscreen = false;
@@ -25,11 +25,10 @@ export function onSplitChange(l: () => void) {
 
 const rtcStore = () => findByStoreName("ChannelRTCStore");
 
-const hasVideo = (p: any) => !!(p?.stream || p?.streamId != null || p?.userVideo);
 
 const memo = new WeakMap<object, { key: string; out: any[]; }>();
 
-const signature = (list: any[]) => list.map((p: any) => `${p?.id ?? p?.user?.id}:${p?.streamId ?? ""}:${p?.stream ? 1 : 0}:${p?.userVideo ? 1 : 0}`).join("|");
+const signature = (list: any[]) => list.map((p: any) => `${p?.id ?? p?.user?.id}:${p?.streamId ?? ""}:${p?.stream ? 1 : 0}:${hasVideo(p) ? 1 : 0}`).join("|");
 
 function arrange(list: any): any {
     if (!active || !Array.isArray(list)) return list;
@@ -37,7 +36,7 @@ function arrange(list: any): any {
     const hit = memo.get(list);
     if (hit?.key === key) return hit.out;
 
-    const video = list.filter(hasVideo);
+    const video = list.filter(p => p && hasVideo(p));
     let out = list;
     if (video.length >= 2) {
         const meId = UserStore?.getCurrentUser?.()?.id;
@@ -45,7 +44,7 @@ function arrange(list: any): any {
         const streams = video.filter((p: any) => p.stream);
         const theirCams = video.filter((p: any) => !p.stream && !isMe(p));
         const myCam = video.filter((p: any) => !p.stream && isMe(p));
-        out = [...streams, ...theirCams, ...myCam];
+        out = [...streams, ...theirCams, ...myCam, ...list.filter(p => !video.includes(p))];
     }
     memo.set(list, { key, out });
     return out;
@@ -313,9 +312,6 @@ export function startLayoutPatches() {
         if (focusWatch) clearInterval(focusWatch);
         focusWatch = null;
     });
-    if (typeof store.getVoiceParticipantsHidden === "function") {
-        unpatches.push(after("getVoiceParticipantsHidden", store, (_: any, ret: any) => active ? true : ret));
-    }
     if (typeof store.getParticipantsVersion === "function") {
         unpatches.push(after("getParticipantsVersion", store, (_: any, ret: any) => typeof ret === "number" ? ret + salt * 1000 : ret));
     }
@@ -361,6 +357,7 @@ export function layoutDebug(): string[] {
         `store fns: ${["getParticipants", "getFilteredParticipants", "getSelectedParticipantId", "getVoiceParticipantsHidden", "getParticipantsVersion", "emitChange"].filter(f => typeof store?.[f] === "function").join(",")}`,
         `selected: ${channelId ? safe(() => store?.getSelectedParticipantId?.(channelId)) : "-"}`,
         `grid order: ${Array.isArray(parts) ? parts.map((p: any) => (p.stream ? "stream" : hasVideo(p) ? "cam" : "novideo")).join(", ") : String(parts)}`,
+        `participant: ${Array.isArray(parts) && parts[0] ? `${shallow(parts[0])} | voiceState: ${shallow(parts[0].voiceState)}` : "-"}`,
         ...tilesDebug(),
         `call store: ${shallow(moduleExports("modules/video_calls/native/ChannelCallStore.tsx")?.useChannelCallStore?.getState?.())}`,
         "recent actions:",

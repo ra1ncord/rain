@@ -2,8 +2,9 @@ import { hotStatus } from "@api/hot/status";
 import { logger } from "@lib/utils/logger";
 import { findByStoreName } from "@metro";
 import { SelectedChannelStore, UserStore } from "@metro/common/stores";
-import { Dimensions } from "react-native";
+import { Dimensions, StatusBar } from "react-native";
 
+import { measureAll, measured, toolbarKnown } from "./probe";
 import { splitViewSettings } from "./storage";
 
 export type TileKind = "stream" | "them" | "me";
@@ -196,6 +197,12 @@ function unguardAll() {
 
 const isVideoRenderer = (props: any) => "isCamera" in props || "videoSpinnerContext" in props;
 
+export function isTileElement(args: any[]): boolean {
+    const props = args[1];
+    return !!props && typeof props === "object" && typeof args[0] !== "string" && !!props.sharedCoords
+        && isVideoRenderer(props) && props.streamId != null && typeof props.onSize !== "function";
+}
+
 function kindFromProps(props: any, coords: any): TileKind {
     const id = String(coords?.id ?? props.id ?? "");
     if (id.startsWith("call:") || props.streamKey || props.isStream || props.isCamera === false) return "stream";
@@ -301,7 +308,17 @@ export function registerTile(args: any[]) {
     if (active && existing?.coords !== props.sharedCoords) scheduleApply();
 }
 
-interface Part { id: string; userId?: string; streamId?: string; kind: TileKind; }
+interface Part { id: string; userId?: string; streamId?: string; kind: TileKind; video: boolean; }
+
+export function hasVideo(p: any): boolean {
+    if (p.stream) return true;
+    const self = p.voiceState?.selfVideo;
+    if (typeof self === "boolean") return self;
+    if (typeof p.userVideo === "boolean") return p.userVideo;
+    return p.streamId != null;
+}
+
+let voiceHidden = false;
 
 function callParts(): Part[] | null {
     try {
@@ -310,13 +327,19 @@ function callParts(): Part[] | null {
         const parts: any[] | undefined = channelId ? store?.getParticipants?.(channelId) : undefined;
         if (!Array.isArray(parts)) return null;
         const meId = UserStore?.getCurrentUser?.()?.id;
-        return parts.filter(p => p && (p.stream || p.streamId != null)).map(p => {
+        try {
+            voiceHidden = !!store?.getVoiceParticipantsHidden?.(channelId);
+        } catch {
+            voiceHidden = false;
+        }
+        return parts.filter(p => p && p.id != null).map(p => {
             const userId = p.user?.id ?? (p.stream ? undefined : p.id);
             return {
                 id: String(p.id),
                 userId: userId != null ? String(userId) : undefined,
                 streamId: p.streamId != null ? String(p.streamId) : undefined,
                 kind: p.stream ? "stream" : userId === meId ? "me" : "them",
+                video: hasVideo(p),
             };
         });
     } catch {
@@ -342,11 +365,15 @@ function previewTile(p: Part, used: Set<any>): Tile | undefined {
     return t;
 }
 
+let voice: Tile[] = [];
+
 function liveTiles(): Tile[] {
-    const parts = callParts();
+    const all = callParts();
+    const parts = all?.filter(p => p.video) ?? null;
     const now = Date.now();
     const out: Tile[] = [];
     const used = new Set<any>();
+    voice = [];
 
     if (!parts) {
         for (const t of tiles.values()) {
@@ -377,6 +404,15 @@ function liveTiles(): Tile[] {
         if (!t) continue;
         used.add(t.coords);
         out.push(t);
+    }
+    if (!voiceHidden) {
+        for (const p of all ?? []) {
+            if (p.video || p.kind === "stream") continue;
+            const coords = coordsById.get(p.id)?.coords ?? (p.streamId != null ? tiles.get(`v:${p.streamId}`)?.coords : undefined);
+            if (!coords || used.has(coords)) continue;
+            used.add(coords);
+            voice.push({ key: `a:${p.id}`, kind: p.kind, coords, seenAt: now, firstSeen: now });
+        }
     }
     for (const [key, t] of tiles) {
         if (!live.has(key) && now - t.seenAt > 10_000) tiles.delete(key);
@@ -432,6 +468,34 @@ function gridWidth(list: Tile[], ww: number): number {
 
 const GRID_TOP = 112;
 
+interface Frame { origin: { x: number; y: number; }; parent: string; hidden: boolean; top: number; bottom: number; }
+
+let frame: Frame | null = null;
+let lastOrigin: { x: number; y: number; } | null = null;
+const maxTop = new Map<string, number>();
+
+const statusBar = () => (typeof StatusBar?.currentHeight === "number" ? StatusBar.currentHeight : 24);
+
+function updateFrame(win: { width: number; height: number; }) {
+    const p = measured.parent;
+    if (!p || Date.now() - p.at > 2000 || !isCoords(p.coords)) return;
+    const isTile = Math.abs(p.width - p.coords.width) < 16 && Math.abs(p.height - p.coords.height) < 16;
+    const o = isTile ? { x: p.x - p.coords.x, y: p.y - p.coords.y } : { x: p.x, y: p.y };
+    const stable = lastOrigin && Math.abs(lastOrigin.x - o.x) < 1.5 && Math.abs(lastOrigin.y - o.y) < 1.5;
+    lastOrigin = o;
+    if (!stable) return;
+    const land = win.width > win.height;
+    const key = `${Math.round(win.width)}x${Math.round(win.height)}`;
+    const top0 = Math.max(maxTop.get(key) ?? o.y, o.y);
+    maxTop.set(key, top0);
+    const tb = measured.toolbar && Date.now() - measured.toolbar.at < 2000 ? measured.toolbar : undefined;
+    const toolbarGone = toolbarKnown() && splitViewSettings.showButton !== false && (!tb || tb.y >= win.height - 4);
+    const hidden = o.y < top0 - 30 || toolbarGone;
+    const top = hidden ? (land ? 8 : statusBar() + 6) : o.y + 4;
+    const bottom = hidden ? win.height - (land ? 8 : 56) : (tb && tb.y < win.height - 4 ? tb.y - 16 : win.height - (land ? 90 : 136)) - 8;
+    frame = { origin: o, parent: isTile ? "tile" : "area", hidden, top, bottom };
+}
+
 export function setTilesFullscreen(v: boolean) {
     if (fullscreen === v) return;
     fullscreen = v;
@@ -456,12 +520,19 @@ function landscapeRects(list: Tile[], win: { width: number; height: number; }): 
         top = minY;
         H = Math.max(120, maxY - minY - LS_INSET);
     }
+    if (frame) {
+        top = frame.top - frame.origin.y;
+        H = Math.max(120, frame.bottom - frame.top);
+    }
+    const n = voice.length;
+    const S = n ? Math.max(36, Math.min(72, (H - GRID_GAP * (n - 1)) / n)) : 0;
+    const Wv = n ? W - S - GRID_GAP : W;
     const asp = list.map(aspectOf);
     const widest = Math.max(...asp);
     let best = { rows: 1, cols: list.length, h: 0 };
     for (let rows = 1; rows <= list.length; rows++) {
         const cols = Math.ceil(list.length / rows);
-        const h = Math.min((H - GRID_GAP * (rows - 1)) / rows, (W - GRID_GAP * (cols + 1)) / cols / widest);
+        const h = Math.min((H - GRID_GAP * (rows - 1)) / rows, (Wv - GRID_GAP * (cols + 1)) / cols / widest);
         if (h > best.h) best = { rows, cols, h };
     }
     const { rows, cols, h } = best;
@@ -469,13 +540,30 @@ function landscapeRects(list: Tile[], win: { width: number; height: number; }): 
     for (let r = 0; r < rows; r++) {
         const idx = list.map((_, i) => i).slice(r * cols, (r + 1) * cols);
         const widths = idx.map(i => h * asp[i]);
-        let x = Math.max(GRID_GAP, (W - widths.reduce((a, b) => a + b, 0) - GRID_GAP * (idx.length - 1)) / 2);
+        let x = Math.max(GRID_GAP, (Wv - widths.reduce((a, b) => a + b, 0) - GRID_GAP * (idx.length - 1)) / 2);
         idx.forEach((i, j) => {
-            out.set(list[i].key, { x: Math.round(x), y: Math.round(y), width: Math.round(widths[j]), height: Math.round(h) });
+            out.set(list[i].key, { x, y, width: widths[j], height: h });
             x += widths[j] + GRID_GAP;
         });
         y += h + GRID_GAP;
     }
+    if (n) {
+        const rects = [...out.values()];
+        const left = Math.min(...rects.map(r => r.x));
+        const right = Math.max(...rects.map(r => r.x + r.width));
+        const shift = Math.max(GRID_GAP, (W - (right - left + GRID_GAP + S)) / 2) - left;
+        for (const [k, r] of out) out.set(k, { ...r, x: r.x + shift });
+        let vy = top + Math.max(0, (H - (n * S + GRID_GAP * (n - 1))) / 2);
+        for (const t of voice) {
+            out.set(t.key, { x: right + shift + GRID_GAP, y: vy, width: S, height: S });
+            vy += S + GRID_GAP;
+        }
+    }
+    return rounded(out);
+}
+
+function rounded(out: Map<string, Rect>) {
+    for (const [k, r] of out) out.set(k, { x: Math.round(r.x), y: Math.round(r.y), width: Math.round(r.width), height: Math.round(r.height) });
     return out;
 }
 
@@ -487,19 +575,25 @@ function computeRects(list: Tile[]): Map<string, Rect> {
     if (win.width > win.height) return landscapeRects(list, win);
     let W: number, H: number, X0: number, Y0: number, GAP: number;
     if (fullscreen) {
-        origin ??= { x: (win.width - gridWidth(list, win.width)) / 2, y: GRID_TOP };
+        origin = frame?.origin ?? origin ?? { x: (win.width - gridWidth(list, win.width)) / 2, y: GRID_TOP };
+        const top = frame?.hidden ? frame.top : FS_TOP;
+        const bottom = frame?.hidden ? frame.bottom : win.height - FS_BOTTOM;
         W = win.width;
-        H = Math.max(300, win.height - FS_TOP - FS_BOTTOM);
+        H = Math.max(300, bottom - top);
         X0 = -origin.x;
-        Y0 = FS_TOP - origin.y;
+        Y0 = top - origin.y;
         GAP = FS_GAP;
     } else {
         W = gridWidth(list, win.width);
-        H = Math.max(300, win.height - 245);
+        H = frame ? Math.max(200, frame.bottom - frame.top) : Math.max(300, win.height - 245);
         X0 = 0;
-        Y0 = 0;
+        Y0 = frame ? frame.top - frame.origin.y : 0;
         GAP = GRID_GAP;
     }
+    const n = voice.length;
+    const S = n ? Math.max(40, Math.min(96, (W - GAP * (n - 1)) / n)) : 0;
+    const fullH = H;
+    if (n) H = Math.max(160, H - S - GAP);
     const asp = list.map(aspectOf);
     const tall = (i: number) => asp[i] < 1;
 
@@ -539,12 +633,24 @@ function computeRects(list: Tile[]): Map<string, Rect> {
         const rowW = widths.reduce((a, b) => a + b, 0) + GAP * (r.length - 1);
         let x = Math.max(0, (W - rowW) / 2);
         r.forEach((i, j) => {
-            out.set(list[i].key, { x: Math.round(X0 + x), y: Math.round(Y0 + y), width: Math.round(widths[j]), height: Math.round(h) });
+            out.set(list[i].key, { x: X0 + x, y: Y0 + y, width: widths[j], height: h });
             x += widths[j] + GAP;
         });
         y += h + GAP;
     }
-    return out;
+    if (n) {
+        const rects = [...out.values()];
+        const top = Math.min(...rects.map(r => r.y));
+        const bottom = Math.max(...rects.map(r => r.y + r.height));
+        const shift = Y0 + Math.max(0, (fullH - (bottom - top + GAP + S)) / 2) - top;
+        for (const [k, r] of out) out.set(k, { ...r, y: r.y + shift });
+        let vx = X0 + Math.max(0, (W - (n * S + GAP * (n - 1))) / 2);
+        for (const t of voice) {
+            out.set(t.key, { x: vx, y: bottom + shift + GAP, width: S, height: S });
+            vx += S + GAP;
+        }
+    }
+    return rounded(out);
 }
 
 const fmt = (c: any) => `${Math.round(c?.x)},${Math.round(c?.y)} ${Math.round(c?.width)}x${Math.round(c?.height)}`;
@@ -559,15 +665,31 @@ function noteMove(t: Tile, cur: any, now: number) {
 function applyLayout() {
     if (!active || !mine()) return;
     const list = orderedTiles();
+    measureAll(readCoords, list[0]?.coords);
+    updateFrame(Dimensions.get("window"));
+    if (!list.length) {
+        if (touched.size) restoreAll();
+        return;
+    }
+    const all = [...list, ...voice];
     const current = new Map<any, any>();
-    for (const t of list) {
+    for (const t of all) {
         const cur = readCoords(t.coords);
         current.set(t.coords, cur);
         if (isCoords(cur) && t.coords && !intended.has(t.coords)) intended.set(t.coords, { ...cur });
     }
     const rects = computeRects(list);
     const now = Date.now();
-    for (const t of list) {
+    const inUse = new Set(all.map(t => t.coords));
+    for (const sv of touched) {
+        if (inUse.has(sv)) continue;
+        const o = intended.get(sv);
+        targets.delete(sv);
+        if (o) writeCoords(sv, { ...readCoords(sv), zIndex: 0, ...o });
+        intended.delete(sv);
+        touched.delete(sv);
+    }
+    for (const t of all) {
         const r = rects.get(t.key);
         if (!r || !t.coords) continue;
         const prev = targets.get(t.coords);
@@ -606,9 +728,9 @@ function scheduleApply() {
 function restoreAll() {
     for (const sv of touched) {
         const o = intended.get(sv);
+        targets.delete(sv);
         if (o) writeCoords(sv, { ...readCoords(sv), zIndex: 0, ...o });
         intended.delete(sv);
-        targets.delete(sv);
     }
     touched.clear();
 }
@@ -641,13 +763,13 @@ export function tilesDebug(): string[] {
     const list = orderedTiles();
     return [
         `copy ${copy} of ${shared.copies}, owner ${shared.owner}, ${hotStatus.source} ${hotStatus.revision.slice(0, 7)}`,
-        `window: ${Math.round(Dimensions.get("window").width)}x${Math.round(Dimensions.get("window").height)}, tiles: ${list.length} (registered ${tiles.size}), call videos: ${(callParts() ?? []).map(p => p.streamId ?? "preview").join(",") || "?"}`,
-        `mode: ${fullscreen ? `full screen, origin ${origin ? `${Math.round(origin.x)},${Math.round(origin.y)}` : "?"}` : "grid"}`,
+        `window: ${Math.round(Dimensions.get("window").width)}x${Math.round(Dimensions.get("window").height)}, tiles: ${list.length} (registered ${tiles.size}), call videos: ${(callParts() ?? []).filter(p => p.video).map(p => p.streamId ?? "preview").join(",") || "none"}, camera off: ${voice.length}`,
+        `mode: ${fullscreen ? "full screen" : "grid"}, ${frame ? `area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} (${frame.parent}), controls ${frame.hidden ? "hidden" : "shown"}, fit ${Math.round(frame.top)}-${Math.round(frame.bottom)}` : "area not measured"}${measured.toolbar ? `, toolbar y ${Math.round(measured.toolbar.y)}` : ""}`,
         `held: ${held}, moved: ${moved}, guarded: ${guards.size}, touched: ${touched.size}, grid: ${gridW ? `${Math.round(gridW.w)}/${gridW.ww}` : "?"}`,
         ...(moves.length ? ["last moves:", ...moves.map(m => `  ${m}`)] : []),
         `order setting: ${currentOrder().join(" > ")}`,
         `video sizes: ${[...videoSizes.entries()].map(([id, s]) => `${id}=${s.w}x${s.h}${aspects.has(id) ? ` (${aspects.get(id)!.value.toFixed(2)}${aspects.get(id)!.pending ? ` -> ${aspects.get(id)!.pending!.toFixed(2)}` : ""})` : ""}`).join(", ") || "none yet"}`,
-        ...list.map(t => {
+        ...[...list, ...voice].map(t => {
             const c = readCoords(t.coords);
             const o = intended.get(t.coords);
             return `  ${t.kind} sid=${t.streamId ?? "-"}: ${fmt(c)}${o ? ` (discord ${fmt(o)})` : ""}${guards.has(t.coords) ? "" : " unguarded"}`;
