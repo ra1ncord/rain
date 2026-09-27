@@ -1,24 +1,23 @@
-import { NativeFileModule } from "@api/native/modules";
 import { useLoaderConfig } from "@api/settings";
 import { showToast } from "@api/ui/toasts";
 import { logger } from "@lib/utils/logger";
-import { isPluginEnabled, pluginInstances } from "@plugins";
+import { pluginInstances } from "@plugins";
 import { AppState } from "react-native";
 
 import builtin from "../../cheeseburger";
+import { builtinRevision } from "./build";
 import { installRegistry } from "./registry";
 import { hotStatus } from "./status";
 
 const ID = "cheeseburger";
-const CACHE = "rain/hot/cheeseburger.js";
-const CACHE_META = "rain/hot/cheeseburger.rev";
 const FALLBACK = "https://github.com/TonyskalYT/rain/releases/latest/download/rain.js";
 const CHECK_MS = 10_000;
+const g = globalThis as any;
 
-let current: any = null;
-let revision = "";
+let current: any = builtin;
+let revision = builtinRevision;
 let running = false;
-let loading: Promise<void> | null = null;
+let queue: Promise<unknown> = Promise.resolve();
 let timer: ReturnType<typeof setInterval> | null = null;
 let checking = false;
 let lastError = "";
@@ -30,26 +29,12 @@ function setStatus(source: string) {
     hotStatus.error = lastError;
 }
 
-const docs = () => NativeFileModule.getConstants().DocumentsDirPath;
+setStatus("built-in");
 
-async function readCache(): Promise<{ code: string; rev: string; } | null> {
-    try {
-        if (!(await NativeFileModule.fileExists(`${docs()}/${CACHE}`))) return null;
-        const code = await NativeFileModule.readFile(`${docs()}/${CACHE}`, "utf8");
-        const rev = (await NativeFileModule.fileExists(`${docs()}/${CACHE_META}`)) ? await NativeFileModule.readFile(`${docs()}/${CACHE_META}`, "utf8") : "";
-        return code ? { code, rev: rev.trim() } : null;
-    } catch {
-        return null;
-    }
-}
-
-async function writeCache(code: string, rev: string) {
-    try {
-        await NativeFileModule.writeFile("documents", CACHE, code, "utf8");
-        await NativeFileModule.writeFile("documents", CACHE_META, rev, "utf8");
-    } catch (e) {
-        logger.error("[Hot] cache write failed", e);
-    }
+function serial<T>(fn: () => T | Promise<T>): Promise<T> {
+    const next = queue.then(() => fn());
+    queue = next.catch(() => { });
+    return next;
 }
 
 function baseUrl() {
@@ -58,18 +43,16 @@ function baseUrl() {
     return url.replace(/[^/]+$/, "");
 }
 
-const bust = (url: string) => `${url}?t=${Date.now()}`;
-
 async function fetchText(name: string) {
-    const res = await fetch(bust(baseUrl() + name), { cache: "no-store" } as any);
+    const res = await fetch(`${baseUrl()}${name}?t=${Date.now()}`, { cache: "no-store" } as any);
     if (!res.ok) throw new Error(`${name}: ${res.status}`);
     return res.text();
 }
 
 function evaluate(code: string): any {
     const src = `(function(module, exports){${code}\n;return module.exports;})`;
-    const factory = typeof (globalThis as any).globalEvalWithSourceUrl === "function"
-        ? (globalThis as any).globalEvalWithSourceUrl(src, "cheeseburger")
+    const factory = typeof g.globalEvalWithSourceUrl === "function"
+        ? g.globalEvalWithSourceUrl(src, "cheeseburger")
         : (0, eval)(`${src}\n//# sourceURL=cheeseburger`);
     const mod = { exports: {} as any };
     const out = factory(mod, mod.exports);
@@ -85,75 +68,49 @@ const instance: any = {
     get version() { return current?.version ?? "?"; },
     get author() { return current?.author ?? []; },
     get settings() { return current?.settings; },
-    async start() {
-        await ensureLoaded();
+    start: () => serial(async () => {
+        if (running) return;
         running = true;
-        if (!current) throw new Error(lastError || "not loaded");
         await current.start();
-    },
-    stop() {
+    }),
+    stop: () => serial(async () => {
+        if (!running) return;
         running = false;
-        current?.stop?.();
-    },
+        await current.stop?.();
+    }),
 };
-
-async function ensureLoaded() {
-    if (current) return;
-    loading ??= (async () => {
-        const cached = await readCache();
-        if (cached) {
-            try {
-                current = evaluate(cached.code);
-                revision = cached.rev;
-                setStatus("cache");
-                return;
-            } catch (e: any) {
-                lastError = `cache: ${e?.message ?? e}`;
-                failedRevision = cached.rev;
-                logger.error("[Hot] cached cheeseburger failed", e);
-            }
-        }
-        current = builtin;
-        revision = "";
-        setStatus("built-in");
-    })();
-    await loading;
-    loading = null;
-}
 
 async function swap(code: string, rev: string) {
     const next = evaluate(code);
     const prev = current;
     const prevRevision = revision;
-    const wasRunning = running && isPluginEnabled(ID);
-    (globalThis as any).__cheeseburgerSwapping = true;
+    g.__cheeseburgerSwapping = true;
     try {
-        if (wasRunning) {
+        if (running) {
             try {
-                prev?.stop?.();
+                await prev.stop?.();
             } catch (e) {
                 logger.error("[Hot] old stop failed", e);
             }
         }
         current = next;
         revision = rev;
-        if (wasRunning) {
+        if (running) {
             try {
                 await next.start();
             } catch (e) {
                 try {
-                    next.stop?.();
+                    await next.stop?.();
                 } catch { }
                 current = prev;
                 revision = prevRevision;
-                if (prev) await prev.start();
+                await prev.start();
                 throw e;
             }
         }
     } finally {
-        (globalThis as any).__cheeseburgerSwapping = false;
+        g.__cheeseburgerSwapping = false;
     }
-    await writeCache(code, rev);
 }
 
 async function check() {
@@ -164,7 +121,7 @@ async function check() {
         if (!meta?.revision || meta.revision === revision || meta.revision === failedRevision) return;
         const code = await fetchText("cheeseburger.js");
         try {
-            await swap(code, meta.revision);
+            await serial(() => swap(code, meta.revision));
         } catch (e: any) {
             failedRevision = meta.revision;
             lastError = `live: ${e?.message ?? e}`;

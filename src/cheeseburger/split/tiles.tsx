@@ -1,3 +1,4 @@
+import { hotStatus } from "@api/hot/status";
 import { logger } from "@lib/utils/logger";
 import { findByStoreName } from "@metro";
 import { SelectedChannelStore, UserStore } from "@metro/common/stores";
@@ -20,16 +21,40 @@ interface Rect { x: number; y: number; width: number; height: number; }
 
 interface Aspect { value: number; pending?: number; timer?: ReturnType<typeof setTimeout>; }
 
-const tiles = new Map<string, Tile>();
-const previews = new Map<string, Tile>();
+interface Shared {
+    tiles: Map<string, Tile>;
+    previews: Map<string, Tile>;
+    coordsById: Map<string, { coords: any; seenAt: number; }>;
+    videoSizes: Map<string, { w: number; h: number; }>;
+    aspects: Map<string, Aspect>;
+    intended: WeakMap<object, any>;
+    touched: Set<object>;
+    copies: number;
+    owner: number;
+}
+
+const shared: Shared = (globalThis as any).__cheeseburgerTiles ??= {
+    tiles: new Map(),
+    previews: new Map(),
+    coordsById: new Map(),
+    videoSizes: new Map(),
+    aspects: new Map(),
+    intended: new WeakMap(),
+    touched: new Set(),
+    copies: 0,
+    owner: 0,
+};
+
+const copy = ++shared.copies;
+const mine = () => shared.owner === copy;
+const { tiles, previews, coordsById, videoSizes, aspects, intended, touched } = shared;
 const coordsIds = new WeakMap<object, string>();
-const coordsById = new Map<string, { coords: any; seenAt: number; }>();
-const originals = new WeakMap<object, any>();
 const targets = new WeakMap<object, Rect>();
+const written = new WeakMap<object, Rect[]>();
+const lastWrite = new WeakMap<object, number>();
 const guards = new Map<object, PropertyDescriptor | null>();
 const modGuards = new Map<object, PropertyDescriptor | null>();
-const videoSizes = new Map<string, { w: number; h: number; }>();
-const aspects = new Map<string, Aspect>();
+const moves: string[] = [];
 
 let active = false;
 let pollTimer: ReturnType<typeof setTimeout> | null = null;
@@ -65,21 +90,35 @@ function writeCoords(sv: any, next: any) {
     }
 }
 
+function write(sv: any, next: any, r: Rect) {
+    const list = written.get(sv) ?? [];
+    if (!list.some(w => near(w, r))) {
+        list.push(r);
+        if (list.length > 4) list.shift();
+        written.set(sv, list);
+    }
+    lastWrite.set(sv, Date.now());
+    writeCoords(sv, next);
+}
+
 const near = (a: any, r: Rect) => Math.abs((a.x ?? 0) - r.x) < 0.5 && Math.abs((a.y ?? 0) - r.y) < 0.5
     && Math.abs((a.width ?? 0) - r.width) < 0.5 && Math.abs((a.height ?? 0) - r.height) < 0.5;
 
+const isCoords = (v: any) => !!v && typeof v === "object" && typeof v.x === "number" && typeof v.width === "number";
+
 function steer(sv: any, v: any) {
-    if (!active) return v;
+    if (!active || !mine()) return v;
     const r = targets.get(sv);
     if (!r) return v;
-    if (v && typeof v === "object" && typeof v.x === "number") {
+    if (isCoords(v)) {
         if (near(v, r)) return v;
+        intended.set(sv, { ...v });
         held++;
         return { ...v, ...r, zIndex: 1 };
     }
-    if (typeof v === "function" && v.__isAnimationDefinition && originals.has(sv)) {
+    if (typeof v === "function" && v.__isAnimationDefinition && intended.has(sv)) {
         held++;
-        return { ...originals.get(sv), ...r, zIndex: 1 };
+        return { ...intended.get(sv), ...r, zIndex: 1 };
     }
     return v;
 }
@@ -120,12 +159,18 @@ function guardModify(sv: any) {
             configurable: true,
             writable: true,
             value(this: any, ...a: any[]) {
-                const r = active ? targets.get(sv) : undefined;
+                const r = active && mine() ? targets.get(sv) : undefined;
                 if (!r) return orig.apply(this, a);
                 held++;
                 burstUntil = Date.now() + 3000;
                 const cur = readCoords(sv);
-                if (cur && !near(cur, r)) writeCoords(sv, { ...cur, ...r, zIndex: 1 });
+                if (cur && typeof a[0] === "function") {
+                    try {
+                        const want = a[0]({ ...cur });
+                        if (isCoords(want)) intended.set(sv, { ...want });
+                    } catch { }
+                }
+                if (cur && !near(cur, r)) write(sv, { ...cur, ...r, zIndex: 1 }, r);
             },
         });
         modGuards.set(sv, own ?? null);
@@ -378,7 +423,7 @@ function aspectOf(t: Tile): number {
 function gridWidth(list: Tile[], ww: number): number {
     let w = 0;
     for (const t of list) {
-        const o = originals.get(t.coords);
+        const o = intended.get(t.coords);
         if (o) w = Math.max(w, (o.x ?? 0) + (o.width ?? 0));
     }
     if (w >= ww - 48 && w <= ww) gridW = { ww, w };
@@ -461,36 +506,48 @@ function computeRects(list: Tile[]): Map<string, Rect> {
     return out;
 }
 
+const fmt = (c: any) => `${Math.round(c?.x)},${Math.round(c?.y)} ${Math.round(c?.width)}x${Math.round(c?.height)}`;
+
+function noteMove(t: Tile, cur: any, now: number) {
+    moved++;
+    const since = lastWrite.get(t.coords);
+    moves.push(`${new Date(now).toISOString().slice(17, 23)} ${t.kind} to ${fmt(cur)}${since ? ` ${now - since}ms after mine` : ""}`);
+    if (moves.length > 8) moves.shift();
+}
+
 function applyLayout() {
-    if (!active) return;
+    if (!active || !mine()) return;
     const list = orderedTiles();
     const current = new Map<any, any>();
     for (const t of list) {
         const cur = readCoords(t.coords);
         current.set(t.coords, cur);
-        if (cur && t.coords && !originals.has(t.coords)) originals.set(t.coords, { ...cur });
+        if (isCoords(cur) && t.coords && !intended.has(t.coords)) intended.set(t.coords, { ...cur });
     }
     const rects = computeRects(list);
+    const now = Date.now();
     for (const t of list) {
         const r = rects.get(t.key);
         if (!r || !t.coords) continue;
         const prev = targets.get(t.coords);
         targets.set(t.coords, r);
+        touched.add(t.coords);
         guard(t.coords);
         const cur = current.get(t.coords);
         if (cur && !near(cur, r)) {
             if (prev && near(prev, r)) {
-                moved++;
-                burstUntil = Date.now() + 3000;
+                noteMove(t, cur, now);
+                if (isCoords(cur) && !(written.get(t.coords) ?? []).some(w => near(cur, w))) intended.set(t.coords, { ...cur });
+                burstUntil = now + 3000;
             }
-            writeCoords(t.coords, { ...cur, ...r, zIndex: 1 });
+            write(t.coords, { ...cur, ...r, zIndex: 1 }, r);
         }
     }
 }
 
 function poll() {
     pollTimer = null;
-    if (!active) return;
+    if (!active || !mine()) return;
     applyLayout();
     pollTimer = setTimeout(poll, Date.now() < burstUntil ? 40 : 150);
 }
@@ -505,26 +562,26 @@ function scheduleApply() {
     }, 50);
 }
 
-function restoreOriginals() {
-    for (const t of [...tiles.values(), ...previews.values()]) {
-        const o = t.coords && originals.get(t.coords);
-        if (o) writeCoords(t.coords, { ...readCoords(t.coords), ...o });
-        if (t.coords) {
-            originals.delete(t.coords);
-            targets.delete(t.coords);
-        }
+function restoreAll() {
+    for (const sv of touched) {
+        const o = intended.get(sv);
+        if (o) writeCoords(sv, { ...readCoords(sv), zIndex: 0, ...o });
+        intended.delete(sv);
+        targets.delete(sv);
     }
+    touched.clear();
 }
 
-export function setTilesActive(v: boolean) {
+export function setTilesActive(v: boolean, handoff = false) {
     active = v;
     if (v) {
+        shared.owner = copy;
         burstUntil = Date.now() + 3000;
         if (!pollTimer) poll();
     } else {
         if (pollTimer) clearTimeout(pollTimer);
         pollTimer = null;
-        restoreOriginals();
+        if (!handoff && mine()) restoreAll();
         unguardAll();
     }
 }
@@ -542,15 +599,17 @@ export function moveKind(kind: TileKind, dir: -1 | 1) {
 export function tilesDebug(): string[] {
     const list = orderedTiles();
     return [
+        `copy ${copy} of ${shared.copies}, owner ${shared.owner}, ${hotStatus.source} ${hotStatus.revision.slice(0, 7)}`,
         `window: ${Math.round(Dimensions.get("window").width)}x${Math.round(Dimensions.get("window").height)}, tiles: ${list.length} (registered ${tiles.size}), call videos: ${(callParts() ?? []).map(p => p.streamId ?? "preview").join(",") || "?"}`,
         `mode: ${fullscreen ? `full screen, origin ${origin ? `${Math.round(origin.x)},${Math.round(origin.y)}` : "?"}` : "grid"}`,
-        `held: ${held}, moved: ${moved}, guarded: ${guards.size}, grid: ${gridW ? `${gridW.w}/${gridW.ww}` : "?"}`,
+        `held: ${held}, moved: ${moved}, guarded: ${guards.size}, touched: ${touched.size}, grid: ${gridW ? `${Math.round(gridW.w)}/${gridW.ww}` : "?"}`,
+        ...(moves.length ? ["last moves:", ...moves.map(m => `  ${m}`)] : []),
         `order setting: ${currentOrder().join(" > ")}`,
         `video sizes: ${[...videoSizes.entries()].map(([id, s]) => `${id}=${s.w}x${s.h}${aspects.has(id) ? ` (${aspects.get(id)!.value.toFixed(2)}${aspects.get(id)!.pending ? ` -> ${aspects.get(id)!.pending!.toFixed(2)}` : ""})` : ""}`).join(", ") || "none yet"}`,
         ...list.map(t => {
             const c = readCoords(t.coords);
-            const o = originals.get(t.coords);
-            return `  ${t.kind} sid=${t.streamId ?? "-"}: x=${Math.round(c?.x)} y=${Math.round(c?.y)} w=${Math.round(c?.width)} h=${Math.round(c?.height)}${o ? ` (was ${Math.round(o.x)},${Math.round(o.y)} ${Math.round(o.width)}x${Math.round(o.height)})` : ""}`;
+            const o = intended.get(t.coords);
+            return `  ${t.kind} sid=${t.streamId ?? "-"}: ${fmt(c)}${o ? ` (discord ${fmt(o)})` : ""}${guards.has(t.coords) ? "" : " unguarded"}`;
         }),
     ];
 }

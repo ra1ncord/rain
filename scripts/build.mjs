@@ -81,6 +81,7 @@ const config = {
                                         "rain-build-info": {
                                             version: `"v0.10.0"`,
                                             revision: JSON.stringify(context?.hash ?? "dev"),
+                                            cheeseburger: JSON.stringify(context?.cheeseburger ?? ""),
                                             supportedVersionsAndroid: '344013',
                                             supportedVersionsIOS: '110861'
                                         }
@@ -182,7 +183,7 @@ export async function buildCheeseburger() {
     const revision = crypto.createHash("sha1").update(code).digest("hex").slice(0, 12);
     await fs.writeFile("dist/cheeseburger.json", JSON.stringify({ revision, size: code.length }, null, 2));
     console.log(`Built cheeseburger (${revision}), uses ${used.size} rain modules`);
-    return [...used];
+    return revision;
 }
 
 function findHermescPath() {
@@ -325,6 +326,7 @@ async function sourceHash() {
 
 export async function buildBundle(overrideConfig = {}) {
     context = {
+        ...context,
         hash: context?.hash ?? (releaseBranch ? execSync("git rev-parse --short HEAD").toString().trim() : await sourceHash())
     };
 
@@ -346,6 +348,7 @@ if (isThisFileBeingRunViaCLI) {
     const availablePaths = [];
     const hash = crypto.createHash("sha256");
 
+    context = { cheeseburger: await buildCheeseburger() };
     const { timeTook } = await buildBundle();
     printBuildSuccess(context.hash, releaseBranch, timeTook);
 
@@ -422,7 +425,6 @@ if (isThisFileBeingRunViaCLI) {
     );
 
     await checkUndeclared(config.outfile);
-    await buildCheeseburger();
 
     console.log(`\nAvailable paths: ${availablePaths.join(", ")}`);
     console.log(`Info file written to ${infoPath}`);

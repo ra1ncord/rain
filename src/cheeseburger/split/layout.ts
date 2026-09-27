@@ -206,6 +206,11 @@ export function toggleSplit() {
 
 export const isFullscreenSplit = () => active && fullscreen;
 
+export function resumeSplit(fs: boolean) {
+    fullscreen = fs;
+    setSplitActive(true, true);
+}
+
 function onRtcState(e: any) {
     if (/DISCONNECTED/.test(String(e?.state))) {
         resumeAfterFocus = false;
@@ -289,12 +294,12 @@ export function startLayoutPatches() {
     return true;
 }
 
-export function stopLayoutPatches() {
+export function stopLayoutPatches(handoff = false) {
     const wasActive = active;
     active = false;
-    setTilesActive(false);
+    setTilesActive(false, handoff);
     for (const u of unpatches.splice(0)) u();
-    if (wasActive) refresh();
+    if (wasActive && !handoff) refresh();
 }
 
 export function layoutDebug(): string[] {

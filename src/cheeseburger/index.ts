@@ -16,7 +16,7 @@ export default definePlugin({
         await startAll();
     },
     stop() {
-        stopAll();
+        return stopAll();
     },
     settings,
 });

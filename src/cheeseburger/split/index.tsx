@@ -3,7 +3,7 @@ import { deleteJsxCreate, jsxRuntime, onJsxCreate } from "@api/react/jsx";
 import { waitForHydration } from "@api/storage";
 import { React } from "@metro/common";
 
-import { isSplitActive, setSplitActive, startLayoutPatches, stopLayoutPatches } from "./layout";
+import { isFullscreenSplit, isSplitActive, resumeSplit, startLayoutPatches, stopLayoutPatches } from "./layout";
 import { startPip, stopPip } from "./pip";
 import { SplitViewButton } from "./SplitView";
 import { useSplitViewSettings } from "./storage";
@@ -11,6 +11,7 @@ import { registerTile } from "./tiles";
 
 const ANCHOR = "VideoButton";
 const unpatches: (() => unknown)[] = [];
+const g = globalThis as any;
 
 function inject(_Component: any, ret: any) {
     if (!ret) return ret;
@@ -23,18 +24,20 @@ export default {
         startLayoutPatches();
         startPip();
         onJsxCreate(ANCHOR, inject);
-        if ((globalThis as any).__cheeseburgerSplit) {
-            delete (globalThis as any).__cheeseburgerSplit;
-            setTimeout(() => setSplitActive(true, true), 200);
-        }
         unpatches.push(before("jsx", jsxRuntime, registerTile));
         unpatches.push(before("jsxs", jsxRuntime, registerTile));
+        const handoff = g.__cheeseburgerSplit;
+        if (handoff) {
+            delete g.__cheeseburgerSplit;
+            resumeSplit(!!handoff.fullscreen);
+        }
     },
     stop() {
-        if ((globalThis as any).__cheeseburgerSwapping) (globalThis as any).__cheeseburgerSplit = isSplitActive();
+        const swapping = !!g.__cheeseburgerSwapping;
+        if (swapping && isSplitActive()) g.__cheeseburgerSplit = { fullscreen: isFullscreenSplit() };
         deleteJsxCreate(ANCHOR, inject);
         stopPip();
-        stopLayoutPatches();
+        stopLayoutPatches(swapping);
         for (const u of unpatches.splice(0)) u();
     },
 };

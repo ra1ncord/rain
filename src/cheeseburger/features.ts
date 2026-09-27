@@ -15,20 +15,29 @@ interface Feature {
 export const FEATURES: Record<FeatureId, Feature> = { volume, deafen, split, rotate, updates };
 
 const running = new Set<FeatureId>();
+const chains = new Map<FeatureId, Promise<unknown>>();
 let pluginRunning = false;
 
-async function startFeature(id: FeatureId) {
-    if (running.has(id)) return;
-    running.add(id);
-    try {
-        await FEATURES[id].start();
-    } catch (e) {
-        running.delete(id);
-        logger.error(`[Cheeseburger] ${id}`, e);
-    }
+function enqueue(id: FeatureId, fn: () => unknown): Promise<unknown> {
+    const next = (chains.get(id) ?? Promise.resolve()).then(fn);
+    chains.set(id, next.catch(() => { }));
+    return next;
 }
 
-function stopFeature(id: FeatureId) {
+const startFeature = (id: FeatureId) => enqueue(id, async () => {
+    if (running.has(id)) return;
+    try {
+        await FEATURES[id].start();
+        running.add(id);
+    } catch (e) {
+        logger.error(`[Cheeseburger] ${id}`, e);
+        try {
+            FEATURES[id].stop();
+        } catch { }
+    }
+});
+
+const stopFeature = (id: FeatureId) => enqueue(id, () => {
     if (!running.has(id)) return;
     running.delete(id);
     try {
@@ -36,7 +45,7 @@ function stopFeature(id: FeatureId) {
     } catch (e) {
         logger.error(`[Cheeseburger] ${id}`, e);
     }
-}
+});
 
 export async function startAll() {
     pluginRunning = true;
@@ -45,14 +54,13 @@ export async function startAll() {
     }
 }
 
-export function stopAll() {
+export async function stopAll() {
     pluginRunning = false;
-    for (const id of [...running]) stopFeature(id);
+    await Promise.all((Object.keys(FEATURES) as FeatureId[]).map(stopFeature));
 }
 
 export function setFeature(id: FeatureId, on: boolean) {
     cheeseburger[id] = on;
     if (!pluginRunning) return;
-    if (on) void startFeature(id);
-    else stopFeature(id);
+    void (on ? startFeature(id) : stopFeature(id));
 }

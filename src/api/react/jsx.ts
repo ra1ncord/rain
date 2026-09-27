@@ -14,7 +14,8 @@ export function onJsxCreate(Component: string, callback: Callback) {
 export function deleteJsxCreate(Component: string, callback: Callback) {
     if (!callbacks.has(Component)) return;
     const cbs = callbacks.get(Component)!;
-    cbs.splice(cbs.indexOf(callback), 1);
+    const i = cbs.indexOf(callback);
+    if (i !== -1) cbs.splice(i, 1);
     if (cbs.length === 0) callbacks.delete(Component);
 }
 
