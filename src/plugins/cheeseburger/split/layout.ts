@@ -3,7 +3,7 @@ import { logger } from "@lib/utils/logger";
 import { findByStoreName } from "@metro";
 import { FluxDispatcher } from "@metro/common";
 import { SelectedChannelStore, UserStore } from "@metro/common/stores";
-import { AppState } from "react-native";
+import { AppState, Dimensions } from "react-native";
 
 import { setTilesActive, tilesDebug } from "./tiles";
 
@@ -12,7 +12,7 @@ const listeners = new Set<() => void>();
 const unpatches: (() => unknown)[] = [];
 let salt = 0;
 
-export const isSplitActive = () => active || resumeAfterFocus;
+export const isSplitActive = () => active || resumeAfterFocus || resumeAfterRotate;
 export function onSplitChange(l: () => void) {
     listeners.add(l);
     return () => void listeners.delete(l);
@@ -107,7 +107,43 @@ function onAppState(state: string) {
     if (id) selectParticipant(id);
 }
 
+let resumeAfterRotate = false;
+let dimsTimer: ReturnType<typeof setTimeout> | null = null;
+
+const isLandscape = () => {
+    const w = Dimensions.get("window");
+    return w.width > w.height;
+};
+
+function onDims() {
+    if (dimsTimer) clearTimeout(dimsTimer);
+    dimsTimer = setTimeout(() => {
+        dimsTimer = null;
+        if (AppState.currentState !== "active") return;
+        if (isLandscape()) {
+            if (!active) return;
+            resumeAfterRotate = true;
+            setSplitActive(false, true);
+        } else if (resumeAfterRotate) {
+            resumeAfterRotate = false;
+            setSplitActive(true, true);
+        }
+    }, 300);
+}
+
 export function setSplitActive(v: boolean, fromFocus = false) {
+    if (!fromFocus && resumeAfterRotate) {
+        resumeAfterRotate = false;
+        if (!v) {
+            listeners.forEach(l => l());
+            return;
+        }
+    }
+    if (v && !fromFocus && isLandscape()) {
+        resumeAfterRotate = true;
+        listeners.forEach(l => l());
+        return;
+    }
     if (!fromFocus && resumeAfterFocus) {
         resumeAfterFocus = false;
         if (active === v) {
@@ -182,6 +218,13 @@ export function startLayoutPatches() {
     }
 
     const appSub = AppState.addEventListener("change", onAppState);
+    const dimsSub = Dimensions.addEventListener("change", onDims);
+    unpatches.push(() => {
+        dimsSub.remove();
+        if (dimsTimer) clearTimeout(dimsTimer);
+        dimsTimer = null;
+        resumeAfterRotate = false;
+    });
     unpatches.push(() => {
         appSub.remove();
         if (returnTimer) clearTimeout(returnTimer);

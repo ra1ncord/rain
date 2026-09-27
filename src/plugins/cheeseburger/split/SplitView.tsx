@@ -4,6 +4,8 @@ import { React } from "@metro/common";
 import { ActionSheet, BottomSheetTitleHeader, IconButton, TableRow, TableRowGroup } from "@metro/common/components";
 import { Image, Pressable, Text, View } from "react-native";
 
+import { isLandscapeLocked, onRotateChange, toggleLandscape } from "../rotate/orientation";
+import { useCheeseburger } from "../storage";
 import { isSplitActive, onSplitChange, setSplitActive } from "./layout";
 import { useSplitViewSettings } from "./storage";
 import { currentOrder, moveKind, TileKind } from "./tiles";
@@ -14,6 +16,9 @@ const firstAsset = (...names: string[]) => names.map(n => findAssetId(n)).find(i
 
 function ArrangeSheet() {
     useSplitViewSettings(s => s.order);
+    const rotateOn = useCheeseburger(s => s.rotate);
+    const [, force] = React.useReducer((n: number) => n + 1, 0);
+    React.useEffect(() => onRotateChange(force), []);
     const order = currentOrder();
 
     return (
@@ -46,6 +51,11 @@ function ArrangeSheet() {
                         />
                     ))}
                 </TableRowGroup>
+                {rotateOn && (
+                    <TableRowGroup title="Screen">
+                        <TableRow label={isLandscapeLocked() ? "Portrait" : "Landscape"} onPress={toggleLandscape} />
+                    </TableRowGroup>
+                )}
             </View>
         </ActionSheet>
     );

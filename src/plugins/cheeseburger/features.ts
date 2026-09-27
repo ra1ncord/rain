@@ -1,6 +1,7 @@
 import { logger } from "@lib/utils/logger";
 
 import deafen from "./deafen";
+import rotate from "./rotate";
 import split from "./split";
 import { cheeseburger, FeatureId } from "./storage";
 import updates from "./updates";
@@ -11,7 +12,7 @@ interface Feature {
     stop(): unknown;
 }
 
-export const FEATURES: Record<FeatureId, Feature> = { volume, deafen, split, updates };
+export const FEATURES: Record<FeatureId, Feature> = { volume, deafen, split, rotate, updates };
 
 const running = new Set<FeatureId>();
 let pluginRunning = false;
