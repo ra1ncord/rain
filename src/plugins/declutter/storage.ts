@@ -27,4 +27,7 @@ export const {
     hidePaymentGifts: false,
     hideServerBoostGoal: true,
     hideDmActivityCards: true,
+    removeUserQuests: false,
+    removeUserShop: false,
+    removeUserNitro: false,
 });

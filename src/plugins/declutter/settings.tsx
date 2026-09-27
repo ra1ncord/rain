@@ -5,7 +5,7 @@ import React from "react";
 import { ScrollView } from "react-native";
 
 import { useDeclutterSettings } from "./storage";
-import { paymentOptions, profileOptions } from "./surfaces";
+import { paymentOptions, profileOptions, userAreaOptions } from "./surfaces";
 
 export default function DeclutterSettings() {
     const settings = useDeclutterSettings();
@@ -43,6 +43,17 @@ export default function DeclutterSettings() {
                         <TableSwitchRow
                             key={key}
                             label={label}
+                            value={settings[key]}
+                            onValueChange={value => settings.updateSettings({ [key]: value })}
+                        />
+                    ))}
+                </TableRowGroup>
+
+                <TableRowGroup title="User Area">
+                    {userAreaOptions.map(([key, label]) => (
+                        <TableSwitchRow
+                            key={key}
+                            label={"Remove " + label}
                             value={settings[key]}
                             onValueChange={value => settings.updateSettings({ [key]: value })}
                         />
