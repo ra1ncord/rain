@@ -2,10 +2,12 @@ import { NativeFileModule } from "@api/native/modules";
 import { useLoaderConfig } from "@api/settings";
 import { showToast } from "@api/ui/toasts";
 import { logger } from "@lib/utils/logger";
-import { isPluginEnabled, pluginInstances, startPlugin } from "@plugins";
+import { isPluginEnabled, pluginInstances } from "@plugins";
 import { AppState } from "react-native";
 
+import builtin from "../../cheeseburger";
 import { installRegistry } from "./registry";
+import { hotStatus } from "./status";
 
 const ID = "cheeseburger";
 const CACHE = "rain/hot/cheeseburger.js";
@@ -20,6 +22,13 @@ let loading: Promise<void> | null = null;
 let timer: ReturnType<typeof setInterval> | null = null;
 let checking = false;
 let lastError = "";
+let failedRevision = "";
+
+function setStatus(source: string) {
+    hotStatus.source = source;
+    hotStatus.revision = revision;
+    hotStatus.error = lastError;
+}
 
 const docs = () => NativeFileModule.getConstants().DocumentsDirPath;
 
@@ -96,22 +105,17 @@ async function ensureLoaded() {
             try {
                 current = evaluate(cached.code);
                 revision = cached.rev;
+                setStatus("cache");
                 return;
             } catch (e: any) {
-                lastError = String(e?.message ?? e);
+                lastError = `cache: ${e?.message ?? e}`;
+                failedRevision = cached.rev;
                 logger.error("[Hot] cached cheeseburger failed", e);
             }
         }
-        try {
-            const code = await fetchText("cheeseburger.js");
-            const meta = JSON.parse(await fetchText("cheeseburger.json"));
-            current = evaluate(code);
-            revision = meta.revision ?? "";
-            await writeCache(code, revision);
-        } catch (e: any) {
-            lastError = String(e?.message ?? e);
-            logger.error("[Hot] cheeseburger download failed", e);
-        }
+        current = builtin;
+        revision = "";
+        setStatus("built-in");
     })();
     await loading;
     loading = null;
@@ -119,19 +123,33 @@ async function ensureLoaded() {
 
 async function swap(code: string, rev: string) {
     const next = evaluate(code);
+    const prev = current;
+    const prevRevision = revision;
     const wasRunning = running && isPluginEnabled(ID);
     (globalThis as any).__cheeseburgerSwapping = true;
     try {
         if (wasRunning) {
             try {
-                current?.stop?.();
+                prev?.stop?.();
             } catch (e) {
                 logger.error("[Hot] old stop failed", e);
             }
         }
         current = next;
         revision = rev;
-        if (wasRunning) await current.start();
+        if (wasRunning) {
+            try {
+                await next.start();
+            } catch (e) {
+                try {
+                    next.stop?.();
+                } catch { }
+                current = prev;
+                revision = prevRevision;
+                if (prev) await prev.start();
+                throw e;
+            }
+        }
     } finally {
         (globalThis as any).__cheeseburgerSwapping = false;
     }
@@ -143,19 +161,23 @@ async function check() {
     checking = true;
     try {
         const meta = JSON.parse(await fetchText("cheeseburger.json"));
-        if (!meta?.revision || meta.revision === revision) return;
+        if (!meta?.revision || meta.revision === revision || meta.revision === failedRevision) return;
         const code = await fetchText("cheeseburger.js");
-        if (!current) {
-            current = evaluate(code);
-            revision = meta.revision;
-            await writeCache(code, revision);
-            if (isPluginEnabled(ID) && !running) await startPlugin(ID);
+        try {
+            await swap(code, meta.revision);
+        } catch (e: any) {
+            failedRevision = meta.revision;
+            lastError = `live: ${e?.message ?? e}`;
+            setStatus(hotStatus.source);
+            logger.error("[Hot] swap failed", e);
             return;
         }
-        await swap(code, meta.revision);
+        lastError = "";
+        setStatus("live");
         showToast("Updated");
     } catch (e: any) {
-        lastError = String(e?.message ?? e);
+        lastError = `check: ${e?.message ?? e}`;
+        setStatus(hotStatus.source);
     } finally {
         checking = false;
     }

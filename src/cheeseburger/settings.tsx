@@ -1,3 +1,4 @@
+import { hotStatus } from "@api/hot/status";
 import { Stack, TableRow, TableRowGroup, TableSwitchRow } from "@metro/common/components";
 import { ScrollView } from "react-native";
 
@@ -21,7 +22,7 @@ export default function Settings() {
                     <TableSwitchRow label="Deafen button" value={s.deafen} onValueChange={(v: boolean) => setFeature("deafen", v)} />
                     <TableSwitchRow label="Split view" value={s.split} onValueChange={(v: boolean) => setFeature("split", v)} />
                     <TableSwitchRow label="Rotate button" value={s.rotate} onValueChange={(v: boolean) => setFeature("rotate", v)} />
-                    <TableSwitchRow label="Live updates" subLabel={`build ${buildRevision}`} value={s.updates} onValueChange={(v: boolean) => setFeature("updates", v)} />
+                    <TableSwitchRow label="Live updates" subLabel={`build ${buildRevision} · ${hotStatus.source}${hotStatus.revision ? ` ${hotStatus.revision.slice(0, 7)}` : ""}${hotStatus.error ? ` · ${hotStatus.error}` : ""}`} value={s.updates} onValueChange={(v: boolean) => setFeature("updates", v)} />
                     {s.updates && ready && <TableRow label="Update" subLabel="ready" onPress={updateNow} />}
                 </TableRowGroup>
                 {s.volume && <VolumeSettings />}

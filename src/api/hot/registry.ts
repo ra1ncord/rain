@@ -3,6 +3,7 @@ import * as commands from "@api/commands";
 import * as commandTypes from "@api/commands/types";
 import * as externalPlugins from "@api/external/plugins";
 import * as hotBuild from "@api/hot/build";
+import * as hotStatus from "@api/hot/status";
 import * as nativeModules from "@api/native/modules";
 import * as nativeUpdate from "@api/native/modules/update";
 import * as patcher from "@api/patcher";
@@ -33,6 +34,7 @@ const table: Record<string, any> = {
     "@api/assets": assets,
     "@api/external/plugins": externalPlugins,
     "@api/hot/build": hotBuild,
+    "@api/hot/status": hotStatus,
     "@api/native/modules": nativeModules,
     "@api/native/modules/update": nativeUpdate,
     "@api/patcher": patcher,
