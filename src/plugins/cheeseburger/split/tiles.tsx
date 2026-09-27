@@ -27,11 +27,13 @@ const coordsById = new Map<string, { coords: any; seenAt: number; }>();
 const originals = new WeakMap<object, any>();
 const targets = new WeakMap<object, Rect>();
 const guards = new Map<object, PropertyDescriptor | null>();
+const modGuards = new Map<object, PropertyDescriptor | null>();
 const videoSizes = new Map<string, { w: number; h: number; }>();
 const aspects = new Map<string, Aspect>();
 
 let active = false;
-let pollTimer: ReturnType<typeof setInterval> | null = null;
+let pollTimer: ReturnType<typeof setTimeout> | null = null;
+let burstUntil = 0;
 let gridW: { ww: number; w: number; } | null = null;
 let held = 0;
 let moved = 0;
@@ -100,6 +102,29 @@ function guard(sv: any) {
         });
         guards.set(sv, found.own ? found.d : null);
     } catch { }
+    guardModify(sv);
+}
+
+function guardModify(sv: any) {
+    if (modGuards.has(sv) || typeof sv.modify !== "function") return;
+    const own = Object.getOwnPropertyDescriptor(sv, "modify");
+    if (own && !own.configurable) return;
+    const orig = sv.modify;
+    try {
+        Object.defineProperty(sv, "modify", {
+            configurable: true,
+            writable: true,
+            value(this: any, ...a: any[]) {
+                const r = active ? targets.get(sv) : undefined;
+                if (!r) return orig.apply(this, a);
+                held++;
+                burstUntil = Date.now() + 3000;
+                const cur = readCoords(sv);
+                if (cur && !near(cur, r)) writeCoords(sv, { ...cur, ...r, zIndex: 1 });
+            },
+        });
+        modGuards.set(sv, own ?? null);
+    } catch { }
 }
 
 function unguardAll() {
@@ -110,6 +135,13 @@ function unguardAll() {
         } catch { }
     }
     guards.clear();
+    for (const [sv, d] of modGuards) {
+        try {
+            if (d) Object.defineProperty(sv, "modify", d);
+            else delete (sv as any).modify;
+        } catch { }
+    }
+    modGuards.clear();
 }
 
 const isVideoRenderer = (props: any) => "isCamera" in props || "videoSpinnerContext" in props;
@@ -405,8 +437,10 @@ function computeRects(list: Tile[]): Map<string, Rect> {
 function applyLayout() {
     if (!active) return;
     const list = orderedTiles();
+    const current = new Map<any, any>();
     for (const t of list) {
         const cur = readCoords(t.coords);
+        current.set(t.coords, cur);
         if (cur && t.coords && !originals.has(t.coords)) originals.set(t.coords, { ...cur });
     }
     const rects = computeRects(list);
@@ -416,12 +450,22 @@ function applyLayout() {
         const prev = targets.get(t.coords);
         targets.set(t.coords, r);
         guard(t.coords);
-        const cur = readCoords(t.coords);
+        const cur = current.get(t.coords);
         if (cur && !near(cur, r)) {
-            if (prev && near(prev, r)) moved++;
+            if (prev && near(prev, r)) {
+                moved++;
+                burstUntil = Date.now() + 3000;
+            }
             writeCoords(t.coords, { ...cur, ...r, zIndex: 1 });
         }
     }
+}
+
+function poll() {
+    pollTimer = null;
+    if (!active) return;
+    applyLayout();
+    pollTimer = setTimeout(poll, Date.now() < burstUntil ? 40 : 150);
 }
 
 let applyScheduled = false;
@@ -448,10 +492,10 @@ function restoreOriginals() {
 export function setTilesActive(v: boolean) {
     active = v;
     if (v) {
-        applyLayout();
-        pollTimer ??= setInterval(applyLayout, 300);
+        burstUntil = Date.now() + 3000;
+        if (!pollTimer) poll();
     } else {
-        if (pollTimer) clearInterval(pollTimer);
+        if (pollTimer) clearTimeout(pollTimer);
         pollTimer = null;
         restoreOriginals();
         unguardAll();
