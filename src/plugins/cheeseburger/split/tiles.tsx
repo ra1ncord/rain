@@ -385,24 +385,7 @@ function gridWidth(list: Tile[], ww: number): number {
     return gridW?.ww === ww ? gridW.w : Math.max(200, ww - 24);
 }
 
-function measureOrigin(list: Tile[]) {
-    const win = Dimensions.get("window");
-    let best: any = null;
-    for (const t of list) {
-        const c = readCoords(t.coords);
-        if (c && c.width > 0 && c.height > 0 && (!best || c.width * c.height > best.width * best.height)) best = c;
-    }
-    return best ? { x: win.width / 2 - (best.x + best.width / 2), y: win.height / 2 - (best.y + best.height / 2) } : { x: 0, y: 0 };
-}
-
-export function discordFullscreen(): boolean {
-    if (active) return false;
-    const ww = Dimensions.get("window").width;
-    return liveTiles().some(t => {
-        const c = readCoords(t.coords);
-        return !!c && c.width >= ww - 2;
-    });
-}
+const GRID_TOP = 112;
 
 export function setTilesFullscreen(v: boolean) {
     if (fullscreen === v) return;
@@ -418,7 +401,7 @@ function computeRects(list: Tile[]): Map<string, Rect> {
     const win = Dimensions.get("window");
     let W: number, H: number, X0: number, Y0: number, GAP: number;
     if (fullscreen) {
-        origin ??= measureOrigin(list);
+        origin ??= { x: (win.width - gridWidth(list, win.width)) / 2, y: GRID_TOP };
         W = win.width;
         H = Math.max(300, win.height - FS_TOP - FS_BOTTOM);
         X0 = -origin.x;

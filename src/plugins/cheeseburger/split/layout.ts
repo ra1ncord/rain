@@ -5,11 +5,11 @@ import { FluxDispatcher } from "@metro/common";
 import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { AppState, Dimensions } from "react-native";
 
-import { discordFullscreen, setTilesActive, setTilesFullscreen, tilesDebug } from "./tiles";
+import { setTilesActive, setTilesFullscreen, tilesDebug } from "./tiles";
 
 let active = false;
 let fullscreen = false;
-let fullscreenSel: string | null = null;
+let lastSel: string | null = null;
 const listeners = new Set<() => void>();
 const unpatches: (() => unknown)[] = [];
 let salt = 0;
@@ -186,9 +186,8 @@ export function setSplitActive(v: boolean, fromFocus = false) {
     if (active === v) return;
     active = v;
     if (v && !fromFocus) {
-        fullscreenSel = selectedParticipant();
-        fullscreen = !!fullscreenSel || discordFullscreen();
-        if (!fullscreen) unselectParticipant();
+        fullscreen = !!(selectedParticipant() ?? lastSel);
+        unselectParticipant();
     }
     if (!v && !fromFocus) fullscreen = false;
     setTilesFullscreen(fullscreen);
@@ -198,7 +197,7 @@ export function setSplitActive(v: boolean, fromFocus = false) {
 
 export function toggleSplit() {
     if (active) return setSplitActive(false);
-    if (resumeAfterFocus && (selectedParticipant() || discordFullscreen())) {
+    if (resumeAfterFocus && (selectedParticipant() ?? lastSel)) {
         resumeAfterFocus = false;
         return setSplitActive(true);
     }
@@ -226,7 +225,8 @@ function selectedParticipant(): string | null {
 }
 
 function onSelect(e: any) {
-    if (!active || fullscreen || e?.id == null) return;
+    lastSel = e?.id ?? null;
+    if (!active || e?.id == null) return;
     resumeAfterFocus = true;
     setTilesActive(false);
     setTimeout(() => {
@@ -236,14 +236,6 @@ function onSelect(e: any) {
 
 function watchFocus() {
     const selected = selectedParticipant();
-    if (active && fullscreen) {
-        if (fullscreenSel && !selected) {
-            fullscreen = false;
-            setTilesFullscreen(false);
-            refresh();
-        }
-        return;
-    }
     if (active && selected) {
         resumeAfterFocus = true;
         setSplitActive(false, true);
