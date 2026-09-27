@@ -1,6 +1,9 @@
 import { getNativeModule } from "@api/native/modules";
 import { instead } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
+import { findByStoreName } from "@metro";
+import { FluxDispatcher } from "@metro/common";
+import { SelectedChannelStore } from "@metro/common/stores";
 import { AppState, Dimensions } from "react-native";
 
 const DISCORD_PATH = "modules/device/native/DeviceOrientation.tsx";
@@ -11,11 +14,8 @@ let forced = false;
 let locker: any = null;
 let native: any = null;
 let discord: any = null;
-let discordLock: Function | null = null;
-let discordUnlock: Function | null = null;
 let hooked: string[] = [];
 let lastError = "";
-let prevLock: any = null;
 let dimsSub: { remove(): void; } | null = null;
 let retryTimer: ReturnType<typeof setInterval> | null = null;
 const trail: string[] = [];
@@ -106,8 +106,6 @@ export function startOrientation() {
     hookLocker(locker, "js");
     if (native && native !== locker) hookLocker(native, "native");
     if (discord) {
-        discordLock = typeof discord.lockOrientation === "function" ? discord.lockOrientation : null;
-        discordUnlock = typeof discord.unlockOrientation === "function" ? discord.unlockOrientation : null;
         const lt = landscapeType();
         wrap(discord, "lockOrientation", "discord", (args, orig) => {
             note(`discord.lockOrientation(${args.map(brief).join(",")})${forced && lt !== undefined ? " -> landscape" : ""}`);
@@ -163,6 +161,29 @@ const portrait = () => {
     return w.height >= w.width;
 };
 
+function focus(id: string | null) {
+    const channelId = SelectedChannelStore?.getVoiceChannelId?.();
+    if (!channelId) return;
+    try {
+        FluxDispatcher.dispatch({ type: "CHANNEL_RTC_SELECT_PARTICIPANT", channelId, id });
+        note(`focus ${id ?? "none"}`);
+    } catch { }
+}
+
+function streamId(): string | null {
+    const channelId = SelectedChannelStore?.getVoiceChannelId?.();
+    if (!channelId) return null;
+    try {
+        const parts: any[] = findByStoreName("ChannelRTCStore")?.getParticipants?.(channelId) ?? [];
+        const s = parts.find(p => p?.stream);
+        return s?.id != null ? String(s.id) : null;
+    } catch {
+        return null;
+    }
+}
+
+let focused = false;
+
 export function setLandscape(v: boolean) {
     if (!locker && !native && !discord) startOrientation();
     lastError = "";
@@ -170,18 +191,14 @@ export function setLandscape(v: boolean) {
     retryTimer = null;
 
     if (v) {
-        prevLock = (() => {
-            try {
-                return discord?.getOrientationLock?.() ?? null;
-            } catch {
-                return null;
-            }
-        })();
         forced = true;
         note("rotate on");
         setIgnoreAutoRotate(true);
         const target = native ?? locker;
         if (target) attempt("lockToLandscape", () => target.lockToLandscape());
+        const sid = streamId();
+        focused = !!sid;
+        if (sid) focus(sid);
         let tries = 0;
         retryTimer = setInterval(() => {
             if (!forced || !portrait() || AppState.currentState !== "active") return;
@@ -196,9 +213,10 @@ export function setLandscape(v: boolean) {
         forced = false;
         note("rotate off");
         setIgnoreAutoRotate(false);
-        if (prevLock != null && discordLock) attempt("discord relock", () => discordLock!.call(discord, prevLock));
-        else if (discordUnlock) attempt("discord unlock", () => discordUnlock!.call(discord));
-        else (locker ?? native)?.unlockAllOrientations?.();
+        const target = locker ?? native;
+        if (target) attempt("unlock", () => target.unlockAllOrientations());
+        if (focused) focus(null);
+        focused = false;
     }
     listeners.forEach(l => l());
     return true;

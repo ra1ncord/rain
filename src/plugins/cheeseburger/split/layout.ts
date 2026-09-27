@@ -1,4 +1,4 @@
-import { after } from "@api/patcher";
+import { after, before } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
 import { findByStoreName } from "@metro";
 import { FluxDispatcher } from "@metro/common";
@@ -76,6 +76,33 @@ function mainParticipantId(): string | null {
     } catch {
         return null;
     }
+}
+
+const actions: string[] = [];
+const NOISY = /^(SPEAKING|RTC_CONNECTION_PING|RTC_CONNECTION_STATS|MEDIA_ENGINE|TYPING|PRESENCE|VOICE_STATE_UPDATES|MESSAGE|LOAD_MESSAGES|WINDOW_FOCUS|TRACK|RTC_CONNECTION_LOSS|VIDEO_SIZE_UPDATE|IDLE|AFK|WRITE_CACHES|SELF_PRESENCE|CONTENT_INVENTORY|SESSIONS_REPLACE|GPLAY|ACCESSIBILITY|SYSTEM_THEME|APP_STATE|PUSH_NOTIFICATION|QUESTS|UPDATE_CHANNEL_DIMENSIONS)/;
+
+function onAction(args: any[]) {
+    const a = args[0];
+    const type = a?.type;
+    if (typeof type !== "string" || NOISY.test(type)) return;
+    const extra = ["id", "channelId", "participantId", "streamKey", "userId", "focused", "mode", "layout"].filter(k => a[k] !== undefined).map(k => `${k}=${String(a[k]).slice(0, 40)}`).join(" ");
+    actions.push(`${new Date().toISOString().slice(17, 23)} ${type}${extra ? ` ${extra}` : ""}`);
+    if (actions.length > 25) actions.splice(0, actions.length - 25);
+}
+
+function moduleExports(path: string): any {
+    const mods: any = (window as any).modules ?? {};
+    for (const id of Object.keys(mods)) {
+        if (mods[id]?.__filePath === path) return mods[id].isInitialized ? mods[id].publicModule?.exports : undefined;
+    }
+}
+
+function shallow(v: any): string {
+    if (!v || typeof v !== "object") return String(v);
+    return Object.keys(v).slice(0, 20).map(k => {
+        const x = v[k];
+        return `${k}=${x === null || typeof x !== "object" ? (typeof x === "function" ? "fn" : String(x).slice(0, 30)) : Array.isArray(x) ? `[${x.length}]` : "{..}"}`;
+    }).join(" ");
 }
 
 let away = false;
@@ -262,6 +289,7 @@ export function startLayoutPatches() {
         returnTimer = null;
         away = resumeAfterAway = false;
     });
+    unpatches.push(before("dispatch", FluxDispatcher, onAction));
     FluxDispatcher.subscribe("CHANNEL_RTC_SELECT_PARTICIPANT", onSelect);
     unpatches.push(() => FluxDispatcher.unsubscribe("CHANNEL_RTC_SELECT_PARTICIPANT", onSelect));
     FluxDispatcher.subscribe("RTC_CONNECTION_STATE", onRtcState);
@@ -288,5 +316,8 @@ export function layoutDebug(): string[] {
         `selected: ${channelId ? safe(() => store?.getSelectedParticipantId?.(channelId)) : "-"}`,
         `grid order: ${Array.isArray(parts) ? parts.map((p: any) => (p.stream ? "stream" : hasVideo(p) ? "cam" : "novideo")).join(", ") : String(parts)}`,
         ...tilesDebug(),
+        `call store: ${shallow(moduleExports("modules/video_calls/native/ChannelCallStore.tsx")?.useChannelCallStore?.getState?.())}`,
+        "recent actions:",
+        ...(actions.length ? actions.map(a => `  ${a}`) : ["  none"]),
     ];
 }
