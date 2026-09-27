@@ -1,7 +1,7 @@
 import { getNativeModule } from "@api/native/modules";
 import { instead } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
-import { Dimensions } from "react-native";
+import { AppState, Dimensions } from "react-native";
 
 const DISCORD_PATH = "modules/device/native/DeviceOrientation.tsx";
 const RELOCKS = ["lockToPortrait", "unlockAllOrientations", "lockToPortraitUpsideDown"];
@@ -17,7 +17,7 @@ let hooked: string[] = [];
 let lastError = "";
 let prevLock: any = null;
 let dimsSub: { remove(): void; } | null = null;
-let retryTimer: ReturnType<typeof setTimeout> | null = null;
+let retryTimer: ReturnType<typeof setInterval> | null = null;
 const trail: string[] = [];
 const unpatches: (() => unknown)[] = [];
 const listeners = new Set<() => void>();
@@ -77,7 +77,9 @@ function hookLocker(target: any, label: string) {
     const landscape = target.lockToLandscape;
     for (const name of WATCH) {
         wrap(target, name, label, (args, orig) => {
-            note(`${label}.${name}(${args.map(brief).join(",")})${forced && RELOCKS.includes(name) ? " -> landscape" : ""}`);
+            const flip = forced && (RELOCKS.includes(name) || (name === "ignoreAutoRotate" && args[0] !== true));
+            note(`${label}.${name}(${args.map(brief).join(",")})${flip ? " -> kept landscape" : ""}`);
+            if (forced && name === "ignoreAutoRotate") return orig(true);
             if (forced && RELOCKS.includes(name) && typeof landscape === "function") return landscape.call(target);
             return orig(...args);
         });
@@ -164,7 +166,7 @@ const portrait = () => {
 export function setLandscape(v: boolean) {
     if (!locker && !native && !discord) startOrientation();
     lastError = "";
-    if (retryTimer) clearTimeout(retryTimer);
+    if (retryTimer) clearInterval(retryTimer);
     retryTimer = null;
 
     if (v) {
@@ -178,16 +180,17 @@ export function setLandscape(v: boolean) {
         forced = true;
         note("rotate on");
         setIgnoreAutoRotate(true);
-        const lt = landscapeType();
-        if (discordLock && lt !== undefined) attempt("discord lock", () => discordLock!.call(discord, lt));
-        const target = locker ?? native;
+        const target = native ?? locker;
         if (target) attempt("lockToLandscape", () => target.lockToLandscape());
-        retryTimer = setTimeout(() => {
-            retryTimer = null;
-            if (!forced || !portrait()) return;
-            note("still portrait, trying left");
+        let tries = 0;
+        retryTimer = setInterval(() => {
+            if (!forced || !portrait() || AppState.currentState !== "active") return;
+            tries++;
+            note(`still portrait (${tries})`);
+            setIgnoreAutoRotate(true);
             const t = native ?? locker;
-            if (t?.lockToLandscapeLeft) attempt("lockToLandscapeLeft", () => t.lockToLandscapeLeft());
+            if (tries % 2 === 0 && t?.lockToLandscapeLeft) attempt("lockToLandscapeLeft", () => t.lockToLandscapeLeft());
+            else if (t) attempt("lockToLandscape", () => t.lockToLandscape());
         }, 1200);
     } else {
         forced = false;

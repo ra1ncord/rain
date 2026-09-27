@@ -5,10 +5,11 @@ import { FluxDispatcher } from "@metro/common";
 import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { AppState, Dimensions } from "react-native";
 
-import { setTilesActive, setTilesFullscreen, tilesDebug } from "./tiles";
+import { discordFullscreen, setTilesActive, setTilesFullscreen, tilesDebug } from "./tiles";
 
 let active = false;
 let fullscreen = false;
+let fullscreenSel: string | null = null;
 const listeners = new Set<() => void>();
 const unpatches: (() => unknown)[] = [];
 let salt = 0;
@@ -158,7 +159,8 @@ export function setSplitActive(v: boolean, fromFocus = false) {
     if (active === v) return;
     active = v;
     if (v && !fromFocus) {
-        fullscreen = !!selectedParticipant();
+        fullscreenSel = selectedParticipant();
+        fullscreen = !!fullscreenSel || discordFullscreen();
         if (!fullscreen) unselectParticipant();
     }
     if (!v && !fromFocus) fullscreen = false;
@@ -169,7 +171,7 @@ export function setSplitActive(v: boolean, fromFocus = false) {
 
 export function toggleSplit() {
     if (active) return setSplitActive(false);
-    if (resumeAfterFocus && selectedParticipant()) {
+    if (resumeAfterFocus && (selectedParticipant() || discordFullscreen())) {
         resumeAfterFocus = false;
         return setSplitActive(true);
     }
@@ -208,7 +210,7 @@ function onSelect(e: any) {
 function watchFocus() {
     const selected = selectedParticipant();
     if (active && fullscreen) {
-        if (!selected) {
+        if (fullscreenSel && !selected) {
             fullscreen = false;
             setTilesFullscreen(false);
             refresh();

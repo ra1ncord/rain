@@ -395,6 +395,15 @@ function measureOrigin(list: Tile[]) {
     return best ? { x: win.width / 2 - (best.x + best.width / 2), y: win.height / 2 - (best.y + best.height / 2) } : { x: 0, y: 0 };
 }
 
+export function discordFullscreen(): boolean {
+    if (active) return false;
+    const ww = Dimensions.get("window").width;
+    return liveTiles().some(t => {
+        const c = readCoords(t.coords);
+        return !!c && c.width >= ww - 2;
+    });
+}
+
 export function setTilesFullscreen(v: boolean) {
     if (fullscreen === v) return;
     fullscreen = v;
