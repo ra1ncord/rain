@@ -14,6 +14,7 @@ import * as settingsTextInput from "@api/ui/components/SettingsTextInput";
 import * as sheets from "@api/ui/sheets";
 import * as toasts from "@api/ui/toasts";
 import * as cyrb64 from "@lib/utils/cyrb64";
+import { getProxyFactory } from "@lib/utils/lazy";
 import * as logger from "@lib/utils/logger";
 import * as metro from "@metro";
 import * as metroCommon from "@metro/common";
@@ -22,8 +23,6 @@ import * as metroStores from "@metro/common/stores";
 import * as plugins from "@plugins";
 import * as themes from "@plugins/_core/painter/themes";
 import * as jsxRuntime from "react/jsx-runtime";
-
-import { getProxyFactory } from "@lib/utils/lazy";
 
 const deps = require("!rain-deps-shim!");
 const real = (v: any) => getProxyFactory(v)?.() ?? v;
