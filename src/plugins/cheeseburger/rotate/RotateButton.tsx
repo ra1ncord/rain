@@ -4,39 +4,17 @@ import { Image, Pressable, Text } from "react-native";
 
 import { isLandscapeLocked, onRotateChange, toggleLandscape } from "./orientation";
 
-let callUi = 0;
-const uiListeners = new Set<() => void>();
+const ICONS = ["ic_screen_rotation", "screen-rotation", "ScreenRotationIcon", "RotateIcon", "ic_rotate", "RetryIcon"];
 
-export const isCallUiOpen = () => callUi > 0;
-
-function useForce(subscribe: (l: () => void) => () => void) {
-    const [, force] = React.useReducer((n: number) => n + 1, 0);
-    React.useEffect(() => subscribe(force), []);
-}
-
-const onCallUi = (l: () => void) => {
-    uiListeners.add(l);
-    return () => void uiListeners.delete(l);
+let iconId: number | null | undefined;
+const icon = () => {
+    if (iconId === undefined) iconId = ICONS.map(n => findAssetId(n)).find(id => id !== undefined) ?? null;
+    return iconId;
 };
 
-export function CallUiTracker() {
-    React.useEffect(() => {
-        callUi++;
-        uiListeners.forEach(l => l());
-        return () => {
-            callUi--;
-            uiListeners.forEach(l => l());
-        };
-    }, []);
-    return null;
-}
-
-const icon = () => ["ScreenRotationIcon", "RotateIcon", "DeviceRotateIcon", "ArrowsRotateIcon", "RetryIcon"].map(n => findAssetId(n)).find(id => id !== undefined);
-
-export function RotateButton({ size = 48 }: { size?: number; }) {
-    useForce(onRotateChange);
-    useForce(onCallUi);
-    if (!isCallUiOpen()) return null;
+export function RotateButton({ size = 32 }: { size?: number; }) {
+    const [, force] = React.useReducer((n: number) => n + 1, 0);
+    React.useEffect(() => onRotateChange(force), []);
 
     const on = isLandscapeLocked();
     const src = icon();
@@ -51,17 +29,17 @@ export function RotateButton({ size = 48 }: { size?: number; }) {
             style={({ pressed }) => ({
                 width: size,
                 height: size,
-                borderRadius: size / 3,
-                marginHorizontal: 4,
+                borderRadius: size * 0.3,
+                marginRight: 12,
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: on ? "#ffffff" : "rgba(0,0,0,0.55)",
+                backgroundColor: on ? "#ffffff" : "rgba(0,0,0,0.6)",
                 opacity: pressed ? 0.6 : 1,
             })}
         >
-            {src !== undefined
-                ? <Image source={src} style={{ width: size * 0.5, height: size * 0.5, tintColor: tint }} />
-                : <Text style={{ color: tint, fontSize: size * 0.45 }}>⟳</Text>}
+            {src != null
+                ? <Image source={src} style={{ width: size * 0.6, height: size * 0.6, tintColor: tint }} />
+                : <Text style={{ color: tint, fontSize: size * 0.55 }}>⟳</Text>}
         </Pressable>
     );
 }

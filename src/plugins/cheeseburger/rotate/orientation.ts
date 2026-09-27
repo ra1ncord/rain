@@ -1,20 +1,33 @@
 import { getNativeModule } from "@api/native/modules";
+import { instead } from "@api/patcher";
 import { logger } from "@lib/utils/logger";
 
-interface Api { name: string; lock(landscape: boolean): unknown; }
+const DISCORD_PATH = "modules/device/native/DeviceOrientation.tsx";
+const RELOCKS = ["lockToPortrait", "unlockAllOrientations", "lockToPortraitUpsideDown"];
 
-const NATIVE_GUESSES = [
-    "ExpoScreenOrientation", "Orientation", "RNOrientation", "OrientationLocker", "DCDOrientationManager",
-    "RTNOrientationManager", "NativeOrientationModule", "OrientationModule", "ScreenOrientationModule", "DCDScreenOrientation",
-];
-
-let api: Api | null | undefined;
-let landscape = false;
+let forced = false;
+let locker: any = null;
+let native: any = null;
+let discord: any = null;
+let patched: string[] = [];
 let lastError = "";
+const unpatches: (() => unknown)[] = [];
 const listeners = new Set<() => void>();
 
-function scanModules(test: (exp: any) => boolean): any {
-    const mods: any = (window as any).modules ?? {};
+function modules(): any {
+    return (window as any).modules ?? {};
+}
+
+function byPath(path: string): any {
+    const mods = modules();
+    for (const id of Object.keys(mods)) {
+        const m = mods[id];
+        if (m?.__filePath === path) return m.isInitialized ? m.publicModule?.exports : undefined;
+    }
+}
+
+function scan(test: (exp: any) => boolean): any {
+    const mods = modules();
     for (const id of Object.keys(mods)) {
         const m = mods[id];
         if (!m?.isInitialized) continue;
@@ -27,93 +40,88 @@ function scanModules(test: (exp: any) => boolean): any {
     }
 }
 
-function detect(): Api | null {
-    const expo = (globalThis as any).expo?.modules?.ExpoScreenOrientation;
-    if (typeof expo?.lockAsync === "function") return { name: "expo native", lock: l => expo.lockAsync(l ? 5 : 0) };
+const isLocker = (e: any) => typeof e.lockToLandscape === "function" && typeof e.lockToPortrait === "function" && typeof e.unlockAllOrientations === "function";
 
-    const expoJs = scanModules(e => typeof e.lockAsync === "function" && e.OrientationLock && typeof e.OrientationLock.LANDSCAPE === "number");
-    if (expoJs) return { name: "expo js", lock: l => expoJs.lockAsync(l ? expoJs.OrientationLock.LANDSCAPE : expoJs.OrientationLock.DEFAULT) };
-
-    const locker = getNativeModule<any>("Orientation", "RNOrientation", "OrientationLocker");
-    if (typeof locker?.lockToLandscape === "function") {
-        return { name: "locker native", lock: l => (l ? locker.lockToLandscape() : (locker.unlockAllOrientations ?? locker.lockToPortrait).call(locker)) };
+function hook(target: any, label: string) {
+    if (!target) return;
+    const landscape = target.lockToLandscape;
+    if (typeof landscape !== "function") return;
+    for (const name of RELOCKS) {
+        if (typeof target[name] !== "function") continue;
+        try {
+            unpatches.push(instead(name, target, (args: any[], orig: Function) => (forced ? landscape.call(target) : orig(...args))));
+            patched.push(`${label}.${name}`);
+        } catch { }
     }
-
-    const lockerJs = scanModules(e => typeof e.lockToLandscape === "function" && (typeof e.unlockAllOrientations === "function" || typeof e.lockToPortrait === "function"));
-    if (lockerJs) return { name: "locker js", lock: l => (l ? lockerJs.lockToLandscape() : (lockerJs.unlockAllOrientations ?? lockerJs.lockToPortrait).call(lockerJs)) };
-
-    return null;
 }
 
-function getApi() {
-    if (api === undefined || api === null) api = detect();
-    return api;
+export function startOrientation() {
+    locker = scan(isLocker) ?? null;
+    native = getNativeModule<any>("Orientation") ?? null;
+    discord = byPath(DISCORD_PATH) ?? null;
+    patched = [];
+    hook(locker, "js");
+    if (native !== locker) hook(native, "native");
 }
 
-export const isLandscapeLocked = () => landscape;
+export function stopOrientation() {
+    if (forced) setLandscape(false);
+    for (const u of unpatches.splice(0)) u();
+    patched = [];
+}
+
+export const isLandscapeLocked = () => forced;
 
 export function onRotateChange(l: () => void) {
     listeners.add(l);
     return () => void listeners.delete(l);
 }
 
+function restore() {
+    try {
+        const lock = discord?.getOrientationLock?.();
+        if (lock != null && typeof discord?.lockOrientation === "function") return void discord.lockOrientation(lock);
+    } catch { }
+    (locker ?? native)?.lockToPortrait?.();
+}
+
 export function setLandscape(v: boolean) {
-    const a = getApi();
-    if (!a) {
+    if (!locker && !native) startOrientation();
+    const target = locker ?? native;
+    if (!target) {
         lastError = "no orientation api";
         return false;
     }
+    forced = v;
     try {
-        const r: any = a.lock(v);
-        if (r && typeof r.catch === "function") {
-            r.catch((e: any) => {
-                lastError = String(e?.message ?? e);
-                logger.error("[Cheeseburger] rotate failed", e);
-            });
-        }
-        landscape = v;
+        if (v) target.lockToLandscape();
+        else restore();
         lastError = "";
-        listeners.forEach(l => l());
-        return true;
     } catch (e: any) {
         lastError = String(e?.message ?? e);
         logger.error("[Cheeseburger] rotate failed", e);
-        return false;
     }
+    listeners.forEach(l => l());
+    return true;
 }
 
-export const toggleLandscape = () => setLandscape(!landscape);
+export const toggleLandscape = () => setLandscape(!forced);
 
 export function resetOrientation() {
-    if (landscape) setLandscape(false);
+    if (forced) setLandscape(false);
 }
 
 export function orientationDebug(): string[] {
-    const turbo = (globalThis as any).__turboModuleProxy;
-    const proxy = (window as any).nativeModuleProxy ?? {};
-    const natives = NATIVE_GUESSES.filter(n => {
+    const safe = (f: () => any) => {
         try {
-            return !!(turbo?.(n) ?? proxy[n] ?? (globalThis as any).expo?.modules?.[n]);
-        } catch {
-            return false;
+            return JSON.stringify(f()) ?? "undefined";
+        } catch (e) {
+            return `err ${e}`;
         }
-    });
-    const mods: any = (window as any).modules ?? {};
-    const paths: string[] = [];
-    for (const id of Object.keys(mods)) {
-        const m = mods[id];
-        const path: string | undefined = m?.__filePath;
-        const exp = m?.isInitialized ? m.publicModule?.exports : undefined;
-        const keys = exp && typeof exp === "object" ? Object.keys(exp) : [];
-        const hit = (path && /orient/i.test(path)) || keys.some(k => /orient|lockTo|lockAsync/i.test(k));
-        if (hit && paths.length < 12) paths.push(`  ${path ?? `#${id}`}: ${keys.slice(0, 10).join(",")}`);
-    }
-    const expoMods = Object.keys((globalThis as any).expo?.modules ?? {});
+    };
     return [
-        `rotate api: ${getApi()?.name ?? "none"}${lastError ? ` (${lastError})` : ""}, landscape: ${landscape}`,
-        `native: ${natives.join(",") || "none"}`,
-        `expo modules: ${expoMods.join(",").slice(0, 300) || "none"}`,
-        "orientation modules:",
-        ...(paths.length ? paths : ["  none"]),
+        `rotate: ${locker ? "js" : native ? "native" : "none"}${lastError ? ` (${lastError})` : ""}, landscape: ${forced}`,
+        `hooked: ${patched.join(",") || "none"}`,
+        `discord lock: ${safe(() => discord?.getOrientationLock?.())}, now: ${safe(() => discord?.getOrientation?.())}`,
     ];
 }

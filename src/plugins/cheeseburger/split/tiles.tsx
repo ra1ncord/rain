@@ -334,6 +334,7 @@ export function knownMainAspect(): number | null {
 }
 
 function aspectOf(t: Tile): number {
+    if (t.kind !== "stream") return 16 / 9;
     return (t.streamId && aspects.get(t.streamId)?.value) || 16 / 9;
 }
 
