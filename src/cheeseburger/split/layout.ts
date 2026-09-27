@@ -17,7 +17,7 @@ const listeners = new Set<() => void>();
 const unpatches: (() => unknown)[] = [];
 let salt = 0;
 
-export const isSplitActive = () => active || resumeAfterFocus || resumeAfterRotate;
+export const isSplitActive = () => active || resumeAfterFocus;
 export function onSplitChange(l: () => void) {
     listeners.add(l);
     return () => void listeners.delete(l);
@@ -157,7 +157,7 @@ function onAppState(state: string) {
     if (id) selectParticipant(id);
 }
 
-let resumeAfterRotate = false;
+let landscapeAuto = false;
 let dimsTimer: ReturnType<typeof setTimeout> | null = null;
 
 const isLandscape = () => {
@@ -171,29 +171,18 @@ function onDims() {
         dimsTimer = null;
         if (AppState.currentState !== "active") return;
         if (isLandscape()) {
-            if (!active) return;
-            resumeAfterRotate = true;
-            setSplitActive(false, true);
-        } else if (resumeAfterRotate) {
-            resumeAfterRotate = false;
+            if (active || resumeAfterFocus || lastSel) return;
+            landscapeAuto = true;
             setSplitActive(true, true);
+        } else if (landscapeAuto) {
+            landscapeAuto = false;
+            if (active) setSplitActive(false, true);
         }
     }, 300);
 }
 
 export function setSplitActive(v: boolean, fromFocus = false) {
-    if (!fromFocus && resumeAfterRotate) {
-        resumeAfterRotate = false;
-        if (!v) {
-            listeners.forEach(l => l());
-            return;
-        }
-    }
-    if (v && !fromFocus && isLandscape()) {
-        resumeAfterRotate = true;
-        listeners.forEach(l => l());
-        return;
-    }
+    if (!fromFocus) landscapeAuto = false;
     if (!fromFocus && resumeAfterFocus) {
         resumeAfterFocus = false;
         if (active === v) {
@@ -205,7 +194,7 @@ export function setSplitActive(v: boolean, fromFocus = false) {
     active = v;
     let back: string | null = null;
     if (v && !fromFocus) {
-        fsSel = selectedParticipant() ?? lastSel;
+        fsSel = isLandscape() ? null : selectedParticipant() ?? lastSel;
         fullscreen = !!fsSel;
         unselectParticipant();
     }
@@ -248,9 +237,12 @@ export function toggleSplit() {
 
 export const isFullscreenSplit = () => active && fullscreen;
 
-export function resumeSplit(fs: boolean) {
+export const isLandscapeAuto = () => landscapeAuto;
+
+export function resumeSplit(fs: boolean, auto = false) {
     fullscreen = fs;
     setSplitActive(true, true);
+    landscapeAuto = auto && isLandscape();
 }
 
 function onRtcState(e: any) {
@@ -277,6 +269,7 @@ const rotated = () => isLandscapeLocked() || isLandscape();
 function onSelect(e: any) {
     const id = e?.id != null ? String(e.id) : null;
     lastSel = id;
+    if (id == null && !active && !resumeAfterFocus && isLandscapeLocked()) onDims();
     if (!active || id == null) return;
     if (rotated()) {
         resumeAfterFocus = true;
@@ -333,7 +326,7 @@ export function startLayoutPatches() {
         dimsSub.remove();
         if (dimsTimer) clearTimeout(dimsTimer);
         dimsTimer = null;
-        resumeAfterRotate = false;
+        landscapeAuto = false;
     });
     unpatches.push(() => {
         appSub.remove();
@@ -346,6 +339,7 @@ export function startLayoutPatches() {
     unpatches.push(() => FluxDispatcher.unsubscribe("CHANNEL_RTC_SELECT_PARTICIPANT", onSelect));
     FluxDispatcher.subscribe("RTC_CONNECTION_STATE", onRtcState);
     unpatches.push(() => FluxDispatcher.unsubscribe("RTC_CONNECTION_STATE", onRtcState));
+    onDims();
     return true;
 }
 
@@ -363,7 +357,7 @@ export function layoutDebug(): string[] {
     const safe = (f: () => any) => { try { return f(); } catch (e) { return `err ${e}`; } };
     const parts = channelId ? safe(() => store?.getParticipants?.(channelId)) : [];
     return [
-        `split active: ${active}${fullscreen ? ` (full screen${fsSel ? ` from ${fsSel.slice(0, 24)}` : ""})` : ""}${resumeAfterFocus ? ", waiting for focus" : ""}${resumeAfterRotate ? ", waiting for portrait" : ""}`,
+        `split active: ${active}${fullscreen ? ` (full screen${fsSel ? ` from ${fsSel.slice(0, 24)}` : ""})` : ""}${resumeAfterFocus ? ", waiting for focus" : ""}${landscapeAuto ? ", auto for landscape" : ""}`,
         `store fns: ${["getParticipants", "getFilteredParticipants", "getSelectedParticipantId", "getVoiceParticipantsHidden", "getParticipantsVersion", "emitChange"].filter(f => typeof store?.[f] === "function").join(",")}`,
         `selected: ${channelId ? safe(() => store?.getSelectedParticipantId?.(channelId)) : "-"}`,
         `grid order: ${Array.isArray(parts) ? parts.map((p: any) => (p.stream ? "stream" : hasVideo(p) ? "cam" : "novideo")).join(", ") : String(parts)}`,

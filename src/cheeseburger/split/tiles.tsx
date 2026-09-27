@@ -439,11 +439,52 @@ export function setTilesFullscreen(v: boolean) {
     if (active) scheduleApply();
 }
 
+const LS_INSET = 12;
+
+function landscapeRects(list: Tile[], win: { width: number; height: number; }): Map<string, Rect> {
+    const out = new Map<string, Rect>();
+    const boxes = list.map(t => intended.get(t.coords)).filter(isCoords);
+    let W = win.width - 24;
+    let top = 0;
+    let H = win.height - 170;
+    if (boxes.length) {
+        const minX = Math.min(...boxes.map(b => b.x));
+        const maxX = Math.max(...boxes.map(b => b.x + b.width));
+        const minY = Math.min(...boxes.map(b => b.y));
+        const maxY = Math.max(...boxes.map(b => b.y + b.height));
+        W = Math.min(win.width, Math.max(maxX - minX, minX + maxX));
+        top = minY;
+        H = Math.max(120, maxY - minY - LS_INSET);
+    }
+    const asp = list.map(aspectOf);
+    const widest = Math.max(...asp);
+    let best = { rows: 1, cols: list.length, h: 0 };
+    for (let rows = 1; rows <= list.length; rows++) {
+        const cols = Math.ceil(list.length / rows);
+        const h = Math.min((H - GRID_GAP * (rows - 1)) / rows, (W - GRID_GAP * (cols + 1)) / cols / widest);
+        if (h > best.h) best = { rows, cols, h };
+    }
+    const { rows, cols, h } = best;
+    let y = top + Math.max(0, (H - (rows * h + GRID_GAP * (rows - 1))) / 2);
+    for (let r = 0; r < rows; r++) {
+        const idx = list.map((_, i) => i).slice(r * cols, (r + 1) * cols);
+        const widths = idx.map(i => h * asp[i]);
+        let x = Math.max(GRID_GAP, (W - widths.reduce((a, b) => a + b, 0) - GRID_GAP * (idx.length - 1)) / 2);
+        idx.forEach((i, j) => {
+            out.set(list[i].key, { x: Math.round(x), y: Math.round(y), width: Math.round(widths[j]), height: Math.round(h) });
+            x += widths[j] + GRID_GAP;
+        });
+        y += h + GRID_GAP;
+    }
+    return out;
+}
+
 function computeRects(list: Tile[]): Map<string, Rect> {
     const out = new Map<string, Rect>();
     if (!list.length) return out;
 
     const win = Dimensions.get("window");
+    if (win.width > win.height) return landscapeRects(list, win);
     let W: number, H: number, X0: number, Y0: number, GAP: number;
     if (fullscreen) {
         origin ??= { x: (win.width - gridWidth(list, win.width)) / 2, y: GRID_TOP };
