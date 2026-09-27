@@ -9,7 +9,9 @@ import { findByName, findByProps, findByStoreName } from "@metro";
 import { FluxDispatcher, messageUtil, React } from "@metro/common";
 import { View } from "react-native";
 
+import { engineDebug, expect, hookEngine, teach, unhookEngine } from "./engine";
 import { useVolumeBoostSettings, volumeBoostSettings } from "./storage";
+import { note, short, trail } from "./trail";
 import VolumeLabel, { emitSliderValue } from "./VolumeLabel";
 
 const DISCORD_MAX = 200;
@@ -52,15 +54,7 @@ function forEachConnection(cb: (conn: any) => void): boolean {
     return true;
 }
 
-const trail: string[] = [];
 let observed = new WeakSet<object>();
-
-function note(line: string) {
-    trail.push(`${new Date().toISOString().slice(17, 23)} ${line}`);
-    if (trail.length > 20) trail.shift();
-}
-
-const short = (v: any) => (typeof v === "string" && v.length > 8 ? `…${v.slice(-4)}` : typeof v === "number" ? String(Math.round(v * 1000) / 1000) : typeof v);
 
 function connContext(conn: any): string {
     const c = conn?.context ?? conn?.mediaContext ?? conn?._context;
@@ -121,6 +115,7 @@ function patchConnection(conn: any) {
         const boost = typeof userId === "string" ? getBoost(userId, ctx) : undefined;
         const out = boost && boost > DISCORD_MAX ? boost : volume;
         note(`${ctx} ${short(userId)} ${short(volume)}${out !== volume ? ` -> ${out}` : ""}`);
+        if (typeof userId === "string" && typeof out === "number") expect(userId, out);
         if (out !== volume) {
             debug(`engine ${userId}: ${volume} -> ${boost}`);
             args[1] = out;
@@ -182,14 +177,17 @@ export function volumeDebug(): string[] {
         for (const u of users) lines.push(`  ${short(u)}: ${localVolumesOf(conn, u)}`);
     });
     if (!found) lines.push("no media engine");
+    lines.push(...engineDebug());
     lines.push("files:", ...modulePaths());
     lines.push("calls:", ...(trail.length ? trail.map(t => `  ${t}`) : ["  none yet"]));
     return lines;
 }
 
 function applyToConnections(userId?: string) {
+    hookEngine();
     const ok = forEachConnection(conn => {
         patchConnection(conn);
+        teach(conn);
         const ctx = connContext(conn);
         for (const [key, volume] of Object.entries(volumeBoostSettings.boosted ?? {})) {
             const [kctx, kuser] = key.split(":");
@@ -477,5 +475,6 @@ export default {
         patchedProtos = new WeakSet<object>();
         observed = new WeakSet<object>();
         trail.length = 0;
+        unhookEngine();
     },
 };
