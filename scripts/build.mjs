@@ -121,6 +121,32 @@ const config = {
     ]
 };
 
+const KNOWN_GLOBALS = new Set([
+    "setTimeout", "setInterval", "setImmediate", "clearTimeout", "clearInterval", "clearImmediate", "queueMicrotask",
+    "nativeModuleProxy", "fetch", "console", "btoa", "atob", "alert", "XMLHttpRequest", "WebSocket", "URLSearchParams",
+    "URL", "Promise", "FormData", "FileReader", "ErrorUtils", "Buffer", "AbortController", "React", "currentTheme", "findAssetId"
+]);
+
+async function checkUndeclared(file, wrap = false) {
+    const hermesc = findHermescPath();
+    if (!hermesc) return;
+    let target = file;
+    if (wrap) {
+        target = `${file}.check.js`;
+        await fs.writeFile(target, `(function(module, exports){${await fs.readFile(file, "utf-8")}\n;return module.exports;})\n`);
+    }
+    let output = "";
+    try {
+        output = execSync(`${hermesc} -emit-binary -out /dev/null ${target} 2>&1`, { encoding: "utf-8", maxBuffer: 64 * 1024 * 1024 });
+    } catch (e) {
+        output = `${e.stdout ?? ""}${e.stderr ?? ""}`;
+    } finally {
+        if (wrap) await fs.unlink(target).catch(() => {});
+    }
+    const bad = [...new Set([...output.matchAll(/the variable "([^"]+)" was not declared/g)].map(m => m[1]))].filter(n => !KNOWN_GLOBALS.has(n));
+    if (bad.length) throw new Error(`${file} uses undefined names: ${bad.join(", ")}`);
+}
+
 export async function buildCheeseburger() {
     const registrySource = await fs.readFile("src/api/hot/registry.ts", "utf-8");
     const exposed = new Set([...registrySource.matchAll(/^\s*"([^"]+)":/gm)].map(m => m[1]));
@@ -151,6 +177,7 @@ export async function buildCheeseburger() {
     });
     const missing = [...used].filter(id => !exposed.has(id));
     if (missing.length) throw new Error(`cheeseburger uses modules rain does not expose: ${missing.join(", ")}`);
+    await checkUndeclared("dist/cheeseburger.js", true);
     const code = await fs.readFile("dist/cheeseburger.js");
     const revision = crypto.createHash("sha1").update(code).digest("hex").slice(0, 12);
     await fs.writeFile("dist/cheeseburger.json", JSON.stringify({ revision, size: code.length }, null, 2));
@@ -394,6 +421,7 @@ if (isThisFileBeingRunViaCLI) {
         )
     );
 
+    await checkUndeclared(config.outfile);
     await buildCheeseburger();
 
     console.log(`\nAvailable paths: ${availablePaths.join(", ")}`);

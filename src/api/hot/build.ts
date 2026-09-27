@@ -1,3 +1,5 @@
-import { revision as coreRevision } from "rain-build-info";
+import { revision } from "rain-build-info";
 
-export const revision: string = coreRevision;
+const coreRevision: string = revision;
+
+export { coreRevision as revision };
