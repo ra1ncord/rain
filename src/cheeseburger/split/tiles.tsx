@@ -776,6 +776,15 @@ export function setTilesActive(v: boolean, handoff = false) {
     }
 }
 
+export function moveTo(from: number, to: number) {
+    const order = currentOrder();
+    if (from === to || from < 0 || to < 0 || from >= order.length || to >= order.length) return;
+    const [kind] = order.splice(from, 1);
+    order.splice(to, 0, kind);
+    splitViewSettings.order = order;
+    applyLayout();
+}
+
 export function moveKind(kind: TileKind, dir: -1 | 1) {
     const order = currentOrder();
     const i = order.indexOf(kind);
