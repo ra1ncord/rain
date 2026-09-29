@@ -4,6 +4,7 @@ interface SplitViewSettings {
     showButton: boolean;
     iconSize: number;
     order: string[];
+    sized: boolean;
 }
 
 export const {
@@ -11,6 +12,7 @@ export const {
     settings: splitViewSettings,
 } = createPluginStore<SplitViewSettings>("splitview", {
     showButton: true,
-    iconSize: 26,
+    iconSize: 24,
     order: ["stream", "them", "me"],
+    sized: false,
 });

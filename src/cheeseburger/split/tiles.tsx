@@ -4,6 +4,7 @@ import { findByStoreName } from "@metro";
 import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { Dimensions, StatusBar } from "react-native";
 
+import { caught, safe } from "../crash";
 import { measureAll, measured, toolbarKnown } from "./probe";
 import { splitViewSettings } from "./storage";
 
@@ -106,6 +107,15 @@ const near = (a: any, r: Rect) => Math.abs((a.x ?? 0) - r.x) < 0.5 && Math.abs((
 const isCoords = (v: any) => !!v && typeof v === "object" && typeof v.x === "number" && typeof v.width === "number";
 
 function steer(sv: any, v: any) {
+    try {
+        return steerTo(sv, v);
+    } catch (e) {
+        caught("split steer", e);
+        return v;
+    }
+}
+
+function steerTo(sv: any, v: any) {
     if (!active || !mine()) return v;
     const r = targets.get(sv);
     if (!r) return v;
@@ -158,18 +168,25 @@ function guardModify(sv: any) {
             configurable: true,
             writable: true,
             value(this: any, ...a: any[]) {
-                const r = active && mine() ? targets.get(sv) : undefined;
+                let r: Rect | undefined;
+                try {
+                    r = active && mine() ? targets.get(sv) : undefined;
+                } catch { }
                 if (!r) return orig.apply(this, a);
-                held++;
-                burstUntil = Date.now() + 3000;
-                const cur = readCoords(sv);
-                if (cur && typeof a[0] === "function") {
-                    try {
-                        const want = a[0]({ ...cur });
-                        if (isCoords(want)) intended.set(sv, { ...want });
-                    } catch { }
+                try {
+                    held++;
+                    burstUntil = Date.now() + 3000;
+                    const cur = readCoords(sv);
+                    if (cur && typeof a[0] === "function") {
+                        try {
+                            const want = a[0]({ ...cur });
+                            if (isCoords(want)) intended.set(sv, { ...want });
+                        } catch { }
+                    }
+                    if (cur && !near(cur, r)) write(sv, { ...cur, ...r, zIndex: 1 }, r);
+                } catch (e) {
+                    caught("split modify", e);
                 }
-                if (cur && !near(cur, r)) write(sv, { ...cur, ...r, zIndex: 1 }, r);
             },
         });
         modGuards.set(sv, own ?? null);
@@ -245,13 +262,13 @@ function noteSize(sid: string, size: { w: number; h: number; }) {
     if (cur.pending !== undefined && same(a, cur.pending)) return;
     if (cur.timer) clearTimeout(cur.timer);
     cur.pending = a;
-    cur.timer = setTimeout(() => {
+    cur.timer = setTimeout(safe("split shape", () => {
         if (cur.pending === undefined) return;
         cur.value = cur.pending;
         cur.pending = cur.timer = undefined;
         aspectChanged();
         if (active) scheduleApply();
-    }, SETTLE_MS);
+    }), SETTLE_MS);
 }
 
 function noteCoords(sv: any) {
@@ -278,8 +295,12 @@ export function registerTile(args: any[]) {
         if (!w) {
             const sid = String(props.streamId);
             w = (...a: any[]) => {
-                const size = sizeFromArgs(a);
-                if (size && size.w > 0 && size.h > 0) noteSize(sid, size);
+                try {
+                    const size = sizeFromArgs(a);
+                    if (size && size.w > 0 && size.h > 0) noteSize(sid, size);
+                } catch (e) {
+                    caught("split video size", e);
+                }
                 return orig(...a);
             };
             onSizeWrapped.set(orig, w);
@@ -440,7 +461,13 @@ export function onAspectChange(l: () => void) {
     return () => void aspectListeners.delete(l);
 }
 
-const aspectChanged = () => aspectListeners.forEach(l => l());
+const aspectChanged = () => aspectListeners.forEach(l => {
+    try {
+        l();
+    } catch (e) {
+        caught("split shape listener", e);
+    }
+});
 
 export const streamAspect = (sid: string): number | null => aspects.get(sid)?.value ?? null;
 
@@ -775,10 +802,12 @@ function applyLayout() {
     }
 }
 
+const safeApply = safe("split layout", applyLayout);
+
 function poll() {
     pollTimer = null;
     if (!active || !mine()) return;
-    applyLayout();
+    safeApply();
     pollTimer = setTimeout(poll, Date.now() < burstUntil ? 40 : 150);
 }
 
@@ -786,7 +815,7 @@ export function kickTiles() {
     const now = Date.now();
     if (!active || now < burstUntil) return;
     burstUntil = now + 1500;
-    setTimeout(applyLayout, 30);
+    setTimeout(safeApply, 30);
 }
 
 let applyScheduled = false;
@@ -795,7 +824,7 @@ function scheduleApply() {
     applyScheduled = true;
     setTimeout(() => {
         applyScheduled = false;
-        applyLayout();
+        safeApply();
     }, 50);
 }
 
@@ -818,7 +847,11 @@ export function setTilesActive(v: boolean, handoff = false) {
     } else {
         if (pollTimer) clearTimeout(pollTimer);
         pollTimer = null;
-        if (!handoff && mine()) restoreAll();
+        try {
+            if (!handoff && mine()) restoreAll();
+        } catch (e) {
+            caught("split restore", e);
+        }
         unguardAll();
     }
 }
@@ -829,7 +862,7 @@ export function moveTo(from: number, to: number) {
     const [kind] = order.splice(from, 1);
     order.splice(to, 0, kind);
     splitViewSettings.order = order;
-    applyLayout();
+    safeApply();
 }
 
 export function moveKind(kind: TileKind, dir: -1 | 1) {
@@ -839,7 +872,7 @@ export function moveKind(kind: TileKind, dir: -1 | 1) {
     if (i === -1 || j < 0 || j >= order.length) return;
     [order[i], order[j]] = [order[j], order[i]];
     splitViewSettings.order = order;
-    applyLayout();
+    safeApply();
 }
 
 export function tilesDebug(): string[] {

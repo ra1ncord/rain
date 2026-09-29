@@ -6,6 +6,8 @@ import { FluxDispatcher } from "@metro/common";
 import { SelectedChannelStore } from "@metro/common/stores";
 import { AppState, Dimensions } from "react-native";
 
+import { safe, safeInstead } from "../crash";
+
 const DISCORD_PATH = "modules/device/native/DeviceOrientation.tsx";
 const RELOCKS = ["lockToPortrait", "unlockAllOrientations", "lockToPortraitUpsideDown"];
 const WATCH = ["lockToPortrait", "lockToLandscape", "lockToLandscapeLeft", "lockToLandscapeRight", "unlockAllOrientations", "ignoreAutoRotate"];
@@ -65,7 +67,7 @@ function wrap(target: any, name: string, label: string, body: (args: any[], orig
     const before = target?.[name];
     if (typeof before !== "function") return;
     try {
-        unpatches.push(instead(name, target, body));
+        unpatches.push(instead(name, target, safeInstead(`rotate ${name}`, body)));
         hooked.push(`${label}.${name}${target[name] === before ? "(no)" : ""}`);
     } catch {
         hooked.push(`${label}.${name}(no)`);
@@ -80,7 +82,14 @@ function hookLocker(target: any, label: string) {
             const flip = forced && (RELOCKS.includes(name) || (name === "ignoreAutoRotate" && args[0] !== true));
             note(`${label}.${name}(${args.map(brief).join(",")})${flip ? " -> kept landscape" : ""}`);
             if (forced && name === "ignoreAutoRotate") return orig(true);
-            if (forced && RELOCKS.includes(name) && typeof landscape === "function") return landscape.call(target);
+            if (forced && RELOCKS.includes(name) && typeof landscape === "function") {
+                try {
+                    return landscape.call(target);
+                } catch (e: any) {
+                    note(`${label}.lockToLandscape failed: ${e?.message ?? e}`);
+                    return;
+                }
+            }
             return orig(...args);
         });
     }
@@ -94,9 +103,9 @@ function landscapeType(): any {
     return key !== undefined ? types[key] : undefined;
 }
 
-function onDims({ window: w }: any) {
+const onDims = safe("rotate screen size", ({ window: w }: any) => {
     note(`screen ${Math.round(w.width)}x${Math.round(w.height)}`);
-}
+});
 
 export function startOrientation() {
     locker = scan(isLocker) ?? null;
@@ -206,7 +215,7 @@ export function setLandscape(v: boolean) {
         focused = !!sid;
         if (sid) focus(sid);
         let tries = 0;
-        retryTimer = setInterval(() => {
+        retryTimer = setInterval(safe("rotate retry", () => {
             if (!forced || !portrait() || AppState.currentState !== "active") return;
             tries++;
             note(`still portrait (${tries})`);
@@ -214,7 +223,7 @@ export function setLandscape(v: boolean) {
             const t = native ?? locker;
             if (tries % 2 === 0 && t?.lockToLandscapeLeft) attempt("lockToLandscapeLeft", () => t.lockToLandscapeLeft());
             else if (t) attempt("lockToLandscape", () => t.lockToLandscape());
-        }, 1200);
+        }), 1200);
     } else {
         forced = false;
         note("rotate off");
@@ -235,7 +244,7 @@ export function resetOrientation() {
 }
 
 export function orientationDebug(): string[] {
-    const safe = (f: () => any) => {
+    const read = (f: () => any) => {
         try {
             return brief(f());
         } catch (e) {
@@ -247,7 +256,7 @@ export function orientationDebug(): string[] {
         `rotate: ${locker ? "js" : native ? "native" : "none"}${discord ? " + discord" : ""}${lastError ? ` (${lastError})` : ""}, on: ${forced}, screen ${Math.round(w.width)}x${Math.round(w.height)}`,
         `hooked: ${hooked.join(",") || "none"}`,
         `ignoreAutoRotate: ${typeof locker?.ignoreAutoRotate}${typeof locker?.ignoreAutoRotate === "function" ? `/${locker.ignoreAutoRotate.length}` : ""}, native: ${typeof native?.ignoreAutoRotate}`,
-        `discord types: ${safe(() => discord?.OrientationType)}, lock: ${safe(() => discord?.getOrientationLock?.())}, now: ${safe(() => discord?.getOrientation?.())}`,
+        `discord types: ${read(() => discord?.OrientationType)}, lock: ${read(() => discord?.getOrientationLock?.())}, now: ${read(() => discord?.getOrientation?.())}`,
         "rotate log:",
         ...(trail.length ? trail.map(t => `  ${t}`) : ["  none yet"]),
     ];

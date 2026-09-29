@@ -5,6 +5,7 @@ import { FluxDispatcher } from "@metro/common";
 import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { AppState, Dimensions } from "react-native";
 
+import { safe } from "../crash";
 import { isLandscapeLocked } from "../rotate/orientation";
 import { hasVideo, setTilesActive, setTilesFullscreen, tilesDebug } from "./tiles";
 
@@ -104,7 +105,7 @@ function maximized(id: string) {
     if (watched) return;
     fsSel = id;
     const next = !fullscreen;
-    setTimeout(() => setFullscreen(next), 0);
+    setTimeout(safe("split full screen", () => setFullscreen(next)), 0);
 }
 
 function moduleExports(path: string): any {
@@ -135,10 +136,10 @@ function onAppState(state: string) {
         resumeAfterAway = false;
         if (fullscreen && awayFocus) selectParticipant(awayFocus);
         else unselectParticipant();
-        returnTimer = setTimeout(() => {
+        returnTimer = setTimeout(safe("split return", () => {
             returnTimer = null;
             if (!active && !away) setSplitActive(true, true);
-        }, 350);
+        }), 350);
         return;
     }
     if (away) return;
@@ -166,7 +167,7 @@ const isLandscape = () => {
 
 function onDims() {
     if (dimsTimer) clearTimeout(dimsTimer);
-    dimsTimer = setTimeout(() => {
+    dimsTimer = setTimeout(safe("split rotate", () => {
         dimsTimer = null;
         if (AppState.currentState !== "active") return;
         if (isLandscape()) {
@@ -177,7 +178,7 @@ function onDims() {
             landscapeAuto = false;
             if (active) setSplitActive(false, true);
         }
-    }, 300);
+    }), 300);
 }
 
 export function setSplitActive(v: boolean, fromFocus = false) {
@@ -273,15 +274,15 @@ function onSelect(e: any) {
     if (rotated()) {
         resumeAfterFocus = true;
         setTilesActive(false);
-        setTimeout(() => {
+        setTimeout(safe("split focus", () => {
             if (active) setSplitActive(false, true);
-        }, 0);
+        }), 0);
         return;
     }
     maximized(id);
-    setTimeout(() => {
+    setTimeout(safe("split unfocus", () => {
         if (active) unselectParticipant();
-    }, 0);
+    }), 0);
 }
 
 function watchFocus() {
@@ -305,19 +306,19 @@ export function startLayoutPatches() {
     }
 
     for (const fn of ["getParticipants", "getFilteredParticipants"]) {
-        if (typeof store[fn] === "function") unpatches.push(after(fn, store, (_: any, ret: any) => arrange(ret)));
+        if (typeof store[fn] === "function") unpatches.push(after(fn, store, safe("split order", (_: any, ret: any) => arrange(ret))));
     }
-    focusWatch = setInterval(watchFocus, 400);
+    focusWatch = setInterval(safe("split watch", watchFocus), 400);
     unpatches.push(() => {
         if (focusWatch) clearInterval(focusWatch);
         focusWatch = null;
     });
     if (typeof store.getParticipantsVersion === "function") {
-        unpatches.push(after("getParticipantsVersion", store, (_: any, ret: any) => typeof ret === "number" ? ret + salt * 1000 : ret));
+        unpatches.push(after("getParticipantsVersion", store, safe("split version", (_: any, ret: any) => typeof ret === "number" ? ret + salt * 1000 : ret)));
     }
 
-    const appSub = AppState.addEventListener("change", onAppState);
-    const dimsSub = Dimensions.addEventListener("change", onDims);
+    const appSub = AppState.addEventListener("change", safe("split app state", onAppState));
+    const dimsSub = Dimensions.addEventListener("change", safe("split screen size", onDims));
     unpatches.push(() => {
         dimsSub.remove();
         if (dimsTimer) clearTimeout(dimsTimer);
@@ -330,11 +331,13 @@ export function startLayoutPatches() {
         returnTimer = null;
         away = resumeAfterAway = false;
     });
-    unpatches.push(before("dispatch", FluxDispatcher, onAction));
-    FluxDispatcher.subscribe("CHANNEL_RTC_SELECT_PARTICIPANT", onSelect);
-    unpatches.push(() => FluxDispatcher.unsubscribe("CHANNEL_RTC_SELECT_PARTICIPANT", onSelect));
-    FluxDispatcher.subscribe("RTC_CONNECTION_STATE", onRtcState);
-    unpatches.push(() => FluxDispatcher.unsubscribe("RTC_CONNECTION_STATE", onRtcState));
+    unpatches.push(before("dispatch", FluxDispatcher, safe("split action", onAction)));
+    const select = safe("split select", onSelect);
+    const rtc = safe("split rtc", onRtcState);
+    FluxDispatcher.subscribe("CHANNEL_RTC_SELECT_PARTICIPANT", select);
+    unpatches.push(() => FluxDispatcher.unsubscribe("CHANNEL_RTC_SELECT_PARTICIPANT", select));
+    FluxDispatcher.subscribe("RTC_CONNECTION_STATE", rtc);
+    unpatches.push(() => FluxDispatcher.unsubscribe("RTC_CONNECTION_STATE", rtc));
     onDims();
     return true;
 }

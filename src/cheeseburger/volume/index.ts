@@ -9,6 +9,7 @@ import { findByName, findByProps, findByStoreName } from "@metro";
 import { FluxDispatcher, messageUtil, React } from "@metro/common";
 import { View } from "react-native";
 
+import { caught, safe } from "../crash";
 import { engineDebug, expect, hookEngine, teach, unhookEngine } from "./engine";
 import { useVolumeBoostSettings, volumeBoostSettings } from "./storage";
 import { note, short, trail } from "./trail";
@@ -76,7 +77,9 @@ function observe(obj: any, label: string) {
             if (typeof obj[name] !== "function") continue;
             const orig = obj[name];
             obj[name] = function (this: any, ...a: any[]) {
-                note(`${label}.${name}(${a.map(short).join(",")})`);
+                try {
+                    note(`${label}.${name}(${a.map(short).join(",")})`);
+                } catch { }
                 return orig.apply(this, a);
             };
             unpatches.push(() => {
@@ -109,7 +112,7 @@ function patchConnection(conn: any) {
     if (typeof target?.setLocalVolume !== "function" || patchedProtos.has(target)) return;
     patchedProtos.add(target);
 
-    unpatches.push(before("setLocalVolume", target, function (this: any, args: any[]) {
+    unpatches.push(before("setLocalVolume", target, safe("volume engine", function (this: any, args: any[]) {
         const [userId, volume] = args;
         const ctx = connContext(this);
         const boost = typeof userId === "string" ? getBoost(userId, ctx) : undefined;
@@ -121,7 +124,7 @@ function patchConnection(conn: any) {
             args[1] = out;
             return args;
         }
-    }));
+    })));
 }
 
 function localVolumesOf(conn: any, userId: string): string {
@@ -184,9 +187,22 @@ export function volumeDebug(): string[] {
 }
 
 function applyToConnections(userId?: string) {
+    try {
+        return applyNow(userId);
+    } catch (e) {
+        caught("volume apply", e);
+        return false;
+    }
+}
+
+function applyNow(userId?: string) {
     hookEngine();
     const ok = forEachConnection(conn => {
-        patchConnection(conn);
+        try {
+            patchConnection(conn);
+        } catch (e) {
+            caught("volume hook", e);
+        }
         teach(conn);
         const ctx = connContext(conn);
         for (const [key, volume] of Object.entries(volumeBoostSettings.boosted ?? {})) {
@@ -199,9 +215,9 @@ function applyToConnections(userId?: string) {
     return ok;
 }
 
-function onRtcState(e: any) {
+const onRtcState = safe("volume rtc", (e: any) => {
     if (e?.state === "RTC_CONNECTED") setTimeout(() => applyToConnections(), 300);
-}
+});
 
 let sliderUser: { userId: string; context: string; } | null = null;
 const ourSliders = new WeakSet<object>();
@@ -213,10 +229,14 @@ const wrap = (fn: Function) => {
     let w = wrapped.get(fn);
     if (!w) {
         w = (raw: number, ...rest: any[]) => {
-            const v = roundTo10(raw);
-            lastSlider = thumb = { value: v, at: Date.now() };
-            emitSliderValue(v);
-            return fn(Math.min(v, DISCORD_MAX), ...rest);
+            const v = typeof raw === "number" ? roundTo10(raw) : raw;
+            try {
+                lastSlider = thumb = { value: v, at: Date.now() };
+                emitSliderValue(v);
+            } catch (e) {
+                caught("volume slider move", e);
+            }
+            return fn(typeof v === "number" ? Math.min(v, DISCORD_MAX) : raw, ...rest);
         };
         wrapped.set(fn, w);
     }
@@ -365,27 +385,29 @@ export default {
     async start() {
         await waitForHydration(useVolumeBoostSettings);
 
-        unpatches.push(before("jsx", jsxRuntime, jsxBefore));
-        unpatches.push(before("jsxs", jsxRuntime, jsxBefore));
-        unpatches.push(after("jsx", jsxRuntime, jsxAfter));
-        unpatches.push(after("jsxs", jsxRuntime, jsxAfter));
+        const sliderBefore = safe("volume slider", jsxBefore);
+        const sliderAfter = safe("volume label", jsxAfter);
+        unpatches.push(before("jsx", jsxRuntime, sliderBefore));
+        unpatches.push(before("jsxs", jsxRuntime, sliderBefore));
+        unpatches.push(after("jsx", jsxRuntime, sliderAfter));
+        unpatches.push(after("jsxs", jsxRuntime, sliderAfter));
 
         const mediaStore = getMediaEngineStore();
         if (typeof mediaStore?.getLocalVolume === "function") {
-            unpatches.push(after("getLocalVolume", mediaStore, recordVolumeQuery));
+            unpatches.push(after("getLocalVolume", mediaStore, safe("volume read", recordVolumeQuery)));
         }
 
         const profileSheet = findByName("showUserProfileActionSheet", false);
         if (profileSheet?.default) {
-            unpatches.push(before("default", profileSheet, (args: any[]) => {
+            unpatches.push(before("default", profileSheet, safe("volume profile", (args: any[]) => {
                 const userId = args?.[0]?.userId;
                 if (typeof userId === "string") sliderUser = { userId, context: "default" };
-            }));
+            })));
         }
 
         const actions = getAudioActions();
         if (actions?.setLocalVolume) {
-            unpatches.push(before("setLocalVolume", actions, (args: any[]) => {
+            unpatches.push(before("setLocalVolume", actions, safe("volume set", (args: any[]) => {
                 const [userId, volume, context = "default"] = args;
                 if (typeof userId !== "string" || typeof volume !== "number") return;
 
@@ -416,14 +438,14 @@ export default {
                     args[1] = DISCORD_MAX;
                     return args;
                 }
-            }));
+            })));
         }
 
-        const onLocalVolume = (e: any) => {
+        const onLocalVolume = safe("volume local", (e: any) => {
             if (e?.userId && getBoost(e.userId, e.context ?? "default")) setTimeout(() => applyToConnections(e.userId), 50);
-        };
+        });
         const restores = new Map<string, number[]>();
-        const onSync = () => setTimeout(() => {
+        const onSync = () => setTimeout(safe("volume sync", () => {
             const store = getMediaEngineStore();
             for (const key of Object.keys(volumeBoostSettings.boosted ?? {})) {
                 const [context, userId] = key.split(":");
@@ -440,7 +462,7 @@ export default {
                 } catch { }
             }
             applyToConnections();
-        }, 300);
+        }), 300);
         for (const ev of ["USER_SETTINGS_PROTO_UPDATE", "AUDIO_SET_LOCAL_VOLUME"]) {
             FluxDispatcher.subscribe(ev, onSync);
             unpatches.push(() => FluxDispatcher.unsubscribe(ev, onSync));
@@ -452,7 +474,7 @@ export default {
 
         unpatches.push(registerCommand(boostCommand()));
 
-        setTimeout(() => {
+        setTimeout(safe("volume first apply", () => {
             const store = getMediaEngineStore();
             for (const key of Object.keys(volumeBoostSettings.boosted ?? {})) {
                 const [context, userId] = key.split(":");
@@ -464,7 +486,7 @@ export default {
                 } catch { }
             }
             applyToConnections();
-        }, 2000);
+        }), 2000);
     },
     stop() {
         for (const u of unpatches.splice(0)) u();

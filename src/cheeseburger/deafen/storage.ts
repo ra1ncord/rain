@@ -3,6 +3,7 @@ import { createPluginStore } from "@api/storage";
 interface DeafenButtonSettings {
     placeAfter: boolean;
     iconSize: number;
+    sized: boolean;
 }
 
 export const {
@@ -10,5 +11,6 @@ export const {
     settings: deafenButtonSettings,
 } = createPluginStore<DeafenButtonSettings>("deafenbutton", {
     placeAfter: true,
-    iconSize: 26,
+    iconSize: 24,
+    sized: false,
 });

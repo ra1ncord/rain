@@ -16,6 +16,8 @@ import { SelectedChannelStore } from "@metro/common/stores";
 import { fetchTheme, getCurrentTheme, useThemes } from "@plugins/_core/painter/themes";
 import { AppState } from "react-native";
 
+import { markReload, safe } from "../crash";
+
 interface Rejoin { channelId: string; video: boolean; at: number; }
 
 const { useStore: useLiveUpdates, settings: state } = createPluginStore<{ target: string; tries: number; rejoin: Rejoin | null; }>("liveupdates", { target: "", tries: 0, rejoin: null });
@@ -72,7 +74,8 @@ async function applyBuild(target: string, manual = false) {
     } catch (e) {
         logger.error("[Cheeseburger] update download failed", e);
     }
-    setTimeout(() => BundleUpdaterManager.reload(), 300);
+    await markReload();
+    setTimeout(safe("reload", () => BundleUpdaterManager.reload()), 300);
 }
 
 function maybePrompt() {
@@ -118,7 +121,7 @@ function rejoinCall() {
     const r = state.rejoin;
     state.rejoin = null;
     if (!r || Date.now() - r.at > 90_000) return;
-    setTimeout(() => {
+    setTimeout(safe("rejoin", () => {
         if (!running || voiceChannel()) return;
         try {
             findByProps("selectVoiceChannel")?.selectVoiceChannel?.(r.channelId);
@@ -132,7 +135,7 @@ function rejoinCall() {
                 if (voiceChannel() === r.channelId && !videoOn()) findByProps("setVideoEnabled")?.setVideoEnabled?.(true);
             } catch { }
         }, 3000);
-    }, 5000);
+    }), 5000);
 }
 
 async function checkAddons() {
@@ -307,11 +310,11 @@ async function check() {
     if (!pending && Date.now() - lastAddons >= ADDONS_MS) void checkAddons();
 }
 
-function onAppState(s: string) {
+const onAppState = safe("updates app state", (s: string) => {
     if (s !== "active") return;
     if (Date.now() - lastCheck > 3_000) void check();
     else maybePrompt();
-}
+});
 
 export default {
     async start() {

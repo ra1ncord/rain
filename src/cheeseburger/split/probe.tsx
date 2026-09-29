@@ -42,9 +42,11 @@ export const toolbarKnown = () => toolbarSeen;
 function measure(node: any, done: (b: Box) => void) {
     try {
         node?.measureInWindow?.((x: number, y: number, width: number, height: number) => {
-            if ([x, y, width, height].every(n => typeof n === "number" && Number.isFinite(n)) && width > 0 && height > 0) {
-                done({ x, y, width, height, at: Date.now() });
-            }
+            try {
+                if ([x, y, width, height].every(n => typeof n === "number" && Number.isFinite(n)) && width > 0 && height > 0) {
+                    done({ x, y, width, height, at: Date.now() });
+                }
+            } catch { }
         });
     } catch { }
 }

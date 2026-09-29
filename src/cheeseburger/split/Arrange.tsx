@@ -4,6 +4,7 @@ import { React } from "@metro/common";
 import { ActionSheet, BottomSheetTitleHeader, IconButton, TableRow, TableRowGroup } from "@metro/common/components";
 import { Animated, Text, View } from "react-native";
 
+import { safe } from "../crash";
 import { isLandscapeLocked, onRotateChange, toggleLandscape } from "../rotate/orientation";
 import { useCheeseburger } from "../storage";
 import { useSplitViewSettings } from "./storage";
@@ -45,23 +46,23 @@ function DragArea({ index, hold, children, onStart, onMove, onEnd }: {
         let started = false;
         let ended = false;
         return pan.shouldCancelWhenOutside(false).runOnJS(true)
-            .onStart(() => {
+            .onStart(safe("arrange drag start", () => {
                 started = true;
                 ended = false;
                 cb.current.onStart(cb.current.index);
-            })
-            .onUpdate((e: any) => {
-                if (started) cb.current.onMove(e.translationY ?? 0);
-            })
-            .onEnd((_: any, success: boolean) => {
+            }))
+            .onUpdate(safe("arrange drag move", (e: any) => {
+                if (started) cb.current.onMove(e?.translationY ?? 0);
+            }))
+            .onEnd(safe("arrange drag end", (_: any, success: boolean) => {
                 if (!started) return;
                 ended = true;
                 cb.current.onEnd(success !== false);
-            })
-            .onFinalize(() => {
+            }))
+            .onFinalize(safe("arrange drag finish", () => {
                 if (started && !ended) cb.current.onEnd(false);
                 started = ended = false;
-            });
+            }));
     }, [gh, hold]);
     if (!gesture) return <View>{children}</View>;
     const { GestureDetector } = gh;
@@ -150,8 +151,8 @@ export function ArrangeList() {
                                 icon={<DragArea index={i} hold={false} onStart={start} onMove={move} onEnd={end}><Handle /></DragArea>}
                                 trailing={
                                     <View style={{ flexDirection: "row", gap: 8 }}>
-                                        <IconButton size="sm" variant="secondary" icon={upIcon} disabled={i === 0} onPress={() => moveKind(kind, -1)} />
-                                        <IconButton size="sm" variant="secondary" icon={downIcon} disabled={i === order.length - 1} onPress={() => moveKind(kind, 1)} />
+                                        <IconButton size="sm" variant="secondary" icon={upIcon} disabled={i === 0} onPress={safe("arrange up", () => moveKind(kind, -1))} />
+                                        <IconButton size="sm" variant="secondary" icon={downIcon} disabled={i === order.length - 1} onPress={safe("arrange down", () => moveKind(kind, 1))} />
                                     </View>
                                 }
                             />
@@ -175,7 +176,7 @@ export function ArrangeSheet() {
                 <ArrangeList />
                 {rotateOn && (
                     <TableRowGroup title="Screen">
-                        <TableRow label={isLandscapeLocked() ? "Portrait" : "Landscape"} onPress={toggleLandscape} />
+                        <TableRow label={isLandscapeLocked() ? "Portrait" : "Landscape"} onPress={safe("arrange rotate", () => toggleLandscape())} />
                     </TableRowGroup>
                 )}
             </View>

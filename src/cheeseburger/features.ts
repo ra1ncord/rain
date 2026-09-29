@@ -1,5 +1,6 @@
 import { logger } from "@lib/utils/logger";
 
+import { caught } from "./crash";
 import deafen from "./deafen";
 import rotate from "./rotate";
 import split from "./split";
@@ -32,6 +33,7 @@ const startFeature = (id: FeatureId) => enqueue(id, async () => {
         running.add(id);
     } catch (e) {
         logger.error(`[Cheeseburger] ${id}`, e);
+        caught(`${id} start`, e);
         try {
             FEATURES[id].stop();
         } catch { }
@@ -45,6 +47,7 @@ const stopFeature = (id: FeatureId) => enqueue(id, () => {
         FEATURES[id].stop();
     } catch (e) {
         logger.error(`[Cheeseburger] ${id}`, e);
+        caught(`${id} stop`, e);
     }
 });
 

@@ -2,6 +2,7 @@ import { findAssetId } from "@api/assets";
 import { React } from "@metro/common";
 import { Image, Pressable, Text } from "react-native";
 
+import { safe } from "../crash";
 import { useCheeseburger } from "../storage";
 import { Notches } from "../style";
 import { accentColor, baseColor } from "../style/colors";
@@ -9,6 +10,8 @@ import { styleSettings } from "../style/storage";
 import { isLandscapeLocked, onRotateChange, toggleLandscape } from "./orientation";
 
 const ICONS = ["ic_screen_rotation", "screen-rotation", "ScreenRotationIcon", "RotateIcon", "ic_rotate", "RetryIcon"];
+
+const rotate = safe("rotate press", () => toggleLandscape());
 
 let iconId: number | null | undefined;
 const icon = () => {
@@ -36,7 +39,7 @@ export function TopBarRotate() {
         <Pressable
             accessibilityRole="button"
             accessibilityLabel="Rotate"
-            onPress={toggleLandscape}
+            onPress={rotate}
             hitSlop={6}
             style={({ pressed }) => ({
                 position: "absolute",

@@ -6,8 +6,10 @@ import { clipboard, React } from "@metro/common";
 import { Button, Stack, TableRow, TableRowGroup, TableSwitchRow, Text, TextInput } from "@metro/common/components";
 import { ScrollView, View } from "react-native";
 
+import { crashDebug, useCrashSummary } from "./crash";
 import { useDeafenButtonSettings } from "./deafen/storage";
 import { setFeature } from "./features";
+import { lookDebug } from "./look";
 import { rotateDebug } from "./rotate";
 import { ArrangeSheet, LABELS } from "./split/Arrange";
 import { layoutDebug } from "./split/layout";
@@ -49,14 +51,19 @@ function NumberField({ value, onCommit }: { value: number; onCommit: (n: number)
     );
 }
 
-const copy = (lines: string[]) => {
-    clipboard.setString(lines.join("\n"));
-    showToast("Copied");
+const copy = (lines: () => string[]) => {
+    try {
+        clipboard.setString(lines().join("\n"));
+        showToast("Copied");
+    } catch (e) {
+        showToast(`Couldn't copy: ${e instanceof Error ? e.message : String(e)}`.slice(0, 80));
+    }
 };
 
 export default function Settings() {
     const s = useCheeseburger();
     const ready = useUpdateReady();
+    const crash = useCrashSummary();
     const sync = useSync();
     const volume = useVolumeBoostSettings();
     const deafen = useDeafenButtonSettings();
@@ -112,7 +119,7 @@ export default function Settings() {
                     {s.deafen && (
                         <>
                             <TableSwitchRow label="Left of camera" value={!deafen.placeAfter} onValueChange={(v: boolean) => deafen.updateSettings({ placeAfter: !v })} />
-                            <TableRow label="Icon size" trailing={<NumberField value={deafen.iconSize} onCommit={n => deafen.updateSettings({ iconSize: n || 26 })} />} />
+                            <TableRow label="Icon size" trailing={<NumberField value={deafen.iconSize} onCommit={n => deafen.updateSettings({ iconSize: n || 24 })} />} />
                         </>
                     )}
                 </TableRowGroup>
@@ -171,12 +178,13 @@ export default function Settings() {
                 </TableRowGroup>
 
                 <TableRowGroup title="Debug">
-                    {s.split && <TableRow label="Copy split debug" onPress={() => copy([...layoutDebug(), ...pipDebug()])} />}
-                    {s.volume && <TableRow label="Copy volume debug" onPress={() => copy(volumeDebug())} />}
-                    {s.rotate && <TableRow label="Copy rotate debug" onPress={() => copy(rotateDebug())} />}
-                    {s.style && <TableRow label="Copy style debug" onPress={() => copy(styleDebug())} />}
+                    <TableRow label="Copy crash log" subLabel={crash} onPress={() => copy(crashDebug)} />
+                    {s.split && <TableRow label="Copy split debug" onPress={() => copy(() => [...layoutDebug(), ...pipDebug()])} />}
+                    {s.volume && <TableRow label="Copy volume debug" onPress={() => copy(volumeDebug)} />}
+                    {s.rotate && <TableRow label="Copy rotate debug" onPress={() => copy(rotateDebug)} />}
+                    {s.style && <TableRow label="Copy style debug" onPress={() => copy(() => [...styleDebug(), lookDebug()])} />}
                     {s.volume && <TableSwitchRow label="Volume toasts" value={volume.debugSliders} onValueChange={(v: boolean) => volume.updateSettings({ debugSliders: v })} />}
-                    <TableRow label="Build" trailing={<TableRow.TrailingText text={`${buildRevision} · ${live}${hotStatus.error ? " · error" : ""}`} />} onPress={() => copy([`rain ${buildRevision}`, `cheeseburger ${live}`, ...(hotStatus.error ? [hotStatus.error] : [])])} />
+                    <TableRow label="Build" trailing={<TableRow.TrailingText text={`${buildRevision} · ${live}${hotStatus.error ? " · error" : ""}`} />} onPress={() => copy(() => [`rain ${buildRevision}`, `cheeseburger ${live}`, ...(hotStatus.error ? [hotStatus.error] : [])])} />
                 </TableRowGroup>
             </Stack>
         </ScrollView>

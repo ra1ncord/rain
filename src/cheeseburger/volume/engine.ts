@@ -95,7 +95,11 @@ export function hookEngine() {
             if (!/^(set|update|apply)/.test(name) || !/volume|gain|pan/i.test(name)) continue;
             const orig = obj[name];
             const w = function (this: any, ...a: any[]) {
-                return orig.apply(this, adjust(label, name, a));
+                let args = a;
+                try {
+                    args = adjust(label, name, a);
+                } catch { }
+                return orig.apply(this, args);
             };
             try {
                 obj[name] = w;

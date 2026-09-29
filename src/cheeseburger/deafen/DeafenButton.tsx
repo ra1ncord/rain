@@ -3,6 +3,8 @@ import { findByProps, findByStoreName } from "@metro";
 import { React } from "@metro/common";
 import { Image, Pressable, Text } from "react-native";
 
+import { safe } from "../crash";
+import { DEFAULT_ICON_SIZE, useCallLook } from "../look";
 import { useDeafenButtonSettings } from "./storage";
 
 const firstAsset = (...names: string[]) => {
@@ -19,6 +21,7 @@ const headphonesAsset = (deafened: boolean) => deafened
 
 export default function DeafenButton() {
     const { iconSize } = useDeafenButtonSettings();
+    const look = useCallLook();
     const MediaEngineStore = findByStoreName("MediaEngineStore");
     const Flux = findByProps("useStateFromStores");
     const actions = findByProps("toggleSelfDeaf");
@@ -28,10 +31,11 @@ export default function DeafenButton() {
         () => !!MediaEngineStore?.isSelfDeaf?.(),
     ) ?? false;
 
-    const onPress = React.useCallback(() => actions?.toggleSelfDeaf?.(), [actions]);
+    const onPress = React.useMemo(() => safe("deafen press", () => actions?.toggleSelfDeaf?.()), [actions]);
     const icon = headphonesAsset(deafened);
-    const d = Number(iconSize) || 26;
-    const color = deafened ? "#f23f43" : "#ffffff";
+    const custom = Number(iconSize);
+    const d = custom && custom !== DEFAULT_ICON_SIZE ? custom : look.size;
+    const color = deafened ? "#f23f43" : look.tint;
 
     return (
         <Pressable

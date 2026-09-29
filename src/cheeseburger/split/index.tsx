@@ -3,6 +3,7 @@ import { deleteJsxCreate, jsxRuntime, onJsxCreate } from "@api/react/jsx";
 import { waitForHydration } from "@api/storage";
 import { React } from "@metro/common";
 
+import { safe } from "../crash";
 import { isFullscreenSplit, isLandscapeAuto, isSplitActive, resumeSplit, startLayoutPatches, stopLayoutPatches } from "./layout";
 import { startPip, stopPip } from "./pip";
 import { TileProbe } from "./probe";
@@ -14,24 +15,28 @@ const ANCHOR = "VideoButton";
 const unpatches: (() => unknown)[] = [];
 const g = globalThis as any;
 
-function addProbe(args: any[], ret: any) {
+const addProbe = safe("split probe", (args: any[], ret: any) => {
     if (!ret || !isTileElement(args)) return;
     return React.createElement(React.Fragment, { key: ret.key ?? undefined }, ret, <TileProbe key="cheeseburger-probe" coords={args[1].sharedCoords} />);
-}
+});
 
-function inject(_Component: any, ret: any) {
+const register = safe("split tiles", registerTile);
+
+const inject = safe("split button", (_Component: any, ret: any) => {
     if (!ret) return ret;
     return <React.Fragment>{ret}<SplitViewButton key="cheeseburger-split" /></React.Fragment>;
-}
+});
 
 export default {
     async start() {
         await waitForHydration(useSplitViewSettings);
+        const s = useSplitViewSettings.getState();
+        if (!s.sized) s.updateSettings({ sized: true, ...(s.iconSize === 26 ? { iconSize: 24 } : {}) });
         startLayoutPatches();
         startPip();
         onJsxCreate(ANCHOR, inject);
-        unpatches.push(before("jsx", jsxRuntime, registerTile));
-        unpatches.push(before("jsxs", jsxRuntime, registerTile));
+        unpatches.push(before("jsx", jsxRuntime, register));
+        unpatches.push(before("jsxs", jsxRuntime, register));
         unpatches.push(after("jsx", jsxRuntime, addProbe));
         unpatches.push(after("jsxs", jsxRuntime, addProbe));
         const handoff = g.__cheeseburgerSplit;

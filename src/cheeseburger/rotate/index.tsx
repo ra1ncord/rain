@@ -2,6 +2,7 @@ import { after } from "@api/patcher";
 import { jsxRuntime } from "@api/react/jsx";
 import { FluxDispatcher, React } from "@metro/common";
 
+import { safe } from "../crash";
 import { orientationDebug, resetOrientation, setLandscape, startOrientation, stopOrientation } from "./orientation";
 import { TopBarRotate } from "./RotateButton";
 
@@ -11,7 +12,7 @@ const unpatches: (() => unknown)[] = [];
 let anchorType: any = null;
 let placed = 0;
 
-function onJsx(args: any[], ret: any) {
+const onJsx = safe("rotate button", (args: any[], ret: any) => {
     const [type, props] = args;
     const label = props?.accessibilityLabel;
     if (!ret || typeof label !== "string") return;
@@ -20,11 +21,11 @@ function onJsx(args: any[], ret: any) {
     if (type !== anchorType) return;
     placed++;
     return <React.Fragment><TopBarRotate key="cheeseburger-rotate" />{ret}</React.Fragment>;
-}
+});
 
-function onRtc(e: any) {
+const onRtc = safe("rotate rtc", (e: any) => {
     if (/DISCONNECTED/.test(String(e?.state))) resetOrientation();
-}
+});
 
 export function rotateDebug(): string[] {
     return [
