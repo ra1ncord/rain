@@ -68,8 +68,6 @@ let moved = 0;
 
 const GRID_GAP = 10;
 const FS_GAP = 4;
-const FS_TOP = 36;
-const FS_BOTTOM = 136;
 const SETTLE_MS = 1000;
 const DEFAULT_ORDER: TileKind[] = ["stream", "them", "me"];
 const SNAPS = [16 / 9, 4 / 3, 1, 3 / 4, 9 / 16];
@@ -481,6 +479,7 @@ const restSince = new WeakMap<object, { r: Rect; since: number; }>();
 let frameNote = "";
 let pendingFrame: { f: Frame; since: number; } | null = null;
 let frameAt = 0;
+let frameMode = "";
 const frameLog: string[] = [];
 const shownH = new Map<string, number>();
 
@@ -504,7 +503,15 @@ function updateFrame(win: { width: number; height: number; }) {
         return;
     }
     frameNote = "";
-    if (frame && Math.abs(frame.origin.x - o.x) < 6 && Math.abs(frame.origin.y - o.y) < 6) o = frame.origin;
+    const mode = fullscreen ? "full" : "grid";
+    const sameMode = !!frame && frameMode === mode;
+    if (sameMode && mode === "full") {
+        if (Math.abs(frame!.origin.x - o.x) < 60 && Math.abs(frame!.origin.y - o.y) < 60) {
+            pendingFrame = null;
+            return;
+        }
+    }
+    if (frame && Math.abs(frame.origin.x - o.x) < 12 && Math.abs(frame.origin.y - o.y) < 12) o = frame.origin;
     const land = win.width > win.height;
     const key = `${Math.round(win.width)}x${Math.round(win.height)}`;
     const top0 = Math.max(maxTop.get(key) ?? o.y, o.y);
@@ -517,12 +524,12 @@ function updateFrame(win: { width: number; height: number; }) {
     const next: Frame = { origin: o, parent: "tile", hidden, top: Math.round(top), bottom: Math.round(bottom) };
     const now = Date.now();
     if (!hidden) shownH.set(key, next.bottom - next.top);
-    if (frame && sameFrame(frame, next)) {
+    if (sameMode && sameFrame(frame!, next)) {
         pendingFrame = null;
-        frame = { ...frame, origin: next.origin };
+        frame = { ...frame!, origin: next.origin };
         return;
     }
-    if (frame) {
+    if (sameMode) {
         if (!pendingFrame || !sameFrame(pendingFrame.f, next)) {
             pendingFrame = { f: next, since: now };
             frameNote = "waiting";
@@ -535,6 +542,7 @@ function updateFrame(win: { width: number; height: number; }) {
     }
     pendingFrame = null;
     frame = next;
+    frameMode = mode;
     frameAt = now;
     frameLog.push(`${new Date(now).toISOString().slice(17, 23)} area ${Math.round(o.x)},${Math.round(o.y)} ${hidden ? "hidden" : "shown"} fit ${next.top}-${next.bottom}${tb ? ` toolbar ${Math.round(tb.y)}` : ""}`);
     if (frameLog.length > 6) frameLog.shift();
@@ -631,13 +639,12 @@ function computeRects(list: Tile[]): Map<string, Rect> {
     let W: number, H: number, X0: number, Y0: number, GAP: number;
     if (fullscreen) {
         origin = frame?.origin ?? origin ?? { x: (win.width - gridWidth(list, win.width)) / 2, y: GRID_TOP };
-        const top = frame?.hidden ? frame.top : FS_TOP;
-        const bottom = frame?.hidden ? frame.bottom : win.height - FS_BOTTOM;
-        const full = Math.max(300, bottom - top);
+        const top = statusBar() + 6;
+        const bottom = win.height - 56;
         W = win.width;
-        H = Math.min(full, Math.max(300, win.height - FS_TOP - FS_BOTTOM));
+        H = Math.max(300, bottom - top);
         X0 = -origin.x;
-        Y0 = top - origin.y + (full - H) / 2;
+        Y0 = top - origin.y;
         GAP = FS_GAP;
     } else {
         W = gridWidth(list, win.width);

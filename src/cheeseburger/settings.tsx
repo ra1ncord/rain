@@ -3,7 +3,7 @@ import { hotStatus } from "@api/hot/status";
 import { showSheet } from "@api/ui/sheets";
 import { showToast } from "@api/ui/toasts";
 import { clipboard, React } from "@metro/common";
-import { Stack, TableRow, TableRowGroup, TableSwitchRow, TextInput } from "@metro/common/components";
+import { Button, Stack, TableRow, TableRowGroup, TableSwitchRow, Text, TextInput } from "@metro/common/components";
 import { ScrollView, View } from "react-native";
 
 import { useDeafenButtonSettings } from "./deafen/storage";
@@ -18,7 +18,7 @@ import { useCheeseburger } from "./storage";
 import { styleDebug } from "./style";
 import { baseColor } from "./style/colors";
 import { useStyleSettings } from "./style/storage";
-import { buildRevision, updateNow, useUpdateReady } from "./updates";
+import { buildRevision, syncNow, updateNow, useSync, useUpdateReady } from "./updates";
 import { volumeDebug } from "./volume";
 import { useVolumeBoostSettings } from "./volume/storage";
 
@@ -57,6 +57,7 @@ const copy = (lines: string[]) => {
 export default function Settings() {
     const s = useCheeseburger();
     const ready = useUpdateReady();
+    const sync = useSync();
     const volume = useVolumeBoostSettings();
     const deafen = useDeafenButtonSettings();
     const split = useSplitViewSettings();
@@ -67,6 +68,22 @@ export default function Settings() {
     return (
         <ScrollView style={{ flex: 1 }}>
             <Stack style={{ paddingVertical: 12, paddingHorizontal: 12 }} spacing={24}>
+                <View style={{ gap: 8 }}>
+                    <Button
+                        text="Update now"
+                        variant="primary"
+                        size="md"
+                        loading={sync.busy}
+                        icon={findAssetId("DownloadIcon") ?? findAssetId("RetryIcon")}
+                        onPress={() => void syncNow()}
+                    />
+                    {!!sync.text && (
+                        <Text variant="text-sm/medium" color="text-muted" style={{ textAlign: "center" }}>
+                            {sync.text}
+                        </Text>
+                    )}
+                </View>
+
                 <TableRowGroup title="Audio">
                     <TableSwitchRow
                         label="Volume boost"

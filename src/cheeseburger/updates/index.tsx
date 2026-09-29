@@ -1,5 +1,6 @@
-import { updateAllExternalPlugins, useExternalPlugins } from "@api/external/plugins";
+import { updateAllExternalPlugins, updateExternalPlugin, useExternalPlugins } from "@api/external/plugins";
 import { revision } from "@api/hot/build";
+import { hotStatus } from "@api/hot/status";
 import { BundleUpdaterManager } from "@api/native/modules";
 import UpdateModule from "@api/native/modules/update";
 import { useLoaderConfig } from "@api/settings";
@@ -150,6 +151,141 @@ async function checkAddons() {
             themeHashes.set(id, hash);
             if (prev !== undefined && prev !== hash) await fetchTheme(id, current?.id === id);
         } catch { }
+    }
+}
+
+const FALLBACK = "https://github.com/TonyskalYT/rain/releases/latest/download/rain.js";
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+function hotBase() {
+    const c = useLoaderConfig.getState().customLoadUrl;
+    const url = (c?.enabled && c.url ? c.url : FALLBACK).replace(/[?#].*$/, "");
+    return url.replace(/[^/]+$/, "");
+}
+
+async function syncCheeseburger(): Promise<"updated" | "current" | "failed"> {
+    try {
+        const res = await fetch(bust(`${hotBase()}cheeseburger.json`), { cache: "no-store" } as any);
+        if (!res.ok) return "failed";
+        const meta = await res.json();
+        if (!meta?.revision || meta.revision === hotStatus.revision) return "current";
+        setSync("Updating Cheeseburger");
+        const until = Date.now() + 15_000;
+        while (Date.now() < until) {
+            await sleep(250);
+            if (hotStatus.revision === meta.revision) return "updated";
+        }
+        return "failed";
+    } catch {
+        return "failed";
+    }
+}
+
+const norm = (v: any): any => {
+    if (typeof v === "string") return v.toLowerCase();
+    if (Array.isArray(v)) return v.slice(0, 2).map(norm);
+    if (v && typeof v === "object") return Object.fromEntries(Object.keys(v).sort().map(k => [k, norm(v[k])]));
+    return v;
+};
+
+function sameTheme(next: any, cur: any) {
+    if (!cur) return false;
+    const pick = (d: any, raw: any) => JSON.stringify(norm({
+        name: d?.name,
+        semantic: d?.semanticColors ?? d?.main?.semantic,
+        raw: Object.fromEntries(Object.keys(raw ?? {}).map(k => [k, (d?.rawColors ?? d?.main?.raw)?.[k]])),
+        background: d?.background ?? d?.main?.background,
+        plus: d?.plus,
+    }));
+    const raw = next?.rawColors ?? next?.main?.raw;
+    return pick(next, raw) === pick(cur, raw);
+}
+
+async function syncThemes() {
+    let updated = 0, failed = 0;
+    const current = getCurrentTheme();
+    for (const [id, theme] of Object.entries(useThemes.getState().themes)) {
+        if (!/^https?:\/\//.test(id)) continue;
+        try {
+            const res = await fetch(bust(id), { cache: "no-store" } as any);
+            if (!res.ok) {
+                failed++;
+                continue;
+            }
+            const text = await res.text();
+            themeHashes.set(id, cyrb64Hash(text));
+            if (sameTheme(JSON.parse(text), (theme as any).data)) continue;
+            await fetchTheme(id, current?.id === id);
+            updated++;
+        } catch {
+            failed++;
+        }
+    }
+    return { updated, failed };
+}
+
+async function syncPlugins() {
+    let updated = 0, failed = 0;
+    const ids = Object.values(useExternalPlugins.getState().plugins).filter((p: any) => p.source && p.update).map((p: any) => p.id);
+    for (const id of ids) {
+        try {
+            if (await updateExternalPlugin(id, { restart: true })) updated++;
+        } catch {
+            failed++;
+        }
+    }
+    return { updated, failed };
+}
+
+async function syncCore() {
+    try {
+        const latest = await latestRevision();
+        const prev = pending;
+        pending = latest && latest !== revision ? latest : null;
+        if (pending !== prev) readyListeners.forEach(l => l());
+    } catch { }
+    return !!pending;
+}
+
+const sync = { busy: false, text: "" };
+const syncListeners = new Set<() => void>();
+
+function setSync(text: string, busy = sync.busy) {
+    sync.text = text;
+    sync.busy = busy;
+    syncListeners.forEach(l => l());
+}
+
+export function useSync() {
+    const [, force] = React.useReducer((n: number) => n + 1, 0);
+    React.useEffect(() => {
+        syncListeners.add(force);
+        return () => void syncListeners.delete(force);
+    }, []);
+    return sync;
+}
+
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+export async function syncNow() {
+    if (sync.busy) return;
+    setSync("Checking", true);
+    try {
+        const [cb, themes, plugins, core] = await Promise.all([syncCheeseburger(), syncThemes(), syncPlugins(), syncCore()]);
+        const done = [
+            cb === "updated" && "Cheeseburger",
+            themes.updated > 0 && plural(themes.updated, "theme"),
+            plugins.updated > 0 && plural(plugins.updated, "plugin"),
+        ].filter(Boolean);
+        const failed = (cb === "failed" ? 1 : 0) + themes.failed + plugins.failed;
+        const text = [
+            done.length ? `Updated ${done.join(", ")}` : "Up to date",
+            failed && `${failed} failed`,
+            core && "Rain update needs a reload",
+        ].filter(Boolean).join(" · ");
+        setSync(text, false);
+    } catch {
+        setSync("Couldn't check", false);
     }
 }
 
