@@ -15,6 +15,9 @@ import { pipDebug } from "./split/pip";
 import { useSplitViewSettings } from "./split/storage";
 import { currentOrder } from "./split/tiles";
 import { useCheeseburger } from "./storage";
+import { styleDebug } from "./style";
+import { baseColor } from "./style/colors";
+import { useStyleSettings } from "./style/storage";
 import { buildRevision, updateNow, useUpdateReady } from "./updates";
 import { volumeDebug } from "./volume";
 import { useVolumeBoostSettings } from "./volume/storage";
@@ -57,6 +60,7 @@ export default function Settings() {
     const volume = useVolumeBoostSettings();
     const deafen = useDeafenButtonSettings();
     const split = useSplitViewSettings();
+    const style = useStyleSettings();
     const boosted = Object.keys(volume.boosted ?? {}).length;
     const live = `${hotStatus.source}${hotStatus.revision ? ` ${hotStatus.revision.slice(0, 7)}` : ""}`;
 
@@ -122,6 +126,22 @@ export default function Settings() {
                     />
                 </TableRowGroup>
 
+                <TableRowGroup title="Style">
+                    <TableSwitchRow
+                        label="Beveled buttons"
+                        subLabel={baseColor() ? undefined : "needs a theme"}
+                        icon={icon("PaintPaletteIcon", "ThemeDarkIcon", "PaintbrushThickIcon")}
+                        value={s.style}
+                        onValueChange={(v: boolean) => setFeature("style", v)}
+                    />
+                    {s.style && (
+                        <>
+                            <TableRow label="Bevel size" trailing={<NumberField value={style.bevelSize} onCommit={n => style.updateSettings({ bevelSize: Math.min(24, Math.max(2, n)) })} />} />
+                            <TableSwitchRow label="Square corners" value={style.squareCorners} onValueChange={(v: boolean) => style.updateSettings({ squareCorners: v })} />
+                        </>
+                    )}
+                </TableRowGroup>
+
                 <TableRowGroup title="Updates">
                     <TableSwitchRow
                         label="Live updates"
@@ -137,6 +157,7 @@ export default function Settings() {
                     {s.split && <TableRow label="Copy split debug" onPress={() => copy([...layoutDebug(), ...pipDebug()])} />}
                     {s.volume && <TableRow label="Copy volume debug" onPress={() => copy(volumeDebug())} />}
                     {s.rotate && <TableRow label="Copy rotate debug" onPress={() => copy(rotateDebug())} />}
+                    {s.style && <TableRow label="Copy style debug" onPress={() => copy(styleDebug())} />}
                     {s.volume && <TableSwitchRow label="Volume toasts" value={volume.debugSliders} onValueChange={(v: boolean) => volume.updateSettings({ debugSliders: v })} />}
                     <TableRow label="Build" trailing={<TableRow.TrailingText text={`${buildRevision} · ${live}${hotStatus.error ? " · error" : ""}`} />} onPress={() => copy([`rain ${buildRevision}`, `cheeseburger ${live}`, ...(hotStatus.error ? [hotStatus.error] : [])])} />
                 </TableRowGroup>

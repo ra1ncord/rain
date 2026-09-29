@@ -479,6 +479,10 @@ const statusBar = () => (typeof StatusBar?.currentHeight === "number" ? StatusBa
 
 const restSince = new WeakMap<object, { r: Rect; since: number; }>();
 let frameNote = "";
+let pendingFrame: { f: Frame; since: number; } | null = null;
+let frameAt = 0;
+const frameLog: string[] = [];
+const shownH = new Map<string, number>();
 
 function updateFrame(win: { width: number; height: number; }) {
     const p = measured.parent;
@@ -500,17 +504,50 @@ function updateFrame(win: { width: number; height: number; }) {
         return;
     }
     frameNote = "";
-    if (frame && Math.abs(frame.origin.x - o.x) < 3 && Math.abs(frame.origin.y - o.y) < 3) o = frame.origin;
+    if (frame && Math.abs(frame.origin.x - o.x) < 6 && Math.abs(frame.origin.y - o.y) < 6) o = frame.origin;
     const land = win.width > win.height;
     const key = `${Math.round(win.width)}x${Math.round(win.height)}`;
     const top0 = Math.max(maxTop.get(key) ?? o.y, o.y);
     maxTop.set(key, top0);
     const tb = measured.toolbar && Date.now() - measured.toolbar.at < 2000 ? measured.toolbar : undefined;
-    const toolbarGone = toolbarKnown() && splitViewSettings.showButton !== false && (!tb || tb.y >= win.height - 4);
-    const hidden = o.y < top0 - 30 || toolbarGone;
+    const useToolbar = toolbarKnown() && splitViewSettings.showButton !== false;
+    const hidden = useToolbar ? !tb || tb.y >= win.height - 4 : o.y < top0 - 30;
     const top = hidden ? (land ? 8 : statusBar() + 6) : o.y + 4;
     const bottom = hidden ? win.height - (land ? 8 : 56) : (tb && tb.y < win.height - 4 ? tb.y - 16 : win.height - (land ? 90 : 136)) - 8;
-    frame = { origin: o, parent: "tile", hidden, top: Math.round(top), bottom: Math.round(bottom) };
+    const next: Frame = { origin: o, parent: "tile", hidden, top: Math.round(top), bottom: Math.round(bottom) };
+    const now = Date.now();
+    if (!hidden) shownH.set(key, next.bottom - next.top);
+    if (frame && sameFrame(frame, next)) {
+        pendingFrame = null;
+        frame = { ...frame, origin: next.origin };
+        return;
+    }
+    if (frame) {
+        if (!pendingFrame || !sameFrame(pendingFrame.f, next)) {
+            pendingFrame = { f: next, since: now };
+            frameNote = "waiting";
+            return;
+        }
+        if (now - pendingFrame.since < 500 || now - frameAt < 1500) {
+            frameNote = "waiting";
+            return;
+        }
+    }
+    pendingFrame = null;
+    frame = next;
+    frameAt = now;
+    frameLog.push(`${new Date(now).toISOString().slice(17, 23)} area ${Math.round(o.x)},${Math.round(o.y)} ${hidden ? "hidden" : "shown"} fit ${next.top}-${next.bottom}${tb ? ` toolbar ${Math.round(tb.y)}` : ""}`);
+    if (frameLog.length > 6) frameLog.shift();
+}
+
+function sameFrame(a: Frame, b: Frame) {
+    return a.hidden === b.hidden && Math.abs(a.origin.x - b.origin.x) < 6 && Math.abs(a.origin.y - b.origin.y) < 6
+        && Math.abs(a.top - b.top) < 6 && Math.abs(a.bottom - b.bottom) < 6;
+}
+
+function sizeHeight(regionH: number, win: { width: number; height: number; }) {
+    const cap = shownH.get(`${Math.round(win.width)}x${Math.round(win.height)}`);
+    return cap && cap > 120 ? Math.min(regionH, cap) : regionH;
 }
 
 export function setTilesFullscreen(v: boolean) {
@@ -538,8 +575,9 @@ function landscapeRects(list: Tile[], win: { width: number; height: number; }): 
         H = Math.max(120, maxY - minY - LS_INSET);
     }
     if (frame) {
-        top = frame.top - frame.origin.y;
-        H = Math.max(120, frame.bottom - frame.top);
+        const full = Math.max(120, frame.bottom - frame.top);
+        H = sizeHeight(full, win);
+        top = frame.top - frame.origin.y + (full - H) / 2;
     }
     const n = voice.length;
     const S = n ? Math.max(36, Math.min(72, (H - GRID_GAP * (n - 1)) / n)) : 0;
@@ -595,16 +633,18 @@ function computeRects(list: Tile[]): Map<string, Rect> {
         origin = frame?.origin ?? origin ?? { x: (win.width - gridWidth(list, win.width)) / 2, y: GRID_TOP };
         const top = frame?.hidden ? frame.top : FS_TOP;
         const bottom = frame?.hidden ? frame.bottom : win.height - FS_BOTTOM;
+        const full = Math.max(300, bottom - top);
         W = win.width;
-        H = Math.max(300, bottom - top);
+        H = Math.min(full, Math.max(300, win.height - FS_TOP - FS_BOTTOM));
         X0 = -origin.x;
-        Y0 = top - origin.y;
+        Y0 = top - origin.y + (full - H) / 2;
         GAP = FS_GAP;
     } else {
         W = gridWidth(list, win.width);
-        H = frame ? Math.max(200, frame.bottom - frame.top) : Math.max(300, win.height - 245);
+        const full = frame ? Math.max(200, frame.bottom - frame.top) : Math.max(300, win.height - 245);
+        H = frame ? sizeHeight(full, win) : full;
         X0 = 0;
-        Y0 = frame ? frame.top - frame.origin.y : 0;
+        Y0 = frame ? frame.top - frame.origin.y + (full - H) / 2 : 0;
         GAP = GRID_GAP;
     }
     const n = voice.length;
@@ -803,6 +843,7 @@ export function tilesDebug(): string[] {
         `mode: ${fullscreen ? "full screen" : "grid"}, ${frame ? `area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} (${frame.parent}), controls ${frame.hidden ? "hidden" : "shown"}, fit ${Math.round(frame.top)}-${Math.round(frame.bottom)}` : "area not measured"}${frameNote ? ` (${frameNote})` : ""}${measured.toolbar ? `, toolbar y ${Math.round(measured.toolbar.y)}` : ""}`,
         `held: ${held}, moved: ${moved}, guarded: ${guards.size}, touched: ${touched.size}, grid: ${gridW ? `${Math.round(gridW.w)}/${gridW.ww}` : "?"}`,
         ...(moves.length ? ["last moves:", ...moves.map(m => `  ${m}`)] : []),
+        ...(frameLog.length ? ["area changes:", ...frameLog.map(m => `  ${m}`)] : []),
         `order setting: ${currentOrder().join(" > ")}`,
         `video sizes: ${[...videoSizes.entries()].map(([id, s]) => `${id}=${s.w}x${s.h}${aspects.has(id) ? ` (${aspects.get(id)!.value.toFixed(2)}${aspects.get(id)!.pending ? ` -> ${aspects.get(id)!.pending!.toFixed(2)}` : ""})` : ""}`).join(", ") || "none yet"}`,
         ...[...list, ...voice].map(t => {

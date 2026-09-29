@@ -4,6 +4,7 @@ import deafen from "./deafen";
 import rotate from "./rotate";
 import split from "./split";
 import { cheeseburger, FeatureId } from "./storage";
+import style from "./style";
 import updates from "./updates";
 import volume from "./volume";
 
@@ -12,7 +13,7 @@ interface Feature {
     stop(): unknown;
 }
 
-export const FEATURES: Record<FeatureId, Feature> = { volume, deafen, split, rotate, updates };
+export const FEATURES: Record<FeatureId, Feature> = { volume, deafen, split, rotate, style, updates };
 
 const running = new Set<FeatureId>();
 const chains = new Map<FeatureId, Promise<unknown>>();

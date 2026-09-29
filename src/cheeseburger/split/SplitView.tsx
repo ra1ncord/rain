@@ -3,6 +3,7 @@ import { showSheet } from "@api/ui/sheets";
 import { React } from "@metro/common";
 import { Image, Pressable, Text } from "react-native";
 
+import { accentColor } from "../style/colors";
 import { ArrangeSheet } from "./Arrange";
 import { isSplitActive, onSplitChange, setSplitActive, toggleSplit } from "./layout";
 import { useToolbarRef } from "./probe";
@@ -21,7 +22,7 @@ export function SplitViewButton() {
     const active = isSplitActive();
     const icon = firstAsset("GridSquareIcon", "GridVerticalIcon", "LayoutIcon", "ArrowsUpDownIcon");
     const d = Number(iconSize) || 26;
-    const color = active ? "#5865f2" : "#ffffff";
+    const color = active ? accentColor() : "#ffffff";
 
     return (
         <Pressable
