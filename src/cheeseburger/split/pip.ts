@@ -1,18 +1,28 @@
 import { instead } from "@api/patcher";
+import { findByStoreName } from "@metro";
 import { FluxDispatcher } from "@metro/common";
+import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 
 import { caught, safe, safeInstead } from "../crash";
-import { knownMainAspect, onAspectChange, streamAspect } from "./tiles";
+import { splitViewSettings } from "./storage";
+import { hasVideo, knownMainAspect, onAspectChange, streamAspect } from "./tiles";
 
 const PIP_PATH = "modules/external_pip/ExternalPip.android.tsx";
 const MIN_ASPECT = 0.42;
 const MAX_ASPECT = 2.38;
+const g = globalThis as any;
+
+interface Cand { sid: any; pid: any; stream: boolean; }
 
 const unpatches: (() => unknown)[] = [];
 let pip: any = null;
 let lastArgs: any[] | null = null;
 let lastSent = "";
+let lastPick: string | null = null;
+let space: "sid" | "pid" = "sid";
 let clamped = 0;
+let skipped = 0;
+let picks = "";
 let selected: string | null = null;
 let focused: string | null = null;
 let retry: ReturnType<typeof setTimeout> | null = null;
@@ -64,13 +74,19 @@ function shape(args: any[], raw: number): any[] | null {
     return null;
 }
 
+function inRange(args: any[]): any[] {
+    try {
+        const ratio = ratioOf(args);
+        return ratio !== null && (ratio < MIN_ASPECT || ratio > MAX_ASPECT) ? shape(args, ratio) ?? args : args;
+    } catch {
+        return args;
+    }
+}
+
 function safeArgs(args: any[]): any[] {
     const want = pipAspect();
     const next = want ? shape(args, want) : null;
-    if (next) return next;
-    const own = ratioOf(args);
-    if (own !== null && (own < MIN_ASPECT || own > MAX_ASPECT)) return shape(args, own) ?? args;
-    return args;
+    return next ?? inRange(args);
 }
 
 const resend = safe("pip resend", () => {
@@ -80,6 +96,53 @@ const resend = safe("pip resend", () => {
         } catch { }
     }
 });
+
+function people(): { others: Cand[]; mine: Cand[]; } | null {
+    const channelId = SelectedChannelStore?.getVoiceChannelId?.();
+    if (!channelId) return null;
+    const parts = findByStoreName("ChannelRTCStore")?.getParticipants?.(channelId);
+    if (!Array.isArray(parts)) return null;
+    const meId = UserStore?.getCurrentUser?.()?.id;
+    const others: Cand[] = [];
+    const mine: Cand[] = [];
+    for (const p of parts) {
+        if (!p || p.streamId == null) continue;
+        const c: Cand = { sid: p.streamId, pid: p.id, stream: !!p.stream };
+        const owner = p.user?.id ?? p.userId ?? (p.stream ? undefined : p.id);
+        if (meId != null && owner != null && String(owner) === String(meId)) mine.push(c);
+        else if (hasVideo(p)) others.push(c);
+    }
+    return { others, mine };
+}
+
+function choose(which: "selected" | "focused", v: any): any {
+    if (splitViewSettings.smartPip === false) return v;
+    const list = people();
+    if (!list || !list.others.length) return v;
+    const id = v == null ? null : String(v);
+    if (id != null) {
+        const all = [...list.others, ...list.mine];
+        if (all.some(c => String(c.sid) === id)) space = "sid";
+        else if (all.some(c => String(c.pid) === id)) space = "pid";
+    }
+    const key = (c: Cand) => String(space === "pid" ? c.pid : c.sid);
+    const val = (c: Cand) => (space === "pid" ? c.pid : c.sid);
+    const pick = (pool: Cand[]) => {
+        const c = (lastPick != null ? pool.find(x => key(x) === lastPick) : undefined) ?? pool[0];
+        lastPick = key(c);
+        return val(c);
+    };
+    const mine = id != null && list.mine.some(c => key(c) === id);
+    if (which === "selected") return mine ? pick(list.others) : v;
+    const streams = list.others.filter(c => c.stream);
+    const pool = streams.length ? streams : list.others;
+    const hit = id != null ? pool.find(c => key(c) === id) : undefined;
+    if (hit) {
+        lastPick = key(hit);
+        return v;
+    }
+    return pick(pool);
+}
 
 function patch(tries = 0) {
     retry = null;
@@ -103,17 +166,28 @@ function patch(tries = 0) {
         } catch { }
         return orig(...next);
     })));
-    for (const [name, set] of [["setSelectedStream", (v: string | null) => selected = v], ["setFocusedStream", (v: string | null) => focused = v]] as const) {
+    for (const [name, which, set] of [
+        ["setSelectedStream", "selected", (v: string | null) => selected = v],
+        ["setFocusedStream", "focused", (v: string | null) => focused = v],
+    ] as const) {
         if (typeof pip[name] !== "function") continue;
         unpatches.push(instead(name, pip, safeInstead(`pip ${name}`, (args: any[], orig: Function) => {
+            let next = args;
             let before: number | null = null;
             try {
+                const v = choose(which, args[0]);
+                if (v !== args[0]) {
+                    next = [v, ...args.slice(1)];
+                    skipped++;
+                }
+                picks = `${which} ${idOf(args[0]) ?? "none"}${next !== args ? ` -> ${idOf(next[0])}` : ""}`;
                 before = pipAspect();
-                set(idOf(args[0]));
+                set(idOf(next[0]));
             } catch (e) {
                 caught(`pip ${name}`, e);
+                next = args;
             }
-            const ret = orig(...args);
+            const ret = orig(...next);
             try {
                 if (pipAspect() !== before) resend();
             } catch (e) {
@@ -122,14 +196,17 @@ function patch(tries = 0) {
             return ret;
         })));
     }
-}
-
-function inRange(args: any[]): any[] {
-    try {
-        const ratio = ratioOf(args);
-        return ratio !== null && (ratio < MIN_ASPECT || ratio > MAX_ASPECT) ? shape(args, ratio) ?? args : args;
-    } catch {
-        return args;
+    const handoff = g.__cheeseburgerPip;
+    if (handoff) {
+        delete g.__cheeseburgerPip;
+        selected = handoff.selected ?? null;
+        focused = handoff.focused ?? null;
+        lastPick = handoff.lastPick ?? null;
+        space = handoff.space ?? "sid";
+        if (handoff.lastArgs) {
+            lastArgs = handoff.lastArgs;
+            resend();
+        }
     }
 }
 
@@ -148,8 +225,12 @@ export function stopPip() {
     if (retry) clearTimeout(retry);
     retry = null;
     for (const u of unpatches.splice(0)) u();
-    if (lastArgs) lastArgs = inRange(lastArgs);
-    resend();
+    if (g.__cheeseburgerSwapping) {
+        g.__cheeseburgerPip = { lastArgs, selected, focused, lastPick, space };
+    } else {
+        if (lastArgs) lastArgs = inRange(lastArgs);
+        resend();
+    }
     pip = null;
     lastArgs = null;
     selected = focused = null;
@@ -160,5 +241,6 @@ export function pipDebug(): string[] {
     return [
         `pip: ${pip ? "hooked" : "not loaded yet"}, stream ${focused ?? selected ?? "main"}, shape ${a ? a.toFixed(3) : "unknown"}${clamped ? `, kept in range ${clamped}x` : ""}`,
         `pip last: ${lastSent || "none yet"}`,
+        `pip picks: ${splitViewSettings.smartPip === false ? "off" : `${picks || "none yet"}, skipped you ${skipped}x, ids ${space}`}`,
     ];
 }

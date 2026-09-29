@@ -5,6 +5,7 @@ interface SplitViewSettings {
     iconSize: number;
     order: string[];
     sized: boolean;
+    smartPip: boolean;
 }
 
 export const {
@@ -15,4 +16,5 @@ export const {
     iconSize: 24,
     order: ["stream", "them", "me"],
     sized: false,
+    smartPip: true,
 });

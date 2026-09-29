@@ -11,6 +11,7 @@ import { useDeafenButtonSettings } from "./deafen/storage";
 import { setFeature } from "./features";
 import { lookDebug } from "./look";
 import { rotateDebug } from "./rotate";
+import { shareDebug } from "./share";
 import { ArrangeSheet, LABELS } from "./split/Arrange";
 import { layoutDebug } from "./split/layout";
 import { pipDebug } from "./split/pip";
@@ -140,6 +141,7 @@ export default function Settings() {
                                 arrow
                                 onPress={() => showSheet("CheeseburgerArrange", ArrangeSheet)}
                             />
+                            <TableSwitchRow label="Smart PiP" subLabel="never shows you, sticks to streams" value={split.smartPip !== false} onValueChange={(v: boolean) => split.updateSettings({ smartPip: v })} />
                         </>
                     )}
                     <TableSwitchRow
@@ -147,6 +149,13 @@ export default function Settings() {
                         icon={icon("ScreenRotationIcon", "RotateIcon", "ic_screen_rotation", "RetryIcon")}
                         value={s.rotate}
                         onValueChange={(v: boolean) => setFeature("rotate", v)}
+                    />
+                    <TableSwitchRow
+                        label="Share screen in menu"
+                        subLabel="swipe up on the call bar"
+                        icon={icon("ScreenArrowIcon", "ScreenIcon", "MobilePhoneArrowIcon", "ic_mobile_screen_share_24px")}
+                        value={s.share}
+                        onValueChange={(v: boolean) => setFeature("share", v)}
                     />
                 </TableRowGroup>
 
@@ -182,7 +191,7 @@ export default function Settings() {
                     {s.split && <TableRow label="Copy split debug" onPress={() => copy(() => [...layoutDebug(), ...pipDebug()])} />}
                     {s.volume && <TableRow label="Copy volume debug" onPress={() => copy(volumeDebug)} />}
                     {s.rotate && <TableRow label="Copy rotate debug" onPress={() => copy(rotateDebug)} />}
-                    {s.style && <TableRow label="Copy style debug" onPress={() => copy(() => [...styleDebug(), lookDebug()])} />}
+                    {s.style && <TableRow label="Copy style debug" onPress={() => copy(() => [...styleDebug(), lookDebug(), ...shareDebug()])} />}
                     {s.volume && <TableSwitchRow label="Volume toasts" value={volume.debugSliders} onValueChange={(v: boolean) => volume.updateSettings({ debugSliders: v })} />}
                     <TableRow label="Build" trailing={<TableRow.TrailingText text={`${buildRevision} · ${live}${hotStatus.error ? " · error" : ""}`} />} onPress={() => copy(() => [`rain ${buildRevision}`, `cheeseburger ${live}`, ...(hotStatus.error ? [hotStatus.error] : [])])} />
                 </TableRowGroup>

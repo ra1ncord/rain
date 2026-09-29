@@ -3,6 +3,7 @@ import { logger } from "@lib/utils/logger";
 import { caught } from "./crash";
 import deafen from "./deafen";
 import rotate from "./rotate";
+import share from "./share";
 import split from "./split";
 import { cheeseburger, FeatureId } from "./storage";
 import style from "./style";
@@ -14,7 +15,7 @@ interface Feature {
     stop(): unknown;
 }
 
-export const FEATURES: Record<FeatureId, Feature> = { volume, deafen, split, rotate, style, updates };
+export const FEATURES: Record<FeatureId, Feature> = { volume, deafen, split, rotate, style, share, updates };
 
 const running = new Set<FeatureId>();
 const chains = new Map<FeatureId, Promise<unknown>>();
