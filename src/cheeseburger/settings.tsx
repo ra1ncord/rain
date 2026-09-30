@@ -6,24 +6,19 @@ import { clipboard, React } from "@metro/common";
 import { Button, Stack, TableRow, TableRowGroup, TableSwitchRow, Text, TextInput } from "@metro/common/components";
 import { ScrollView, View } from "react-native";
 
-import { crashDebug, useCrashSummary } from "./crash";
+import { useCrashSummary } from "./crash";
 import { useDeafenButtonSettings } from "./deafen/storage";
+import { debugReport, sendDebug } from "./debug";
+import { DebugUploadSheet, SHEET } from "./debug/Sheet";
+import { useDebugSettings } from "./debug/storage";
 import { setFeature } from "./features";
-import { lookDebug } from "./look";
-import { rotateDebug } from "./rotate";
-import { shareDebug } from "./share";
 import { ArrangeSheet, LABELS } from "./split/Arrange";
-import { layoutDebug } from "./split/layout";
-import { pipDebug } from "./split/pip";
 import { useSplitViewSettings } from "./split/storage";
 import { currentOrder } from "./split/tiles";
 import { useCheeseburger } from "./storage";
-import { styleDebug } from "./style";
 import { baseColor } from "./style/colors";
 import { useStyleSettings } from "./style/storage";
-import { toolbarDebug } from "./toolbar";
 import { buildRevision, syncNow, updateNow, useSync, useUpdateReady } from "./updates";
-import { volumeDebug } from "./volume";
 import { useVolumeBoostSettings } from "./volume/storage";
 
 function icon(...names: string[]) {
@@ -71,6 +66,9 @@ export default function Settings() {
     const deafen = useDeafenButtonSettings();
     const split = useSplitViewSettings();
     const style = useStyleSettings();
+    const dbg = useDebugSettings();
+    const connected = !!(dbg.verified && dbg.token && dbg.repo);
+    const [sending, setSending] = React.useState(false);
     const boosted = Object.keys(volume.boosted ?? {}).length;
     const live = `${hotStatus.source}${hotStatus.revision ? ` ${hotStatus.revision.slice(0, 7)}` : ""}`;
 
@@ -188,11 +186,17 @@ export default function Settings() {
                 </TableRowGroup>
 
                 <TableRowGroup title="Debug">
-                    <TableRow label="Copy crash log" subLabel={crash} onPress={() => copy(crashDebug)} />
-                    {s.split && <TableRow label="Copy split debug" onPress={() => copy(() => [...layoutDebug(), ...pipDebug()])} />}
-                    {s.volume && <TableRow label="Copy volume debug" onPress={() => copy(volumeDebug)} />}
-                    {s.rotate && <TableRow label="Copy rotate debug" onPress={() => copy(rotateDebug)} />}
-                    {s.style && <TableRow label="Copy style debug" onPress={() => copy(() => [...styleDebug(), lookDebug(), toolbarDebug(), ...shareDebug()])} />}
+                    <TableRow
+                        label="Send debug"
+                        subLabel={sending ? "sending…" : connected ? dbg.status || `last crash: ${crash}` : "connect debug upload first"}
+                        disabled={!connected || sending}
+                        onPress={() => {
+                            setSending(true);
+                            void sendDebug().then(t => showToast(t)).finally(() => setSending(false));
+                        }}
+                    />
+                    <TableRow label="Debug upload" subLabel={connected ? "connected ✓" : "not connected"} arrow onPress={() => showSheet(SHEET, DebugUploadSheet)} />
+                    <TableRow label="Copy debug" onPress={() => copy(() => [debugReport()])} />
                     {s.volume && <TableSwitchRow label="Volume toasts" value={volume.debugSliders} onValueChange={(v: boolean) => volume.updateSettings({ debugSliders: v })} />}
                     <TableRow label="Build" trailing={<TableRow.TrailingText text={`${buildRevision} · ${live}${hotStatus.error ? " · error" : ""}`} />} onPress={() => copy(() => [`rain ${buildRevision}`, `cheeseburger ${live}`, ...(hotStatus.error ? [hotStatus.error] : [])])} />
                 </TableRowGroup>

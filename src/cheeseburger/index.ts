@@ -2,6 +2,7 @@ import { waitForHydration } from "@api/storage";
 import { definePlugin } from "@plugins";
 
 import { startCrashLog, stopCrashLog } from "./crash";
+import { startDebug, stopDebug } from "./debug";
 import { startAll, stopAll } from "./features";
 import settings from "./settings";
 import { useCheeseburger } from "./storage";
@@ -16,8 +17,10 @@ export default definePlugin({
         startCrashLog();
         await waitForHydration(useCheeseburger);
         await startAll();
+        startDebug();
     },
     async stop() {
+        stopDebug();
         await stopAll();
         stopCrashLog();
     },
