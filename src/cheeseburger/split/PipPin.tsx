@@ -1,6 +1,6 @@
 import { findAssetId } from "@api/assets";
 import { React } from "@metro/common";
-import { Image, Pressable, Text, View } from "react-native";
+import { Animated, Image, Pressable, Text } from "react-native";
 
 import { caught } from "../crash";
 import { accentColor, withAlpha } from "../style/colors";
@@ -11,6 +11,7 @@ import { chromeShown, onChrome, watchChrome } from "./tiles";
 
 const ICONS = ["PictureInPictureIcon", "PipIcon", "ic_pip", "PopoutIcon", "WindowLaunchIcon", "ScreenArrowIcon"];
 const SIZE = 32;
+const FADE_MS = 200;
 const FILL = { position: "absolute", left: 0, top: 0, right: 0, bottom: 0 } as const;
 
 let icon: number | null | undefined;
@@ -59,14 +60,21 @@ function Pin({ streamId }: { streamId: any; }) {
             c();
         };
     }, []);
-    if (!on || !chromeShown()) return null;
+    const shown = chromeShown();
+    const fade = React.useRef(new Animated.Value(shown ? 1 : 0)).current;
+    React.useEffect(() => {
+        const anim = Animated.timing(fade, { toValue: shown ? 1 : 0, duration: FADE_MS, useNativeDriver: true });
+        anim.start();
+        return () => anim.stop();
+    }, [shown]);
+    if (!on) return null;
     const part = participantForStream(streamId);
     if (!part || mineParticipant(part)) return null;
     const pinnedHere = pinnedPip() === part.id;
     const accent = accentColor("#ff0048");
     const src = pinIcon();
     return (
-        <View pointerEvents="box-none" style={FILL}>
+        <Animated.View pointerEvents={shown ? "box-none" : "none"} style={[FILL, { opacity: fade }]}>
             <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={pinnedHere ? "Unpin from picture in picture" : "Pin to picture in picture"}
@@ -85,7 +93,7 @@ function Pin({ streamId }: { streamId: any; }) {
                     ? <Image source={src} style={{ width: 20, height: 20, tintColor: "#ffffff" }} />
                     : <Text style={{ color: "#ffffff", fontSize: 11, fontWeight: "700" }}>PiP</Text>}
             </Pressable>
-        </View>
+        </Animated.View>
     );
 }
 

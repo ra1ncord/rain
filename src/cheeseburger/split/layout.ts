@@ -7,7 +7,7 @@ import { AppState, Dimensions } from "react-native";
 
 import { safe } from "../crash";
 import { isLandscapeLocked } from "../rotate/orientation";
-import { hasVideo, setTilesActive, setTilesFullscreen, tilesDebug } from "./tiles";
+import { chromeDebug, hasVideo, setTilesActive, setTilesFullscreen, tilesDebug } from "./tiles";
 
 let active = false;
 let fullscreen = false;
@@ -363,6 +363,7 @@ export function layoutDebug(): string[] {
         `participant: ${Array.isArray(parts) && parts[0] ? `${shallow(parts[0])} | voiceState: ${shallow(parts[0].voiceState)}` : "-"}`,
         ...tilesDebug(),
         `call store: ${shallow(moduleExports("modules/video_calls/native/ChannelCallStore.tsx")?.useChannelCallStore?.getState?.())}`,
+        chromeDebug(),
         `call overlay states: ${safe(() => JSON.stringify(moduleExports("modules/video_calls/native/ChannelCallStore.tsx")?.useChannelCallStore?.getState?.()?.voiceCallOverlayLayoutStates ?? null)?.slice(0, 300))}`,
         "recent actions:",
         ...(actions.length ? actions.map(a => `  ${a}`) : ["  none"]),

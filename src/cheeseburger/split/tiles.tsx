@@ -865,11 +865,71 @@ function setChrome(v: boolean) {
     }), 0);
 }
 
+const CALL_STORE = "modules/video_calls/native/ChannelCallStore.tsx";
+let storeOff: (() => void) | null = null;
+let focusVal: boolean | undefined;
+let focusAt = 0;
+let seenShown: boolean | undefined;
+let seenHidden: boolean | undefined;
+let mismatch = 0;
+let chromeFrom = "measuring";
+
+function callStore(): any {
+    const mods: any = (window as any).modules ?? {};
+    for (const id of Object.keys(mods)) {
+        const m = mods[id];
+        if (m?.__filePath !== CALL_STORE) continue;
+        const st = m.isInitialized ? m.publicModule?.exports?.useChannelCallStore : undefined;
+        return st && typeof st.getState === "function" && typeof st.subscribe === "function" ? st : null;
+    }
+    return null;
+}
+
+const trusted = () => typeof splitViewSettings.focusWhenShown === "boolean";
+
+const onCallStore = safe("split call store", (state: any) => {
+    const f = state?.focus;
+    if (typeof f !== "boolean" || f === focusVal) return;
+    focusVal = f;
+    focusAt = Date.now();
+    if (trusted()) {
+        chromeFrom = "discord";
+        setChrome(f === splitViewSettings.focusWhenShown);
+    }
+});
+
+function fromMeasure(shown: boolean) {
+    if (typeof focusVal === "boolean" && Date.now() - focusAt > 800) {
+        if (shown) seenShown = focusVal;
+        else seenHidden = focusVal;
+        if (!trusted() && typeof seenShown === "boolean" && typeof seenHidden === "boolean" && seenShown !== seenHidden) {
+            splitViewSettings.focusWhenShown = seenShown;
+            mismatch = 0;
+        } else if (trusted()) {
+            if ((focusVal === splitViewSettings.focusWhenShown) !== shown) {
+                if (++mismatch >= 4) {
+                    splitViewSettings.focusWhenShown = null;
+                    seenShown = seenHidden = undefined;
+                    mismatch = 0;
+                }
+            } else {
+                mismatch = 0;
+            }
+        }
+    }
+    if (!trusted() || typeof focusVal !== "boolean") {
+        chromeFrom = "measuring";
+        setChrome(shown);
+    }
+}
+
 function noteChrome() {
     const tb = measured.toolbar;
     if (!tb || Date.now() - tb.at > 2000) return;
-    setChrome(tb.y < Dimensions.get("window").height - 4);
+    fromMeasure(tb.y < Dimensions.get("window").height - 4);
 }
+
+export const chromeDebug = () => `controls: ${chrome ? "shown" : "hidden"} (from ${chromeFrom}), discord focus ${focusVal ?? "?"}, shown when focus ${splitViewSettings.focusWhenShown ?? "not learned yet"}`;
 
 export const chromeShown = () => chrome;
 
@@ -877,9 +937,16 @@ let watchers = 0;
 let watchTimer: ReturnType<typeof setInterval> | null = null;
 
 const checkChrome = safe("split chrome", () => {
+    if (!storeOff) {
+        const st = callStore();
+        if (st) {
+            storeOff = st.subscribe(onCallStore);
+            onCallStore(st.getState());
+        }
+    }
     if (active) return;
     if (!hasToolbarRef()) {
-        if (toolbarKnown()) setChrome(false);
+        if (toolbarKnown()) fromMeasure(false);
         return;
     }
     measureToolbarNow();
@@ -889,11 +956,19 @@ const checkChrome = safe("split chrome", () => {
 export function watchChrome(): () => void {
     watchers++;
     if (!watchTimer) watchTimer = setInterval(checkChrome, 300);
+    checkChrome();
     return () => {
         watchers = Math.max(0, watchers - 1);
         if (!watchers && watchTimer) {
             clearInterval(watchTimer);
             watchTimer = null;
+        }
+        if (!watchers && storeOff) {
+            try {
+                storeOff();
+            } catch { }
+            storeOff = null;
+            focusVal = undefined;
         }
     };
 }
@@ -905,7 +980,6 @@ export function onChrome(l: () => void) {
 
 export function setTilesActive(v: boolean, handoff = false) {
     active = v;
-    if (!v) setChrome(true);
     if (v) {
         shared.owner = copy;
         burstUntil = Date.now() + 3000;
