@@ -10,7 +10,7 @@ import { FluxDispatcher, messageUtil, React } from "@metro/common";
 import { View } from "react-native";
 
 import { caught, safe } from "../crash";
-import { engineDebug, expect, hookEngine, teach, unhookEngine } from "./engine";
+import { engineDebug, expect, hookEngine, isTeaching, teach, unhookEngine } from "./engine";
 import { useVolumeBoostSettings, volumeBoostSettings } from "./storage";
 import { note, short, trail } from "./trail";
 import VolumeLabel, { emitSliderValue } from "./VolumeLabel";
@@ -115,10 +115,10 @@ function patchConnection(conn: any) {
     unpatches.push(before("setLocalVolume", target, safe("volume engine", function (this: any, args: any[]) {
         const [userId, volume] = args;
         const ctx = connContext(this);
-        const boost = typeof userId === "string" ? getBoost(userId, ctx) : undefined;
+        const boost = typeof userId === "string" && !isTeaching(this) ? getBoost(userId, ctx) : undefined;
         const out = boost && boost > DISCORD_MAX ? boost : volume;
         note(`${ctx} ${short(userId)} ${short(volume)}${out !== volume ? ` -> ${out}` : ""}`);
-        if (typeof userId === "string" && typeof out === "number") expect(userId, out);
+        if (typeof userId === "string" && typeof out === "number") expect(userId, out, this);
         if (out !== volume) {
             debug(`engine ${userId}: ${volume} -> ${boost}`);
             args[1] = out;
@@ -203,11 +203,11 @@ function applyNow(userId?: string) {
         } catch (e) {
             caught("volume hook", e);
         }
-        teach(conn);
         const ctx = connContext(conn);
         for (const [key, volume] of Object.entries(volumeBoostSettings.boosted ?? {})) {
             const [kctx, kuser] = key.split(":");
             if (kctx !== ctx || (userId && kuser !== userId)) continue;
+            teach(conn, kuser, volume);
             try { conn.setLocalVolume?.(kuser, volume); } catch (e) { logger.error("[VolumeBoost] apply failed", e); }
         }
     });
