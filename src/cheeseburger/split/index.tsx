@@ -8,7 +8,7 @@ import { useToolbar } from "../toolbar";
 import { isFullscreenSplit, isLandscapeAuto, isSplitActive, refreshSplitLayout, resumeSplit, startLayoutPatches, stopLayoutPatches } from "./layout";
 import { isInternalPipElement, isInternalPipRender, startPip, stopPip } from "./pip";
 import { integratePinControls, markVideoElement, startPinControls, stopPinControls } from "./PipPin";
-import { TileProbe } from "./probe";
+import { captureCallGeometry, TileProbe } from "./probe";
 import { SplitViewButton } from "./SplitView";
 import { useSplitViewSettings } from "./storage";
 import { isTileElement, registerTile } from "./tiles";
@@ -20,6 +20,7 @@ const g = globalThis as any;
 const addProbe = safe("split probe", (args: any[], ret: any) => {
     if (!ret) return;
     if (isInternalPipRender() || isInternalPipElement(args)) return ret;
+    ret = captureCallGeometry(args, ret);
     if (!isTileElement(args)) return integratePinControls(ret);
     const out = React.createElement(
         React.Fragment,

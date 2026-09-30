@@ -6,7 +6,7 @@ import { Dimensions, StatusBar } from "react-native";
 
 import { caught, safe } from "../crash";
 import { sourceCoordinates } from "./coordinates";
-import { hasToolbarRef, measureAll, measured, measureToolbarNow, toolbarKnown, viewportKey } from "./probe";
+import { hasToolbarRef, measureAll, measured, measureToolbarNow, parentOrigin, toolbarKnown, viewportKey } from "./probe";
 import { splitViewSettings } from "./storage";
 
 export type TileKind = "stream" | "them" | "me";
@@ -34,6 +34,7 @@ interface Shared {
     touched: Set<object>;
     copies: number;
     owner: number;
+    measuredAreas?: Map<string, Area>;
 }
 
 const shared: Shared = (globalThis as any).__cheeseburgerTiles ??= {
@@ -51,9 +52,9 @@ const shared: Shared = (globalThis as any).__cheeseburgerTiles ??= {
 const copy = ++shared.copies;
 const mine = () => shared.owner === copy;
 const { tiles, previews, coordsById, videoSizes, aspects, intended, touched } = shared;
+const measuredAreas = shared.measuredAreas ??= new Map<string, Area>();
 const coordsIds = new WeakMap<object, string>();
 const targets = new WeakMap<object, Rect>();
-const nativeViewports = new WeakMap<object, string>();
 const written = new WeakMap<object, Rect[]>();
 const lastWrite = new WeakMap<object, number>();
 const guards = new Map<object, PropertyDescriptor | null>();
@@ -121,10 +122,7 @@ const isCoords = (v: any) => !!v && typeof v === "object" && typeof v.x === "num
 
 function rememberCoords(sv: object, v: any) {
     intended.set(sv, { ...v });
-    nativeViewports.set(sv, viewportKey());
 }
-
-const nativeCoords = (sv: object) => nativeViewports.get(sv) === viewportKey() ? intended.get(sv) : undefined;
 
 function steer(sv: any, v: any) {
     try {
@@ -514,34 +512,36 @@ function aspectOf(t: Tile): number {
     return (t.streamId && aspects.get(t.streamId)?.value) || 16 / 9;
 }
 
-function gridWidth(list: Tile[], ww: number): number {
-    const inset = frame ? Math.max(0, Math.min(24, frame.origin.x)) : 12;
-    const w = Math.max(120, ww - inset * 2);
-    gridW = { ww, w };
-    return w;
-}
-
-const GRID_TOP = 112;
-
-interface Frame { origin: { x: number; y: number; }; parent: string; hidden: boolean; top: number; bottom: number; }
+interface Area { left: number; right: number; top: number; bottom: number; }
+interface Frame extends Area { origin: { x: number; y: number; }; parent: string; hidden: boolean; }
 
 let frame: Frame | null = null;
-let lastOrigin: { x: number; y: number; } | null = null;
-const maxTop = new Map<string, number>();
+let usableArea: Area | null = null;
+let areaMeasured = false;
+let pendingArea: { area: Area; since: number; samples: number; sampleAt: number; } | null = null;
 
 const statusBar = () => (typeof StatusBar?.currentHeight === "number" ? StatusBar.currentHeight : 24);
 
-const restSince = new WeakMap<object, { r: Rect; since: number; }>();
 let frameNote = "";
-let pendingFrame: { f: Frame; since: number; } | null = null;
-let frameAt = 0;
-let frameMode = "";
 let viewport = "";
 let layoutChannel = "";
 const frameLog: string[] = [];
-const shownH = new Map<string, number>();
-const shownTop = new Map<string, number>();
-const shownBounds = new Map<string, { top: number; bottom: number; }>();
+
+function fallbackArea(win: { width: number; height: number; }): Area {
+    const land = win.width > win.height;
+    return {
+        left: 12,
+        right: win.width - 12,
+        top: statusBar() + (land ? 8 : 48),
+        bottom: win.height - (land ? 90 : 136),
+    };
+}
+
+const screenArea = (win: { width: number; height: number; }): Area => usableArea ?? fallbackArea(win);
+
+function sameArea(a: Area, b: Area) {
+    return ["left", "right", "top", "bottom"].every(k => Math.abs((a as any)[k] - (b as any)[k]) < 1.5);
+}
 
 function syncViewport() {
     const key = viewportKey();
@@ -549,96 +549,79 @@ function syncViewport() {
     if (viewport === key && layoutChannel === channel) return;
     viewport = key;
     layoutChannel = channel;
-    frame = pendingFrame = null;
-    lastOrigin = origin = null;
+    frame = null;
+    origin = null;
+    usableArea = null;
+    areaMeasured = false;
+    const cached = measuredAreas.get(`${channel}|${key}`);
+    if (cached) {
+        usableArea = { ...cached };
+        areaMeasured = true;
+    }
+    pendingArea = null;
     gridW = null;
-    frameMode = "";
-    frameAt = 0;
-    maxTop.clear();
-    shownH.clear();
-    shownTop.clear();
-    shownBounds.clear();
     for (const sv of touched) targets.delete(sv);
     delete measured.parent;
     delete measured.toolbar;
+    delete measured.header;
     frameNote = "screen changed";
     frameLog.push(`${new Date().toISOString().slice(17, 23)} screen ${key}, old area cleared`);
     if (frameLog.length > 12) frameLog.shift();
 }
 
 function updateFrame(win: { width: number; height: number; }) {
-    const p = measured.parent;
-    if (!p || p.viewport !== viewport || Date.now() - p.at > 1000 || !isCoords(p.coords)) return;
-    if (!near(readCoords(p.sv) ?? {}, p.coords)) return;
-    const rest = restSince.get(p.sv);
-    if (!rest || !near(p.coords, rest.r) || Date.now() - rest.since < 700) {
-        frameNote = "moving";
-        return;
-    }
-    if (Math.abs(p.width - p.coords.width) > 16 || Math.abs(p.height - p.coords.height) > 16) {
-        frameNote = `skipped ${Math.round(p.width)}x${Math.round(p.height)}`;
-        return;
-    }
-    let o = { x: p.x - p.coords.x - (p.coords.width - p.width) / 2, y: p.y - p.coords.y - (p.coords.height - p.height) / 2 };
-    const stable = lastOrigin && Math.abs(lastOrigin.x - o.x) < 1.5 && Math.abs(lastOrigin.y - o.y) < 1.5;
-    lastOrigin = o;
-    if (!stable) {
-        frameNote = "checking";
-        return;
-    }
-    frameNote = "";
-    const mode = fullscreen ? "full" : "grid";
-    const sameMode = !!frame && frameMode === mode;
-    if (frame && Math.abs(frame.origin.x - o.x) < 12 && Math.abs(frame.origin.y - o.y) < 12) o = frame.origin;
-    const land = win.width > win.height;
-    const key = `${Math.round(win.width)}x${Math.round(win.height)}`;
-    const top0 = Math.max(maxTop.get(key) ?? o.y, o.y);
-    maxTop.set(key, top0);
-    const tb = measured.toolbar?.viewport === viewport && Date.now() - measured.toolbar.at < 2000 ? measured.toolbar : undefined;
-    const useToolbar = toolbarKnown() && splitViewSettings.showButton !== false;
-    const hidden = useToolbar ? !tb || tb.y >= win.height - 4 : o.y < top0 - 30;
-    const bounds = shownBounds.get(key);
-    const top = bounds?.top ?? (hidden ? (land ? 8 : statusBar() + 6) : o.y + 4);
-    const bottom = bounds?.bottom ?? (hidden ? win.height - (land ? 8 : 56) : (tb && tb.y < win.height - 4 ? tb.y - 16 : win.height - (land ? 90 : 136)) - 8);
-    const next: Frame = { origin: o, parent: "tile", hidden, top: Math.round(top), bottom: Math.round(bottom) };
     const now = Date.now();
-    if (sameMode && sameFrame(frame!, next)) {
-        pendingFrame = null;
-        frame = { ...frame!, origin: next.origin };
-        return;
-    }
-    if (sameMode) {
-        if (!pendingFrame || !sameFrame(pendingFrame.f, next)) {
-            pendingFrame = { f: next, since: now };
-            frameNote = "waiting";
-            return;
-        }
-        if (now - pendingFrame.since < 500 || now - frameAt < 1500) {
-            frameNote = "waiting";
-            return;
+    const previous = frame;
+    const p = measured.parent;
+    if (p && p.viewport === viewport && now - p.at < 500 && isCoords(p.coords) && near(readCoords(p.sv) ?? {}, p.coords)) {
+        const o = parentOrigin(p);
+        if (Number.isFinite(o.x) && Number.isFinite(o.y) && Math.abs(o.x) < win.width && Math.abs(o.y) < win.height) {
+            if (!origin || Math.abs(origin.x - o.x) >= 0.5 || Math.abs(origin.y - o.y) >= 0.5) {
+                origin = { x: Math.round(o.x * 2) / 2, y: Math.round(o.y * 2) / 2 };
+                burstUntil = Math.max(burstUntil, now + 600);
+            }
         }
     }
-    pendingFrame = null;
-    frame = next;
-    frameMode = mode;
-    frameAt = now;
-    if (!hidden) {
-        shownH.set(key, next.bottom - next.top);
-        if (!bounds) shownBounds.set(key, { top: next.top, bottom: next.bottom });
+    const tb = measured.toolbar?.viewport === viewport && now - measured.toolbar.at < 1000 ? measured.toolbar : undefined;
+    const header = measured.header?.viewport === viewport && now - measured.header.at < 1000 ? measured.header : undefined;
+    const hidden = tb ? tb.y >= win.height - 4 : !chrome;
+    let learned = false;
+    if (!areaMeasured && header && tb && !hidden) {
+        const side = Math.max(0, Math.min(win.width * 0.15, origin?.x ?? 12));
+        const wideHeader = header.width >= win.width * 0.6;
+        const candidate: Area = {
+            left: Math.round(wideHeader ? Math.max(side, header.x) : side),
+            right: Math.round(wideHeader ? Math.min(win.width - side, header.x + header.width) : win.width - side),
+            top: Math.round(Math.max(statusBar() + 4, header.y + header.height + HEADER_GAP)),
+            bottom: Math.round(tb.y - 24),
+        };
+        const sampleAt = Math.min(header.at, tb.at);
+        if (candidate.right - candidate.left > 120 && candidate.bottom - candidate.top > 120) {
+            if (!pendingArea || !sameArea(pendingArea.area, candidate)) {
+                pendingArea = { area: candidate, since: now, samples: 1, sampleAt };
+            } else if (sampleAt !== pendingArea.sampleAt) {
+                pendingArea.sampleAt = sampleAt;
+                pendingArea.samples++;
+            }
+            if (pendingArea.samples >= 3 && now - pendingArea.since >= 450) {
+                usableArea = pendingArea.area;
+                areaMeasured = true;
+                measuredAreas.set(`${layoutChannel}|${viewport}`, { ...usableArea });
+                if (measuredAreas.size > 16) measuredAreas.delete(measuredAreas.keys().next().value!);
+                pendingArea = null;
+                learned = true;
+            }
+        }
+    } else if (!areaMeasured) {
+        pendingArea = null;
     }
-    if (!hidden && mode === "grid") shownTop.set(key, next.top);
-    frameLog.push(`${new Date(now).toISOString().slice(17, 23)} ${viewport} area ${Math.round(o.x)},${Math.round(o.y)} ${hidden ? "hidden" : "shown"} fit ${next.top}-${next.bottom}${tb ? ` toolbar ${Math.round(tb.y)}` : ""}`);
-    if (frameLog.length > 12) frameLog.shift();
-}
-
-function sameFrame(a: Frame, b: Frame) {
-    return a.hidden === b.hidden && Math.abs(a.origin.x - b.origin.x) < 6 && Math.abs(a.origin.y - b.origin.y) < 6
-        && Math.abs(a.top - b.top) < 6 && Math.abs(a.bottom - b.bottom) < 6;
-}
-
-function sizeHeight(regionH: number, win: { width: number; height: number; }) {
-    const cap = shownH.get(`${Math.round(win.width)}x${Math.round(win.height)}`);
-    return cap && cap > 120 ? Math.min(regionH, cap) : regionH;
+    const area = screenArea(win);
+    frame = { ...area, origin: origin ?? previous?.origin ?? { x: area.left, y: area.top }, parent: origin ? "tile" : "bootstrap", hidden };
+    frameNote = areaMeasured ? "fixed measured bounds, live origin" : pendingArea ? `measuring bounds (${pendingArea.samples})` : "waiting for header and toolbar";
+    if (learned || !previous || previous.hidden !== hidden) {
+        frameLog.push(`${new Date(now).toISOString().slice(17, 23)} ${viewport} area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} ${hidden ? "hidden" : "shown"} fit ${area.top}-${area.bottom}${learned ? " measured" : ""}${tb ? ` toolbar ${Math.round(tb.y)}` : ""}`);
+        if (frameLog.length > 12) frameLog.shift();
+    }
 }
 
 export function setTilesFullscreen(v: boolean) {
@@ -648,26 +631,15 @@ export function setTilesFullscreen(v: boolean) {
     if (active) scheduleApply();
 }
 
-const LS_INSET = 12;
-
 function landscapeRects(list: Tile[], win: { width: number; height: number; }): Map<string, Rect> {
     const out = new Map<string, Rect>();
-    const boxes = list.map(t => nativeCoords(t.coords)).filter(isCoords);
-    const W = win.width - 2 * Math.max(LS_INSET, frame?.origin.x ?? LS_INSET);
-    let top = 0;
-    let H = win.height - 170;
-    if (boxes.length) {
-        const minY = Math.min(...boxes.map(b => b.y));
-        const maxY = Math.max(...boxes.map(b => b.y + b.height));
-        top = minY;
-        H = Math.max(120, Math.min(maxY - minY - LS_INSET, win.height - minY - LS_INSET));
-    }
-    if (frame) {
-        const full = Math.max(120, frame.bottom - frame.top);
-        H = sizeHeight(full, win);
-        top = frame.top - frame.origin.y + (full - H) / 2;
-    }
-    const X0 = frame ? (win.width - W) / 2 - frame.origin.x : 0;
+    const area = screenArea(win);
+    const o = frame?.origin ?? { x: area.left, y: area.top };
+    const W = Math.max(120, area.right - area.left);
+    const H = Math.max(120, area.bottom - area.top);
+    const top = area.top - o.y;
+    const X0 = area.left - o.x;
+    gridW = { ww: win.width, w: W };
     const n = voice.length;
     const S = n ? Math.max(36, Math.min(72, (H - GRID_GAP * (n - 1)) / n)) : 0;
     const Wv = n ? W - S - GRID_GAP : W;
@@ -717,26 +689,21 @@ function computeRects(list: Tile[]): Map<string, Rect> {
 
     const win = Dimensions.get("window");
     if (win.width > win.height) return landscapeRects(list, win);
-    let W: number, H: number, X0: number, Y0: number, GAP: number;
+    const area = screenArea(win);
+    const o = frame?.origin ?? { x: area.left, y: area.top };
+    let W: number, H: number, X0: number, GAP: number;
     if (fullscreen) {
-        origin = frame?.origin ?? origin ?? { x: (win.width - gridWidth(list, win.width)) / 2, y: GRID_TOP };
-        const key = `${Math.round(win.width)}x${Math.round(win.height)}`;
-        const under = shownTop.get(key) ?? shownBounds.get(key)?.top ?? (frame && !frame.hidden ? frame.top : undefined);
-        const top = Math.max(statusBar() + 6, under != null ? under - HEADER_GAP : statusBar() + 44);
-        const bottom = win.height - 56;
         W = win.width;
-        H = Math.max(300, bottom - top);
-        X0 = -origin.x;
-        Y0 = top - origin.y;
+        X0 = -o.x;
         GAP = FS_GAP;
     } else {
-        W = gridWidth(list, win.width);
-        const full = frame ? Math.max(200, frame.bottom - frame.top) : Math.max(300, win.height - 245);
-        H = frame ? sizeHeight(full, win) : full;
-        X0 = 0;
-        Y0 = frame ? frame.top - frame.origin.y + (full - H) / 2 : 0;
+        W = Math.max(120, area.right - area.left);
+        X0 = area.left - o.x;
         GAP = GRID_GAP;
     }
+    H = Math.max(120, area.bottom - area.top);
+    const Y0 = area.top - o.y;
+    gridW = { ww: win.width, w: W };
     const n = voice.length;
     const S = n ? Math.max(40, Math.min(96, (W - GAP * (n - 1)) / n)) : 0;
     const fullH = H;
@@ -817,16 +784,34 @@ function noteMove(t: Tile, cur: any, now: number) {
     if (moves.length > 8) moves.shift();
 }
 
+let geometryQueued = false;
+const geometryReady = safe("split geometry ready", () => {
+    if (!active || !mine() || geometryQueued) return;
+    geometryQueued = true;
+    burstUntil = Math.max(burstUntil, Date.now() + 600);
+    if (pollTimer) clearTimeout(pollTimer);
+    pollTimer = null;
+    setTimeout(safe("split measured layout", () => {
+        geometryQueued = false;
+        safeApply();
+        if (active && mine() && !pollTimer) pollTimer = setTimeout(safe("split poll", poll), 40);
+    }), 0);
+});
+
 function applyLayout() {
     if (!active || !mine()) return;
     syncViewport();
     const list = orderedTiles();
     const square = (t: Tile) => !t.streamId || Math.abs((aspects.get(t.streamId)?.value ?? 16 / 9) - aspectOf(t)) < 0.1;
-    measureAll(readCoords, (list.find(t => t.kind === "stream" && square(t)) ?? list.find(square))?.coords);
+    measureAll(readCoords, (list.find(t => t.kind === "stream" && square(t)) ?? list.find(square))?.coords, geometryReady);
     updateFrame(Dimensions.get("window"));
     noteChrome();
     if (!list.length) {
         if (touched.size) restoreAll();
+        return;
+    }
+    if (!origin) {
+        frameNote = "waiting for full tile probe";
         return;
     }
     const all = [...list, ...voice];
@@ -852,8 +837,6 @@ function applyLayout() {
         if (!r || !t.coords) continue;
         const prev = targets.get(t.coords);
         targets.set(t.coords, r);
-        const rs = restSince.get(t.coords);
-        if (!rs || !near(rs.r, r)) restSince.set(t.coords, { r, since: now });
         touched.add(t.coords);
         guard(t.coords);
         const cur = current.get(t.coords);
@@ -1030,6 +1013,8 @@ export function setTilesActive(v: boolean, handoff = false) {
     active = v;
     if (v) {
         shared.owner = copy;
+        origin = null;
+        delete measured.parent;
         for (const tile of [...tiles.values(), ...previews.values()]) tile.coords = sourceCoordinates(tile.coords);
         for (const entry of coordsById.values()) entry.coords = sourceCoordinates(entry.coords);
         burstUntil = Date.now() + 3000;
@@ -1071,6 +1056,7 @@ export function tilesDebug(): string[] {
         `copy ${copy} of ${shared.copies}, owner ${shared.owner}, ${hotStatus.source} ${hotStatus.revision.slice(0, 7)}`,
         `window: ${Math.round(Dimensions.get("window").width)}x${Math.round(Dimensions.get("window").height)}, tiles: ${list.length} (registered ${tiles.size}), call videos: ${(callParts() ?? []).filter(p => p.video).map(p => p.streamId ?? "preview").join(",") || "none"}, camera off: ${voice.length}`,
         `mode: ${fullscreen ? "full screen" : "grid"}, ${frame ? `area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} (${frame.parent}), controls ${frame.hidden ? "hidden" : "shown"}, fit ${Math.round(frame.top)}-${Math.round(frame.bottom)}` : "area not measured"}${frameNote ? ` (${frameNote})` : ""}${measured.toolbar ? `, toolbar y ${Math.round(measured.toolbar.y)}` : ""}`,
+        `header: ${measured.header ? `${measured.header.label} ${fmt(measured.header)}` : "not measured"}, bounds: ${areaMeasured ? "measured and fixed" : "bootstrap"}, origin: ${origin ? `${origin.x},${origin.y} live` : "not measured"}`,
         `held: ${held}, moved: ${moved}, guarded: ${guards.size}, touched: ${touched.size}, grid: ${gridW ? `${Math.round(gridW.w)}/${gridW.ww}` : "?"}`,
         "layout coordinates: native tile and video",
         ...(moves.length ? ["last moves:", ...moves.map(m => `  ${m}`)] : []),
