@@ -342,6 +342,7 @@ function pickFor(ret: any): any {
 
 function patchViews(tries = 0) {
     viewRetry = null;
+    viewTypeList(true);
     for (const path of VIEW_PATHS) {
         if (viewPatched.has(path)) continue;
         const exp = moduleExports(path);
@@ -362,6 +363,7 @@ function patchViews(tries = 0) {
         }
         viewPatched.add(path);
     }
+    viewTypeList(true);
     if (viewPatched.size < VIEW_PATHS.length && tries < 60) viewRetry = setTimeout(safe("pip view wait", () => patchViews(tries + 1)), 2000);
 }
 
@@ -400,6 +402,13 @@ export function participantForStream(streamId: any): any {
 
 export const mineParticipant = (p: any) => isMine(p);
 
+export function participantForTile(props: any): any {
+    const coords = props.sharedCoords;
+    const value = typeof coords?.get === "function" ? coords.get() : coords?.value;
+    const id = value?.id ?? props.participant?.id ?? props.id;
+    return allParts().find(p => id != null && String(p.id) === String(id)) ?? participantForStream(props.streamId);
+}
+
 const onRtc = safe("pip rtc", (e: any) => {
     const state = String(e?.state ?? "");
     if (/DISCONNECT/.test(state)) {
@@ -413,8 +422,8 @@ const onRtc = safe("pip rtc", (e: any) => {
 const VIEW_TYPES = ["modules/external_pip/ExternalPipView.android.tsx", "modules/external_pip/ExternalPipViewVideo.android.tsx"];
 const INTERNAL_TYPES = ["modules/video_calls/native/components/PictureInPictureVideo.tsx", "modules/video_calls/native/components/PictureInPictureGlobal.tsx", "modules/video_calls/native/components/PictureInPicture.tsx"];
 const awareOf = new WeakMap<object, any>();
-let viewTypes: any[] = [];
-let internalTypes: any[] = [];
+const viewTypes: any[] = [];
+const internalTypes: any[] = [];
 let internalDepth = 0;
 let internalSwaps = 0;
 const internalShapes = new Map<string, string>();
@@ -422,12 +431,20 @@ let lastTypeLook = 0;
 let rerenders = 0;
 let inAware = false;
 
-function viewTypeList(): any[] {
+function viewTypeList(force = false): any[] {
     const now = Date.now();
-    if ((viewTypes.length < VIEW_TYPES.length || internalTypes.length < INTERNAL_TYPES.length) && now - lastTypeLook > 2000) {
+    if (force || now - lastTypeLook > 2000) {
         lastTypeLook = now;
-        viewTypes = VIEW_TYPES.map(p => moduleExports(p)?.default).filter(Boolean);
-        internalTypes = INTERNAL_TYPES.map(p => moduleExports(p)?.default).filter(Boolean);
+        for (const [paths, types] of [[VIEW_TYPES, viewTypes], [INTERNAL_TYPES, internalTypes]] as const) {
+            for (const path of paths) {
+                const exports = moduleExports(path);
+                if (!exports) continue;
+                for (const value of Object.values(exports)) {
+                    if (!value || !(typeof value === "function" || typeof value === "object" && "$$typeof" in value)) continue;
+                    if (!types.includes(value)) types.push(value);
+                }
+            }
+        }
     }
     return viewTypes;
 }
@@ -533,6 +550,7 @@ const onViewJsx = safe("pip view jsx", (args: any[]) => {
 });
 
 export function startPip() {
+    viewTypeList(true);
     patch();
     patchViews();
     unpatches.push(before("jsx", jsxRuntime, onViewJsx), before("jsxs", jsxRuntime, onViewJsx));
@@ -568,7 +586,7 @@ export function pipDebug(): string[] {
         `pip last: ${lastSent || "none yet"}`,
         `pip picks: ${splitViewSettings.smartPip === false ? "off" : `${picks || "none yet"}, skipped you ${skipped}x, ids ${space}`}`,
         `pip shape from: ${aspectFrom || "not asked yet"}, pip view rerenders ${rerenders}, wrapped ${viewTypes.length}/${VIEW_TYPES.length}`,
-        `in-discord pip: wrapped ${internalTypes.length}/${INTERNAL_TYPES.length}, source swaps ${internalSwaps}, inputs ${[...internalShapes].map(([name, keys]) => `${name} [${keys}]`).join("; ") || "not rendered yet"}`,
+        `in-discord pip: recognized ${internalTypes.length} component types, source swaps ${internalSwaps}, inputs ${[...internalShapes].map(([name, keys]) => `${name} [${keys}]`).join("; ") || "not rendered yet"}`,
         ...shapeLog.map(l => `  ${l}`),
         `pip view: pinned ${pinned ? "yes" : "no"}, showing ${viewPick ? (isStreamPart({ id: viewPick }) ? "a screen" : viewPick === myId() ? "me" : "a camera") : "discord's pick"}${viewSid ? ` (stream ${viewSid})` : ""}, hooked ${[...viewPatched].map(x => x.split("/").pop()).join(", ") || "not yet"}`,
         ...[...viewShapes].map(([k, v]) => `  ${k} ${v}`),

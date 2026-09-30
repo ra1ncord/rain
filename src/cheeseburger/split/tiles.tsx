@@ -5,7 +5,7 @@ import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { Dimensions, StatusBar } from "react-native";
 
 import { caught, safe } from "../crash";
-import { controlledCoordinates, coordinatesDebug, ownsCoordinates, sourceCoordinates } from "./coordinates";
+import { sourceCoordinates } from "./coordinates";
 import { hasToolbarRef, measureAll, measured, measureToolbarNow, toolbarKnown, viewportKey } from "./probe";
 import { splitViewSettings } from "./storage";
 
@@ -312,7 +312,7 @@ export function registerTile(args: any[]) {
     if (!props || typeof props !== "object") return;
     if (props.sharedCoords) {
         const source = sourceCoordinates(props.sharedCoords);
-        const coords = active ? controlledCoordinates(source) : source;
+        const coords = source;
         if (coords !== props.sharedCoords) args[1] = props = { ...props, sharedCoords: coords };
     }
     if (props.sharedCoords) noteCoords(props.sharedCoords);
@@ -510,6 +510,7 @@ export function knownMainAspect(): number | null {
 }
 
 function aspectOf(t: Tile): number {
+    if (t.kind !== "stream") return 16 / 9;
     return (t.streamId && aspects.get(t.streamId)?.value) || 16 / 9;
 }
 
@@ -829,10 +830,6 @@ function applyLayout() {
     for (const t of all) {
         const cur = readCoords(t.coords);
         current.set(t.coords, cur);
-        if (ownsCoordinates(t.coords)) {
-            const native = readCoords(sourceCoordinates(t.coords));
-            if (isCoords(native)) rememberCoords(t.coords, native);
-        }
         if (isCoords(cur) && t.coords && !intended.has(t.coords)) rememberCoords(t.coords, cur);
     }
     const rects = computeRects(list);
@@ -854,12 +851,12 @@ function applyLayout() {
         const rs = restSince.get(t.coords);
         if (!rs || !near(rs.r, r)) restSince.set(t.coords, { r, since: now });
         touched.add(t.coords);
-        if (!ownsCoordinates(t.coords)) guard(t.coords);
+        guard(t.coords);
         const cur = current.get(t.coords);
         if (cur && !near(cur, r)) {
             if (prev && near(prev, r)) {
                 noteMove(t, cur, now);
-                if (!ownsCoordinates(t.coords) && isCoords(cur) && !(written.get(t.coords) ?? []).some(w => near(cur, w))) rememberCoords(t.coords, cur);
+                if (isCoords(cur) && !(written.get(t.coords) ?? []).some(w => near(cur, w))) rememberCoords(t.coords, cur);
                 burstUntil = now + 3000;
             }
             write(t.coords, { ...cur, ...r, zIndex: 1 }, r);
@@ -1033,8 +1030,8 @@ export function setTilesActive(v: boolean, handoff = false) {
     active = v;
     if (v) {
         shared.owner = copy;
-        for (const tile of [...tiles.values(), ...previews.values()]) tile.coords = controlledCoordinates(sourceCoordinates(tile.coords));
-        for (const entry of coordsById.values()) entry.coords = controlledCoordinates(sourceCoordinates(entry.coords));
+        for (const tile of [...tiles.values(), ...previews.values()]) tile.coords = sourceCoordinates(tile.coords);
+        for (const entry of coordsById.values()) entry.coords = sourceCoordinates(entry.coords);
         burstUntil = Date.now() + 3000;
         if (!pollTimer) poll();
     } else {
@@ -1075,7 +1072,7 @@ export function tilesDebug(): string[] {
         `window: ${Math.round(Dimensions.get("window").width)}x${Math.round(Dimensions.get("window").height)}, tiles: ${list.length} (registered ${tiles.size}), call videos: ${(callParts() ?? []).filter(p => p.video).map(p => p.streamId ?? "preview").join(",") || "none"}, camera off: ${voice.length}`,
         `mode: ${fullscreen ? "full screen" : "grid"}, ${frame ? `area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} (${frame.parent}), controls ${frame.hidden ? "hidden" : "shown"}, fit ${Math.round(frame.top)}-${Math.round(frame.bottom)}` : "area not measured"}${frameNote ? ` (${frameNote})` : ""}${measured.toolbar ? `, toolbar y ${Math.round(measured.toolbar.y)}` : ""}`,
         `held: ${held}, moved: ${moved}, guarded: ${guards.size}, touched: ${touched.size}, grid: ${gridW ? `${Math.round(gridW.w)}/${gridW.ww}` : "?"}`,
-        coordinatesDebug(),
+        "layout coordinates: native tile and video",
         ...(moves.length ? ["last moves:", ...moves.map(m => `  ${m}`)] : []),
         ...(registrations.length ? ["tile replacements:", ...registrations.map(m => `  ${m}`)] : []),
         ...(frameLog.length ? ["area changes:", ...frameLog.map(m => `  ${m}`)] : []),
