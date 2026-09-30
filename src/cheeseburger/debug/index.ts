@@ -244,11 +244,19 @@ async function put(repo: string, token: string, path: string, text: string, mess
 }
 
 export async function connectDebug(repo: string, token: string): Promise<string> {
-    const r = repo.trim().replace(/^https?:\/\/github\.com\//i, "").replace(/\.git$/, "").replace(/\/+$/, "");
+    let r = repo.trim().replace(/^https?:\/\/github\.com\//i, "").replace(/\.git$/, "").replace(/\/+$/, "");
     const t = token.trim();
-    if (!REPO.test(r)) return "repo should look like name/repo";
     if (!t) return "paste the token";
+    if (!r) return "type the repo name";
     try {
+        if (!r.includes("/")) {
+            const me = await fetch(`${API}/user`, { headers: headers(t) });
+            if (!me.ok) return why(me.status);
+            const login = (await me.json())?.login;
+            if (typeof login !== "string" || !login) return "couldn't tell whose token this is";
+            r = `${login}/${r}`;
+        }
+        if (!REPO.test(r)) return "that repo name looks off";
         const res = await fetch(`${API}/repos/${r}`, { headers: headers(t) });
         if (!res.ok) return why(res.status);
         const info = await res.json();

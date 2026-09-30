@@ -1,7 +1,7 @@
 import { hideSheet } from "@api/ui/sheets";
 import { React } from "@metro/common";
 import { ActionSheet, BottomSheetTitleHeader, Button, Text, TextInput } from "@metro/common/components";
-import { View } from "react-native";
+import { Text as RNText, View } from "react-native";
 
 import { connectDebug, disconnectDebug } from ".";
 import { useDebugSettings } from "./storage";
@@ -40,7 +40,7 @@ export function DebugUploadSheet() {
                             <TextInput
                                 size="md"
                                 value={repo}
-                                placeholder="name/repo"
+                                placeholder="repo name"
                                 autoCapitalize="none"
                                 autoCorrect={false}
                                 isClearable={false}
@@ -56,7 +56,7 @@ export function DebugUploadSheet() {
                                 isClearable={false}
                                 onChange={(v: string) => setToken(v)}
                             />
-                            {!!error && <Text variant="text-sm/medium" color="text-danger">{error}</Text>}
+                            {!!error && <RNText style={{ color: "#f23f43", fontSize: 14, fontWeight: "600" }}>{error}</RNText>}
                             <Button
                                 text="Connect"
                                 variant="primary"
