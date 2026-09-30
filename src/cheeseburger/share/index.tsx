@@ -181,7 +181,8 @@ function ToolbarShare({ children }: { children?: any; }) {
         listeners.add(force);
         return () => void listeners.delete(force);
     }, []);
-    return live > 0 || works ? null : children ?? null;
+    const menu = typeof rows?.ChatButton === "function";
+    return live > 0 || (works && menu) ? null : children ?? null;
 }
 
 function ensure() {

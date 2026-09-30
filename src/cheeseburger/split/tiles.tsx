@@ -453,7 +453,7 @@ function orderedTiles(): Tile[] {
         const i = order.indexOf(k);
         return i === -1 ? 99 : i;
     };
-    return liveTiles().sort((a, b) => rank(a.kind) - rank(b.kind) || a.firstSeen - b.firstSeen || a.key.localeCompare(b.key));
+    return liveTiles().sort((a, b) => rank(a.kind) - rank(b.kind) || a.firstSeen - b.firstSeen || (a.key < b.key ? -1 : 1));
 }
 
 const aspectListeners = new Set<() => void>();
@@ -600,13 +600,24 @@ const LS_INSET = 12;
 
 function landscapeRects(list: Tile[], win: { width: number; height: number; }): Map<string, Rect> {
     const out = new Map<string, Rect>();
-    const W = Math.max(120, win.width - LS_INSET * 2);
-    const viewportTop = frame?.top ?? statusBar() + LS_INSET;
-    const viewportBottom = frame?.bottom ?? win.height - LS_INSET;
-    const full = Math.max(120, viewportBottom - viewportTop);
-    const H = sizeHeight(full, win);
-    const X0 = LS_INSET - (frame?.origin.x ?? 0);
-    const top = viewportTop - (frame?.origin.y ?? 0) + (full - H) / 2;
+    const boxes = list.map(t => intended.get(t.coords)).filter(isCoords);
+    let W = win.width - 24;
+    let top = 0;
+    let H = win.height - 170;
+    if (boxes.length) {
+        const minX = Math.min(...boxes.map(b => b.x));
+        const maxX = Math.max(...boxes.map(b => b.x + b.width));
+        const minY = Math.min(...boxes.map(b => b.y));
+        const maxY = Math.max(...boxes.map(b => b.y + b.height));
+        W = Math.min(win.width, Math.max(maxX - minX, minX + maxX));
+        top = minY;
+        H = Math.max(120, maxY - minY - LS_INSET);
+    }
+    if (frame) {
+        const full = Math.max(120, frame.bottom - frame.top);
+        H = sizeHeight(full, win);
+        top = frame.top - frame.origin.y + (full - H) / 2;
+    }
     const n = voice.length;
     const S = n ? Math.max(36, Math.min(72, (H - GRID_GAP * (n - 1)) / n)) : 0;
     const Wv = n ? W - S - GRID_GAP : W;
@@ -615,7 +626,7 @@ function landscapeRects(list: Tile[], win: { width: number; height: number; }): 
     let best = { rows: 1, cols: list.length, h: 0 };
     for (let rows = 1; rows <= list.length; rows++) {
         const cols = Math.ceil(list.length / rows);
-        const h = Math.min((H - GRID_GAP * (rows - 1)) / rows, (Wv - GRID_GAP * (cols - 1)) / cols / widest);
+        const h = Math.min((H - GRID_GAP * (rows - 1)) / rows, (Wv - GRID_GAP * (cols + 1)) / cols / widest);
         if (h > best.h) best = { rows, cols, h };
     }
     const { rows, cols, h } = best;
@@ -623,7 +634,7 @@ function landscapeRects(list: Tile[], win: { width: number; height: number; }): 
     for (let r = 0; r < rows; r++) {
         const idx = list.map((_, i) => i).slice(r * cols, (r + 1) * cols);
         const widths = idx.map(i => h * asp[i]);
-        let x = X0 + Math.max(0, (Wv - widths.reduce((a, b) => a + b, 0) - GRID_GAP * (idx.length - 1)) / 2);
+        let x = Math.max(GRID_GAP, (Wv - widths.reduce((a, b) => a + b, 0) - GRID_GAP * (idx.length - 1)) / 2);
         idx.forEach((i, j) => {
             out.set(list[i].key, { x, y, width: widths[j], height: h });
             x += widths[j] + GRID_GAP;
@@ -634,7 +645,7 @@ function landscapeRects(list: Tile[], win: { width: number; height: number; }): 
         const rects = [...out.values()];
         const left = Math.min(...rects.map(r => r.x));
         const right = Math.max(...rects.map(r => r.x + r.width));
-        const shift = X0 + Math.max(0, (W - (right - left + GRID_GAP + S)) / 2) - left;
+        const shift = Math.max(GRID_GAP, (W - (right - left + GRID_GAP + S)) / 2) - left;
         for (const [k, r] of out) out.set(k, { ...r, x: r.x + shift });
         let vy = top + Math.max(0, (H - (n * S + GRID_GAP * (n - 1))) / 2);
         for (const t of voice) {
