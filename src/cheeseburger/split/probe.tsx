@@ -11,6 +11,8 @@ export const viewportKey = () => {
 };
 
 const tileRefs = new Map<object, Set<{ current: any; }>>();
+const tileVersions = new WeakMap<object, number>();
+let nextTileVersion = 0;
 const headerRefs = new Map<string, Set<{ current: any; }>>();
 const pendingMeasures = new WeakMap<object, { started: number; }>();
 const geometryElements = new WeakSet<object>();
@@ -20,6 +22,7 @@ let probeNote = "not measured yet";
 let preferredCoords: object | undefined;
 let toolbarRef: { current: any; } | null = null;
 let toolbarSeen = false;
+let tileGeneration = 0;
 
 export const measured: { parent?: Box & { coords: any; sv: object; }; toolbar?: Box; header?: Box & { label: string; }; } = {};
 
@@ -31,10 +34,12 @@ function Probe({ coords }: { coords: any; }) {
         let refs = tileRefs.get(coords);
         if (!refs) tileRefs.set(coords, refs = new Set());
         refs.add(ref);
+        tileVersions.set(coords, ++nextTileVersion);
         probeCounts.mounted++;
         return () => {
             probeCounts.mounted = Math.max(0, probeCounts.mounted - 1);
             refs!.delete(ref);
+            tileVersions.set(coords, ++nextTileVersion);
             if (tileRefs.get(coords) === refs && !refs!.size) tileRefs.delete(coords);
         };
     }, [coords]);
@@ -54,6 +59,8 @@ export function withTileProbe(ret: any, coords: any): any {
     probeCounts.added++;
     return React.createElement(React.Fragment, { key: ret.key ?? undefined }, ret, <TileProbe key="cheeseburger-probe" coords={coords} />);
 }
+
+export const tileProbeVersion = (coords?: object) => coords ? tileVersions.get(coords) ?? 0 : 0;
 
 export function useHeaderRef(label = "change audio output") {
     const ref = React.useRef<any>(null);
@@ -151,18 +158,21 @@ export const parentOrigin = (box: Box & { coords: any; }) => ({
     y: box.y - box.coords.y - (box.coords.height - box.height) / 2,
 });
 
-function changed(a: Box | undefined, b: Box) {
-    return !a || a.viewport !== b.viewport || ["x", "y", "width", "height"].some(k => Math.abs((a as any)[k] - (b as any)[k]) >= 0.5);
+export function resetTileMeasurements() {
+    tileGeneration++;
+    preferredCoords = undefined;
+    delete measured.parent;
 }
 
-export function measureAll(read: (sv: any) => any, prefer?: object, onMeasured?: () => void, aspect?: number) {
+export function measureAll(read: (sv: any) => any, prefer?: object, aspect?: number) {
     preferredCoords = prefer;
+    const generation = tileGeneration;
     const refs = prefer ? tileRefs.get(prefer) : undefined;
     if (prefer && refs?.size) {
         const value = read(prefer);
         const coords = value && typeof value === "object" ? { ...value } : null;
         for (const ref of refs) measure(ref, b => {
-            if (preferredCoords !== prefer || !tileRefs.get(prefer)?.has(ref) || !coords) { probeCounts.stale++; return; }
+            if (generation !== tileGeneration || preferredCoords !== prefer || !tileRefs.get(prefer)?.has(ref) || !coords) { probeCounts.stale++; return; }
             const current = read(prefer);
             if (!current || !["x", "y", "width", "height"].every(k => typeof coords[k] === "number" && Math.abs(coords[k] - current[k]) < 0.5)) { probeCounts.stale++; return; }
             const matches = (w: number, h: number) => Math.abs(b.width - w) <= Math.max(4, w * 0.02) && Math.abs(b.height - h) <= Math.max(4, h * 0.02);
@@ -174,29 +184,23 @@ export function measureAll(read: (sv: any) => any, prefer?: object, onMeasured?:
             if (!full && !contained) { probeCounts.rejected++; return; }
             probeCounts.accepted++;
             if (contained) probeCounts.contained++;
-            const previous = measured.parent;
             measured.parent = { ...b, coords, sv: prefer };
-            const o = parentOrigin(measured.parent);
-            const before = previous && parentOrigin(previous);
-            if (!before || previous!.viewport !== b.viewport || Math.abs(o.x - before.x) >= 0.5 || Math.abs(o.y - before.y) >= 0.5) onMeasured?.();
         });
     } else {
         delete measured.parent;
     }
-    measureToolbarNow(onMeasured);
+    measureToolbarNow();
 }
 
 export const hasToolbarRef = () => !!toolbarRef?.current;
 
 export const probeDebug = () => [`tile probes: ${probeCounts.mounted} mounted, ${probeCounts.added} added, ${tileRefs.size} sources, ${preferredCoords && tileRefs.get(preferredCoords)?.size || 0} selected; requests ${probeCounts.requested}, accepted ${probeCounts.accepted} (${probeCounts.contained} contained), missing ${probeCounts.missing}, stale ${probeCounts.stale}, rejected ${probeCounts.rejected}; ${probeNote}`];
 
-export function measureToolbarNow(onMeasured?: () => void) {
+export function measureToolbarNow() {
     const ref = toolbarRef;
     if (ref?.current) measure(ref, b => {
         if (toolbarRef !== ref) return;
-        const notify = changed(measured.toolbar, b);
         measured.toolbar = b;
-        if (notify) onMeasured?.();
     });
     const priority = (label: string) => label === "call header" ? 4 : label === "change audio output" ? 3 : label === "minimize" ? 2 : 1;
     for (const [label, refs] of headerRefs) for (const header of refs) measure(header, b => {
@@ -206,8 +210,6 @@ export function measureToolbarNow(onMeasured?: () => void) {
         if (label === "call header" && b.width < win.width * 0.6) return;
         const previous = measured.header;
         if (previous?.viewport === b.viewport && Date.now() - previous.at < 500 && priority(previous.label) > priority(label)) return;
-        const notify = changed(previous, b);
         measured.header = { ...b, label };
-        if (notify) onMeasured?.();
     });
 }

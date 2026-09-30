@@ -6,7 +6,7 @@ import { Dimensions, StatusBar } from "react-native";
 
 import { caught, safe } from "../crash";
 import { sourceCoordinates } from "./coordinates";
-import { hasToolbarRef, measureAll, measured, measureToolbarNow, parentOrigin, probeDebug, toolbarKnown, viewportKey } from "./probe";
+import { hasToolbarRef, measureAll, measured, measureToolbarNow, parentOrigin, probeDebug, resetTileMeasurements, tileProbeVersion, toolbarKnown, viewportKey } from "./probe";
 import { splitViewSettings } from "./storage";
 
 export type TileKind = "stream" | "them" | "me";
@@ -78,6 +78,11 @@ let gridW: { ww: number; w: number; } | null = null;
 let held = 0;
 let fullscreen = false;
 let origin: { x: number; y: number; } | null = null;
+let calibrationSource: object | undefined;
+let calibrationProbeVersion = 0;
+let calibrationAt = 0;
+let nativeRest: { coords: Rect; since: number; } | null = null;
+let pendingOrigin: { x: number; y: number; since: number; samples: number; sampleAt: number; } | null = null;
 let moved = 0;
 
 const GRID_GAP = 10;
@@ -163,7 +168,9 @@ function findDescriptor(obj: any, key: string) {
 }
 
 function guard(sv: any) {
-    if (!sv || typeof sv !== "object" || guards.has(sv)) return;
+    if (!sv || typeof sv !== "object") return;
+    guardModify(sv);
+    if (guards.has(sv)) return;
     const found = findDescriptor(sv, "value");
     if (!found?.d.get || !found.d.set) return;
     if (found.own ? !found.d.configurable : !Object.isExtensible(sv)) return;
@@ -177,7 +184,6 @@ function guard(sv: any) {
         });
         guards.set(sv, found.own ? found.d : null);
     } catch { }
-    guardModify(sv);
 }
 
 function guardModify(sv: any) {
@@ -556,6 +562,18 @@ function sameArea(a: Area, b: Area) {
     return ["left", "right", "top", "bottom"].every(k => Math.abs((a as any)[k] - (b as any)[k]) < 1.5);
 }
 
+function resetCalibration(source?: object) {
+    restoreAll();
+    unguardAll();
+    origin = null;
+    calibrationSource = source;
+    calibrationProbeVersion = tileProbeVersion(source);
+    calibrationAt = Date.now();
+    nativeRest = null;
+    pendingOrigin = null;
+    resetTileMeasurements();
+}
+
 function syncViewport() {
     const key = viewportKey();
     const channel = String(SelectedChannelStore?.getVoiceChannelId?.() ?? "");
@@ -563,7 +581,7 @@ function syncViewport() {
     viewport = key;
     layoutChannel = channel;
     frame = null;
-    origin = null;
+    resetCalibration();
     usableArea = null;
     areaMeasured = false;
     const cached = measuredAreas.get(`${channel}|${key}`);
@@ -573,8 +591,6 @@ function syncViewport() {
     }
     pendingArea = null;
     gridW = null;
-    for (const sv of touched) targets.delete(sv);
-    delete measured.parent;
     delete measured.toolbar;
     delete measured.header;
     frameNote = "screen changed";
@@ -586,13 +602,22 @@ function updateFrame(win: { width: number; height: number; }) {
     const now = Date.now();
     const previous = frame;
     const p = measured.parent;
-    if (p && p.viewport === viewport && now - p.at < 500 && isCoords(p.coords) && near(readCoords(p.sv) ?? {}, p.coords)) {
+    if (!origin && nativeRest && now - nativeRest.since >= 700 && p && p.sv === calibrationSource && p.viewport === viewport && p.at >= calibrationAt && now - p.at < 500 && isCoords(p.coords) && near(nativeRest.coords, p.coords) && near(readCoords(p.sv) ?? {}, p.coords)) {
         const o = parentOrigin(p);
         if (Number.isFinite(o.x) && Number.isFinite(o.y) && Math.abs(o.x) < win.width && Math.abs(o.y) < win.height) {
-            if (!origin || Math.abs(origin.x - o.x) >= 0.5 || Math.abs(origin.y - o.y) >= 0.5) {
-                origin = { x: Math.round(o.x * 2) / 2, y: Math.round(o.y * 2) / 2 };
-                burstUntil = Math.max(burstUntil, now + 600);
+            if (!pendingOrigin || Math.abs(pendingOrigin.x - o.x) >= 1.5 || Math.abs(pendingOrigin.y - o.y) >= 1.5) {
+                pendingOrigin = { ...o, since: now, samples: 1, sampleAt: p.at };
+            } else if (pendingOrigin.sampleAt !== p.at) {
+                pendingOrigin.sampleAt = p.at;
+                pendingOrigin.samples++;
             }
+            if (pendingOrigin.samples >= 3 && now - pendingOrigin.since >= 450) {
+                origin = { x: Math.round(pendingOrigin.x * 2) / 2, y: Math.round(pendingOrigin.y * 2) / 2 };
+                frameLog.push(`${new Date(now).toISOString().slice(17, 23)} calibrated ${origin.x},${origin.y} from native tile ${handle(p.sv)}`);
+                if (frameLog.length > 12) frameLog.shift();
+            }
+        } else {
+            pendingOrigin = null;
         }
     }
     const tb = measured.toolbar?.viewport === viewport && now - measured.toolbar.at < 1000 ? measured.toolbar : undefined;
@@ -630,7 +655,7 @@ function updateFrame(win: { width: number; height: number; }) {
     }
     const area = screenArea(win);
     frame = { ...area, origin: origin ?? previous?.origin ?? { x: area.left, y: area.top }, parent: origin ? "tile" : "bootstrap", hidden };
-    frameNote = areaMeasured ? "fixed measured bounds, live origin" : pendingArea ? `measuring bounds (${pendingArea.samples})` : "waiting for header and toolbar";
+    frameNote = areaMeasured ? "fixed measured bounds, locked origin" : pendingArea ? `measuring bounds (${pendingArea.samples})` : "waiting for header and toolbar";
     if (learned || !previous || previous.hidden !== hidden) {
         frameLog.push(`${new Date(now).toISOString().slice(17, 23)} ${viewport} area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} ${hidden ? "hidden" : "shown"} fit ${area.top}-${area.bottom}${learned ? " measured" : ""}${tb ? ` toolbar ${Math.round(tb.y)}` : ""}`);
         if (frameLog.length > 12) frameLog.shift();
@@ -640,7 +665,6 @@ function updateFrame(win: { width: number; height: number; }) {
 export function setTilesFullscreen(v: boolean) {
     if (fullscreen === v) return;
     fullscreen = v;
-    origin = null;
     if (active) scheduleApply();
 }
 
@@ -797,20 +821,6 @@ function noteMove(t: Tile, cur: any, now: number) {
     if (moves.length > 8) moves.shift();
 }
 
-let geometryQueued = false;
-const geometryReady = safe("split geometry ready", () => {
-    if (!active || !mine() || geometryQueued) return;
-    geometryQueued = true;
-    burstUntil = Math.max(burstUntil, Date.now() + 600);
-    if (pollTimer) clearTimeout(pollTimer);
-    pollTimer = null;
-    setTimeout(safe("split measured layout", () => {
-        geometryQueued = false;
-        safeApply();
-        if (active && mine() && !pollTimer) pollTimer = setTimeout(safe("split poll", poll), 40);
-    }), 0);
-});
-
 function applyLayout() {
     if (!active || !mine()) return;
     syncViewport();
@@ -818,7 +828,19 @@ function applyLayout() {
     const square = (t: Tile) => !t.streamId || Math.abs((aspects.get(t.streamId)?.value ?? 16 / 9) - aspectOf(t)) < 0.1;
     const preferred = list.find(t => t.kind === "stream" && square(t)) ?? list.find(square) ?? list[0];
     const actualAspect = preferred?.streamId ? aspects.get(preferred.streamId)?.value : undefined;
-    measureAll(readCoords, preferred?.coords, geometryReady, actualAspect);
+    if (calibrationSource !== preferred?.coords || calibrationProbeVersion !== tileProbeVersion(preferred?.coords)) resetCalibration(preferred?.coords);
+    if (!origin) {
+        const current = readCoords(calibrationSource);
+        if (!isCoords(current) || !["x", "y", "width", "height"].every(k => Number.isFinite(current[k]))) {
+            nativeRest = pendingOrigin = null;
+        } else if (!nativeRest || !near(current, nativeRest.coords)) {
+            nativeRest = { coords: { ...current }, since: Date.now() };
+            pendingOrigin = null;
+            resetTileMeasurements();
+        }
+    }
+    const canMeasure = !origin && nativeRest && Date.now() - nativeRest.since >= 700 && Date.now() - calibrationAt >= 700;
+    measureAll(readCoords, canMeasure ? preferred?.coords : undefined, actualAspect);
     updateFrame(Dimensions.get("window"));
     noteChrome();
     if (!list.length) {
@@ -826,7 +848,7 @@ function applyLayout() {
         return;
     }
     if (!origin) {
-        frameNote = "waiting for full tile probe";
+        frameNote = pendingOrigin ? `calibrating native origin (${pendingOrigin.samples})` : "waiting for native layout to settle";
         return;
     }
     const all = [...list, ...voice];
@@ -1028,8 +1050,7 @@ export function setTilesActive(v: boolean, handoff = false) {
     active = v;
     if (v) {
         shared.owner = copy;
-        origin = null;
-        delete measured.parent;
+        resetCalibration();
         for (const tile of [...tiles.values(), ...previews.values()]) tile.coords = sourceCoordinates(tile.coords);
         for (const entry of coordsById.values()) entry.coords = sourceCoordinates(entry.coords);
         burstUntil = Date.now() + 3000;
@@ -1043,6 +1064,7 @@ export function setTilesActive(v: boolean, handoff = false) {
             caught("split restore", e);
         }
         unguardAll();
+        resetTileMeasurements();
     }
 }
 
@@ -1071,10 +1093,11 @@ export function tilesDebug(): string[] {
         `copy ${copy} of ${shared.copies}, owner ${shared.owner}, ${hotStatus.source} ${hotStatus.revision.slice(0, 7)}`,
         `window: ${Math.round(Dimensions.get("window").width)}x${Math.round(Dimensions.get("window").height)}, tiles: ${list.length} (registered ${tiles.size}), call videos: ${(callParts() ?? []).filter(p => p.video).map(p => p.streamId ?? "preview").join(",") || "none"}, camera off: ${voice.length}`,
         `mode: ${fullscreen ? "full screen" : "grid"}, ${frame ? `area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} (${frame.parent}), controls ${frame.hidden ? "hidden" : "shown"}, fit ${Math.round(frame.top)}-${Math.round(frame.bottom)}` : "area not measured"}${frameNote ? ` (${frameNote})` : ""}${measured.toolbar ? `, toolbar y ${Math.round(measured.toolbar.y)}` : ""}`,
-        `header: ${measured.header ? `${measured.header.label} ${fmt(measured.header)}` : "not measured"}, bounds: ${areaMeasured ? "measured and fixed" : "bootstrap"}, origin: ${origin ? `${origin.x},${origin.y} live` : "not measured"}`,
+        `header: ${measured.header ? `${measured.header.label} ${fmt(measured.header)}` : "not measured"}, bounds: ${areaMeasured ? "measured and fixed" : "bootstrap"}, origin: ${origin ? `${origin.x},${origin.y} locked` : "not measured"}`,
+        `calibration: native handle ${calibrationSource ? handle(calibrationSource) : "none"}, ${origin ? "locked; controlled tiles excluded" : pendingOrigin ? `${pendingOrigin.samples} stable samples` : "waiting"}; measurement callbacks do not schedule layout`,
         ...probeDebug(),
         `renderer sources: ${[...rendererSources.values()].join("; ") || "none"}`,
-        `held: ${held}, moved: ${moved}, guarded: ${guards.size}, touched: ${touched.size}, grid: ${gridW ? `${Math.round(gridW.w)}/${gridW.ww}` : "?"}`,
+        `held: ${held}, moved: ${moved}, guarded: ${guards.size} values/${modGuards.size} modifiers, touched: ${touched.size}, grid: ${gridW ? `${Math.round(gridW.w)}/${gridW.ww}` : "?"}`,
         "layout coordinates: native tile and video",
         ...(moves.length ? ["last moves:", ...moves.map(m => `  ${m}`)] : []),
         ...(registrations.length ? ["tile replacements:", ...registrations.map(m => `  ${m}`)] : []),
