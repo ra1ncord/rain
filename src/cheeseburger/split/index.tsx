@@ -1,6 +1,7 @@
 import { after, before } from "@api/patcher";
 import { deleteJsxCreate, jsxRuntime, onJsxCreate } from "@api/react/jsx";
 import { waitForHydration } from "@api/storage";
+import { findByStoreName } from "@metro";
 import { React } from "@metro/common";
 
 import { safe } from "../crash";
@@ -16,6 +17,8 @@ import { isTileElement, registerTile, watchChrome } from "./tiles";
 const ANCHOR = "VideoButton";
 const unpatches: (() => unknown)[] = [];
 const g = globalThis as any;
+const skippedSources = new Map<string, string>();
+let skippedTiles = 0;
 
 const addProbe = safe("split probe", (args: any[], ret: any) => {
     const props = args[1];
@@ -24,7 +27,19 @@ const addProbe = safe("split probe", (args: any[], ret: any) => {
     return withTileProbe(ret, props.sharedCoords);
 });
 
-const register = safe("split tiles", (args: any[]) => isPipRender() ? undefined : registerTile(args));
+const register = safe("split tiles", (args: any[]) => {
+    if (!isPipRender()) return registerTile(args);
+    const props = args[1];
+    if (props?.sharedCoords && props.streamId != null) {
+        skippedTiles++;
+        const name = args[0]?.displayName ?? args[0]?.name ?? "unnamed";
+        const key = `${props.streamId}:${name}`;
+        skippedSources.set(key, `  stream ${props.streamId} ${name}: ${Object.keys(props).slice(0, 12).join(",")}`);
+        if (skippedSources.size > 8) skippedSources.delete(skippedSources.keys().next().value!);
+    }
+});
+
+export const factoryDebug = (): string[] => [`tile factories: excluded PiP ${skippedTiles}`, ...skippedSources.values()];
 
 const inject = safe("split button", (_Component: any, ret: any) => {
     if (!ret) return ret;
@@ -58,6 +73,8 @@ export default {
         if (handoff) {
             delete g.__cheeseburgerSplit;
             resumeSplit(!!handoff.fullscreen, !!handoff.auto);
+        } else if (g.__cheeseburgerSwapping) {
+            safe("split update", () => findByStoreName("ChannelRTCStore")?.emitChange?.())();
         }
     },
     stop() {

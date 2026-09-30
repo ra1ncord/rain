@@ -12,6 +12,7 @@ import { lookDebug } from "../look";
 import { rotateDebug } from "../rotate";
 import { shareDebug } from "../share";
 import { useShareSettings } from "../share/storage";
+import { factoryDebug } from "../split";
 import { isFullscreenSplit, isSplitActive, layoutDebug } from "../split/layout";
 import { pipDebug } from "../split/pip";
 import { pinControlsDebug, pinIconName } from "../split/PipPin";
@@ -199,7 +200,7 @@ export function debugReport(): string {
         ["setup", setup],
         ["call", () => call(n)],
         ["crashes", crashDebug],
-        ["split", () => [...layoutDebug(), ...pipDebug(), pinControlsDebug(), `pin icon: ${pinIconName || "none found"}`]],
+        ["split", () => [...layoutDebug(), ...factoryDebug(), ...pipDebug(), pinControlsDebug(), `pin icon: ${pinIconName || "none found"}`]],
         ["style", () => [...styleDebug(), lookDebug(), toolbarDebug()]],
         ["share", shareDebug],
         ["volume", volumeDebug],

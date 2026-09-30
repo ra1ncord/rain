@@ -13,15 +13,16 @@ import { hasVideo, knownMainAspect, onAspectChange, streamAspect } from "./tiles
 const PIP_PATH = "modules/external_pip/ExternalPip.android.tsx";
 const VIEW_PATHS = [
     "modules/external_pip/useExternalPipParticipant.android.tsx",
-    "modules/video_calls/native/usePipVideoOrStream.tsx",
     "modules/voice_panel/native/pip/useControllerPIPState.tsx",
-    "modules/voice_panel/native/pip/VoicePanelPIPUtils.tsx",
 ];
+const CALL_STORE = "modules/video_calls/native/ChannelCallStore.tsx";
+const OPEN_CALL_DRAWER_STATE = 3;
 const MIN_ASPECT = 0.42;
 const MAX_ASPECT = 2.38;
 const g = globalThis as any;
 
 interface Cand { sid: any; pid: any; stream: boolean; }
+type PipContext = "android" | "floating";
 
 const unpatches: (() => unknown)[] = [];
 let pip: any = null;
@@ -40,12 +41,15 @@ let pinned: string | null = null;
 let viewPick: string | null = null;
 let viewSid: string | null = null;
 let running = false;
-let renderDepth = 0;
+let renderContext: PipContext | null = null;
+let candidateContext: PipContext | null = null;
 let sourceSwaps = 0;
 let internalRenders = 0;
 const viewPatched = new Set<string>();
 const viewShapes = new Map<string, string>();
 const pinListeners = new Set<() => void>();
+let controller: { channelId: any; showSecondaryPIP: boolean | undefined; mode: any; } | null = null;
+const controllerShapes: string[] = [];
 
 const idOf = (v: any) => (v == null ? null : String(v));
 
@@ -335,6 +339,33 @@ function pickFor(ret: any): any {
     return replacePipSource(ret, want, allParts());
 }
 
+function drawerState(): any {
+    try {
+        return moduleExports(CALL_STORE)?.useChannelCallStore?.getState?.()?.voiceChatDrawerState;
+    } catch {
+        return undefined;
+    }
+}
+
+function floatingPipAllowed(): boolean {
+    const drawer = drawerState();
+    return typeof drawer === "number" && drawer >= 0 && drawer < OPEN_CALL_DRAWER_STATE && controller?.showSecondaryPIP === false
+        && sameId(controller.channelId, SelectedChannelStore?.getVoiceChannelId?.());
+}
+
+function observeController(args: any, ret: any) {
+    if (!ret || typeof ret !== "object") return;
+    const channelId = args?.channelId ?? SelectedChannelStore?.getVoiceChannelId?.();
+    controller = { channelId, showSecondaryPIP: ret.showSecondaryPIP, mode: ret.mode };
+    const focused = args?.focusedId != null || args?.focusedParticipantId != null;
+    const line = `controller mode=${String(ret.mode ?? "unknown")} panel=${String(args?.mode ?? "unknown")} secondary=${String(ret.showSecondaryPIP)} focused=${focused} drawer=${String(drawerState())} size=${ret.width ?? "?"}x${ret.height ?? "?"}`;
+    if (!controllerShapes.includes(line)) {
+        controllerShapes.push(line);
+        if (controllerShapes.length > 6) controllerShapes.shift();
+    }
+    if (candidateContext === "floating") renderContext = floatingPipAllowed() ? "floating" : null;
+}
+
 function patchViews(tries = 0) {
     viewRetry = null;
     for (const path of VIEW_PATHS) {
@@ -342,20 +373,28 @@ function patchViews(tries = 0) {
         const exp = moduleExports(path);
         if (!exp) continue;
         const name = path.split("/").pop()!.replace(/\..*$/, "");
-        for (const key of Object.keys(exp)) {
+        let installed = false;
+        for (const key of ["default", name]) {
             if (typeof exp[key] !== "function") continue;
             try {
                 unpatches.push(after(key, exp, safe(`pip view ${name}`, (args: any[], ret: any) => {
+                    if (path === VIEW_PATHS[1]) {
+                        observeController(args?.[0], ret);
+                        return;
+                    }
+                    const context = renderContext ?? (path === VIEW_PATHS[0] ? "android" : null);
+                    if (!running || !context) return;
                     const next = pickFor(ret);
                     const input = args?.length ? `takes ${args.slice(0, 2).map(describe).join(", ")}, ` : "";
-                    viewShapes.set(`${name}.${key}`, `${input}returns ${describe(ret)}${next !== ret ? " (swapped)" : ""}`);
+                    viewShapes.set(`${name}.${key}`, `${context}, ${input}returns ${describe(ret)}${next !== ret ? " (swapped)" : ""}`);
                     return next === ret ? undefined : next;
                 })));
+                installed = true;
             } catch (e) {
                 caught("pip view patch", e);
             }
         }
-        viewPatched.add(path);
+        if (installed) viewPatched.add(path);
     }
     if (viewPatched.size < VIEW_PATHS.length && tries < 60) viewRetry = setTimeout(safe("pip view wait", () => patchViews(tries + 1)), 2000);
 }
@@ -426,7 +465,7 @@ export function participantForFocus(label: string): any {
     return hits.length === 1 ? hits[0] : null;
 }
 
-export const isPipRender = () => renderDepth > 0;
+export const isPipRender = () => renderContext != null;
 
 export const mineParticipant = (p: any) => isMine(p);
 
@@ -442,12 +481,10 @@ const onRtc = safe("pip rtc", (e: any) => {
 
 const VIEW_TYPES = [
     "modules/external_pip/ExternalPipView.android.tsx",
-    "modules/external_pip/ExternalPipViewVideo.android.tsx",
     "modules/voice_panel/native/pip/VoicePanelPIP.tsx",
-    "modules/voice_panel/native/pip/VoicePanelPIPContent.tsx",
 ];
 const awareOf = new WeakMap<object, any>();
-const renderedOf = new WeakMap<object, any>();
+const renderedOf = new WeakMap<object, Map<string, any>>();
 const renderedTypes = new WeakSet<object>();
 const viewTypes = new Map<any, string>();
 let lastTypeLook = 0;
@@ -460,7 +497,8 @@ function viewTypeList() {
         for (const path of VIEW_TYPES) {
             const exp = moduleExports(path);
             if (!exp) continue;
-            for (const key of Object.keys(exp)) {
+            const name = path.split("/").pop()!.replace(/\..*$/, "");
+            for (const key of ["default", name]) {
                 const type = exp[key];
                 if (typeof type === "function" || type?.$$typeof === Symbol.for("react.memo") || type?.$$typeof === Symbol.for("react.forward_ref")) viewTypes.set(type, path);
             }
@@ -477,7 +515,7 @@ function rtcStore(): any {
 }
 
 function sourceProps(props: any): any {
-    if (!running || !props || typeof props !== "object") return props;
+    if (!running || !renderContext || !props || typeof props !== "object") return props;
     const parts = allParts();
     const current = participantForPin(props);
     const want = chosen(current?.id ?? null, parts);
@@ -490,59 +528,66 @@ function sourceProps(props: any): any {
     return next;
 }
 
-function pipTree(tree: any, level = 0): any {
-    if (Array.isArray(tree)) return tree.map(el => pipTree(el, level));
+function pipTree(tree: any, context: PipContext, level = 0): any {
+    if (Array.isArray(tree)) return tree.map(el => pipTree(el, context, level));
     if (!tree || typeof tree !== "object" || !("$$typeof" in tree) || level > 6) return tree;
     const props = sourceProps(tree.props);
     const children = props?.children;
-    const nextChildren = children != null && typeof children !== "function" ? pipTree(children, level + 1) : children;
+    const nextChildren = children != null && typeof children !== "function" ? pipTree(children, context, level + 1) : children;
     const type = tree.type;
     const name = type?.displayName ?? type?.name ?? type?.render?.name ?? "";
     const wrap = type && typeof type !== "string" && typeof type !== "symbol"
         && !/^(?:RCT|Native|Animated|View$|Pressable|Touchable|Gesture|Text|Image|Icon|Button|Scroll|Svg|Guard|PipAware)/i.test(name);
-    const nextType = wrap ? rendered(type) : type;
+    const nextType = wrap ? rendered(type, context) : type;
     return nextType === type && props === tree.props && nextChildren === children ? tree
         : { ...tree, type: nextType, props: nextChildren === children ? props : { ...props, children: nextChildren } };
 }
 
-function renderPip(orig: Function, self: any, args: any[]): any {
-    renderDepth++;
+function renderPip(orig: Function, self: any, args: any[], context: PipContext, root = false): any {
+    const previous = renderContext;
+    const previousCandidate = candidateContext;
+    candidateContext = context;
+    renderContext = context === "android" || floatingPipAllowed() ? context : null;
     try {
         let props = args[0];
         try {
-            props = sourceProps(props);
+            if (!root || context === "android") props = sourceProps(props);
         } catch (e) {
             caught("pip source props", e);
         }
         const nextArgs = [props, ...args.slice(1)];
         const ret = orig.apply(self, nextArgs);
         try {
-            return pipTree(ret);
+            return renderContext ? pipTree(ret, renderContext) : ret;
         } catch (e) {
             caught("pip source tree", e);
             return ret;
         }
     } finally {
-        renderDepth--;
+        renderContext = previous;
+        candidateContext = previousCandidate;
     }
 }
 
-function rendered(T: any): any {
+function rendered(T: any, context: PipContext, root = false): any {
     if (!T || renderedTypes.has(T)) return T;
-    const found = renderedOf.get(T);
+    let byContext = renderedOf.get(T);
+    const key = `${context}:${root}`;
+    const found = byContext?.get(key);
     if (found) return found;
     let W: any;
     if (typeof T === "function" && !T.prototype?.isReactComponent) {
-        W = function (this: any, ...args: any[]) { return renderPip(T, this, args); };
+        W = function (this: any, ...args: any[]) { return renderPip(T, this, args, context, root); };
     } else if (T?.$$typeof === Symbol.for("react.forward_ref") && typeof T.render === "function") {
-        W = React.forwardRef((props: any, ref: any) => renderPip(T.render, undefined, [props, ref]));
+        W = React.forwardRef((props: any, ref: any) => renderPip(T.render, undefined, [props, ref], context, root));
     } else if (T?.$$typeof === Symbol.for("react.memo") && T.type) {
-        W = React.memo(rendered(T.type), typeof T.compare === "function"
+        W = React.memo(rendered(T.type, context, root), typeof T.compare === "function"
             ? (a: any, b: any) => a.cheeseburgerPip === b.cheeseburgerPip && T.compare(a, b) : undefined);
     } else return T;
     W.displayName = T.displayName ?? T.name ?? "PipSource";
     if (T.defaultProps) W.defaultProps = T.defaultProps;
-    renderedOf.set(T, W);
+    if (!byContext) renderedOf.set(T, byContext = new Map());
+    byContext.set(key, W);
     renderedTypes.add(W);
     return W;
 }
@@ -569,9 +614,11 @@ function aware(T: any, path: string): any {
                 } catch { }
             };
         }, []);
+        if (!running) return React.createElement(T, props);
         if (/voice_panel/.test(path)) internalRenders++;
         viewShapes.set(path.split("/").pop()!, `takes ${describe(props)}`);
-        return React.createElement(rendered(T), { ...props, cheeseburgerPip: `${pinned ?? ""}:${n}` });
+        const context = /external_pip/.test(path) ? "android" : "floating";
+        return React.createElement(rendered(T, context, true), { ...props, cheeseburgerPip: `${pinned ?? ""}:${n}` });
     };
     awareOf.set(T, W);
     return W;
@@ -616,6 +663,7 @@ export function stopPip() {
     selected = focused = null;
     viewSid = viewPick = null;
     pinned = null;
+    controller = null;
 }
 
 export function pipDebug(): string[] {
@@ -625,7 +673,9 @@ export function pipDebug(): string[] {
         `pip last: ${lastSent || "none yet"}`,
         `pip picks: ${splitViewSettings.smartPip === false ? "off" : `${picks || "none yet"}, skipped you ${skipped}x, ids ${space}`}`,
         `pip shape from: ${aspectFrom || "not asked yet"}, pip view rerenders ${rerenders}, wrapped ${viewTypes.size}/${VIEW_TYPES.length}`,
-        `in-discord pip: renders ${internalRenders}, source swaps ${sourceSwaps}, types ${[...viewTypes.values()].filter(p => /voice_panel/.test(p)).map(p => p.split("/").pop()).join(", ") || "not loaded"}`,
+        `in-discord pip: renders ${internalRenders}, source swaps ${sourceSwaps}, shared helpers native, roots ${[...viewTypes.values()].filter(p => /voice_panel/.test(p)).map(p => p.split("/").pop()).join(", ") || "not loaded"}`,
+        `floating source: ${floatingPipAllowed() ? "primary pip" : "native call/secondary"}, drawer=${String(drawerState())}, mode=${String(controller?.mode ?? "unknown")}, secondary=${String(controller?.showSecondaryPIP)}`,
+        ...controllerShapes.map(line => `  ${line}`),
         ...shapeLog.map(l => `  ${l}`),
         `pip view: pinned ${pinned ? "yes" : "no"}, showing ${viewPick ? (isStreamPart({ id: viewPick }) ? "a screen" : viewPick === myId() ? "me" : "a camera") : "discord's pick"}${viewSid ? ` (stream ${viewSid})` : ""}, hooked ${[...viewPatched].map(x => x.split("/").pop()).join(", ") || "not yet"}`,
         ...[...viewShapes].map(([k, v]) => `  ${k} ${v}`),

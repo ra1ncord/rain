@@ -1,13 +1,12 @@
-import { findAssetId } from "@api/assets";
+import { findAsset } from "@api/assets";
 import { React } from "@metro/common";
 import { Image, StyleSheet } from "react-native";
 
 import { caught, safe } from "../crash";
-import { iconComponent } from "../toolbar";
 import { isPipRender, mineParticipant, onPinChange, participantForFocus, participantForPin, pinnedPip, pinPip } from "./pip";
 import { useSplitViewSettings } from "./storage";
 
-const ICONS = ["PictureInPictureIcon", "PipIcon", "ic_pip", "PopoutIcon", "WindowLaunchIcon", "ScreenArrowIcon"];
+const ICONS = ["PinIcon", "PictureInPictureIcon", "PipIcon", "ic_pip"];
 const MARK = "__cheeseburgerNativePin";
 const CONFIG = "__cheeseburgerPinConfig";
 const iconWrappers = new WeakMap<object, any>();
@@ -24,6 +23,7 @@ let noIcon = 0;
 let nativeStyle = "not seen yet";
 let parentStyle = "not seen yet";
 let icon: number | null | undefined;
+let iconRetryAt = 0;
 export let pinIconName = "";
 
 const nameOf = (type: any) => type?.displayName ?? type?.name ?? type?.render?.name ?? "";
@@ -39,12 +39,13 @@ function placement(style: any): string {
 }
 
 function pinIcon(): number | null {
-    if (icon !== undefined) return icon;
+    if (icon != null || Date.now() < iconRetryAt) return icon ?? null;
     icon = null;
+    iconRetryAt = Date.now() + 2000;
     for (const name of ICONS) {
-        const id = findAssetId(name);
-        if (id !== undefined) {
-            icon = id;
+        const asset = findAsset(name);
+        if (asset?.name === name && typeof asset.id === "number" && Number.isFinite(asset.id) && asset.id > 0) {
+            icon = asset.id;
             pinIconName = name;
             break;
         }
@@ -68,13 +69,21 @@ class Guard extends React.Component<{ children?: any; }, { failed: boolean; }> {
     }
 }
 
-interface PinConfig { label: string; onPress: () => void; component: any; source: number | null; }
+interface PinConfig { label: string; onPress: () => void; source: number; }
 
 function glyph(el: any, config: PinConfig): any {
     const props = el.props ?? {};
-    if (config.component) return { ...el, type: config.component, props: { ...props, ref: null, children: undefined }, ref: null };
-    if (typeof props.source === "number") return { ...el, props: { ...props, source: config.source, ref: null }, ref: null };
-    return React.createElement(Image, { key: el.key ?? undefined, source: config.source ?? undefined, style: [{ width: props.width ?? props.size ?? 20, height: props.height ?? props.size ?? 20, tintColor: props.color ?? "#ffffff" }, props.style] });
+    const flat: any = typeof props.style === "function" ? {} : StyleSheet.flatten(props.style) ?? {};
+    const size = typeof props.size === "number" ? props.size : 20;
+    return React.createElement(Image, { key: el.key ?? undefined, source: config.source,
+        style: [{ width: props.width ?? flat.width ?? size, height: props.height ?? flat.height ?? size,
+            tintColor: flat.tintColor ?? props.color ?? flat.color ?? "#ffffff" }, props.style],
+        accessible: false });
+}
+
+function PinGlyph(props: any): any {
+    const source = pinIcon();
+    return source == null ? null : glyph({ props }, { source, label: "", onPress() { } });
 }
 
 function iconType(type: any): any {
@@ -91,7 +100,14 @@ function iconType(type: any): any {
         return config ? walkButton(result, config) : result;
     };
     let wrapper: any;
-    if (typeof type === "function" && !type.prototype?.isReactComponent) wrapper = function (this: any, props: any) { return run(type, this, props); };
+    if (typeof type === "function" && type.prototype?.isReactComponent) {
+        wrapper = class extends type {
+            render() {
+                const result = super.render();
+                return this.props[CONFIG] ? walkButton(result, this.props[CONFIG]) : result;
+            }
+        };
+    } else if (typeof type === "function") wrapper = function (this: any, props: any) { return run(type, this, props); };
     else if (type.$$typeof === Symbol.for("react.forward_ref") && typeof type.render === "function") wrapper = React.forwardRef((props: any, ref: any) => run(type.render, undefined, props, ref));
     else if (type.$$typeof === Symbol.for("react.memo") && type.type) wrapper = React.memo(iconType(type.type), type.compare);
     else return type;
@@ -104,6 +120,7 @@ function iconType(type: any): any {
 
 function walkButton(el: any, config: PinConfig): any {
     if (Array.isArray(el)) return el.map(child => walkButton(child, config));
+    if (typeof el === "string" && el.trim().length <= 3 && /[^\w\s]/.test(el)) return glyph({ props: {} }, config);
     if (!el || typeof el !== "object" || !("$$typeof" in el)) return el;
     const props = el.props ?? {};
     const name = nameOf(el.type);
@@ -117,13 +134,17 @@ function walkButton(el: any, config: PinConfig): any {
         next.onLayout = undefined;
         next[MARK] = true;
     }
-    if (/Icon$|Svg(?:View)?$/i.test(name) || props.viewBox != null || typeof props.source === "number") return glyph(el, config);
-    for (const key of ["icon", "Icon", "iconComponent", "leadingIcon", "trailingIcon"]) {
+    if (el.type === PinGlyph) return el;
+    if (/Text/i.test(name) && typeof props.children === "string" && props.children.trim().length <= 3) return glyph(el, config);
+    if (/Icon$|Svg(?:View)?$/i.test(name) || props.viewBox != null || el.type === Image || /Image(?:View)?$/i.test(name) && props.source != null || typeof props.source === "number") return glyph(el, config);
+    for (const key of ["icon", "Icon", "IconComponent", "iconComponent", "leadingIcon", "trailingIcon", "leftIcon", "rightIcon"]) {
         const value = props[key];
         if (value == null) continue;
         if (typeof value === "object" && value.props) next[key] = glyph(value, config);
-        else if (typeof value === "function" || value && typeof value === "object" && value.$$typeof) next[key] = config.component ?? ((iconProps: any) => glyph(React.createElement(Image, iconProps), config));
-        else if (typeof value === "number" && config.source != null) next[key] = config.source;
+        else if (typeof value === "function" || value && typeof value === "object" && value.$$typeof) next[key] = PinGlyph;
+        else if (typeof value === "number") next[key] = config.source;
+        else if (typeof value === "string") next[key] = pinIconName;
+        else next[key] = undefined;
     }
     if (typeof props.renderIcon === "function") next.renderIcon = safe("pip native pin icon", (...args: any[]) => walkButton(props.renderIcon(...args), config));
     if (typeof props.children === "function") {
@@ -136,20 +157,13 @@ function walkButton(el: any, config: PinConfig): any {
 }
 
 function cloneButton(template: any, label: string, onPress: () => void): any {
-    let component: any = null;
-    for (const name of ICONS) {
-        component = iconComponent(name);
-        if (!component) continue;
-        pinIconName = name;
-        break;
-    }
-    const source = component ? null : pinIcon();
-    if (!component && source == null) {
+    const source = pinIcon();
+    if (source == null) {
         noIcon++;
         return null;
     }
     cloned++;
-    return walkButton(template, { label, onPress, component, source });
+    return walkButton(template, { label, onPress, source });
 }
 
 function Pin({ template, participant }: { template: any; participant: any; }) {

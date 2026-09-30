@@ -16,7 +16,8 @@ const shared: { tileRefs: Map<object, Set<{ current: any; }>>; probed: WeakSet<o
 const { tileRefs, probed } = shared;
 const pending = new WeakMap<object, { at: number; }>();
 const lastMeasured = new WeakMap<object, number>();
-const counts = { requested: 0, accepted: 0, stale: 0, rejected: 0 };
+const counts = { requested: 0, accepted: 0, stale: 0, rejected: 0, inside: 0, sibling: 0 };
+const lastBoxes = new Map<object, { width: number; height: number; expectedWidth: number; expectedHeight: number; accepted: boolean; }>();
 let generation = 0;
 
 export const measured: { parent?: Box & { coords: any; sv: object; }; toolbar?: Box; } = {};
@@ -49,7 +50,15 @@ export function TileProbe(props: { coords: any; }) { return <Guard><Probe {...pr
 
 export function withTileProbe(ret: any, coords: any): any {
     if (probed.has(ret)) return ret;
-    const out = React.createElement(React.Fragment, { key: ret.key ?? undefined }, ret, <TileProbe key="cheeseburger-probe" coords={coords} />);
+    const name = typeof ret.type === "string" ? ret.type : ret.type?.displayName ?? ret.type?.name ?? "";
+    const native = ret.type === View || /^(?:RCTView|View|REAWorkaroundView|AnimatedView|AnimatedComponent\(View\)|Animated\(View\))$/.test(name);
+    const probe = <TileProbe key="cheeseburger-probe" coords={coords} />;
+    const children = ret.props?.children;
+    const out = native
+        ? React.cloneElement(ret, undefined, ...(Array.isArray(children) ? children : children == null ? [] : [children]), probe)
+        : React.createElement(React.Fragment, { key: ret.key ?? undefined }, ret, probe);
+    if (native) counts.inside++;
+    else counts.sibling++;
     probed.add(out);
     return out;
 }
@@ -122,7 +131,10 @@ export function measureAll(read: (sv: any) => any, prefer?: object, aspect?: num
             }
             const matches = (w: number, h: number) => Math.abs(b.width - w) <= Math.max(3, w * 0.015) && Math.abs(b.height - h) <= Math.max(3, h * 0.015);
             const containedWidth = aspect && aspect > 0 ? Math.min(coords.width, coords.height * aspect) : 0;
-            if (!matches(coords.width, coords.height) && !(containedWidth && aspect && matches(containedWidth, containedWidth / aspect))) {
+            const accepted = matches(coords.width, coords.height) || !!(containedWidth && aspect && matches(containedWidth, containedWidth / aspect));
+            lastBoxes.set(prefer, { width: b.width, height: b.height, expectedWidth: coords.width, expectedHeight: coords.height, accepted });
+            if (lastBoxes.size > 12) lastBoxes.delete(lastBoxes.keys().next().value!);
+            if (!accepted) {
                 counts.rejected++;
                 return;
             }
@@ -144,4 +156,4 @@ export function measureToolbarNow() {
     });
 }
 
-export const probeDebug = () => `probes: ${tileRefs.size} sources, requests ${counts.requested}, accepted ${counts.accepted}, stale ${counts.stale}, rejected ${counts.rejected}`;
+export const probeDebug = () => `probes: ${tileRefs.size} sources, requests ${counts.requested}, accepted ${counts.accepted}, stale ${counts.stale}, rejected ${counts.rejected}; inside ${counts.inside}, sibling ${counts.sibling}; boxes ${[...lastBoxes.values()].map(b => `${Math.round(b.width)}x${Math.round(b.height)}/${Math.round(b.expectedWidth)}x${Math.round(b.expectedHeight)} ${b.accepted ? "ok" : "rejected"}`).join(", ") || "none"}`;
