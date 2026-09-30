@@ -70,6 +70,7 @@ let moved = 0;
 const GRID_GAP = 10;
 const FS_GAP = 4;
 const CAM_MIN_ASPECT = 0.75;
+const HEADER_GAP = 8;
 const SETTLE_MS = 1000;
 const DEFAULT_ORDER: TileKind[] = ["stream", "them", "me"];
 const SNAPS = [16 / 9, 4 / 3, 1, 3 / 4, 9 / 16];
@@ -510,6 +511,7 @@ let frameAt = 0;
 let frameMode = "";
 const frameLog: string[] = [];
 const shownH = new Map<string, number>();
+const shownTop = new Map<string, number>();
 
 function updateFrame(win: { width: number; height: number; }) {
     const p = measured.parent;
@@ -552,6 +554,7 @@ function updateFrame(win: { width: number; height: number; }) {
     const next: Frame = { origin: o, parent: "tile", hidden, top: Math.round(top), bottom: Math.round(bottom) };
     const now = Date.now();
     if (!hidden) shownH.set(key, next.bottom - next.top);
+    if (!hidden && mode === "grid") shownTop.set(key, next.top);
     if (sameMode && sameFrame(frame!, next)) {
         pendingFrame = null;
         frame = { ...frame!, origin: next.origin };
@@ -667,7 +670,8 @@ function computeRects(list: Tile[]): Map<string, Rect> {
     let W: number, H: number, X0: number, Y0: number, GAP: number;
     if (fullscreen) {
         origin = frame?.origin ?? origin ?? { x: (win.width - gridWidth(list, win.width)) / 2, y: GRID_TOP };
-        const top = statusBar() + 6;
+        const under = shownTop.get(`${Math.round(win.width)}x${Math.round(win.height)}`);
+        const top = Math.max(statusBar() + 6, under != null ? under - HEADER_GAP : statusBar() + 44);
         const bottom = win.height - 56;
         W = win.width;
         H = Math.max(300, bottom - top);
