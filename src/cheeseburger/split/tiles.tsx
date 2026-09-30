@@ -537,14 +537,18 @@ let pendingFrame: { f: Frame; since: number; } | null = null;
 let frameAt = 0;
 let frameMode = "";
 let viewport = "";
+let layoutChannel = "";
 const frameLog: string[] = [];
 const shownH = new Map<string, number>();
 const shownTop = new Map<string, number>();
+const shownBounds = new Map<string, { top: number; bottom: number; }>();
 
 function syncViewport() {
     const key = viewportKey();
-    if (viewport === key) return;
+    const channel = String(SelectedChannelStore?.getVoiceChannelId?.() ?? "");
+    if (viewport === key && layoutChannel === channel) return;
     viewport = key;
+    layoutChannel = channel;
     frame = pendingFrame = null;
     lastOrigin = origin = null;
     gridW = null;
@@ -553,6 +557,7 @@ function syncViewport() {
     maxTop.clear();
     shownH.clear();
     shownTop.clear();
+    shownBounds.clear();
     for (const sv of touched) targets.delete(sv);
     delete measured.parent;
     delete measured.toolbar;
@@ -584,12 +589,6 @@ function updateFrame(win: { width: number; height: number; }) {
     frameNote = "";
     const mode = fullscreen ? "full" : "grid";
     const sameMode = !!frame && frameMode === mode;
-    if (sameMode && mode === "full") {
-        if (Math.abs(frame!.origin.x - o.x) < 60 && Math.abs(frame!.origin.y - o.y) < 60) {
-            pendingFrame = null;
-            return;
-        }
-    }
     if (frame && Math.abs(frame.origin.x - o.x) < 12 && Math.abs(frame.origin.y - o.y) < 12) o = frame.origin;
     const land = win.width > win.height;
     const key = `${Math.round(win.width)}x${Math.round(win.height)}`;
@@ -598,8 +597,9 @@ function updateFrame(win: { width: number; height: number; }) {
     const tb = measured.toolbar?.viewport === viewport && Date.now() - measured.toolbar.at < 2000 ? measured.toolbar : undefined;
     const useToolbar = toolbarKnown() && splitViewSettings.showButton !== false;
     const hidden = useToolbar ? !tb || tb.y >= win.height - 4 : o.y < top0 - 30;
-    const top = hidden ? (land ? 8 : statusBar() + 6) : o.y + 4;
-    const bottom = hidden ? win.height - (land ? 8 : 56) : (tb && tb.y < win.height - 4 ? tb.y - 16 : win.height - (land ? 90 : 136)) - 8;
+    const bounds = shownBounds.get(key);
+    const top = bounds?.top ?? (hidden ? (land ? 8 : statusBar() + 6) : o.y + 4);
+    const bottom = bounds?.bottom ?? (hidden ? win.height - (land ? 8 : 56) : (tb && tb.y < win.height - 4 ? tb.y - 16 : win.height - (land ? 90 : 136)) - 8);
     const next: Frame = { origin: o, parent: "tile", hidden, top: Math.round(top), bottom: Math.round(bottom) };
     const now = Date.now();
     if (sameMode && sameFrame(frame!, next)) {
@@ -622,7 +622,10 @@ function updateFrame(win: { width: number; height: number; }) {
     frame = next;
     frameMode = mode;
     frameAt = now;
-    if (!hidden) shownH.set(key, next.bottom - next.top);
+    if (!hidden) {
+        shownH.set(key, next.bottom - next.top);
+        if (!bounds) shownBounds.set(key, { top: next.top, bottom: next.bottom });
+    }
     if (!hidden && mode === "grid") shownTop.set(key, next.top);
     frameLog.push(`${new Date(now).toISOString().slice(17, 23)} ${viewport} area ${Math.round(o.x)},${Math.round(o.y)} ${hidden ? "hidden" : "shown"} fit ${next.top}-${next.bottom}${tb ? ` toolbar ${Math.round(tb.y)}` : ""}`);
     if (frameLog.length > 12) frameLog.shift();
@@ -717,7 +720,8 @@ function computeRects(list: Tile[]): Map<string, Rect> {
     let W: number, H: number, X0: number, Y0: number, GAP: number;
     if (fullscreen) {
         origin = frame?.origin ?? origin ?? { x: (win.width - gridWidth(list, win.width)) / 2, y: GRID_TOP };
-        const under = shownTop.get(`${Math.round(win.width)}x${Math.round(win.height)}`);
+        const key = `${Math.round(win.width)}x${Math.round(win.height)}`;
+        const under = shownTop.get(key) ?? shownBounds.get(key)?.top ?? (frame && !frame.hidden ? frame.top : undefined);
         const top = Math.max(statusBar() + 6, under != null ? under - HEADER_GAP : statusBar() + 44);
         const bottom = win.height - 56;
         W = win.width;
@@ -906,11 +910,7 @@ const chromeListeners = new Set<() => void>();
 function setChrome(v: boolean) {
     if (chrome === v) return;
     chrome = v;
-    setTimeout(() => chromeListeners.forEach(l => {
-        try {
-            l();
-        } catch { }
-    }), 0);
+    setTimeout(safe("split chrome listeners", () => chromeListeners.forEach(l => safe("split chrome listener", l)())), 0);
 }
 
 const CALL_STORE = "modules/video_calls/native/ChannelCallStore.tsx";
