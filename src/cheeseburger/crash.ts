@@ -389,3 +389,9 @@ export function crashDebug(): string[] {
             : ["  nothing yet"]),
     ];
 }
+
+export function lastCrashAt(): number {
+    let t = 0;
+    for (const e of saved.log) if (e.kind === "crash" || e.kind === "closed") t = Math.max(t, e.at);
+    return t;
+}
