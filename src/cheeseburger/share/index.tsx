@@ -16,6 +16,7 @@ const listeners = new Set<() => void>();
 let bar: any = null;
 let rows: any = null;
 let rowShape = "";
+let copyShape = "";
 let barPatched = false;
 let lastLook = 0;
 let live = 0;
@@ -143,16 +144,23 @@ function MenuClone({ base }: { base: any; }) {
     const asset = SHARE_ICONS.map(n => findAssetId(n)).find(x => x !== undefined);
     const raw = typeof T === "function" ? withOverride({ icon: SHARE_ICONS, label, onPress: press, text: label, asset }, () => T(base.props)) : null;
     const out = rowLike(raw) ? raw : null;
-    rowShape = `copy of chat: ${shapeOf(raw)}`;
+    copyShape = `copy of chat: ${shapeOf(raw)}`;
     useShowing(out != null);
     return out;
 }
 
+const dimmed = (raw: any) => {
+    const p = raw?.props;
+    if (!p) return false;
+    return p.disabled === true || p.accessibilityState?.disabled === true || /disabled|muted|inactive/i.test(String(p.variant ?? ""));
+};
+
 function MenuNative({ base }: { base: any; }) {
     const own = React.useRef(rows?.ScreenshareButton).current;
     const raw = typeof own === "function" ? own(base.props) : null;
-    const ok = rowLike(raw);
-    rowShape = `discord's: ${shapeOf(raw)}`;
+    const off = dimmed(raw);
+    const ok = rowLike(raw) && !off;
+    rowShape = `discord's: ${shapeOf(raw)}${off ? " (greyed out)" : ""}${raw?.props ? ` [${Object.keys(raw.props).join(",").slice(0, 80)}]` : ""}`;
     useShowing(ok);
     return ok ? raw : <MenuClone base={base} />;
 }
@@ -234,7 +242,7 @@ function afterJsx(args: any[], ret: any) {
 
 export function shareDebug(): string[] {
     return [
-        `share: menu ${rows ? "found" : "not yet"}${rowShape ? ` (${rowShape})` : ""}, button ${share ? `"${share.label}"` : "not seen yet"}, toolbar ${barPatched ? "hooked" : "not yet"}, placed ${placed}, showing ${live}${failures ? `, failed ${failures} (${lastError})` : ""}`,
+        `share: menu ${rows ? "found" : "not yet"}${rowShape || copyShape ? ` (${[rowShape, copyShape].filter(Boolean).join("; ")})` : ""}, button ${share ? `"${share.label}"` : "not seen yet"}, toolbar ${barPatched ? "hooked" : "not yet"}, placed ${placed}, showing ${live}${failures ? `, failed ${failures} (${lastError})` : ""}`,
     ];
 }
 
