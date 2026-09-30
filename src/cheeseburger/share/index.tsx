@@ -6,7 +6,7 @@ import { TableRow } from "@metro/common/components";
 
 import { caught, safe, safeInstead } from "../crash";
 import { iconComponent, withOverride } from "../toolbar";
-import { shareSettings } from "./storage";
+import { shareSettings, useShareSettings } from "./storage";
 
 const TOOLBAR = /\/VoicePanelScreenshareButton\.tsx$/;
 const ROWS = /\/VoicePanelVoiceControlsButtons\.tsx$/;
@@ -174,6 +174,17 @@ function MenuNative({ base }: { base: any; }) {
     return ok ? raw : <MenuClone base={base} />;
 }
 
+function ToolbarShare({ children }: { children?: any; }) {
+    const [, force] = React.useReducer((n: number) => n + 1, 0);
+    const works = useShareSettings((s: any) => !!s.menuWorks);
+    React.useEffect(() => {
+        listeners.add(force);
+        return () => void listeners.delete(force);
+    }, []);
+    const menu = typeof rows?.ChatButton === "function";
+    return live > 0 || (works && menu) ? null : children ?? null;
+}
+
 function ensure() {
     const now = Date.now();
     if ((barPatched && rows) || now - lastLook < 2000) return;
@@ -183,8 +194,8 @@ function ensure() {
     if (!barPatched && bar && typeof bar.default === "function") {
         try {
             unpatches.push(instead("default", bar, safeInstead("share toolbar", (args: any[], orig: Function) => {
-                orig(...args);
-                return null;
+                const out = orig(...args);
+                return out == null ? out : <ToolbarShare>{out}</ToolbarShare>;
             })));
             barPatched = true;
         } catch (e) {
@@ -210,7 +221,7 @@ function anchorIn(ch: any[]): number {
 
 function onJsx(args: any[]) {
     const type = args[0];
-    if ((!barPatched || !rows) && typeof type === "function" && ["VideoButton", "ChatButton", "ScreenshareButton"].includes(type.name)) ensure();
+    if ((!barPatched || !rows) && typeof type === "function" && (type.name === "VideoButton" || type.name === "ChatButton")) ensure();
     const props = args[1];
     if (!props || typeof props !== "object") return;
     const label = props.accessibilityLabel;

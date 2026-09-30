@@ -13,6 +13,8 @@ const PIP_PATH = "modules/external_pip/ExternalPip.android.tsx";
 const VIEW_PATHS = [
     "modules/external_pip/useExternalPipParticipant.android.tsx",
     "modules/video_calls/native/usePipVideoOrStream.tsx",
+    "modules/video_calls/native/components/PictureInPictureVideo.tsx",
+    "modules/video_calls/native/components/PictureInPictureGlobal.tsx",
 ];
 const MIN_ASPECT = 0.42;
 const MAX_ASPECT = 2.38;
@@ -37,8 +39,6 @@ let pinned: string | null = null;
 let viewPick: string | null = null;
 let viewSid: string | null = null;
 const viewPatched = new Set<string>();
-const internalPatched = new Set<string>();
-let internalTargets = new WeakMap<object, Set<string>>();
 const viewShapes = new Map<string, string>();
 const pinListeners = new Set<() => void>();
 
@@ -342,13 +342,12 @@ function pickFor(ret: any): any {
 
 function patchViews(tries = 0) {
     viewRetry = null;
-    viewTypeList(true);
     for (const path of VIEW_PATHS) {
         if (viewPatched.has(path)) continue;
         const exp = moduleExports(path);
         if (!exp) continue;
         const name = path.split("/").pop()!.replace(/\..*$/, "");
-        for (const key of ["default", name]) {
+        for (const key of Object.keys(exp)) {
             if (typeof exp[key] !== "function") continue;
             try {
                 unpatches.push(after(key, exp, safe(`pip view ${name}`, (args: any[], ret: any) => {
@@ -363,9 +362,7 @@ function patchViews(tries = 0) {
         }
         viewPatched.add(path);
     }
-    patchInternalViews();
-    viewTypeList(true);
-    if ((viewPatched.size < VIEW_PATHS.length || internalPatched.size < INTERNAL_TYPES.length) && tries < 60) viewRetry = setTimeout(safe("pip view wait", () => patchViews(tries + 1)), 2000);
+    if (viewPatched.size < VIEW_PATHS.length && tries < 60) viewRetry = setTimeout(safe("pip view wait", () => patchViews(tries + 1)), 2000);
 }
 
 function refresh() {
@@ -403,13 +400,6 @@ export function participantForStream(streamId: any): any {
 
 export const mineParticipant = (p: any) => isMine(p);
 
-export function participantForTile(props: any): any {
-    const coords = props.sharedCoords;
-    const value = typeof coords?.get === "function" ? coords.get() : coords?.value;
-    const id = value?.id ?? props.participant?.id ?? props.id;
-    return allParts().find(p => id != null && String(p.id) === String(id)) ?? participantForStream(props.streamId);
-}
-
 const onRtc = safe("pip rtc", (e: any) => {
     const state = String(e?.state ?? "");
     if (/DISCONNECT/.test(state)) {
@@ -417,129 +407,23 @@ const onRtc = safe("pip rtc", (e: any) => {
         return;
     }
     if (!pip && !retry && /CONNECTED/.test(state)) patch(0);
-    if (!viewRetry && (viewPatched.size < VIEW_PATHS.length || internalPatched.size < INTERNAL_TYPES.length) && /CONNECTED/.test(state)) patchViews(0);
+    if (!viewRetry && viewPatched.size < VIEW_PATHS.length && /CONNECTED/.test(state)) patchViews(0);
 });
 
 const VIEW_TYPES = ["modules/external_pip/ExternalPipView.android.tsx", "modules/external_pip/ExternalPipViewVideo.android.tsx"];
-const INTERNAL_TYPES = ["modules/video_calls/native/components/PictureInPictureVideo.tsx", "modules/video_calls/native/components/PictureInPictureGlobal.tsx", "modules/video_calls/native/components/PictureInPicture.tsx"];
 const awareOf = new WeakMap<object, any>();
-const viewTypes: any[] = [];
-const internalTypes: any[] = [];
-const internalPaths = new WeakMap<object, string>();
-let internalDepth = 0;
-let internalSwaps = 0;
-const internalShapes = new Map<string, string>();
+let viewTypes: any[] = [];
 let lastTypeLook = 0;
 let rerenders = 0;
 let inAware = false;
 
-function viewTypeList(force = false): any[] {
+function viewTypeList(): any[] {
     const now = Date.now();
-    if (force || now - lastTypeLook > 2000) {
+    if (viewTypes.length < VIEW_TYPES.length && now - lastTypeLook > 2000) {
         lastTypeLook = now;
-        for (const [paths, types] of [[VIEW_TYPES, viewTypes], [INTERNAL_TYPES, internalTypes]] as const) {
-            for (const path of paths) {
-                const exports = moduleExports(path);
-                if (!exports) continue;
-                const name = path.split("/").pop()!.replace(/\..*$/, "");
-                for (const key of ["default", name]) {
-                    const value = exports[key];
-                    if (!value || !(typeof value === "function" || typeof value === "object" && "$$typeof" in value)) continue;
-                    if (!types.includes(value)) types.push(value);
-                    if (types === internalTypes) internalPaths.set(value, path);
-                }
-            }
-        }
+        viewTypes = VIEW_TYPES.map(p => moduleExports(p)?.default).filter(Boolean);
     }
     return viewTypes;
-}
-
-export const isInternalPipRender = () => internalDepth > 0;
-
-export const isInternalPipElement = (args: any[]) => internalPaths.has(args[0]);
-
-function patchInternalViews() {
-    for (const path of INTERNAL_TYPES) {
-        if (internalPatched.has(path)) continue;
-        const exp = moduleExports(path);
-        if (!exp) continue;
-        const name = path.split("/").pop()!.replace(/\..*$/, "");
-        let patched = false;
-        for (const key of ["default", name]) {
-            const value = exp[key];
-            if (!value || !(typeof value === "function" || typeof value === "object" && "$$typeof" in value)) continue;
-            if (!internalTypes.includes(value)) internalTypes.push(value);
-            internalPaths.set(value, path);
-            let target = exp;
-            let method = key;
-            let inner = value;
-            for (let depth = 0; inner?.$$typeof === Symbol.for("react.memo") && depth < 4; depth++) {
-                target = inner;
-                method = "type";
-                inner = inner.type;
-            }
-            if (inner?.$$typeof === Symbol.for("react.forward_ref")) {
-                target = inner;
-                method = "render";
-                inner = inner.render;
-            }
-            if (typeof inner !== "function" || inner.prototype?.isReactComponent) continue;
-            let methods = internalTargets.get(target);
-            if (!methods) internalTargets.set(target, methods = new Set());
-            if (methods.has(method)) {
-                patched = true;
-                continue;
-            }
-            try {
-                unpatches.push(instead(method, target, safeInstead(`pip internal ${name}`, (args: any[], orig: Function) => {
-                    internalShapes.set(`${name}.${key}`, Object.keys(args[0] ?? {}).join(",").slice(0, 180));
-                    const props = name === "PictureInPictureVideo" ? internalProps(args[0]) : args[0];
-                    internalDepth++;
-                    try {
-                        return orig(props, ...args.slice(1));
-                    } finally {
-                        internalDepth--;
-                    }
-                })));
-                methods.add(method);
-                patched = true;
-                if (!internalTypes.includes(exp[key])) internalTypes.push(exp[key]);
-                internalPaths.set(exp[key], path);
-            } catch (e) {
-                caught("pip internal patch", e);
-            }
-        }
-        if (patched) internalPatched.add(path);
-    }
-}
-
-function internalProps(props: any): any {
-    const want = chosen(null);
-    if (!want || want.streamId == null || !props || typeof props !== "object") return props;
-    const next = { ...props };
-    let changed = false;
-    for (const key of ["participant", "selectedParticipant", "pipParticipant", "videoParticipant"]) {
-        if (isPart(props[key]) && props[key].id !== want.id) {
-            next[key] = want;
-            changed = true;
-        }
-    }
-    for (const key of ["streamId", "selectedParticipantStreamId"]) {
-        if (props[key] != null && !same(props[key], want.streamId)) {
-            next[key] = like(props[key], want.streamId);
-            changed = true;
-        }
-    }
-    if (!changed) return props;
-    const userId = want.user?.id ?? (isStreamPart(want) ? undefined : want.id);
-    for (const key of ["userId", "selectedParticipantUserId"]) {
-        if (key in props && userId != null) next[key] = like(props[key], userId);
-    }
-    if ("isCamera" in props) next.isCamera = !isStreamPart(want);
-    if ("isSelf" in props) next.isSelf = isMine(want);
-    if ("mirrored" in props && !isMine(want)) next.mirrored = false;
-    internalSwaps++;
-    return next;
 }
 
 function rtcStore(): any {
@@ -553,13 +437,13 @@ function rtcStore(): any {
 function aware(T: any): any {
     let W = awareOf.get(T);
     if (W) return W;
-    const Component = React.forwardRef(function PipAware(props: any, ref: any) {
+    W = function PipAware(props: any) {
         const [n, force] = React.useReducer((x: number) => x + 1, 0);
         React.useEffect(() => {
-            const bump = safe("pip rerender", () => {
+            const bump = () => {
                 rerenders++;
                 force();
-            });
+            };
             const offPin = onPinChange(bump);
             const store = rtcStore();
             try {
@@ -572,42 +456,27 @@ function aware(T: any): any {
                 } catch { }
             };
         }, []);
-        const previousAware = inAware;
         inAware = true;
         try {
-            return React.createElement(T, { ...props, ref, cheeseburgerPip: `${pinned ?? ""}:${n}` });
+            return React.createElement(T, { ...props, cheeseburgerPip: `${pinned ?? ""}:${n}` });
         } finally {
-            inAware = previousAware;
+            inAware = false;
         }
-    });
-    W = React.forwardRef((props: any, ref: any) => React.createElement(PipGuard, null, React.createElement(Component, { ...props, ref })));
+    };
     awareOf.set(T, W);
     return W;
 }
 
-class PipGuard extends React.Component<{ children?: any; }, { failed: boolean; }> {
-    state = { failed: false };
-    static getDerivedStateFromError() { return { failed: true }; }
-    componentDidCatch(e: any) { caught("pip view", e); }
-    render() { return this.state.failed ? null : this.props.children; }
-}
-
 const onViewJsx = safe("pip view jsx", (args: any[]) => {
     const t = args[0];
-    if (!t || typeof t === "string") return;
+    if (inAware || !t || typeof t === "string") return;
     const list = viewTypeList();
-    const path = internalPaths.get(t);
-    if (path) {
-        if (path.endsWith("/PictureInPictureVideo.tsx") && args[1]) args[1] = internalProps(args[1]);
-        return args;
-    }
-    if (inAware || !list.includes(t)) return;
+    if (!list.length || !list.includes(t)) return;
     args[0] = aware(t);
     return args;
 });
 
 export function startPip() {
-    viewTypeList(true);
     patch();
     patchViews();
     unpatches.push(before("jsx", jsxRuntime, onViewJsx), before("jsxs", jsxRuntime, onViewJsx));
@@ -623,8 +492,6 @@ export function stopPip() {
     viewRetry = null;
     for (const u of unpatches.splice(0)) u();
     viewPatched.clear();
-    internalPatched.clear();
-    internalTargets = new WeakMap();
     if (g.__cheeseburgerSwapping) {
         g.__cheeseburgerPip = { lastArgs, selected, focused, lastPick, space, pinned, viewPick, viewSid };
     } else {
@@ -645,7 +512,6 @@ export function pipDebug(): string[] {
         `pip last: ${lastSent || "none yet"}`,
         `pip picks: ${splitViewSettings.smartPip === false ? "off" : `${picks || "none yet"}, skipped you ${skipped}x, ids ${space}`}`,
         `pip shape from: ${aspectFrom || "not asked yet"}, pip view rerenders ${rerenders}, wrapped ${viewTypes.length}/${VIEW_TYPES.length}`,
-        `in-discord pip: native render patches ${internalPatched.size}/${INTERNAL_TYPES.length}, source swaps ${internalSwaps}, inputs ${[...internalShapes].map(([name, keys]) => `${name} [${keys}]`).join("; ") || "not rendered yet"}`,
         ...shapeLog.map(l => `  ${l}`),
         `pip view: pinned ${pinned ? "yes" : "no"}, showing ${viewPick ? (isStreamPart({ id: viewPick }) ? "a screen" : viewPick === myId() ? "me" : "a camera") : "discord's pick"}${viewSid ? ` (stream ${viewSid})` : ""}, hooked ${[...viewPatched].map(x => x.split("/").pop()).join(", ") || "not yet"}`,
         ...[...viewShapes].map(([k, v]) => `  ${k} ${v}`),

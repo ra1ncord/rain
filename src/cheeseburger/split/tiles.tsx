@@ -5,8 +5,7 @@ import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { Dimensions, StatusBar } from "react-native";
 
 import { caught, safe } from "../crash";
-import { sourceCoordinates } from "./coordinates";
-import { hasToolbarRef, measureAll, measured, measureToolbarNow, parentOrigin, probeDebug, resetTileMeasurements, tileProbeVersion, toolbarKnown, viewportKey } from "./probe";
+import { hasToolbarRef, measureAll, measured, measureToolbarNow, toolbarKnown } from "./probe";
 import { splitViewSettings } from "./storage";
 
 export type TileKind = "stream" | "them" | "me";
@@ -34,7 +33,6 @@ interface Shared {
     touched: Set<object>;
     copies: number;
     owner: number;
-    measuredAreas?: Map<string, Area>;
 }
 
 const shared: Shared = (globalThis as any).__cheeseburgerTiles ??= {
@@ -52,7 +50,6 @@ const shared: Shared = (globalThis as any).__cheeseburgerTiles ??= {
 const copy = ++shared.copies;
 const mine = () => shared.owner === copy;
 const { tiles, previews, coordsById, videoSizes, aspects, intended, touched } = shared;
-const measuredAreas = shared.measuredAreas ??= new Map<string, Area>();
 const coordsIds = new WeakMap<object, string>();
 const targets = new WeakMap<object, Rect>();
 const written = new WeakMap<object, Rect[]>();
@@ -60,16 +57,6 @@ const lastWrite = new WeakMap<object, number>();
 const guards = new Map<object, PropertyDescriptor | null>();
 const modGuards = new Map<object, PropertyDescriptor | null>();
 const moves: string[] = [];
-const registrations: string[] = [];
-const rendererSources = new Map<string, string>();
-const handles = new WeakMap<object, number>();
-let nextHandle = 0;
-
-function handle(sv: object) {
-    let id = handles.get(sv);
-    if (id === undefined) handles.set(sv, id = ++nextHandle);
-    return id;
-}
 
 let active = false;
 let pollTimer: ReturnType<typeof setTimeout> | null = null;
@@ -78,11 +65,6 @@ let gridW: { ww: number; w: number; } | null = null;
 let held = 0;
 let fullscreen = false;
 let origin: { x: number; y: number; } | null = null;
-let calibrationSource: object | undefined;
-let calibrationProbeVersion = 0;
-let calibrationAt = 0;
-let nativeRest: { coords: Rect; since: number; } | null = null;
-let pendingOrigin: { x: number; y: number; since: number; samples: number; sampleAt: number; } | null = null;
 let moved = 0;
 
 const GRID_GAP = 10;
@@ -126,10 +108,6 @@ const near = (a: any, r: Rect) => Math.abs((a.x ?? 0) - r.x) < 0.5 && Math.abs((
 
 const isCoords = (v: any) => !!v && typeof v === "object" && typeof v.x === "number" && typeof v.width === "number";
 
-function rememberCoords(sv: object, v: any) {
-    intended.set(sv, { ...v });
-}
-
 function steer(sv: any, v: any) {
     try {
         return steerTo(sv, v);
@@ -142,13 +120,10 @@ function steer(sv: any, v: any) {
 function steerTo(sv: any, v: any) {
     if (!active || !mine()) return v;
     const r = targets.get(sv);
-    if (!r) {
-        if (isCoords(v)) rememberCoords(sv, v);
-        return v;
-    }
+    if (!r) return v;
     if (isCoords(v)) {
         if (near(v, r)) return v;
-        rememberCoords(sv, v);
+        intended.set(sv, { ...v });
         held++;
         return { ...v, ...r, zIndex: 1 };
     }
@@ -168,9 +143,7 @@ function findDescriptor(obj: any, key: string) {
 }
 
 function guard(sv: any) {
-    if (!sv || typeof sv !== "object") return;
-    guardModify(sv);
-    if (guards.has(sv)) return;
+    if (!sv || typeof sv !== "object" || guards.has(sv)) return;
     const found = findDescriptor(sv, "value");
     if (!found?.d.get || !found.d.set) return;
     if (found.own ? !found.d.configurable : !Object.isExtensible(sv)) return;
@@ -184,6 +157,7 @@ function guard(sv: any) {
         });
         guards.set(sv, found.own ? found.d : null);
     } catch { }
+    guardModify(sv);
 }
 
 function guardModify(sv: any) {
@@ -207,8 +181,8 @@ function guardModify(sv: any) {
                     const cur = readCoords(sv);
                     if (cur && typeof a[0] === "function") {
                         try {
-                            const want = a[0]({ ...(intended.get(sv) ?? cur) });
-                            if (isCoords(want)) rememberCoords(sv, want);
+                            const want = a[0]({ ...cur });
+                            if (isCoords(want)) intended.set(sv, { ...want });
                         } catch { }
                     }
                     if (cur && !near(cur, r)) write(sv, { ...cur, ...r, zIndex: 1 }, r);
@@ -254,8 +228,7 @@ function kindFromProps(props: any, coords: any): TileKind {
     return "them";
 }
 
-const onSizeWrapped = new WeakMap<Function, Map<string, Function>>();
-const ownSizeWrappers = new WeakSet<Function>();
+const onSizeWrapped = new WeakMap<Function, Function>();
 
 function sizeFromArgs(args: any[]): { w: number; h: number; } | null {
     const [a, b] = args;
@@ -314,30 +287,15 @@ function noteCoords(sv: any) {
 }
 
 export function registerTile(args: any[]) {
-    let props = args[1];
+    const props = args[1];
     if (!props || typeof props !== "object") return;
-    if (props.sharedCoords) {
-        const source = sourceCoordinates(props.sharedCoords);
-        const coords = source;
-        if (coords !== props.sharedCoords) args[1] = props = { ...props, sharedCoords: coords };
-    }
     if (props.sharedCoords) noteCoords(props.sharedCoords);
-    if (props.sharedCoords && isVideoRenderer(props) && props.streamId != null) {
-        const type = args[0];
-        const name = typeof type === "string" ? type : type?.displayName ?? type?.name ?? type?.render?.displayName ?? type?.render?.name ?? "unnamed";
-        const inner = typeof props.onSize === "function";
-        const key = `${props.streamId}:${inner ? "inner" : "tile"}:${name}`;
-        if (rendererSources.size < 12 || rendererSources.has(key)) rendererSources.set(key, `stream ${props.streamId} ${inner ? "size only" : "outer tile"} ${name}, handle ${handle(props.sharedCoords)}`);
-    }
 
     if (props.streamId != null && typeof props.onSize === "function" && typeof args[0] !== "string") {
-        if (ownSizeWrappers.has(props.onSize)) return args;
         const orig = props.onSize;
-        const sid = String(props.streamId);
-        let wrappers = onSizeWrapped.get(orig);
-        if (!wrappers) onSizeWrapped.set(orig, wrappers = new Map());
-        let w = wrappers.get(sid);
+        let w = onSizeWrapped.get(orig);
         if (!w) {
+            const sid = String(props.streamId);
             w = (...a: any[]) => {
                 try {
                     const size = sizeFromArgs(a);
@@ -347,25 +305,20 @@ export function registerTile(args: any[]) {
                 }
                 return orig(...a);
             };
-            wrappers.set(sid, w);
-            ownSizeWrappers.add(w);
+            onSizeWrapped.set(orig, w);
         }
-        args[1] = props = { ...props, onSize: w };
+        args[1] = { ...props, onSize: w };
         return args;
     }
 
     if (props.sharedCoords) kickTiles();
-    if (!isTileElement(args)) return;
+    if (!props.sharedCoords || !isVideoRenderer(props) || props.streamId == null) return;
 
     const current = readCoords(props.sharedCoords);
     const key = `v:${props.streamId}`;
     const existing = tiles.get(key);
     const now = Date.now();
-    if (existing && existing.coords !== props.sharedCoords) {
-        targets.delete(existing.coords);
-        registrations.push(`${new Date(now).toISOString().slice(17, 23)} video ${props.streamId}: handle ${handle(existing.coords)} -> ${handle(props.sharedCoords)}`);
-        if (registrations.length > 8) registrations.shift();
-    }
+    if (existing && existing.coords !== props.sharedCoords) targets.delete(existing.coords);
     tiles.set(key, {
         key,
         kind: existing?.kind ?? kindFromProps(props, current),
@@ -500,7 +453,7 @@ function orderedTiles(): Tile[] {
         const i = order.indexOf(k);
         return i === -1 ? 99 : i;
     };
-    return liveTiles().sort((a, b) => rank(a.kind) - rank(b.kind) || a.firstSeen - b.firstSeen || (a.key === b.key ? 0 : a.key < b.key ? -1 : 1));
+    return liveTiles().sort((a, b) => rank(a.kind) - rank(b.kind) || a.firstSeen - b.firstSeen || (a.key < b.key ? -1 : 1));
 }
 
 const aspectListeners = new Set<() => void>();
@@ -531,152 +484,140 @@ function aspectOf(t: Tile): number {
     return (t.streamId && aspects.get(t.streamId)?.value) || 16 / 9;
 }
 
-interface Area { left: number; right: number; top: number; bottom: number; }
-interface Frame extends Area { origin: { x: number; y: number; }; parent: string; hidden: boolean; }
+function gridWidth(list: Tile[], ww: number): number {
+    let w = 0;
+    for (const t of list) {
+        const o = intended.get(t.coords);
+        if (o) w = Math.max(w, (o.x ?? 0) + (o.width ?? 0));
+    }
+    if (w >= ww - 48 && w <= ww) gridW = { ww, w };
+    return gridW?.ww === ww ? gridW.w : Math.max(200, ww - 24);
+}
+
+const GRID_TOP = 112;
+
+interface Frame { origin: { x: number; y: number; }; parent: string; hidden: boolean; top: number; bottom: number; }
 
 let frame: Frame | null = null;
-let usableArea: Area | null = null;
-let areaMeasured = false;
-let pendingArea: { area: Area; since: number; samples: number; sampleAt: number; } | null = null;
+let lastOrigin: { x: number; y: number; } | null = null;
+const maxTop = new Map<string, number>();
 
 const statusBar = () => (typeof StatusBar?.currentHeight === "number" ? StatusBar.currentHeight : 24);
 
+const restSince = new WeakMap<object, { r: Rect; since: number; }>();
 let frameNote = "";
-let viewport = "";
-let layoutChannel = "";
+let pendingFrame: { f: Frame; since: number; } | null = null;
+let frameAt = 0;
+let frameMode = "";
 const frameLog: string[] = [];
-
-function fallbackArea(win: { width: number; height: number; }): Area {
-    const land = win.width > win.height;
-    return {
-        left: 12,
-        right: win.width - 12,
-        top: statusBar() + (land ? 8 : 48),
-        bottom: win.height - (land ? 90 : 136),
-    };
-}
-
-const screenArea = (win: { width: number; height: number; }): Area => usableArea ?? fallbackArea(win);
-
-function sameArea(a: Area, b: Area) {
-    return ["left", "right", "top", "bottom"].every(k => Math.abs((a as any)[k] - (b as any)[k]) < 1.5);
-}
-
-function resetCalibration(source?: object) {
-    restoreAll();
-    unguardAll();
-    origin = null;
-    calibrationSource = source;
-    calibrationProbeVersion = tileProbeVersion(source);
-    calibrationAt = Date.now();
-    nativeRest = null;
-    pendingOrigin = null;
-    resetTileMeasurements();
-}
-
-function syncViewport() {
-    const key = viewportKey();
-    const channel = String(SelectedChannelStore?.getVoiceChannelId?.() ?? "");
-    if (viewport === key && layoutChannel === channel) return;
-    viewport = key;
-    layoutChannel = channel;
-    frame = null;
-    resetCalibration();
-    usableArea = null;
-    areaMeasured = false;
-    const cached = measuredAreas.get(`${channel}|${key}`);
-    if (cached) {
-        usableArea = { ...cached };
-        areaMeasured = true;
-    }
-    pendingArea = null;
-    gridW = null;
-    delete measured.toolbar;
-    delete measured.header;
-    frameNote = "screen changed";
-    frameLog.push(`${new Date().toISOString().slice(17, 23)} screen ${key}, old area cleared`);
-    if (frameLog.length > 12) frameLog.shift();
-}
+const shownH = new Map<string, number>();
+const shownTop = new Map<string, number>();
 
 function updateFrame(win: { width: number; height: number; }) {
-    const now = Date.now();
-    const previous = frame;
     const p = measured.parent;
-    if (!origin && nativeRest && now - nativeRest.since >= 700 && p && p.sv === calibrationSource && p.viewport === viewport && p.at >= calibrationAt && now - p.at < 500 && isCoords(p.coords) && near(nativeRest.coords, p.coords) && near(readCoords(p.sv) ?? {}, p.coords)) {
-        const o = parentOrigin(p);
-        if (Number.isFinite(o.x) && Number.isFinite(o.y) && Math.abs(o.x) < win.width && Math.abs(o.y) < win.height) {
-            if (!pendingOrigin || Math.abs(pendingOrigin.x - o.x) >= 1.5 || Math.abs(pendingOrigin.y - o.y) >= 1.5) {
-                pendingOrigin = { ...o, since: now, samples: 1, sampleAt: p.at };
-            } else if (pendingOrigin.sampleAt !== p.at) {
-                pendingOrigin.sampleAt = p.at;
-                pendingOrigin.samples++;
-            }
-            if (pendingOrigin.samples >= 3 && now - pendingOrigin.since >= 450) {
-                origin = { x: Math.round(pendingOrigin.x * 2) / 2, y: Math.round(pendingOrigin.y * 2) / 2 };
-                frameLog.push(`${new Date(now).toISOString().slice(17, 23)} calibrated ${origin.x},${origin.y} from native tile ${handle(p.sv)}`);
-                if (frameLog.length > 12) frameLog.shift();
-            }
-        } else {
-            pendingOrigin = null;
+    if (!p || Date.now() - p.at > 1000 || !isCoords(p.coords)) return;
+    const rest = restSince.get(p.sv);
+    if (!rest || !near(p.coords, rest.r) || Date.now() - rest.since < 700) {
+        frameNote = "moving";
+        return;
+    }
+    if (Math.abs(p.width - p.coords.width) > 16 || Math.abs(p.height - p.coords.height) > 16) {
+        frameNote = `skipped ${Math.round(p.width)}x${Math.round(p.height)}`;
+        return;
+    }
+    let o = { x: p.x - p.coords.x - (p.coords.width - p.width) / 2, y: p.y - p.coords.y - (p.coords.height - p.height) / 2 };
+    const stable = lastOrigin && Math.abs(lastOrigin.x - o.x) < 1.5 && Math.abs(lastOrigin.y - o.y) < 1.5;
+    lastOrigin = o;
+    if (!stable) {
+        frameNote = "checking";
+        return;
+    }
+    frameNote = "";
+    const mode = fullscreen ? "full" : "grid";
+    const sameMode = !!frame && frameMode === mode;
+    if (sameMode && mode === "full") {
+        if (Math.abs(frame!.origin.x - o.x) < 60 && Math.abs(frame!.origin.y - o.y) < 60) {
+            pendingFrame = null;
+            return;
         }
     }
-    const tb = measured.toolbar?.viewport === viewport && now - measured.toolbar.at < 1000 ? measured.toolbar : undefined;
-    const header = measured.header?.viewport === viewport && now - measured.header.at < 1000 ? measured.header : undefined;
-    const hidden = tb ? tb.y >= win.height - 4 : !chrome;
-    let learned = false;
-    if (!areaMeasured && header && tb && !hidden) {
-        const side = Math.max(0, Math.min(win.width * 0.15, origin?.x ?? 12));
-        const wideHeader = header.width >= win.width * 0.6;
-        const candidate: Area = {
-            left: Math.round(wideHeader ? Math.max(side, header.x) : side),
-            right: Math.round(wideHeader ? Math.min(win.width - side, header.x + header.width) : win.width - side),
-            top: Math.round(Math.max(statusBar() + 4, header.y + header.height + HEADER_GAP)),
-            bottom: Math.round(tb.y - 24),
-        };
-        const sampleAt = Math.min(header.at, tb.at);
-        if (candidate.right - candidate.left > 120 && candidate.bottom - candidate.top > 120) {
-            if (!pendingArea || !sameArea(pendingArea.area, candidate)) {
-                pendingArea = { area: candidate, since: now, samples: 1, sampleAt };
-            } else if (sampleAt !== pendingArea.sampleAt) {
-                pendingArea.sampleAt = sampleAt;
-                pendingArea.samples++;
-            }
-            if (pendingArea.samples >= 3 && now - pendingArea.since >= 450) {
-                usableArea = pendingArea.area;
-                areaMeasured = true;
-                measuredAreas.set(`${layoutChannel}|${viewport}`, { ...usableArea });
-                if (measuredAreas.size > 16) measuredAreas.delete(measuredAreas.keys().next().value!);
-                pendingArea = null;
-                learned = true;
-            }
+    if (frame && Math.abs(frame.origin.x - o.x) < 12 && Math.abs(frame.origin.y - o.y) < 12) o = frame.origin;
+    const land = win.width > win.height;
+    const key = `${Math.round(win.width)}x${Math.round(win.height)}`;
+    const top0 = Math.max(maxTop.get(key) ?? o.y, o.y);
+    maxTop.set(key, top0);
+    const tb = measured.toolbar && Date.now() - measured.toolbar.at < 2000 ? measured.toolbar : undefined;
+    const useToolbar = toolbarKnown() && splitViewSettings.showButton !== false;
+    const hidden = useToolbar ? !tb || tb.y >= win.height - 4 : o.y < top0 - 30;
+    const top = hidden ? (land ? 8 : statusBar() + 6) : o.y + 4;
+    const bottom = hidden ? win.height - (land ? 8 : 56) : (tb && tb.y < win.height - 4 ? tb.y - 16 : win.height - (land ? 90 : 136)) - 8;
+    const next: Frame = { origin: o, parent: "tile", hidden, top: Math.round(top), bottom: Math.round(bottom) };
+    const now = Date.now();
+    if (!hidden) shownH.set(key, next.bottom - next.top);
+    if (!hidden && mode === "grid") shownTop.set(key, next.top);
+    if (sameMode && sameFrame(frame!, next)) {
+        pendingFrame = null;
+        frame = { ...frame!, origin: next.origin };
+        return;
+    }
+    if (sameMode) {
+        if (!pendingFrame || !sameFrame(pendingFrame.f, next)) {
+            pendingFrame = { f: next, since: now };
+            frameNote = "waiting";
+            return;
         }
-    } else if (!areaMeasured) {
-        pendingArea = null;
+        if (now - pendingFrame.since < 500 || now - frameAt < 1500) {
+            frameNote = "waiting";
+            return;
+        }
     }
-    const area = screenArea(win);
-    frame = { ...area, origin: origin ?? previous?.origin ?? { x: area.left, y: area.top }, parent: origin ? "tile" : "bootstrap", hidden };
-    frameNote = areaMeasured ? "fixed measured bounds, locked origin" : pendingArea ? `measuring bounds (${pendingArea.samples})` : "waiting for header and toolbar";
-    if (learned || !previous || previous.hidden !== hidden) {
-        frameLog.push(`${new Date(now).toISOString().slice(17, 23)} ${viewport} area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} ${hidden ? "hidden" : "shown"} fit ${area.top}-${area.bottom}${learned ? " measured" : ""}${tb ? ` toolbar ${Math.round(tb.y)}` : ""}`);
-        if (frameLog.length > 12) frameLog.shift();
-    }
+    pendingFrame = null;
+    frame = next;
+    frameMode = mode;
+    frameAt = now;
+    frameLog.push(`${new Date(now).toISOString().slice(17, 23)} area ${Math.round(o.x)},${Math.round(o.y)} ${hidden ? "hidden" : "shown"} fit ${next.top}-${next.bottom}${tb ? ` toolbar ${Math.round(tb.y)}` : ""}`);
+    if (frameLog.length > 6) frameLog.shift();
+}
+
+function sameFrame(a: Frame, b: Frame) {
+    return a.hidden === b.hidden && Math.abs(a.origin.x - b.origin.x) < 6 && Math.abs(a.origin.y - b.origin.y) < 6
+        && Math.abs(a.top - b.top) < 6 && Math.abs(a.bottom - b.bottom) < 6;
+}
+
+function sizeHeight(regionH: number, win: { width: number; height: number; }) {
+    const cap = shownH.get(`${Math.round(win.width)}x${Math.round(win.height)}`);
+    return cap && cap > 120 ? Math.min(regionH, cap) : regionH;
 }
 
 export function setTilesFullscreen(v: boolean) {
     if (fullscreen === v) return;
     fullscreen = v;
+    origin = null;
     if (active) scheduleApply();
 }
 
+const LS_INSET = 12;
+
 function landscapeRects(list: Tile[], win: { width: number; height: number; }): Map<string, Rect> {
     const out = new Map<string, Rect>();
-    const area = screenArea(win);
-    const o = frame?.origin ?? { x: area.left, y: area.top };
-    const W = Math.max(120, area.right - area.left);
-    const H = Math.max(120, area.bottom - area.top);
-    const top = area.top - o.y;
-    const X0 = area.left - o.x;
-    gridW = { ww: win.width, w: W };
+    const boxes = list.map(t => intended.get(t.coords)).filter(isCoords);
+    let W = win.width - 24;
+    let top = 0;
+    let H = win.height - 170;
+    if (boxes.length) {
+        const minX = Math.min(...boxes.map(b => b.x));
+        const maxX = Math.max(...boxes.map(b => b.x + b.width));
+        const minY = Math.min(...boxes.map(b => b.y));
+        const maxY = Math.max(...boxes.map(b => b.y + b.height));
+        W = Math.min(win.width, Math.max(maxX - minX, minX + maxX));
+        top = minY;
+        H = Math.max(120, maxY - minY - LS_INSET);
+    }
+    if (frame) {
+        const full = Math.max(120, frame.bottom - frame.top);
+        H = sizeHeight(full, win);
+        top = frame.top - frame.origin.y + (full - H) / 2;
+    }
     const n = voice.length;
     const S = n ? Math.max(36, Math.min(72, (H - GRID_GAP * (n - 1)) / n)) : 0;
     const Wv = n ? W - S - GRID_GAP : W;
@@ -695,7 +636,7 @@ function landscapeRects(list: Tile[], win: { width: number; height: number; }): 
         const widths = idx.map(i => h * asp[i]);
         let x = Math.max(GRID_GAP, (Wv - widths.reduce((a, b) => a + b, 0) - GRID_GAP * (idx.length - 1)) / 2);
         idx.forEach((i, j) => {
-            out.set(list[i].key, { x: X0 + x, y, width: widths[j], height: h });
+            out.set(list[i].key, { x, y, width: widths[j], height: h });
             x += widths[j] + GRID_GAP;
         });
         y += h + GRID_GAP;
@@ -704,7 +645,7 @@ function landscapeRects(list: Tile[], win: { width: number; height: number; }): 
         const rects = [...out.values()];
         const left = Math.min(...rects.map(r => r.x));
         const right = Math.max(...rects.map(r => r.x + r.width));
-        const shift = X0 + Math.max(GRID_GAP, (W - (right - left + GRID_GAP + S)) / 2) - left;
+        const shift = Math.max(GRID_GAP, (W - (right - left + GRID_GAP + S)) / 2) - left;
         for (const [k, r] of out) out.set(k, { ...r, x: r.x + shift });
         let vy = top + Math.max(0, (H - (n * S + GRID_GAP * (n - 1))) / 2);
         for (const t of voice) {
@@ -726,21 +667,25 @@ function computeRects(list: Tile[]): Map<string, Rect> {
 
     const win = Dimensions.get("window");
     if (win.width > win.height) return landscapeRects(list, win);
-    const area = screenArea(win);
-    const o = frame?.origin ?? { x: area.left, y: area.top };
-    let W: number, H: number, X0: number, GAP: number;
+    let W: number, H: number, X0: number, Y0: number, GAP: number;
     if (fullscreen) {
+        origin = frame?.origin ?? origin ?? { x: (win.width - gridWidth(list, win.width)) / 2, y: GRID_TOP };
+        const under = shownTop.get(`${Math.round(win.width)}x${Math.round(win.height)}`);
+        const top = Math.max(statusBar() + 6, under != null ? under - HEADER_GAP : statusBar() + 44);
+        const bottom = win.height - 56;
         W = win.width;
-        X0 = -o.x;
+        H = Math.max(300, bottom - top);
+        X0 = -origin.x;
+        Y0 = top - origin.y;
         GAP = FS_GAP;
     } else {
-        W = Math.max(120, area.right - area.left);
-        X0 = area.left - o.x;
+        W = gridWidth(list, win.width);
+        const full = frame ? Math.max(200, frame.bottom - frame.top) : Math.max(300, win.height - 245);
+        H = frame ? sizeHeight(full, win) : full;
+        X0 = 0;
+        Y0 = frame ? frame.top - frame.origin.y + (full - H) / 2 : 0;
         GAP = GRID_GAP;
     }
-    H = Math.max(120, area.bottom - area.top);
-    const Y0 = area.top - o.y;
-    gridW = { ww: win.width, w: W };
     const n = voice.length;
     const S = n ? Math.max(40, Math.min(96, (W - GAP * (n - 1)) / n)) : 0;
     const fullH = H;
@@ -823,32 +768,13 @@ function noteMove(t: Tile, cur: any, now: number) {
 
 function applyLayout() {
     if (!active || !mine()) return;
-    syncViewport();
     const list = orderedTiles();
     const square = (t: Tile) => !t.streamId || Math.abs((aspects.get(t.streamId)?.value ?? 16 / 9) - aspectOf(t)) < 0.1;
-    const preferred = list.find(t => t.kind === "stream" && square(t)) ?? list.find(square) ?? list[0];
-    const actualAspect = preferred?.streamId ? aspects.get(preferred.streamId)?.value : undefined;
-    if (calibrationSource !== preferred?.coords || calibrationProbeVersion !== tileProbeVersion(preferred?.coords)) resetCalibration(preferred?.coords);
-    if (!origin) {
-        const current = readCoords(calibrationSource);
-        if (!isCoords(current) || !["x", "y", "width", "height"].every(k => Number.isFinite(current[k]))) {
-            nativeRest = pendingOrigin = null;
-        } else if (!nativeRest || !near(current, nativeRest.coords)) {
-            nativeRest = { coords: { ...current }, since: Date.now() };
-            pendingOrigin = null;
-            resetTileMeasurements();
-        }
-    }
-    const canMeasure = !origin && nativeRest && Date.now() - nativeRest.since >= 700 && Date.now() - calibrationAt >= 700;
-    measureAll(readCoords, canMeasure ? preferred?.coords : undefined, actualAspect);
+    measureAll(readCoords, (list.find(t => t.kind === "stream" && square(t)) ?? list.find(square))?.coords);
     updateFrame(Dimensions.get("window"));
     noteChrome();
     if (!list.length) {
         if (touched.size) restoreAll();
-        return;
-    }
-    if (!origin) {
-        frameNote = pendingOrigin ? `calibrating native origin (${pendingOrigin.samples})` : "waiting for native layout to settle";
         return;
     }
     const all = [...list, ...voice];
@@ -856,7 +782,7 @@ function applyLayout() {
     for (const t of all) {
         const cur = readCoords(t.coords);
         current.set(t.coords, cur);
-        if (isCoords(cur) && t.coords && !intended.has(t.coords)) rememberCoords(t.coords, cur);
+        if (isCoords(cur) && t.coords && !intended.has(t.coords)) intended.set(t.coords, { ...cur });
     }
     const rects = computeRects(list);
     const now = Date.now();
@@ -874,13 +800,15 @@ function applyLayout() {
         if (!r || !t.coords) continue;
         const prev = targets.get(t.coords);
         targets.set(t.coords, r);
+        const rs = restSince.get(t.coords);
+        if (!rs || !near(rs.r, r)) restSince.set(t.coords, { r, since: now });
         touched.add(t.coords);
         guard(t.coords);
         const cur = current.get(t.coords);
         if (cur && !near(cur, r)) {
             if (prev && near(prev, r)) {
                 noteMove(t, cur, now);
-                if (isCoords(cur) && !(written.get(t.coords) ?? []).some(w => near(cur, w))) rememberCoords(t.coords, cur);
+                if (isCoords(cur) && !(written.get(t.coords) ?? []).some(w => near(cur, w))) intended.set(t.coords, { ...cur });
                 burstUntil = now + 3000;
             }
             write(t.coords, { ...cur, ...r, zIndex: 1 }, r);
@@ -894,7 +822,7 @@ function poll() {
     pollTimer = null;
     if (!active || !mine()) return;
     safeApply();
-    pollTimer = setTimeout(safe("split poll", poll), Date.now() < burstUntil ? 40 : 150);
+    pollTimer = setTimeout(poll, Date.now() < burstUntil ? 40 : 150);
 }
 
 export function kickTiles() {
@@ -908,10 +836,10 @@ let applyScheduled = false;
 function scheduleApply() {
     if (applyScheduled) return;
     applyScheduled = true;
-    setTimeout(safe("split scheduled layout", () => {
+    setTimeout(() => {
         applyScheduled = false;
         safeApply();
-    }), 50);
+    }, 50);
 }
 
 function restoreAll() {
@@ -930,7 +858,11 @@ const chromeListeners = new Set<() => void>();
 function setChrome(v: boolean) {
     if (chrome === v) return;
     chrome = v;
-    setTimeout(safe("split chrome listeners", () => chromeListeners.forEach(l => safe("split chrome listener", l)())), 0);
+    setTimeout(() => chromeListeners.forEach(l => {
+        try {
+            l();
+        } catch { }
+    }), 0);
 }
 
 const CALL_STORE = "modules/video_calls/native/ChannelCallStore.tsx";
@@ -993,7 +925,7 @@ function fromMeasure(shown: boolean) {
 
 function noteChrome() {
     const tb = measured.toolbar;
-    if (!tb || tb.viewport !== viewportKey() || Date.now() - tb.at > 2000) return;
+    if (!tb || Date.now() - tb.at > 2000) return;
     fromMeasure(tb.y < Dimensions.get("window").height - 4);
 }
 
@@ -1050,9 +982,6 @@ export function setTilesActive(v: boolean, handoff = false) {
     active = v;
     if (v) {
         shared.owner = copy;
-        resetCalibration();
-        for (const tile of [...tiles.values(), ...previews.values()]) tile.coords = sourceCoordinates(tile.coords);
-        for (const entry of coordsById.values()) entry.coords = sourceCoordinates(entry.coords);
         burstUntil = Date.now() + 3000;
         if (!pollTimer) poll();
     } else {
@@ -1064,7 +993,6 @@ export function setTilesActive(v: boolean, handoff = false) {
             caught("split restore", e);
         }
         unguardAll();
-        resetTileMeasurements();
     }
 }
 
@@ -1093,14 +1021,8 @@ export function tilesDebug(): string[] {
         `copy ${copy} of ${shared.copies}, owner ${shared.owner}, ${hotStatus.source} ${hotStatus.revision.slice(0, 7)}`,
         `window: ${Math.round(Dimensions.get("window").width)}x${Math.round(Dimensions.get("window").height)}, tiles: ${list.length} (registered ${tiles.size}), call videos: ${(callParts() ?? []).filter(p => p.video).map(p => p.streamId ?? "preview").join(",") || "none"}, camera off: ${voice.length}`,
         `mode: ${fullscreen ? "full screen" : "grid"}, ${frame ? `area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} (${frame.parent}), controls ${frame.hidden ? "hidden" : "shown"}, fit ${Math.round(frame.top)}-${Math.round(frame.bottom)}` : "area not measured"}${frameNote ? ` (${frameNote})` : ""}${measured.toolbar ? `, toolbar y ${Math.round(measured.toolbar.y)}` : ""}`,
-        `header: ${measured.header ? `${measured.header.label} ${fmt(measured.header)}` : "not measured"}, bounds: ${areaMeasured ? "measured and fixed" : "bootstrap"}, origin: ${origin ? `${origin.x},${origin.y} locked` : "not measured"}`,
-        `calibration: native handle ${calibrationSource ? handle(calibrationSource) : "none"}, ${origin ? "locked; controlled tiles excluded" : pendingOrigin ? `${pendingOrigin.samples} stable samples` : "waiting"}; measurement callbacks do not schedule layout`,
-        ...probeDebug(),
-        `renderer sources: ${[...rendererSources.values()].join("; ") || "none"}`,
-        `held: ${held}, moved: ${moved}, guarded: ${guards.size} values/${modGuards.size} modifiers, touched: ${touched.size}, grid: ${gridW ? `${Math.round(gridW.w)}/${gridW.ww}` : "?"}`,
-        "layout coordinates: native tile and video",
+        `held: ${held}, moved: ${moved}, guarded: ${guards.size}, touched: ${touched.size}, grid: ${gridW ? `${Math.round(gridW.w)}/${gridW.ww}` : "?"}`,
         ...(moves.length ? ["last moves:", ...moves.map(m => `  ${m}`)] : []),
-        ...(registrations.length ? ["tile replacements:", ...registrations.map(m => `  ${m}`)] : []),
         ...(frameLog.length ? ["area changes:", ...frameLog.map(m => `  ${m}`)] : []),
         `order setting: ${currentOrder().join(" > ")}`,
         `video sizes: ${[...videoSizes.entries()].map(([id, s]) => `${id}=${s.w}x${s.h}${aspects.has(id) ? ` (${aspects.get(id)!.value.toFixed(2)}${aspects.get(id)!.pending ? ` -> ${aspects.get(id)!.pending!.toFixed(2)}` : ""})` : ""}`).join(", ") || "none yet"}`,

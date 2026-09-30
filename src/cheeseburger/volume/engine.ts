@@ -10,22 +10,16 @@ const GUESSES = ["setLocalVolume", "setOutputVolume", "setInputVolume", "setLoca
 
 interface Hook { label: string; obj: any; name: string; orig: Function; ok: boolean; }
 
-let pending: { userId: string; want: number; at: number; routes: any[]; } | null = null;
+let pending: { userId: string; want: number; at: number; } | null = null;
 let hooks: Hook[] = [];
 let hookedObjs = new WeakSet<object>();
 let seen: Record<string, string> = {};
 const samples = new Map<string, { want: number; r: number; }[]>();
 const learned = new Map<string, number>();
 let bypassed = 0;
-const nativeCalls = new Map<string, { want: number; args: string; changed: string; count: number; }>();
-const teaching = new WeakSet<object>();
-export const isTeaching = (conn: object) => teaching.has(conn);
 
-export function expect(userId: string, want: number, conn?: any) {
-    const ssrcs = conn?.remoteAudioSSRCs;
-    const ssrc = ssrcs instanceof Map ? ssrcs.get(userId) : ssrcs?.[userId];
-    const routes = [userId, conn?.mediaEngineConnectionId, ssrc].filter(v => v != null);
-    pending = { userId, want, at: Date.now(), routes };
+export function expect(userId: string, want: number) {
+    pending = { userId, want, at: Date.now() };
 }
 
 function findExport(re: RegExp, key: string): any {
@@ -53,7 +47,7 @@ function methodNames(obj: any): string[] {
 }
 
 function adjust(label: string, name: string, a: any[]): any[] {
-    const p = pending && Date.now() - pending.at < 50 && pending.routes.some(v => a.includes(v)) ? pending : null;
+    const p = pending && Date.now() - pending.at < 50 && a.includes(pending.userId) ? pending : null;
     const shown = a.map(short).join(",");
     if (!p) {
         note(`${label}.${name}(${shown})`);
@@ -83,8 +77,6 @@ function adjust(label: string, name: string, a: any[]): any[] {
         }
     });
     note(`${label}.${name}(${shown})${did}`);
-    const key = `${label}.${name}`;
-    nativeCalls.set(key, { want: p.want, args: shown, changed: did, count: (nativeCalls.get(key)?.count ?? 0) + 1 });
     return out;
 }
 
@@ -119,19 +111,13 @@ export function hookEngine() {
 
 const taught = new WeakSet<object>();
 
-export function teach(conn: any, userId: string, restoreVolume: number) {
+export function teach(conn: any) {
     if (taught.has(conn) || typeof conn?.setLocalVolume !== "function") return;
-    const ssrcs = conn.remoteAudioSSRCs;
-    const ssrc = ssrcs instanceof Map ? ssrcs.get(userId) : ssrcs?.[userId];
-    if (ssrc == null) return;
     taught.add(conn);
-    teaching.add(conn);
-    try {
-        for (const v of [100, 150]) conn.setLocalVolume(userId, v);
-    } catch { }
-    finally {
-        teaching.delete(conn);
-        try { conn.setLocalVolume(userId, restoreVolume); } catch { }
+    for (const v of [100, 150, 100]) {
+        try {
+            conn.setLocalVolume("0", v);
+        } catch { }
     }
 }
 
@@ -145,7 +131,6 @@ export function unhookEngine() {
     hookedObjs = new WeakSet<object>();
     seen = {};
     pending = null;
-    nativeCalls.clear();
 }
 
 export function engineDebug(): string[] {
@@ -153,7 +138,5 @@ export function engineDebug(): string[] {
         ...Object.entries(seen).map(([label, names]) => `${label}: ${names.length > 400 ? `${names.slice(0, 400)}…` : names}`),
         `hooked: ${hooks.map(h => `${h.label}.${h.name}${h.ok ? "" : " (blocked)"}`).join(", ") || "none"}`,
         `learned: ${[...learned.entries()].map(([k, r]) => `${k} x${short(r)}`).join(", ") || "none"}, pushed past cap: ${bypassed}`,
-        `output verification: ${nativeCalls.size ? "native arguments captured; speaker gain not measured" : "no matching native volume call captured; boost unverified"}`,
-        ...[...nativeCalls].map(([key, call]) => `  ${key}: requested ${call.want}%, args [${call.args}]${call.changed}, ${call.count} calls`),
     ];
 }

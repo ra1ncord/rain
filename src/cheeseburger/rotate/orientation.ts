@@ -7,7 +7,6 @@ import { SelectedChannelStore } from "@metro/common/stores";
 import { AppState, Dimensions } from "react-native";
 
 import { safe, safeInstead } from "../crash";
-import { isSplitActive } from "../split/layout";
 
 const DISCORD_PATH = "modules/device/native/DeviceOrientation.tsx";
 const RELOCKS = ["lockToPortrait", "unlockAllOrientations", "lockToPortraitUpsideDown"];
@@ -212,7 +211,7 @@ export function setLandscape(v: boolean) {
         setIgnoreAutoRotate(true);
         const target = native ?? locker;
         if (target) attempt("lockToLandscape", () => target.lockToLandscape());
-        const sid = isSplitActive() ? null : streamId();
+        const sid = streamId();
         focused = !!sid;
         if (sid) focus(sid);
         let tries = 0;

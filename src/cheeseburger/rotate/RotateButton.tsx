@@ -3,7 +3,6 @@ import { React } from "@metro/common";
 import { Image, Pressable, Text } from "react-native";
 
 import { safe } from "../crash";
-import { useHeaderRef } from "../split/probe";
 import { useCheeseburger } from "../storage";
 import { Notches } from "../style";
 import { accentColor, baseColor } from "../style/colors";
@@ -33,13 +32,11 @@ export function RotateFace() {
 }
 
 export function TopBarRotate() {
-    const ref = useHeaderRef();
     const styled = useCheeseburger(s => s.style);
     const base = styled ? baseColor() : undefined;
     const size = Math.max(4, Number(styleSettings.bevelSize) || 8);
     return (
         <Pressable
-            ref={ref}
             accessibilityRole="button"
             accessibilityLabel="Rotate"
             onPress={rotate}

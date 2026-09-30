@@ -7,8 +7,7 @@ import { AppState, Dimensions } from "react-native";
 
 import { safe } from "../crash";
 import { isLandscapeLocked } from "../rotate/orientation";
-import { useSplitViewSettings } from "./storage";
-import { chromeDebug, currentOrder, hasVideo, setTilesActive, setTilesFullscreen, TileKind,tilesDebug } from "./tiles";
+import { chromeDebug, hasVideo, setTilesActive, setTilesFullscreen, tilesDebug } from "./tiles";
 
 let active = false;
 let fullscreen = false;
@@ -17,9 +16,7 @@ let fsSel: string | null = null;
 let watchedAt = 0;
 const listeners = new Set<() => void>();
 const unpatches: (() => unknown)[] = [];
-const globalState = globalThis as any;
-let salt = globalState.__cheeseburgerSplitVersion ?? Date.now();
-globalState.__cheeseburgerSplitVersion = salt;
+let salt = 0;
 
 export const isSplitActive = () => active || resumeAfterFocus;
 export function onSplitChange(l: () => void) {
@@ -36,8 +33,7 @@ const signature = (list: any[]) => list.map((p: any) => `${p?.id ?? p?.user?.id}
 
 function arrange(list: any): any {
     if (!active || !Array.isArray(list)) return list;
-    const order = currentOrder();
-    const key = `${salt}#${order.join(",")}#${signature(list)}`;
+    const key = `${salt}#${signature(list)}`;
     const hit = memo.get(list);
     if (hit?.key === key) return hit.out;
 
@@ -46,26 +42,21 @@ function arrange(list: any): any {
     if (video.length >= 2) {
         const meId = UserStore?.getCurrentUser?.()?.id;
         const isMe = (p: any) => (p?.user?.id ?? p?.id) === meId;
-        const kind = (p: any): TileKind => p.stream ? "stream" : isMe(p) ? "me" : "them";
-        const rank = (p: any) => {
-            const i = order.indexOf(kind(p));
-            return i < 0 ? order.length : i;
-        };
-        out = [...video].sort((a, b) => rank(a) - rank(b)).concat(list.filter(p => !video.includes(p)));
+        const streams = video.filter((p: any) => p.stream);
+        const theirCams = video.filter((p: any) => !p.stream && !isMe(p));
+        const myCam = video.filter((p: any) => !p.stream && isMe(p));
+        out = [...streams, ...theirCams, ...myCam, ...list.filter(p => !video.includes(p))];
     }
     memo.set(list, { key, out });
     return out;
 }
 
 function refresh() {
-    salt = Math.max(salt, globalState.__cheeseburgerSplitVersion ?? 0) + 1;
-    globalState.__cheeseburgerSplitVersion = salt;
+    salt++;
     const store = rtcStore();
     try { store?.emitChange?.(); } catch (e) { logger.error("[SplitView] emitChange failed", e); }
-    listeners.forEach(l => safe("split change listener", l)());
+    listeners.forEach(l => l());
 }
-
-export const refreshSplitLayout = safe("split refresh", refresh);
 
 function selectParticipant(id: string | null) {
     const channelId = SelectedChannelStore?.getVoiceChannelId?.();
@@ -98,7 +89,7 @@ function onAction(args: any[]) {
     const type = a?.type;
     if (typeof type !== "string") return;
     if (/^STREAM_(WATCH|START|CREATE)/.test(type)) watchedAt = Date.now();
-    const kept = type === "CHANNEL_RTC_SELECT_PARTICIPANT" && a.id != null && active;
+    const kept = type === "CHANNEL_RTC_SELECT_PARTICIPANT" && a.id != null && active && !rotated();
     if (!NOISY.test(type)) {
         const extra = ["id", "channelId", "participantId", "streamKey", "userId", "focused", "mode", "layout"].filter(k => a[k] !== undefined).map(k => `${k}=${String(a[k]).slice(0, 40)}`).join(" ");
         actions.push(`${new Date().toISOString().slice(17, 23)} ${type}${extra ? ` ${extra}` : ""}${kept ? " (split)" : ""}`);
@@ -134,6 +125,7 @@ function shallow(v: any): string {
 
 let away = false;
 let resumeAfterAway = false;
+let awayFocus: string | null = null;
 let returnTimer: ReturnType<typeof setTimeout> | null = null;
 
 function onAppState(state: string) {
@@ -142,7 +134,8 @@ function onAppState(state: string) {
         away = false;
         if (!resumeAfterAway) return;
         resumeAfterAway = false;
-        unselectParticipant();
+        if (fullscreen && awayFocus) selectParticipant(awayFocus);
+        else unselectParticipant();
         returnTimer = setTimeout(safe("split return", () => {
             returnTimer = null;
             if (!active && !away) setSplitActive(true, true);
@@ -156,6 +149,7 @@ function onAppState(state: string) {
         returnTimer = null;
     } else {
         if (!active) return;
+        awayFocus = selectedParticipant();
         setSplitActive(false, true);
     }
     resumeAfterAway = true;
@@ -192,18 +186,16 @@ export function setSplitActive(v: boolean, fromFocus = false) {
     if (!fromFocus && resumeAfterFocus) {
         resumeAfterFocus = false;
         if (active === v) {
-            listeners.forEach(l => safe("split change listener", l)());
+            listeners.forEach(l => l());
             return;
         }
     }
     if (active === v) return;
     active = v;
     let back: string | null = null;
-    if (v) {
-        if (!fromFocus) {
-            fsSel = isLandscape() ? null : selectedParticipant() ?? lastSel;
-            fullscreen = !!fsSel;
-        }
+    if (v && !fromFocus) {
+        fsSel = isLandscape() ? null : selectedParticipant() ?? lastSel;
+        fullscreen = !!fsSel;
         unselectParticipant();
     }
     if (!v && !fromFocus) {
@@ -231,7 +223,7 @@ function setFullscreen(v: boolean) {
     if (!active || fullscreen === v) return;
     fullscreen = v;
     setTilesFullscreen(v);
-    listeners.forEach(l => safe("split change listener", l)());
+    listeners.forEach(l => l());
 }
 
 export function toggleSplit() {
@@ -272,11 +264,21 @@ function selectedParticipant(): string | null {
     try { return rtcStore()?.getSelectedParticipantId?.(channelId) ?? null; } catch { return null; }
 }
 
+const rotated = () => isLandscapeLocked() || isLandscape();
+
 function onSelect(e: any) {
     const id = e?.id != null ? String(e.id) : null;
     lastSel = id;
     if (id == null && !active && !resumeAfterFocus && isLandscapeLocked()) onDims();
     if (!active || id == null) return;
+    if (rotated()) {
+        resumeAfterFocus = true;
+        setTilesActive(false);
+        setTimeout(safe("split focus", () => {
+            if (active) setSplitActive(false, true);
+        }), 0);
+        return;
+    }
     maximized(id);
     setTimeout(safe("split unfocus", () => {
         if (active) unselectParticipant();
@@ -285,8 +287,11 @@ function onSelect(e: any) {
 
 function watchFocus() {
     const selected = selectedParticipant();
-    if (active && selected) {
+    if (active && selected && !rotated()) {
         unselectParticipant();
+    } else if (active && selected) {
+        resumeAfterFocus = true;
+        setSplitActive(false, true);
     } else if (!active && resumeAfterFocus && !selected) {
         resumeAfterFocus = false;
         setSplitActive(true, true);
@@ -303,13 +308,6 @@ export function startLayoutPatches() {
     for (const fn of ["getParticipants", "getFilteredParticipants"]) {
         if (typeof store[fn] === "function") unpatches.push(after(fn, store, safe("split order", (_: any, ret: any) => arrange(ret))));
     }
-    let orderKey = currentOrder().join(",");
-    unpatches.push(useSplitViewSettings.subscribe(safe("split arrange settings", () => {
-        const next = currentOrder().join(",");
-        if (next === orderKey) return;
-        orderKey = next;
-        refreshSplitLayout();
-    })));
     focusWatch = setInterval(safe("split watch", watchFocus), 400);
     unpatches.push(() => {
         if (focusWatch) clearInterval(focusWatch);

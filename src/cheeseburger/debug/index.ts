@@ -12,10 +12,9 @@ import { lookDebug } from "../look";
 import { rotateDebug } from "../rotate";
 import { shareDebug } from "../share";
 import { useShareSettings } from "../share/storage";
-import { factoryDebug } from "../split/factories";
 import { isFullscreenSplit, isSplitActive, layoutDebug } from "../split/layout";
 import { pipDebug } from "../split/pip";
-import { pinDebug } from "../split/PipPin";
+import { pinIconName } from "../split/PipPin";
 import { useSplitViewSettings } from "../split/storage";
 import { hasVideo } from "../split/tiles";
 import { useCheeseburger } from "../storage";
@@ -200,7 +199,7 @@ export function debugReport(): string {
         ["setup", setup],
         ["call", () => call(n)],
         ["crashes", crashDebug],
-        ["split", () => [...layoutDebug(), factoryDebug(), ...pipDebug(), pinDebug()]],
+        ["split", () => [...layoutDebug(), ...pipDebug(), `pin icon: ${pinIconName || "none found"}`]],
         ["style", () => [...styleDebug(), lookDebug(), toolbarDebug()]],
         ["share", shareDebug],
         ["volume", volumeDebug],
