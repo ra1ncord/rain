@@ -61,6 +61,7 @@ const guards = new Map<object, PropertyDescriptor | null>();
 const modGuards = new Map<object, PropertyDescriptor | null>();
 const moves: string[] = [];
 const registrations: string[] = [];
+const rendererSources = new Map<string, string>();
 const handles = new WeakMap<object, number>();
 let nextHandle = 0;
 
@@ -236,7 +237,7 @@ const isVideoRenderer = (props: any) => "isCamera" in props || "videoSpinnerCont
 export function isTileElement(args: any[]): boolean {
     const props = args[1];
     return !!props && typeof props === "object" && typeof args[0] !== "string" && !!props.sharedCoords
-        && isVideoRenderer(props) && props.streamId != null;
+        && isVideoRenderer(props) && props.streamId != null && typeof props.onSize !== "function";
 }
 
 function kindFromProps(props: any, coords: any): TileKind {
@@ -315,8 +316,16 @@ export function registerTile(args: any[]) {
         if (coords !== props.sharedCoords) args[1] = props = { ...props, sharedCoords: coords };
     }
     if (props.sharedCoords) noteCoords(props.sharedCoords);
+    if (props.sharedCoords && isVideoRenderer(props) && props.streamId != null) {
+        const type = args[0];
+        const name = typeof type === "string" ? type : type?.displayName ?? type?.name ?? type?.render?.displayName ?? type?.render?.name ?? "unnamed";
+        const inner = typeof props.onSize === "function";
+        const key = `${props.streamId}:${inner ? "inner" : "tile"}:${name}`;
+        if (rendererSources.size < 12 || rendererSources.has(key)) rendererSources.set(key, `stream ${props.streamId} ${inner ? "size only" : "outer tile"} ${name}, handle ${handle(props.sharedCoords)}`);
+    }
 
-    if (props.streamId != null && typeof props.onSize === "function" && typeof args[0] !== "string" && !ownSizeWrappers.has(props.onSize)) {
+    if (props.streamId != null && typeof props.onSize === "function" && typeof args[0] !== "string") {
+        if (ownSizeWrappers.has(props.onSize)) return args;
         const orig = props.onSize;
         const sid = String(props.streamId);
         let wrappers = onSizeWrapped.get(orig);
@@ -336,10 +345,11 @@ export function registerTile(args: any[]) {
             ownSizeWrappers.add(w);
         }
         args[1] = props = { ...props, onSize: w };
+        return args;
     }
 
     if (props.sharedCoords) kickTiles();
-    if (!props.sharedCoords || !isVideoRenderer(props) || props.streamId == null) return;
+    if (!isTileElement(args)) return;
 
     const current = readCoords(props.sharedCoords);
     const key = `v:${props.streamId}`;
@@ -576,7 +586,7 @@ function updateFrame(win: { width: number; height: number; }) {
     const now = Date.now();
     const previous = frame;
     const p = measured.parent;
-    if (p && p.viewport === viewport && now - p.at < 500 && isCoords(p.coords) && (p.container || near(readCoords(p.sv) ?? {}, p.coords))) {
+    if (p && p.viewport === viewport && now - p.at < 500 && isCoords(p.coords) && near(readCoords(p.sv) ?? {}, p.coords)) {
         const o = parentOrigin(p);
         if (Number.isFinite(o.x) && Number.isFinite(o.y) && Math.abs(o.x) < win.width && Math.abs(o.y) < win.height) {
             if (!origin || Math.abs(origin.x - o.x) >= 0.5 || Math.abs(origin.y - o.y) >= 0.5) {
@@ -1063,6 +1073,7 @@ export function tilesDebug(): string[] {
         `mode: ${fullscreen ? "full screen" : "grid"}, ${frame ? `area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} (${frame.parent}), controls ${frame.hidden ? "hidden" : "shown"}, fit ${Math.round(frame.top)}-${Math.round(frame.bottom)}` : "area not measured"}${frameNote ? ` (${frameNote})` : ""}${measured.toolbar ? `, toolbar y ${Math.round(measured.toolbar.y)}` : ""}`,
         `header: ${measured.header ? `${measured.header.label} ${fmt(measured.header)}` : "not measured"}, bounds: ${areaMeasured ? "measured and fixed" : "bootstrap"}, origin: ${origin ? `${origin.x},${origin.y} live` : "not measured"}`,
         ...probeDebug(),
+        `renderer sources: ${[...rendererSources.values()].join("; ") || "none"}`,
         `held: ${held}, moved: ${moved}, guarded: ${guards.size}, touched: ${touched.size}, grid: ${gridW ? `${Math.round(gridW.w)}/${gridW.ww}` : "?"}`,
         "layout coordinates: native tile and video",
         ...(moves.length ? ["last moves:", ...moves.map(m => `  ${m}`)] : []),

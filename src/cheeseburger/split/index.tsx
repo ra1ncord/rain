@@ -9,7 +9,7 @@ import { watchElementFactories } from "./factories";
 import { isFullscreenSplit, isLandscapeAuto, isSplitActive, refreshSplitLayout, resumeSplit, startLayoutPatches, stopLayoutPatches } from "./layout";
 import { isInternalPipElement, isInternalPipRender, startPip, stopPip } from "./pip";
 import { integratePinControls, markVideoElement, startPinControls, stopPinControls } from "./PipPin";
-import { captureCallGeometry, captureTileGeometry, markTileElement } from "./probe";
+import { captureCallGeometry, withTileProbe } from "./probe";
 import { SplitViewButton } from "./SplitView";
 import { useSplitViewSettings } from "./storage";
 import { isTileElement, registerTile } from "./tiles";
@@ -30,10 +30,10 @@ const addProbe = safe("split probe", (args: any[], ret: any) => {
     adding++;
     try {
         if (isTileElement(args)) {
-            markTileElement(ret, args[1].sharedCoords);
+            markVideoElement(ret, args[1].streamId);
+            ret = withTileProbe(ret, args[1].sharedCoords);
             markVideoElement(ret, args[1].streamId);
         }
-        ret = captureTileGeometry(ret);
         ret = captureCallGeometry(args, ret);
         ret = integratePinControls(ret);
         if (ret && typeof ret === "object") decorated.add(ret);
