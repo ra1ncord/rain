@@ -9,7 +9,12 @@ import { splitViewSettings } from "./storage";
 import { hasVideo, knownMainAspect, onAspectChange, streamAspect } from "./tiles";
 
 const PIP_PATH = "modules/external_pip/ExternalPip.android.tsx";
-const VIEW_PATHS = ["modules/external_pip/useExternalPipParticipant.android.tsx", "modules/video_calls/native/usePipVideoOrStream.tsx"];
+const VIEW_PATHS = [
+    "modules/external_pip/useExternalPipParticipant.android.tsx",
+    "modules/video_calls/native/usePipVideoOrStream.tsx",
+    "modules/video_calls/native/components/PictureInPictureVideo.tsx",
+    "modules/video_calls/native/components/PictureInPictureGlobal.tsx",
+];
 const MIN_ASPECT = 0.42;
 const MAX_ASPECT = 2.38;
 const g = globalThis as any;
@@ -262,6 +267,7 @@ function chosen(currentId: string | null): any {
 function describe(v: any): string {
     if (v == null) return String(v);
     if (typeof v !== "object") return typeof v;
+    if ("$$typeof" in v) return "element";
     if (isPart(v)) return `participant ${isStreamPart(v) ? "screen" : "user"}`;
     return `{${Object.keys(v).slice(0, 8).map(k => `${k}${isPart(v[k]) ? "=participant" : ""}`).join(",")}}`;
 }
@@ -276,7 +282,33 @@ function remember(want: any) {
     }
 }
 
+const same = (a: any, b: any) => a != null && b != null && String(a) === String(b);
+const like = (orig: any, v: any) => (typeof orig === "number" && v != null && Number.isFinite(Number(v)) ? Number(v) : typeof orig === "string" && v != null ? String(v) : v);
+const swapped = new WeakMap<object, { id: string; out: any; }>();
+
+function pickSelection(ret: any): any {
+    if (!ret.channelId) return ret;
+    const cur = allParts().find(p => same(p.streamId, ret.selectedParticipantStreamId));
+    const want = chosen(cur?.id ?? null);
+    if (!want) return ret;
+    remember(want);
+    if (cur?.id === want.id) return ret;
+    const hit = swapped.get(ret);
+    if (hit && hit.id === want.id) return hit.out;
+    const uid = want.user?.id ?? (isStreamPart(want) ? undefined : want.id);
+    const out = {
+        ...ret,
+        selectedParticipantStreamId: like(ret.selectedParticipantStreamId, want.streamId),
+        selectedParticipantUserId: uid != null ? like(ret.selectedParticipantUserId, uid) : ret.selectedParticipantUserId,
+        focusedParticipantType: typeof ret.focusedParticipantType === typeof want.type ? want.type : ret.focusedParticipantType,
+    };
+    swapped.set(ret, { id: want.id, out });
+    return out;
+}
+
 function pickFor(ret: any): any {
+    if (ret && typeof ret === "object" && !Array.isArray(ret) && "selectedParticipantStreamId" in ret) return pickSelection(ret);
+    if (ret && typeof ret === "object" && "$$typeof" in ret) return ret;
     const curId = isPart(ret) ? ret.id : typeof ret === "string" ? ret : isPart(ret?.participant) ? ret.participant.id : null;
     const want = chosen(curId);
     if (!want) return ret;
@@ -297,9 +329,10 @@ function patchViews(tries = 0) {
         for (const key of Object.keys(exp)) {
             if (typeof exp[key] !== "function") continue;
             try {
-                unpatches.push(after(key, exp, safe(`pip view ${name}`, (_args: any[], ret: any) => {
+                unpatches.push(after(key, exp, safe(`pip view ${name}`, (args: any[], ret: any) => {
                     const next = pickFor(ret);
-                    viewShapes.set(`${name}.${key}`, `${describe(ret)}${next !== ret ? " (swapped)" : ""}`);
+                    const input = args?.length ? `takes ${args.slice(0, 2).map(describe).join(", ")}, ` : "";
+                    viewShapes.set(`${name}.${key}`, `${input}returns ${describe(ret)}${next !== ret ? " (swapped)" : ""}`);
                     return next === ret ? undefined : next;
                 })));
             } catch (e) {
@@ -391,7 +424,7 @@ export function pipDebug(): string[] {
         `pip last: ${lastSent || "none yet"}`,
         `pip picks: ${splitViewSettings.smartPip === false ? "off" : `${picks || "none yet"}, skipped you ${skipped}x, ids ${space}`}`,
         `pip view: pinned ${pinned ? "yes" : "no"}, showing ${viewPick ? (isStreamPart({ id: viewPick }) ? "a screen" : viewPick === myId() ? "me" : "a camera") : "discord's pick"}${viewSid ? ` (stream ${viewSid})` : ""}, hooked ${[...viewPatched].map(x => x.split("/").pop()).join(", ") || "not yet"}`,
-        ...[...viewShapes].map(([k, v]) => `  ${k} returns ${v}`),
+        ...[...viewShapes].map(([k, v]) => `  ${k} ${v}`),
         ...pipParts(),
     ];
 }

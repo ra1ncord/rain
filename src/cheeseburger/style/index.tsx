@@ -209,10 +209,10 @@ function fillFor(kind: Kind, flat: any, pressed = false): string {
     return hex(flat.backgroundColor);
 }
 
-function cutProps(props: any, flat: any, kind: Kind) {
+function cutProps(props: any, flat: any, kind: Kind, bordered = false) {
     const size = cutSize(flat);
     const corner = styleSettings.squareCorners ? 4 : Math.min(radiusOf(flat), 12);
-    const clearStyle = { backgroundColor: "transparent", borderTopLeftRadius: 0, borderBottomRightRadius: 0, borderTopRightRadius: corner, borderBottomLeftRadius: corner };
+    const clearStyle = { backgroundColor: "transparent", borderTopLeftRadius: 0, borderBottomRightRadius: 0, borderTopRightRadius: corner, borderBottomLeftRadius: corner, ...(bordered ? { borderWidth: 0 } : {}) };
     const st = props.style;
     const ch = props.children;
     const style = typeof st === "function" ? (state: any) => [st(state), clearStyle] : [st, clearStyle];
@@ -405,25 +405,19 @@ function remember(label: string, icon: string, flat: any, result: string) {
 
 function apply(props: any, flat: any, kind: Kind) {
     const bordered = num(flat.borderWidth) > 0 && !clear(flat.borderColor);
-    if (kind === "overlay" && !bordered && typeof props.style !== "function" && animatedBg(props.style)) {
+    let next = props;
+    if (typeof props.style !== "function" && animatedBg(props.style)) {
         const still = stillStyle(props.style);
-        if (!still.moving) {
-            cut++;
-            return { props: cutProps({ ...props, style: still.style }, flat, kind), how: "red cut" };
+        if (still.moving) {
+            const color = baseColor();
+            if (!color) return null;
+            bevelled++;
+            return { props: bevel(props, notchSize(flat), color), how: `notches (moves ${still.moving.slice(0, 30)})` };
         }
-        const color = baseColor();
-        if (!color) return null;
-        bevelled++;
-        return { props: bevel(props, notchSize(flat), color), how: `notches (moves ${still.moving.slice(0, 30)})` };
-    }
-    if (animatedBg(props.style) || bordered) {
-        const color = baseColor();
-        if (!color) return null;
-        bevelled++;
-        return { props: bevel(props, notchSize(flat), color), how: "notches" };
+        next = { ...props, style: still.style };
     }
     cut++;
-    return { props: cutProps(props, flat, kind), how: kind === "overlay" ? "red cut" : "cut" };
+    return { props: cutProps(next, flat, kind, bordered), how: `${kind === "overlay" ? "red cut" : "cut"}${bordered ? " (outline dropped)" : ""}` };
 }
 
 function clone(el: any, props: any) {
@@ -561,7 +555,19 @@ function onJsx(args: any[]) {
         return;
     }
     if (typeof type === "string") return;
-    if (typeof props.accessibilityLabel === "string" && HOME.test(props.accessibilityLabel)) notePressable(type, props, { overlay: false, red: false, label: props.accessibilityLabel, icon: "?" }, "home");
+    if (typeof props.accessibilityLabel === "string" && HOME.test(props.accessibilityLabel)) {
+        const hint: Hint = { overlay: false, red: false, label: props.accessibilityLabel, icon: "home", plain: true };
+        if (typeof props.onPress === "function" && composite(type) && !skipType(type)) {
+            const w = wrapType(type, 0, { blanket: false, call: null, hint });
+            notePressable(type, props, hint, w ? "home, watching inside" : "home, can't watch");
+            if (w) {
+                args[0] = w;
+                return args;
+            }
+        } else {
+            notePressable(type, props, hint, "home");
+        }
+    }
     const ch = props.children;
     let icon = "";
     if (ch != null && typeof ch === "object") {
