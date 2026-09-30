@@ -2,6 +2,7 @@ import { instead } from "@api/patcher";
 import { findByStoreName } from "@metro";
 import { FluxDispatcher } from "@metro/common";
 import { SelectedChannelStore, UserStore } from "@metro/common/stores";
+import { NativeModules } from "react-native";
 
 import { caught, safe, safeInstead } from "../crash";
 import { splitViewSettings } from "./storage";
@@ -242,5 +243,53 @@ export function pipDebug(): string[] {
         `pip: ${pip ? "hooked" : "not loaded yet"}, stream ${focused ?? selected ?? "main"}, shape ${a ? a.toFixed(3) : "unknown"}${clamped ? `, kept in range ${clamped}x` : ""}`,
         `pip last: ${lastSent || "none yet"}`,
         `pip picks: ${splitViewSettings.smartPip === false ? "off" : `${picks || "none yet"}, skipped you ${skipped}x, ids ${space}`}`,
+        ...pipParts(),
     ];
+}
+
+const keysOf = (o: any) => {
+    const out = new Set<string>();
+    let cur = o;
+    for (let i = 0; cur && i < 3 && cur !== Object.prototype; i++, cur = Object.getPrototypeOf(cur)) {
+        for (const k of Object.getOwnPropertyNames(cur)) if (k !== "constructor") out.add(k);
+    }
+    return [...out];
+};
+
+function pipParts(): string[] {
+    const out: string[] = [];
+    try {
+        const exp = moduleExports(PIP_PATH);
+        if (exp) {
+            for (const k of Object.keys(exp)) {
+                const v = exp[k];
+                out.push(`pip js ${k}: ${v && (typeof v === "object" || typeof v === "function") ? keysOf(v).join(", ").slice(0, 400) : typeof v}`);
+            }
+        }
+        const mods: any = (window as any).modules ?? {};
+        const paths: string[] = [];
+        for (const id of Object.keys(mods)) {
+            const fp = mods[id]?.__filePath;
+            if (typeof fp === "string" && /pip|picture/i.test(fp)) paths.push(fp.replace(/^modules\//, ""));
+        }
+        if (paths.length) out.push(`pip files: ${paths.slice(0, 20).join(", ")}`);
+        const names = new Set<string>();
+        try {
+            for (const n of Object.keys(NativeModules ?? {})) names.add(n);
+        } catch { }
+        for (const n of ["ExternalPip", "ExternalPipManager", "PictureInPicture", "PipManager", "DCDPictureInPicture", "RTNExternalPip", "NativeExternalPip"]) names.add(n);
+        for (const n of names) {
+            if (!/pip|picture/i.test(n)) continue;
+            let m: any;
+            try {
+                m = NativeModules?.[n] ?? (globalThis as any).__turboModuleProxy?.(n);
+            } catch {
+                m = undefined;
+            }
+            if (m) out.push(`pip native ${n}: ${keysOf(m).join(", ").slice(0, 400)}`);
+        }
+    } catch (e) {
+        out.push(`pip parts: ${String((e as any)?.message ?? e).slice(0, 80)}`);
+    }
+    return out.length ? out : ["pip parts: nothing found"];
 }
