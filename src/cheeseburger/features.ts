@@ -54,8 +54,9 @@ const stopFeature = (id: FeatureId) => enqueue(id, () => {
 
 export async function startAll() {
     pluginRunning = true;
+    cheeseburger.share = true;
     for (const id of Object.keys(FEATURES) as FeatureId[]) {
-        if (cheeseburger[id] !== false) await startFeature(id);
+        if (id === "share" || cheeseburger[id] !== false) await startFeature(id);
     }
 }
 
@@ -65,6 +66,7 @@ export async function stopAll() {
 }
 
 export function setFeature(id: FeatureId, on: boolean) {
+    if (id === "share") on = true;
     cheeseburger[id] = on;
     if (!pluginRunning) return;
     void (on ? startFeature(id) : stopFeature(id));

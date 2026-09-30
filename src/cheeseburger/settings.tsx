@@ -150,12 +150,10 @@ export default function Settings() {
                         value={s.rotate}
                         onValueChange={(v: boolean) => setFeature("rotate", v)}
                     />
-                    <TableSwitchRow
+                    <TableRow
                         label="Share screen in menu"
                         subLabel="swipe up on the call bar"
                         icon={icon("ScreenArrowIcon", "ScreenIcon", "MobilePhoneArrowIcon", "ic_mobile_screen_share_24px")}
-                        value={s.share}
-                        onValueChange={(v: boolean) => setFeature("share", v)}
                     />
                 </TableRowGroup>
 

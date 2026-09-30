@@ -89,7 +89,7 @@ function onAction(args: any[]) {
     const type = a?.type;
     if (typeof type !== "string") return;
     if (/^STREAM_(WATCH|START|CREATE)/.test(type)) watchedAt = Date.now();
-    const kept = type === "CHANNEL_RTC_SELECT_PARTICIPANT" && a.id != null && active && !rotated();
+    const kept = type === "CHANNEL_RTC_SELECT_PARTICIPANT" && a.id != null && active;
     if (!NOISY.test(type)) {
         const extra = ["id", "channelId", "participantId", "streamKey", "userId", "focused", "mode", "layout"].filter(k => a[k] !== undefined).map(k => `${k}=${String(a[k]).slice(0, 40)}`).join(" ");
         actions.push(`${new Date().toISOString().slice(17, 23)} ${type}${extra ? ` ${extra}` : ""}${kept ? " (split)" : ""}`);
@@ -103,8 +103,8 @@ function onAction(args: any[]) {
 function maximized(id: string) {
     const watched = Date.now() - watchedAt < 1500;
     if (watched) return;
+    const next = !fullscreen || fsSel !== id;
     fsSel = id;
-    const next = !fullscreen;
     setTimeout(safe("split full screen", () => setFullscreen(next)), 0);
 }
 
@@ -264,21 +264,11 @@ function selectedParticipant(): string | null {
     try { return rtcStore()?.getSelectedParticipantId?.(channelId) ?? null; } catch { return null; }
 }
 
-const rotated = () => isLandscapeLocked() || isLandscape();
-
 function onSelect(e: any) {
     const id = e?.id != null ? String(e.id) : null;
     lastSel = id;
     if (id == null && !active && !resumeAfterFocus && isLandscapeLocked()) onDims();
     if (!active || id == null) return;
-    if (rotated()) {
-        resumeAfterFocus = true;
-        setTilesActive(false);
-        setTimeout(safe("split focus", () => {
-            if (active) setSplitActive(false, true);
-        }), 0);
-        return;
-    }
     maximized(id);
     setTimeout(safe("split unfocus", () => {
         if (active) unselectParticipant();
@@ -287,11 +277,12 @@ function onSelect(e: any) {
 
 function watchFocus() {
     const selected = selectedParticipant();
-    if (active && selected && !rotated()) {
+    if (active && selected) {
+        if (Date.now() - watchedAt >= 1500) {
+            fsSel = selected;
+            setFullscreen(true);
+        }
         unselectParticipant();
-    } else if (active && selected) {
-        resumeAfterFocus = true;
-        setSplitActive(false, true);
     } else if (!active && resumeAfterFocus && !selected) {
         resumeAfterFocus = false;
         setSplitActive(true, true);

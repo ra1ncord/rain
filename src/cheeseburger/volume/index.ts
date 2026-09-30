@@ -1,6 +1,6 @@
 import { registerCommand } from "@api/commands";
 import { ApplicationCommandOptionType, RainApplicationCommand } from "@api/commands/types";
-import { after, before } from "@api/patcher";
+import { after, before, instead } from "@api/patcher";
 import { jsxRuntime } from "@api/react/jsx";
 import { waitForHydration } from "@api/storage";
 import { showToast } from "@api/ui/toasts";
@@ -9,8 +9,8 @@ import { findByName, findByProps, findByStoreName } from "@metro";
 import { FluxDispatcher, messageUtil, React } from "@metro/common";
 import { View } from "react-native";
 
-import { caught, safe } from "../crash";
-import { engineDebug, expect, hookEngine, teach, unhookEngine } from "./engine";
+import { caught, safe, safeInstead } from "../crash";
+import { engineDebug, hookEngine, traceLocalVolume, unhookEngine } from "./engine";
 import { useVolumeBoostSettings, volumeBoostSettings } from "./storage";
 import { note, short, trail } from "./trail";
 import VolumeLabel, { emitSliderValue } from "./VolumeLabel";
@@ -19,10 +19,13 @@ const DISCORD_MAX = 200;
 const unpatches: (() => unknown)[] = [];
 let patchedProtos = new WeakSet<object>();
 
-let lastSlider: { value: number; at: number; } | null = null;
-let thumb: { value: number; at: number; } | null = null;
+interface SliderTarget { userId: string; context: string; }
+interface SliderValue extends SliderTarget { value: number; at: number; }
+let lastSlider: SliderValue | null = null;
+let thumb: SliderValue | null = null;
 const SLIDER_WINDOW_MS = 2500;
-const SLIDER_COMMIT_MS = 60_000;
+const SLIDER_COMMIT_MS = 2500;
+let running = false;
 
 const getAudioActions = () => findByProps("setLocalVolume", "toggleSelfDeaf") ?? findByProps("setLocalVolume");
 const getMediaEngineStore = () => findByStoreName("MediaEngineStore");
@@ -112,18 +115,16 @@ function patchConnection(conn: any) {
     if (typeof target?.setLocalVolume !== "function" || patchedProtos.has(target)) return;
     patchedProtos.add(target);
 
-    unpatches.push(before("setLocalVolume", target, safe("volume engine", function (this: any, args: any[]) {
+    unpatches.push(instead("setLocalVolume", target, safeInstead("volume engine", function (this: any, args: any[], orig: Function) {
         const [userId, volume] = args;
+        if (typeof userId !== "string" || typeof volume !== "number" || !Number.isFinite(volume)) return orig.apply(this, args);
         const ctx = connContext(this);
-        const boost = typeof userId === "string" ? getBoost(userId, ctx) : undefined;
-        const out = boost && boost > DISCORD_MAX ? boost : volume;
+        const boost = getBoost(userId, ctx);
+        const out = boost && Number.isFinite(boost) && boost > DISCORD_MAX ? boost : volume;
         note(`${ctx} ${short(userId)} ${short(volume)}${out !== volume ? ` -> ${out}` : ""}`);
-        if (typeof userId === "string" && typeof out === "number") expect(userId, out);
-        if (out !== volume) {
-            debug(`engine ${userId}: ${volume} -> ${boost}`);
-            args[1] = out;
-            return args;
-        }
+        const next = [...args];
+        next[1] = out;
+        return traceLocalVolume(this, userId, out, ctx, () => orig.apply(this, next));
     })));
 }
 
@@ -168,7 +169,7 @@ export function volumeDebug(): string[] {
                 return "err";
             }
         };
-        lines.push(`store ${short(u)}: default=${safe("default")} stream=${safe("stream")}`);
+        lines.push(`store amplitude ${short(u)}: default=${safe("default")} stream=${safe("stream")}`);
     }
     const found = forEachConnection(conn => {
         let methods = "";
@@ -203,7 +204,6 @@ function applyNow(userId?: string) {
         } catch (e) {
             caught("volume hook", e);
         }
-        teach(conn);
         const ctx = connContext(conn);
         for (const [key, volume] of Object.entries(volumeBoostSettings.boosted ?? {})) {
             const [kctx, kuser] = key.split(":");
@@ -216,7 +216,9 @@ function applyNow(userId?: string) {
 }
 
 const onRtcState = safe("volume rtc", (e: any) => {
-    if (e?.state === "RTC_CONNECTED") setTimeout(() => applyToConnections(), 300);
+    if (e?.state === "RTC_CONNECTED") setTimeout(safe("volume rtc apply", () => {
+        if (running) applyToConnections();
+    }), 300);
 });
 
 let sliderUser: { userId: string; context: string; } | null = null;
@@ -224,44 +226,47 @@ const ourSliders = new WeakSet<object>();
 
 const roundTo10 = (v: number) => Math.round(v / 10) * 10;
 
-const wrapped = new WeakMap<Function, Function>();
-const wrap = (fn: Function) => {
-    let w = wrapped.get(fn);
+const wrapped = new WeakMap<Function, Map<string, Function>>();
+let sliderTargets = new WeakMap<Function, SliderTarget>();
+const wrap = (fn: Function, target: SliderTarget) => {
+    let wrappers = wrapped.get(fn);
+    if (!wrappers) wrapped.set(fn, wrappers = new Map());
+    const key = keyOf(target.userId, target.context);
+    let w = wrappers.get(key);
     if (!w) {
         w = (raw: number, ...rest: any[]) => {
             const v = typeof raw === "number" ? roundTo10(raw) : raw;
             try {
-                lastSlider = thumb = { value: v, at: Date.now() };
+                lastSlider = thumb = { ...target, value: v, at: Date.now() };
                 emitSliderValue(v);
             } catch (e) {
                 caught("volume slider move", e);
             }
             return fn(typeof v === "number" ? Math.min(v, DISCORD_MAX) : raw, ...rest);
         };
-        wrapped.set(fn, w);
+        wrappers.set(key, w);
     }
     return w;
 };
 
-function displayValue(discordValue: number): number {
-    if (thumb && Date.now() - thumb.at < SLIDER_WINDOW_MS && thumb.value > DISCORD_MAX && discordValue >= DISCORD_MAX - 1) {
+function displayValue(discordValue: number, target: SliderTarget): number {
+    if (thumb && thumb.userId === target.userId && thumb.context === target.context && Date.now() - thumb.at < SLIDER_WINDOW_MS && thumb.value > DISCORD_MAX && discordValue >= DISCORD_MAX - 1) {
         return thumb.value;
     }
-    if (sliderUser && discordValue >= DISCORD_MAX - 1) {
-        const boost = getBoost(sliderUser.userId, sliderUser.context);
+    if (discordValue >= DISCORD_MAX - 1) {
+        const boost = getBoost(target.userId, target.context);
         if (boost && boost > DISCORD_MAX) return boost;
     }
     return discordValue;
 }
 
-interface VolumeQuery { context: string; value: number; }
+interface VolumeQuery extends SliderTarget { value: number; }
 let tickQueries: VolumeQuery[] = [];
 let tickFlushScheduled = false;
-let lastSliderContext: { context: string; at: number; } | null = null;
 
 function recordVolumeQuery(args: any[], ret: any) {
-    if (typeof ret !== "number") return;
-    tickQueries.push({ context: args?.[1] ?? "default", value: ret });
+    if (typeof ret !== "number" || typeof args?.[0] !== "string") return;
+    tickQueries.push({ userId: args[0], context: args[1] ?? "default", value: ret });
     if (tickQueries.length > 50) tickQueries.shift();
     if (!tickFlushScheduled) {
         tickFlushScheduled = true;
@@ -279,20 +284,19 @@ function toPerceptual(amplitude: number, base = 100) {
 }
 const near = (a: number, b: number) => Math.abs(a - b) <= 1;
 
-function sliderContext(value: unknown): string {
-    if (tickQueries.length) {
-        const i = typeof value === "number"
-            ? tickQueries.findIndex(q => near(q.value, value) || near(toPerceptual(q.value), value))
-            : -1;
-        const [q] = tickQueries.splice(i === -1 ? 0 : i, 1);
-        lastSliderContext = { context: q.context, at: Date.now() };
-        return q.context;
+function sliderTarget(value: unknown): SliderTarget | null {
+    if (typeof value !== "number") return null;
+    const matches = (q: VolumeQuery) => near(q.value, value) || near(toPerceptual(q.value), value);
+    const candidates = tickQueries.filter(matches);
+    const selected = candidates.filter(q => q.userId === sliderUser?.userId);
+    const possible = selected.length ? selected : candidates;
+    if (new Set(possible.map(q => keyOf(q.userId, q.context))).size !== 1) return null;
+    const q = possible[0];
+    if (q) {
+        tickQueries.splice(tickQueries.indexOf(q), 1);
+        return q;
     }
-    if (lastSliderContext && Date.now() - lastSliderContext.at < 5000) {
-        lastSliderContext.at = Date.now();
-        return lastSliderContext.context;
-    }
-    return "default";
+    return null;
 }
 
 function jsxBefore(args: any[]) {
@@ -300,20 +304,18 @@ function jsxBefore(args: any[]) {
     if (!props || typeof props !== "object") return;
     if (props.maximumValue !== DISCORD_MAX || typeof props.onValueChange !== "function") return;
 
-    const context = sliderContext(props.value);
-    if (context !== "default") {
-        if (volumeBoostSettings.debugSliders) debug(`left ${context} slider alone`);
-        return;
-    }
+    const target = sliderTarget(props.value) ?? sliderTargets.get(props.onValueChange);
+    if (!target || target.context !== "default") return;
+    sliderTargets.set(props.onValueChange, target);
 
     const next: any = {
         ...props,
         maximumValue: maxPercent(),
         step: 10,
-        onValueChange: wrap(props.onValueChange),
-        value: typeof props.value === "number" ? displayValue(props.value) : props.value,
+        onValueChange: wrap(props.onValueChange, target),
+        value: typeof props.value === "number" ? displayValue(props.value, target) : props.value,
     };
-    if (typeof props.onSlidingComplete === "function") next.onSlidingComplete = wrap(props.onSlidingComplete);
+    if (typeof props.onSlidingComplete === "function") next.onSlidingComplete = wrap(props.onSlidingComplete, target);
 
     ourSliders.add(next);
     args[1] = next;
@@ -384,6 +386,7 @@ const boostCommand = (): RainApplicationCommand => ({
 export default {
     async start() {
         await waitForHydration(useVolumeBoostSettings);
+        running = true;
 
         const sliderBefore = safe("volume slider", jsxBefore);
         const sliderAfter = safe("volume label", jsxAfter);
@@ -420,8 +423,9 @@ export default {
                     return;
                 }
 
-                const recent = lastSlider && Date.now() - lastSlider.at < SLIDER_COMMIT_MS ? lastSlider.value : null;
-                lastSlider = null;
+                const pending = lastSlider && lastSlider.userId === userId && lastSlider.context === context && Date.now() - lastSlider.at < SLIDER_COMMIT_MS ? lastSlider : null;
+                const recent = pending?.value ?? null;
+                if (pending || lastSlider && Date.now() - lastSlider.at >= SLIDER_COMMIT_MS) lastSlider = null;
                 if (recent !== null) sliderUser = { userId, context };
                 const wanted = recent ?? volume;
                 debug(`store ${userId}: discord=${volume} slider=${recent ?? "-"}`);
@@ -442,10 +446,13 @@ export default {
         }
 
         const onLocalVolume = safe("volume local", (e: any) => {
-            if (e?.userId && getBoost(e.userId, e.context ?? "default")) setTimeout(() => applyToConnections(e.userId), 50);
+            if (e?.userId && getBoost(e.userId, e.context ?? "default")) setTimeout(safe("volume local apply", () => {
+                if (running) applyToConnections(e.userId);
+            }), 50);
         });
         const restores = new Map<string, number[]>();
         const onSync = () => setTimeout(safe("volume sync", () => {
+            if (!running) return;
             const store = getMediaEngineStore();
             for (const key of Object.keys(volumeBoostSettings.boosted ?? {})) {
                 const [context, userId] = key.split(":");
@@ -475,6 +482,7 @@ export default {
         unpatches.push(registerCommand(boostCommand()));
 
         setTimeout(safe("volume first apply", () => {
+            if (!running) return;
             const store = getMediaEngineStore();
             for (const key of Object.keys(volumeBoostSettings.boosted ?? {})) {
                 const [context, userId] = key.split(":");
@@ -489,11 +497,12 @@ export default {
         }), 2000);
     },
     stop() {
+        running = false;
         for (const u of unpatches.splice(0)) u();
         lastSlider = thumb = null;
         sliderUser = null;
         tickQueries = [];
-        lastSliderContext = null;
+        sliderTargets = new WeakMap();
         patchedProtos = new WeakSet<object>();
         observed = new WeakSet<object>();
         trail.length = 0;

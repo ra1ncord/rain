@@ -5,7 +5,8 @@ import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { Dimensions, StatusBar } from "react-native";
 
 import { caught, safe } from "../crash";
-import { hasToolbarRef, measureAll, measured, measureToolbarNow, toolbarKnown } from "./probe";
+import { splitRects } from "./geometry";
+import { hasTileProbe, hasToolbarRef, measureAll, measured, measureToolbarNow, probeDebug, resetTileMeasurements, toolbarKnown, viewportKey } from "./probe";
 import { splitViewSettings } from "./storage";
 
 export type TileKind = "stream" | "them" | "me";
@@ -33,6 +34,10 @@ interface Shared {
     touched: Set<object>;
     copies: number;
     owner: number;
+    origins?: Map<string, { x: number; y: number; }>;
+    shownBottom?: Map<string, number>;
+    participantOrder?: Map<string, number>;
+    tileCandidates?: Map<string, Map<object, Tile>>;
 }
 
 const shared: Shared = (globalThis as any).__cheeseburgerTiles ??= {
@@ -50,6 +55,8 @@ const shared: Shared = (globalThis as any).__cheeseburgerTiles ??= {
 const copy = ++shared.copies;
 const mine = () => shared.owner === copy;
 const { tiles, previews, coordsById, videoSizes, aspects, intended, touched } = shared;
+const tileCandidates = shared.tileCandidates ??= new Map<string, Map<object, Tile>>();
+for (const [key, tile] of tiles) if (!tileCandidates.has(key)) tileCandidates.set(key, new Map([[tile.coords, tile]]));
 const coordsIds = new WeakMap<object, string>();
 const targets = new WeakMap<object, Rect>();
 const written = new WeakMap<object, Rect[]>();
@@ -67,10 +74,6 @@ let fullscreen = false;
 let origin: { x: number; y: number; } | null = null;
 let moved = 0;
 
-const GRID_GAP = 10;
-const FS_GAP = 4;
-const CAM_MIN_ASPECT = 0.75;
-const HEADER_GAP = 8;
 const SETTLE_MS = 1000;
 const DEFAULT_ORDER: TileKind[] = ["stream", "them", "me"];
 const SNAPS = [16 / 9, 4 / 3, 1, 3 / 4, 9 / 16];
@@ -127,7 +130,7 @@ function steerTo(sv: any, v: any) {
         held++;
         return { ...v, ...r, zIndex: 1 };
     }
-    if (typeof v === "function" && v.__isAnimationDefinition && intended.has(sv)) {
+    if ((typeof v === "function" && v.__isAnimationDefinition || v && typeof v === "object" && (typeof v.onFrame === "function" || typeof v.onStart === "function")) && intended.has(sv)) {
         held++;
         return { ...intended.get(sv), ...r, zIndex: 1 };
     }
@@ -144,6 +147,7 @@ function findDescriptor(obj: any, key: string) {
 
 function guard(sv: any) {
     if (!sv || typeof sv !== "object" || guards.has(sv)) return;
+    guardModify(sv);
     const found = findDescriptor(sv, "value");
     if (!found?.d.get || !found.d.set) return;
     if (found.own ? !found.d.configurable : !Object.isExtensible(sv)) return;
@@ -157,7 +161,6 @@ function guard(sv: any) {
         });
         guards.set(sv, found.own ? found.d : null);
     } catch { }
-    guardModify(sv);
 }
 
 function guardModify(sv: any) {
@@ -228,7 +231,8 @@ function kindFromProps(props: any, coords: any): TileKind {
     return "them";
 }
 
-const onSizeWrapped = new WeakMap<Function, Function>();
+const onSizeWrapped = new WeakMap<Function, Map<string, Function>>();
+const sizeWrappers = new WeakSet<Function>();
 
 function sizeFromArgs(args: any[]): { w: number; h: number; } | null {
     const [a, b] = args;
@@ -247,6 +251,7 @@ function snap(a: number) {
 const same = (a: number, b: number) => Math.abs(a / b - 1) < 0.02;
 
 function noteSize(sid: string, size: { w: number; h: number; }) {
+    if (!Number.isFinite(size.w) || !Number.isFinite(size.h) || size.w <= 0 || size.h <= 0) return;
     videoSizes.set(sid, size);
     const a = snap(size.w / size.h);
     const cur = aspects.get(sid);
@@ -276,7 +281,7 @@ function noteSize(sid: string, size: { w: number; h: number; }) {
 function noteCoords(sv: any) {
     if (!sv || typeof sv !== "object") return;
     let id = coordsIds.get(sv);
-    if (id === undefined) {
+    if (!id) {
         id = String(readCoords(sv)?.id ?? "");
         coordsIds.set(sv, id);
     }
@@ -293,9 +298,12 @@ export function registerTile(args: any[]) {
 
     if (props.streamId != null && typeof props.onSize === "function" && typeof args[0] !== "string") {
         const orig = props.onSize;
-        let w = onSizeWrapped.get(orig);
+        if (sizeWrappers.has(orig)) return;
+        const sid = String(props.streamId);
+        let wrappers = onSizeWrapped.get(orig);
+        if (!wrappers) onSizeWrapped.set(orig, wrappers = new Map());
+        let w = wrappers.get(sid);
         if (!w) {
-            const sid = String(props.streamId);
             w = (...a: any[]) => {
                 try {
                     const size = sizeFromArgs(a);
@@ -305,7 +313,8 @@ export function registerTile(args: any[]) {
                 }
                 return orig(...a);
             };
-            onSizeWrapped.set(orig, w);
+            wrappers.set(sid, w);
+            sizeWrappers.add(w);
         }
         args[1] = { ...props, onSize: w };
         return args;
@@ -318,22 +327,41 @@ export function registerTile(args: any[]) {
     const key = `v:${props.streamId}`;
     const existing = tiles.get(key);
     const now = Date.now();
-    if (existing && existing.coords !== props.sharedCoords) targets.delete(existing.coords);
-    tiles.set(key, {
+    const tile = {
         key,
         kind: existing?.kind ?? kindFromProps(props, current),
         coords: props.sharedCoords,
         streamId: String(props.streamId),
         seenAt: now,
         firstSeen: existing?.firstSeen ?? now,
-    });
-    if (active && existing?.coords !== props.sharedCoords) scheduleApply();
+    };
+    let candidates = tileCandidates.get(key);
+    if (!candidates) tileCandidates.set(key, candidates = new Map());
+    candidates.set(props.sharedCoords, tile);
+    if (!existing || existing.coords === props.sharedCoords || !hasTileProbe(existing.coords)) {
+        if (existing && existing.coords !== props.sharedCoords) targets.delete(existing.coords);
+        tiles.set(key, tile);
+        if (active && existing?.coords !== props.sharedCoords) scheduleApply();
+    }
+}
+
+function tileFor(key: string): Tile | undefined {
+    const previous = tiles.get(key);
+    if (previous && hasTileProbe(previous.coords)) return previous;
+    const candidates = [...(tileCandidates.get(key)?.values() ?? [])];
+    const mounted = candidates.filter(t => hasTileProbe(t.coords));
+    const picked = (mounted.length ? mounted : candidates).sort((a, b) => b.seenAt - a.seenAt)[0] ?? previous;
+    if (picked && picked !== previous) {
+        if (previous) targets.delete(previous.coords);
+        tiles.set(key, picked);
+    }
+    return picked;
 }
 
 interface Part { id: string; userId?: string; streamId?: string; kind: TileKind; video: boolean; }
 
 export function hasVideo(p: any): boolean {
-    if (p.stream) return true;
+    if (p.stream || p.type === 0 || String(p.id ?? "").startsWith("call:")) return true;
     const self = p.voiceState?.selfVideo;
     if (typeof self === "boolean") return self;
     if (typeof p.userVideo === "boolean") return p.userVideo;
@@ -355,12 +383,13 @@ function callParts(): Part[] | null {
             voiceHidden = false;
         }
         return parts.filter(p => p && p.id != null).map(p => {
-            const userId = p.user?.id ?? (p.stream ? undefined : p.id);
+            const stream = !!p.stream || p.type === 0 || String(p.id).startsWith("call:");
+            const userId = p.user?.id ?? (stream ? undefined : p.id);
             return {
                 id: String(p.id),
                 userId: userId != null ? String(userId) : undefined,
                 streamId: p.streamId != null ? String(p.streamId) : undefined,
-                kind: p.stream ? "stream" : userId === meId ? "me" : "them",
+                kind: stream ? "stream" : userId === meId ? "me" : "them",
                 video: hasVideo(p),
             };
         });
@@ -375,7 +404,7 @@ function previewTile(p: Part, used: Set<any>): Tile | undefined {
         hit = undefined;
         for (const [id, e] of coordsById) {
             if (!id.startsWith("call:") || used.has(e.coords)) continue;
-            if (p.userId && !id.includes(p.userId)) continue;
+            if (!p.userId || !id.includes(p.userId)) continue;
             if (!hit || e.seenAt > hit.seenAt) hit = e;
         }
     }
@@ -388,6 +417,16 @@ function previewTile(p: Part, used: Set<any>): Tile | undefined {
 }
 
 let voice: Tile[] = [];
+const participantOrder = shared.participantOrder ??= new Map<string, number>();
+
+function orderOf(id: string, now: number) {
+    const participant = `${String(SelectedChannelStore?.getVoiceChannelId?.() ?? "")}:${id}`;
+    if (!participantOrder.has(participant)) {
+        participantOrder.set(participant, now + participantOrder.size / 1000);
+        if (participantOrder.size > 200) participantOrder.delete(participantOrder.keys().next().value!);
+    }
+    return participantOrder.get(participant)!;
+}
 
 function liveTiles(): Tile[] {
     const all = callParts();
@@ -410,13 +449,15 @@ function liveTiles(): Tile[] {
     const live = new Set<string>();
     const waiting: Part[] = [];
     for (const p of parts) {
-        const t = p.streamId != null ? tiles.get(`v:${p.streamId}`) : undefined;
+        const firstSeen = orderOf(p.id, now);
+        const t = p.streamId != null ? tileFor(`v:${p.streamId}`) : undefined;
         if (!t) {
             if (p.kind === "stream") waiting.push(p);
             continue;
         }
         live.add(t.key);
         t.kind = p.kind;
+        t.firstSeen = firstSeen;
         if (used.has(t.coords)) continue;
         used.add(t.coords);
         out.push(t);
@@ -424,6 +465,7 @@ function liveTiles(): Tile[] {
     for (const p of waiting) {
         const t = previewTile(p, used);
         if (!t) continue;
+        t.firstSeen = orderOf(p.id, now);
         used.add(t.coords);
         out.push(t);
     }
@@ -433,15 +475,19 @@ function liveTiles(): Tile[] {
             const coords = coordsById.get(p.id)?.coords ?? (p.streamId != null ? tiles.get(`v:${p.streamId}`)?.coords : undefined);
             if (!coords || used.has(coords)) continue;
             used.add(coords);
-            voice.push({ key: `a:${p.id}`, kind: p.kind, coords, seenAt: now, firstSeen: now });
+            voice.push({ key: `a:${p.id}`, kind: p.kind, coords, seenAt: now, firstSeen: orderOf(p.id, now) });
         }
     }
     for (const [key, t] of tiles) {
-        if (!live.has(key) && now - t.seenAt > 10_000) tiles.delete(key);
+        if (!live.has(key) && now - t.seenAt > 10_000) {
+            tiles.delete(key);
+            tileCandidates.delete(key);
+        }
     }
     for (const [id, e] of coordsById) {
         if (now - e.seenAt > 120_000) coordsById.delete(id);
     }
+    voice.sort((a, b) => a.firstSeen - b.firstSeen || a.key.localeCompare(b.key));
     return out;
 }
 
@@ -453,7 +499,7 @@ function orderedTiles(): Tile[] {
         const i = order.indexOf(k);
         return i === -1 ? 99 : i;
     };
-    return liveTiles().sort((a, b) => rank(a.kind) - rank(b.kind) || a.firstSeen - b.firstSeen || (a.key < b.key ? -1 : 1));
+    return liveTiles().sort((a, b) => rank(a.kind) - rank(b.kind) || a.firstSeen - b.firstSeen || (a.key === b.key ? 0 : a.key < b.key ? -1 : 1));
 }
 
 const aspectListeners = new Set<() => void>();
@@ -480,283 +526,113 @@ export function knownMainAspect(): number | null {
 }
 
 function aspectOf(t: Tile): number {
-    if (t.kind !== "stream") return 16 / 9;
     return (t.streamId && aspects.get(t.streamId)?.value) || 16 / 9;
 }
-
-function gridWidth(list: Tile[], ww: number): number {
-    let w = 0;
-    for (const t of list) {
-        const o = intended.get(t.coords);
-        if (o) w = Math.max(w, (o.x ?? 0) + (o.width ?? 0));
-    }
-    if (w >= ww - 48 && w <= ww) gridW = { ww, w };
-    return gridW?.ww === ww ? gridW.w : Math.max(200, ww - 24);
-}
-
-const GRID_TOP = 112;
 
 interface Frame { origin: { x: number; y: number; }; parent: string; hidden: boolean; top: number; bottom: number; }
 
 let frame: Frame | null = null;
-let lastOrigin: { x: number; y: number; } | null = null;
-const maxTop = new Map<string, number>();
+let viewport = "";
+let layoutChannel = "";
+let originContext = "";
+let pendingOrigin: { x: number; y: number; at: number; since: number; samples: number; } | null = null;
+let pendingToolbar: { y: number; since: number; at: number; samples: number; } | null = null;
+const restSince = new WeakMap<object, { r: Rect; since: number; }>();
+const origins = shared.origins ??= new Map<string, { x: number; y: number; }>();
+const shownBottom = shared.shownBottom ??= new Map<string, number>();
+const frameLog: string[] = [];
+let frameNote = "";
 
 const statusBar = () => (typeof StatusBar?.currentHeight === "number" ? StatusBar.currentHeight : 24);
 
-const restSince = new WeakMap<object, { r: Rect; since: number; }>();
-let frameNote = "";
-let pendingFrame: { f: Frame; since: number; } | null = null;
-let frameAt = 0;
-let frameMode = "";
-const frameLog: string[] = [];
-const shownH = new Map<string, number>();
-const shownTop = new Map<string, number>();
+function syncViewport() {
+    const key = viewportKey();
+    const channel = String(SelectedChannelStore?.getVoiceChannelId?.() ?? "");
+    if (key === viewport && channel === layoutChannel) return;
+    viewport = key;
+    layoutChannel = channel;
+    frame = null;
+    origin = null;
+    originContext = "";
+    pendingOrigin = pendingToolbar = null;
+    gridW = null;
+    resetTileMeasurements();
+    for (const sv of touched) targets.delete(sv);
+    frameNote = "screen changed";
+}
 
 function updateFrame(win: { width: number; height: number; }) {
-    const p = measured.parent;
-    if (!p || Date.now() - p.at > 1000 || !isCoords(p.coords)) return;
-    const rest = restSince.get(p.sv);
-    if (!rest || !near(p.coords, rest.r) || Date.now() - rest.since < 700) {
-        frameNote = "moving";
-        return;
-    }
-    if (Math.abs(p.width - p.coords.width) > 16 || Math.abs(p.height - p.coords.height) > 16) {
-        frameNote = `skipped ${Math.round(p.width)}x${Math.round(p.height)}`;
-        return;
-    }
-    let o = { x: p.x - p.coords.x - (p.coords.width - p.width) / 2, y: p.y - p.coords.y - (p.coords.height - p.height) / 2 };
-    const stable = lastOrigin && Math.abs(lastOrigin.x - o.x) < 1.5 && Math.abs(lastOrigin.y - o.y) < 1.5;
-    lastOrigin = o;
-    if (!stable) {
-        frameNote = "checking";
-        return;
-    }
-    frameNote = "";
-    const mode = fullscreen ? "full" : "grid";
-    const sameMode = !!frame && frameMode === mode;
-    if (sameMode && mode === "full") {
-        if (Math.abs(frame!.origin.x - o.x) < 60 && Math.abs(frame!.origin.y - o.y) < 60) {
-            pendingFrame = null;
-            return;
-        }
-    }
-    if (frame && Math.abs(frame.origin.x - o.x) < 12 && Math.abs(frame.origin.y - o.y) < 12) o = frame.origin;
-    const land = win.width > win.height;
-    const key = `${Math.round(win.width)}x${Math.round(win.height)}`;
-    const top0 = Math.max(maxTop.get(key) ?? o.y, o.y);
-    maxTop.set(key, top0);
-    const tb = measured.toolbar && Date.now() - measured.toolbar.at < 2000 ? measured.toolbar : undefined;
-    const useToolbar = toolbarKnown() && splitViewSettings.showButton !== false;
-    const hidden = useToolbar ? !tb || tb.y >= win.height - 4 : o.y < top0 - 30;
-    const top = hidden ? (land ? 8 : statusBar() + 6) : o.y + 4;
-    const bottom = hidden ? win.height - (land ? 8 : 56) : (tb && tb.y < win.height - 4 ? tb.y - 16 : win.height - (land ? 90 : 136)) - 8;
-    const next: Frame = { origin: o, parent: "tile", hidden, top: Math.round(top), bottom: Math.round(bottom) };
     const now = Date.now();
-    if (!hidden) shownH.set(key, next.bottom - next.top);
-    if (!hidden && mode === "grid") shownTop.set(key, next.top);
-    if (sameMode && sameFrame(frame!, next)) {
-        pendingFrame = null;
-        frame = { ...frame!, origin: next.origin };
-        return;
+    const land = win.width > win.height;
+    const key = `${layoutChannel}|${viewport}`;
+    const context = `${key}|${chrome ? "shown" : "hidden"}`;
+    if (originContext !== context) {
+        originContext = context;
+        pendingOrigin = null;
+        origin = origins.get(context) ?? origin;
+        resetTileMeasurements();
     }
-    if (sameMode) {
-        if (!pendingFrame || !sameFrame(pendingFrame.f, next)) {
-            pendingFrame = { f: next, since: now };
-            frameNote = "waiting";
-            return;
-        }
-        if (now - pendingFrame.since < 500 || now - frameAt < 1500) {
-            frameNote = "waiting";
-            return;
+    const p = measured.parent;
+    const rest = p ? restSince.get(p.sv) : undefined;
+    if (!origins.has(context) && p?.viewport === viewport && now - p.at < 700 && isCoords(p.coords) && near(readCoords(p.sv) ?? {}, p.coords) && (!rest || now - rest.since >= 150)) {
+        const candidate = {
+            x: p.x - p.coords.x - (p.coords.width - p.width) / 2,
+            y: p.y - p.coords.y - (p.coords.height - p.height) / 2,
+        };
+        if (Number.isFinite(candidate.x) && Number.isFinite(candidate.y) && Math.abs(candidate.x) < win.width && Math.abs(candidate.y) < win.height) {
+            if (!pendingOrigin || Math.abs(pendingOrigin.x - candidate.x) > 1.5 || Math.abs(pendingOrigin.y - candidate.y) > 1.5) {
+                pendingOrigin = { ...candidate, at: p.at, since: now, samples: 1 };
+            } else if (pendingOrigin.at !== p.at) {
+                pendingOrigin.at = p.at;
+                pendingOrigin.samples++;
+            }
+            if (pendingOrigin.samples >= 2 && now - pendingOrigin.since >= 200) {
+                origin = { x: Math.round(candidate.x * 2) / 2, y: Math.round(candidate.y * 2) / 2 };
+                origins.set(context, origin);
+                if (origins.size > 24) origins.delete(origins.keys().next().value!);
+                frameLog.push(`${new Date(now).toISOString().slice(17, 23)} locked ${viewport} ${origin.x},${origin.y} ${chrome ? "shown" : "hidden"}`);
+                if (frameLog.length > 6) frameLog.shift();
+                pendingOrigin = null;
+            }
         }
     }
-    pendingFrame = null;
-    frame = next;
-    frameMode = mode;
-    frameAt = now;
-    frameLog.push(`${new Date(now).toISOString().slice(17, 23)} area ${Math.round(o.x)},${Math.round(o.y)} ${hidden ? "hidden" : "shown"} fit ${next.top}-${next.bottom}${tb ? ` toolbar ${Math.round(tb.y)}` : ""}`);
-    if (frameLog.length > 6) frameLog.shift();
-}
-
-function sameFrame(a: Frame, b: Frame) {
-    return a.hidden === b.hidden && Math.abs(a.origin.x - b.origin.x) < 6 && Math.abs(a.origin.y - b.origin.y) < 6
-        && Math.abs(a.top - b.top) < 6 && Math.abs(a.bottom - b.bottom) < 6;
-}
-
-function sizeHeight(regionH: number, win: { width: number; height: number; }) {
-    const cap = shownH.get(`${Math.round(win.width)}x${Math.round(win.height)}`);
-    return cap && cap > 120 ? Math.min(regionH, cap) : regionH;
+    const tb = measured.toolbar?.viewport === viewport && now - measured.toolbar.at < 1000 ? measured.toolbar : undefined;
+    if (!shownBottom.has(key) && chrome && tb && tb.y > statusBar() + 140 && tb.y < win.height - 4) {
+        if (!pendingToolbar || Math.abs(pendingToolbar.y - tb.y) > 2) pendingToolbar = { y: tb.y, since: now, at: tb.at, samples: 1 };
+        else if (pendingToolbar.at !== tb.at) {
+            pendingToolbar.at = tb.at;
+            pendingToolbar.samples++;
+        }
+        if (pendingToolbar.samples >= 2 && now - pendingToolbar.since >= 200) {
+            shownBottom.set(key, Math.round(tb.y - 24));
+            if (shownBottom.size > 16) shownBottom.delete(shownBottom.keys().next().value!);
+            pendingToolbar = null;
+        }
+    }
+    const top = fullscreen ? (land ? 8 : statusBar() + 6) : statusBar() + (land ? 8 : 40);
+    const bottom = fullscreen ? win.height - (land ? 8 : 56) : shownBottom.get(key) ?? win.height - (land ? 90 : 136);
+    origin ??= { x: 12, y: statusBar() + (land ? 8 : 40) };
+    frame = { origin, parent: origins.has(context) ? "locked tile" : "bootstrap", hidden: !chrome, top, bottom: Math.max(top + 1, Math.min(win.height, bottom)) };
+    frameNote = origins.has(context) ? "locked" : pendingOrigin ? "checking origin" : "waiting for tile measurement";
 }
 
 export function setTilesFullscreen(v: boolean) {
     if (fullscreen === v) return;
     fullscreen = v;
-    origin = null;
     if (active) scheduleApply();
 }
 
-const LS_INSET = 12;
-
-function landscapeRects(list: Tile[], win: { width: number; height: number; }): Map<string, Rect> {
-    const out = new Map<string, Rect>();
-    const boxes = list.map(t => intended.get(t.coords)).filter(isCoords);
-    let W = win.width - 24;
-    let top = 0;
-    let H = win.height - 170;
-    if (boxes.length) {
-        const minX = Math.min(...boxes.map(b => b.x));
-        const maxX = Math.max(...boxes.map(b => b.x + b.width));
-        const minY = Math.min(...boxes.map(b => b.y));
-        const maxY = Math.max(...boxes.map(b => b.y + b.height));
-        W = Math.min(win.width, Math.max(maxX - minX, minX + maxX));
-        top = minY;
-        H = Math.max(120, maxY - minY - LS_INSET);
-    }
-    if (frame) {
-        const full = Math.max(120, frame.bottom - frame.top);
-        H = sizeHeight(full, win);
-        top = frame.top - frame.origin.y + (full - H) / 2;
-    }
-    const n = voice.length;
-    const S = n ? Math.max(36, Math.min(72, (H - GRID_GAP * (n - 1)) / n)) : 0;
-    const Wv = n ? W - S - GRID_GAP : W;
-    const asp = list.map(aspectOf);
-    const widest = Math.max(...asp);
-    let best = { rows: 1, cols: list.length, h: 0 };
-    for (let rows = 1; rows <= list.length; rows++) {
-        const cols = Math.ceil(list.length / rows);
-        const h = Math.min((H - GRID_GAP * (rows - 1)) / rows, (Wv - GRID_GAP * (cols + 1)) / cols / widest);
-        if (h > best.h) best = { rows, cols, h };
-    }
-    const { rows, cols, h } = best;
-    let y = top + Math.max(0, (H - (rows * h + GRID_GAP * (rows - 1))) / 2);
-    for (let r = 0; r < rows; r++) {
-        const idx = list.map((_, i) => i).slice(r * cols, (r + 1) * cols);
-        const widths = idx.map(i => h * asp[i]);
-        let x = Math.max(GRID_GAP, (Wv - widths.reduce((a, b) => a + b, 0) - GRID_GAP * (idx.length - 1)) / 2);
-        idx.forEach((i, j) => {
-            out.set(list[i].key, { x, y, width: widths[j], height: h });
-            x += widths[j] + GRID_GAP;
-        });
-        y += h + GRID_GAP;
-    }
-    if (n) {
-        const rects = [...out.values()];
-        const left = Math.min(...rects.map(r => r.x));
-        const right = Math.max(...rects.map(r => r.x + r.width));
-        const shift = Math.max(GRID_GAP, (W - (right - left + GRID_GAP + S)) / 2) - left;
-        for (const [k, r] of out) out.set(k, { ...r, x: r.x + shift });
-        let vy = top + Math.max(0, (H - (n * S + GRID_GAP * (n - 1))) / 2);
-        for (const t of voice) {
-            out.set(t.key, { x: right + shift + GRID_GAP, y: vy, width: S, height: S });
-            vy += S + GRID_GAP;
-        }
-    }
-    return rounded(out);
-}
-
-function rounded(out: Map<string, Rect>) {
-    for (const [k, r] of out) out.set(k, { x: Math.round(r.x), y: Math.round(r.y), width: Math.round(r.width), height: Math.round(r.height) });
-    return out;
-}
-
 function computeRects(list: Tile[]): Map<string, Rect> {
-    const out = new Map<string, Rect>();
-    if (!list.length) return out;
-
     const win = Dimensions.get("window");
-    if (win.width > win.height) return landscapeRects(list, win);
-    let W: number, H: number, X0: number, Y0: number, GAP: number;
-    if (fullscreen) {
-        origin = frame?.origin ?? origin ?? { x: (win.width - gridWidth(list, win.width)) / 2, y: GRID_TOP };
-        const under = shownTop.get(`${Math.round(win.width)}x${Math.round(win.height)}`);
-        const top = Math.max(statusBar() + 6, under != null ? under - HEADER_GAP : statusBar() + 44);
-        const bottom = win.height - 56;
-        W = win.width;
-        H = Math.max(300, bottom - top);
-        X0 = -origin.x;
-        Y0 = top - origin.y;
-        GAP = FS_GAP;
-    } else {
-        W = gridWidth(list, win.width);
-        const full = frame ? Math.max(200, frame.bottom - frame.top) : Math.max(300, win.height - 245);
-        H = frame ? sizeHeight(full, win) : full;
-        X0 = 0;
-        Y0 = frame ? frame.top - frame.origin.y + (full - H) / 2 : 0;
-        GAP = GRID_GAP;
-    }
-    const n = voice.length;
-    const S = n ? Math.max(40, Math.min(96, (W - GAP * (n - 1)) / n)) : 0;
-    const fullH = H;
-    if (n) H = Math.max(160, H - S - GAP);
-    const asp = list.map(aspectOf);
-    const tall = (i: number) => asp[i] < 1;
-
-    const rows: number[][] = [];
-    list.forEach((_, i) => {
-        const last = rows[rows.length - 1];
-        if (tall(i) && last && tall(last[0]) && last.length < 3) last.push(i);
-        else rows.push([i]);
-    });
-
-    const wide = rows.filter(r => !tall(r[0]));
-    const narrow = rows.filter(r => tall(r[0]));
-    const gaps = GAP * (rows.length - 1);
-    const inv = wide.reduce((s, r) => s + 1 / asp[r[0]], 0);
-    const fitWidth = (r: number[]) => (W - GAP * (r.length - 1)) / r.reduce((s, i) => s + asp[i], 0);
-
-    let w = W;
-    let p = 0;
-    if (narrow.length) {
-        const pMax = Math.min(wide.length ? H * 0.5 : H, ...narrow.map(fitWidth));
-        const pMin = Math.min(H * 0.25, pMax);
-        p = Math.min(pMax, (H - gaps - W * inv) / narrow.length);
-        if (p < pMin) {
-            p = pMin;
-            if (inv) w = Math.min(W, Math.max(60, (H - gaps - narrow.length * p) / inv));
-        }
-    } else if (inv) {
-        w = Math.min(W, (H - gaps) / inv);
-    }
-
-    const extra = new Map<number[], number>();
-    if (fullscreen) {
-        const cams = wide.filter(r => r.length === 1 && list[r[0]].kind !== "stream");
-        const slack = H - (rows.reduce((s, r) => s + (tall(r[0]) ? p : w / asp[r[0]]), 0) + gaps);
-        if (cams.length && slack > 1) {
-            for (const r of cams) extra.set(r, Math.max(0, Math.min(slack / cams.length, w / CAM_MIN_ASPECT - w / asp[r[0]])));
-        }
-    }
-    const heightOf = (r: number[]) => (tall(r[0]) ? p : w / asp[r[0]] + (extra.get(r) ?? 0));
-    const used = rows.reduce((s, r) => s + heightOf(r), 0) + gaps;
-    let y = Math.max(0, (H - used) / 2);
-    for (const r of rows) {
-        const h = heightOf(r);
-        const widths = extra.get(r) ? [w] : r.map(i => h * asp[i]);
-        const rowW = widths.reduce((a, b) => a + b, 0) + GAP * (r.length - 1);
-        let x = Math.max(0, (W - rowW) / 2);
-        r.forEach((i, j) => {
-            out.set(list[i].key, { x: X0 + x, y: Y0 + y, width: widths[j], height: h });
-            x += widths[j] + GAP;
-        });
-        y += h + GAP;
-    }
-    if (n) {
-        const rects = [...out.values()];
-        const top = Math.min(...rects.map(r => r.y));
-        const bottom = Math.max(...rects.map(r => r.y + r.height));
-        const shift = Y0 + Math.max(0, (fullH - (bottom - top + GAP + S)) / 2) - top;
-        for (const [k, r] of out) out.set(k, { ...r, y: r.y + shift });
-        let vx = X0 + Math.max(0, (W - (n * S + GAP * (n - 1))) / 2);
-        for (const t of voice) {
-            out.set(t.key, { x: vx, y: bottom + shift + GAP, width: S, height: S });
-            vx += S + GAP;
-        }
-    }
-    return rounded(out);
+    const area = {
+        left: fullscreen ? 0 : 12,
+        right: win.width - (fullscreen ? 0 : 12),
+        top: frame?.top ?? statusBar() + 40,
+        bottom: frame?.bottom ?? win.height - 136,
+    };
+    gridW = { ww: win.width, w: area.right - area.left };
+    return splitRects(list.map(t => ({ key: t.key, aspect: aspectOf(t) })), voice.map(t => t.key), area, frame?.origin ?? { x: 12, y: area.top }, win.width > win.height, fullscreen);
 }
-
 const fmt = (c: any) => `${Math.round(c?.x)},${Math.round(c?.y)} ${Math.round(c?.width)}x${Math.round(c?.height)}`;
 
 function noteMove(t: Tile, cur: any, now: number) {
@@ -768,11 +644,12 @@ function noteMove(t: Tile, cur: any, now: number) {
 
 function applyLayout() {
     if (!active || !mine()) return;
+    syncViewport();
     const list = orderedTiles();
-    const square = (t: Tile) => !t.streamId || Math.abs((aspects.get(t.streamId)?.value ?? 16 / 9) - aspectOf(t)) < 0.1;
-    measureAll(readCoords, (list.find(t => t.kind === "stream" && square(t)) ?? list.find(square))?.coords);
-    updateFrame(Dimensions.get("window"));
+    const probe = list.find(t => t.kind === "stream" && hasTileProbe(t.coords)) ?? list.find(t => hasTileProbe(t.coords));
+    measureAll(readCoords, probe?.coords, probe ? aspectOf(probe) : undefined);
     noteChrome();
+    updateFrame(Dimensions.get("window"));
     if (!list.length) {
         if (touched.size) restoreAll();
         return;
@@ -822,7 +699,7 @@ function poll() {
     pollTimer = null;
     if (!active || !mine()) return;
     safeApply();
-    pollTimer = setTimeout(poll, Date.now() < burstUntil ? 40 : 150);
+    pollTimer = setTimeout(safe("split poll", poll), 150);
 }
 
 export function kickTiles() {
@@ -836,10 +713,10 @@ let applyScheduled = false;
 function scheduleApply() {
     if (applyScheduled) return;
     applyScheduled = true;
-    setTimeout(() => {
+    setTimeout(safe("split schedule", () => {
         applyScheduled = false;
         safeApply();
-    }, 50);
+    }), 50);
 }
 
 function restoreAll() {
@@ -925,7 +802,7 @@ function fromMeasure(shown: boolean) {
 
 function noteChrome() {
     const tb = measured.toolbar;
-    if (!tb || Date.now() - tb.at > 2000) return;
+    if (!tb || tb.viewport !== viewportKey() || Date.now() - tb.at > 2000) return;
     fromMeasure(tb.y < Dimensions.get("window").height - 4);
 }
 
@@ -987,6 +864,12 @@ export function setTilesActive(v: boolean, handoff = false) {
     } else {
         if (pollTimer) clearTimeout(pollTimer);
         pollTimer = null;
+        resetTileMeasurements();
+        for (const a of aspects.values()) {
+            if (a.timer) clearTimeout(a.timer);
+            if (a.pending !== undefined) a.value = a.pending;
+            a.pending = a.timer = undefined;
+        }
         try {
             if (!handoff && mine()) restoreAll();
         } catch (e) {
@@ -1022,6 +905,7 @@ export function tilesDebug(): string[] {
         `window: ${Math.round(Dimensions.get("window").width)}x${Math.round(Dimensions.get("window").height)}, tiles: ${list.length} (registered ${tiles.size}), call videos: ${(callParts() ?? []).filter(p => p.video).map(p => p.streamId ?? "preview").join(",") || "none"}, camera off: ${voice.length}`,
         `mode: ${fullscreen ? "full screen" : "grid"}, ${frame ? `area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} (${frame.parent}), controls ${frame.hidden ? "hidden" : "shown"}, fit ${Math.round(frame.top)}-${Math.round(frame.bottom)}` : "area not measured"}${frameNote ? ` (${frameNote})` : ""}${measured.toolbar ? `, toolbar y ${Math.round(measured.toolbar.y)}` : ""}`,
         `held: ${held}, moved: ${moved}, guarded: ${guards.size}, touched: ${touched.size}, grid: ${gridW ? `${Math.round(gridW.w)}/${gridW.ww}` : "?"}`,
+        probeDebug(),
         ...(moves.length ? ["last moves:", ...moves.map(m => `  ${m}`)] : []),
         ...(frameLog.length ? ["area changes:", ...frameLog.map(m => `  ${m}`)] : []),
         `order setting: ${currentOrder().join(" > ")}`,
