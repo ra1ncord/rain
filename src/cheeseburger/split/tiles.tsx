@@ -5,6 +5,7 @@ import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { Dimensions, StatusBar } from "react-native";
 
 import { caught, safe } from "../crash";
+import { controlledCoordinates, coordinatesDebug, ownsCoordinates, sourceCoordinates } from "./coordinates";
 import { hasToolbarRef, measureAll, measured, measureToolbarNow, toolbarKnown, viewportKey } from "./probe";
 import { splitViewSettings } from "./storage";
 
@@ -307,8 +308,13 @@ function noteCoords(sv: any) {
 }
 
 export function registerTile(args: any[]) {
-    const props = args[1];
+    let props = args[1];
     if (!props || typeof props !== "object") return;
+    if (props.sharedCoords) {
+        const source = sourceCoordinates(props.sharedCoords);
+        const coords = active ? controlledCoordinates(source) : source;
+        if (coords !== props.sharedCoords) args[1] = props = { ...props, sharedCoords: coords };
+    }
     if (props.sharedCoords) noteCoords(props.sharedCoords);
 
     if (props.streamId != null && typeof props.onSize === "function" && typeof args[0] !== "string") {
@@ -504,18 +510,14 @@ export function knownMainAspect(): number | null {
 }
 
 function aspectOf(t: Tile): number {
-    if (t.kind !== "stream") return 16 / 9;
     return (t.streamId && aspects.get(t.streamId)?.value) || 16 / 9;
 }
 
 function gridWidth(list: Tile[], ww: number): number {
-    let w = 0;
-    for (const t of list) {
-        const o = nativeCoords(t.coords);
-        if (o) w = Math.max(w, (o.x ?? 0) + (o.width ?? 0));
-    }
-    if (w >= ww - 48 && w <= ww) gridW = { ww, w };
-    return gridW?.ww === ww ? gridW.w : Math.max(200, ww - 24);
+    const inset = frame ? Math.max(0, Math.min(24, frame.origin.x)) : 12;
+    const w = Math.max(120, ww - inset * 2);
+    gridW = { ww, w };
+    return w;
 }
 
 const GRID_TOP = 112;
@@ -647,15 +649,12 @@ const LS_INSET = 12;
 function landscapeRects(list: Tile[], win: { width: number; height: number; }): Map<string, Rect> {
     const out = new Map<string, Rect>();
     const boxes = list.map(t => nativeCoords(t.coords)).filter(isCoords);
-    let W = win.width - 24;
+    const W = win.width - 2 * Math.max(LS_INSET, frame?.origin.x ?? LS_INSET);
     let top = 0;
     let H = win.height - 170;
     if (boxes.length) {
-        const minX = Math.min(...boxes.map(b => b.x));
-        const maxX = Math.max(...boxes.map(b => b.x + b.width));
         const minY = Math.min(...boxes.map(b => b.y));
         const maxY = Math.max(...boxes.map(b => b.y + b.height));
-        W = Math.min(win.width, Math.max(maxX - minX, minX + maxX));
         top = minY;
         H = Math.max(120, Math.min(maxY - minY - LS_INSET, win.height - minY - LS_INSET));
     }
@@ -830,6 +829,10 @@ function applyLayout() {
     for (const t of all) {
         const cur = readCoords(t.coords);
         current.set(t.coords, cur);
+        if (ownsCoordinates(t.coords)) {
+            const native = readCoords(sourceCoordinates(t.coords));
+            if (isCoords(native)) rememberCoords(t.coords, native);
+        }
         if (isCoords(cur) && t.coords && !intended.has(t.coords)) rememberCoords(t.coords, cur);
     }
     const rects = computeRects(list);
@@ -851,12 +854,12 @@ function applyLayout() {
         const rs = restSince.get(t.coords);
         if (!rs || !near(rs.r, r)) restSince.set(t.coords, { r, since: now });
         touched.add(t.coords);
-        guard(t.coords);
+        if (!ownsCoordinates(t.coords)) guard(t.coords);
         const cur = current.get(t.coords);
         if (cur && !near(cur, r)) {
             if (prev && near(prev, r)) {
                 noteMove(t, cur, now);
-                if (isCoords(cur) && !(written.get(t.coords) ?? []).some(w => near(cur, w))) rememberCoords(t.coords, cur);
+                if (!ownsCoordinates(t.coords) && isCoords(cur) && !(written.get(t.coords) ?? []).some(w => near(cur, w))) rememberCoords(t.coords, cur);
                 burstUntil = now + 3000;
             }
             write(t.coords, { ...cur, ...r, zIndex: 1 }, r);
@@ -870,7 +873,7 @@ function poll() {
     pollTimer = null;
     if (!active || !mine()) return;
     safeApply();
-    pollTimer = setTimeout(poll, Date.now() < burstUntil ? 40 : 150);
+    pollTimer = setTimeout(safe("split poll", poll), Date.now() < burstUntil ? 40 : 150);
 }
 
 export function kickTiles() {
@@ -884,10 +887,10 @@ let applyScheduled = false;
 function scheduleApply() {
     if (applyScheduled) return;
     applyScheduled = true;
-    setTimeout(() => {
+    setTimeout(safe("split scheduled layout", () => {
         applyScheduled = false;
         safeApply();
-    }, 50);
+    }), 50);
 }
 
 function restoreAll() {
@@ -1030,6 +1033,8 @@ export function setTilesActive(v: boolean, handoff = false) {
     active = v;
     if (v) {
         shared.owner = copy;
+        for (const tile of [...tiles.values(), ...previews.values()]) tile.coords = controlledCoordinates(sourceCoordinates(tile.coords));
+        for (const entry of coordsById.values()) entry.coords = controlledCoordinates(sourceCoordinates(entry.coords));
         burstUntil = Date.now() + 3000;
         if (!pollTimer) poll();
     } else {
@@ -1070,6 +1075,7 @@ export function tilesDebug(): string[] {
         `window: ${Math.round(Dimensions.get("window").width)}x${Math.round(Dimensions.get("window").height)}, tiles: ${list.length} (registered ${tiles.size}), call videos: ${(callParts() ?? []).filter(p => p.video).map(p => p.streamId ?? "preview").join(",") || "none"}, camera off: ${voice.length}`,
         `mode: ${fullscreen ? "full screen" : "grid"}, ${frame ? `area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} (${frame.parent}), controls ${frame.hidden ? "hidden" : "shown"}, fit ${Math.round(frame.top)}-${Math.round(frame.bottom)}` : "area not measured"}${frameNote ? ` (${frameNote})` : ""}${measured.toolbar ? `, toolbar y ${Math.round(measured.toolbar.y)}` : ""}`,
         `held: ${held}, moved: ${moved}, guarded: ${guards.size}, touched: ${touched.size}, grid: ${gridW ? `${Math.round(gridW.w)}/${gridW.ww}` : "?"}`,
+        coordinatesDebug(),
         ...(moves.length ? ["last moves:", ...moves.map(m => `  ${m}`)] : []),
         ...(registrations.length ? ["tile replacements:", ...registrations.map(m => `  ${m}`)] : []),
         ...(frameLog.length ? ["area changes:", ...frameLog.map(m => `  ${m}`)] : []),

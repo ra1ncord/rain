@@ -1,23 +1,23 @@
 import { findAssetId } from "@api/assets";
 import { React } from "@metro/common";
-import { Image, StyleSheet, Text } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 
 import { caught, safe } from "../crash";
 import { accentColor } from "../style/colors";
 import { mineParticipant, onPinChange, participantForStream, pinnedPip, pinPip } from "./pip";
 import { useSplitViewSettings } from "./storage";
+import { chromeShown, onChrome, watchChrome } from "./tiles";
 
 const ICONS = ["PictureInPictureIcon", "PipIcon", "ic_pip", "PopoutIcon", "WindowLaunchIcon", "ScreenArrowIcon"];
-const KEY = "cheeseburger-pip";
-const LABEL = /^(?:stop watching|focus\b|more options$)/i;
-const info = new WeakMap<object, { streams: Set<string>; pinned: boolean; }>();
-const scopes = new WeakMap<object, Map<string, any>>();
-const scoped = new WeakSet<object>();
-const streamStack: string[] = [];
-let rows = 0;
-let mounted = 0;
-let templateName = "";
+const LABEL = /^(?:stop watching|focus\b.*|view voice grid|minimize)$/i;
+const listeners = new Set<() => void>();
+const FILL = { position: "absolute", top: 0, right: 0, bottom: 0, left: 0 } as const;
+let template: any = null;
+let priority = -1;
+let opacity: { type: any; style: any; } | null = null;
 let icon: number | null | undefined;
+let mounted = 0;
+let native = 0;
 export let pinIconName = "";
 
 function pinIcon() {
@@ -34,6 +34,48 @@ function pinIcon() {
     return icon;
 }
 
+const nameOf = (el: any) => el?.type?.displayName ?? el?.type?.name ?? "";
+function pill(el: any, depth = 0): boolean {
+    if (!el || typeof el !== "object" || depth > 5) return false;
+    if (Array.isArray(el)) return el.some(c => pill(c, depth));
+    return /ButtonPill/.test(nameOf(el)) || pill(el.props?.children, depth + 1);
+}
+
+function opacityStyle(style: any): any {
+    if (Array.isArray(style)) return style.map(opacityStyle).find(Boolean);
+    const value = style?.initial?.value;
+    return style?.viewDescriptors && typeof value?.opacity === "number" && !value.transform ? style : null;
+}
+
+function hasControl(el: any, depth = 0): boolean {
+    if (!el || typeof el !== "object" || depth > 5) return false;
+    if (Array.isArray(el)) return el.some(c => hasControl(c, depth));
+    return LABEL.test(el.props?.accessibilityLabel ?? "") || hasControl(el.props?.children, depth + 1);
+}
+
+export function capturePinControl(el: any) {
+    const props = el?.props;
+    if (!props || props.cheeseburgerPin) return;
+    let notify = false;
+    const label = props.accessibilityLabel ?? "";
+    if (typeof props.onPress === "function" && LABEL.test(label) && pill(props.children)) {
+        const rank = /stop watching|focus/i.test(label) ? 1 : 0;
+        if (rank >= priority) {
+            notify = !template || rank > priority;
+            template = el;
+            priority = rank;
+        }
+    }
+    if (/View/.test(nameOf(el)) && hasControl(props.children)) {
+        const style = opacityStyle(props.style);
+        if (style) {
+            notify ||= !opacity;
+            opacity = { type: el.type, style };
+        }
+    }
+    if (notify) setTimeout(safe("pip pin template", () => listeners.forEach(l => l())), 0);
+}
+
 class Guard extends React.Component<{ children?: any; }, { failed: boolean; }> {
     state = { failed: false };
     static getDerivedStateFromError() { return { failed: true }; }
@@ -41,146 +83,66 @@ class Guard extends React.Component<{ children?: any; }, { failed: boolean; }> {
     render() { return this.state.failed ? null : this.props.children; }
 }
 
-const nameOf = (el: any) => el?.type?.displayName ?? el?.type?.name ?? "";
-
-function replaceIcon(el: any, pinned: boolean, depth = 0): any {
-    if (Array.isArray(el)) return el.map(c => replaceIcon(c, pinned, depth));
+function replaceIcon(el: any, content: any, depth = 0): any {
+    if (Array.isArray(el)) return el.map(c => replaceIcon(c, content, depth));
     if (!React.isValidElement(el) || depth > 6) return el;
     const props = el.props as any;
-    if (/Icon$/.test(nameOf(el)) || props.source != null) {
-        const source = pinIcon();
-        return source != null
-            ? <Image key={el.key ?? undefined} source={source} style={{ width: 20, height: 20, tintColor: pinned ? accentColor("#ff0048") : "#ffffff" }} />
-            : <Text key={el.key ?? undefined} style={{ color: "#ffffff", fontSize: 11, fontWeight: "700" }}>PiP</Text>;
-    }
-    return props.children == null ? el : React.cloneElement(el as any, undefined, replaceIcon(props.children, pinned, depth + 1));
+    if (/Icon$/.test(nameOf(el)) || props.source != null) return content;
+    return props.children == null ? el : React.cloneElement(el as any, undefined, replaceIcon(props.children, content, depth + 1));
 }
 
-function Pin({ streamId, base }: { streamId: string; base: any; }) {
+function Pin({ streamId }: { streamId: any; }) {
     const enabled = useSplitViewSettings((s: any) => s.pipPins !== false);
     const [, force] = React.useReducer((n: number) => n + 1, 0);
-    React.useEffect(() => onPinChange(force), []);
     React.useEffect(() => {
+        const offPin = onPinChange(force);
+        const offChrome = onChrome(force);
+        const offWatch = watchChrome();
+        listeners.add(force);
         mounted++;
-        return () => { mounted = Math.max(0, mounted - 1); };
+        return () => {
+            offPin();
+            offChrome();
+            offWatch();
+            listeners.delete(force);
+            mounted = Math.max(0, mounted - 1);
+        };
     }, []);
     const part = participantForStream(streamId);
     if (!enabled || !part || mineParticipant(part)) return null;
     const pinned = pinnedPip() === part.id;
-    return React.cloneElement(base, {
-        key: KEY,
+    const source = pinIcon();
+    const color = pinned ? accentColor("#ff0048") : "#ffffff";
+    const content = source != null
+        ? <Image key="pip-icon" source={source} style={{ width: 20, height: 20, tintColor: color }} />
+        : <Text key="pip-icon" style={{ color, fontSize: 11, fontWeight: "700" }}>PiP</Text>;
+    const props = {
         ref: undefined,
+        cheeseburgerPin: true,
+        accessibilityRole: "button" as const,
         accessibilityLabel: pinned ? "Unpin from picture in picture" : "Pin to picture in picture",
         accessibilityHint: undefined,
         accessibilityState: { selected: pinned },
         accessibilityActions: undefined,
         onAccessibilityAction: undefined,
+        disabled: false,
+        onPressIn: undefined,
+        onPressOut: undefined,
         onLongPress: undefined,
         onPress: safe("pip pin press", () => pinPip(pinned ? null : part.id)),
-    }, replaceIcon(base.props.children, pinned));
+        style: [template?.props?.style, { position: "absolute", right: 8, bottom: 8 }],
+    };
+    const button = template
+        ? React.cloneElement(template, props, replaceIcon(template.props.children, content))
+        : <Pressable {...props} style={{ position: "absolute", right: 8, bottom: 8, width: 32, height: 32, borderRadius: 8, backgroundColor: "#00000085", alignItems: "center", justifyContent: "center" }}>{content}</Pressable>;
+    if (template) native++;
+    return opacity
+        ? React.createElement(opacity.type, { pointerEvents: chromeShown() ? "box-none" : "none", style: [FILL, opacity.style], cheeseburgerPin: true }, button)
+        : <View pointerEvents="box-none" style={FILL}>{button}</View>;
 }
 
-function PipPin(props: { streamId: string; base: any; }) {
+export function PipPin(props: { streamId: any; }) {
     return <Guard><Pin {...props} /></Guard>;
 }
 
-export function markVideoElement(el: any, streamId: any) {
-    if (el && typeof el === "object") info.set(el, { streams: new Set([String(streamId)]), pinned: false });
-}
-
-function collect(el: any, depth = 0): { streams: Set<string>; pinned: boolean; } {
-    const out = { streams: new Set<string>(), pinned: false };
-    if (!el || typeof el !== "object" || depth > 6) return out;
-    if (!Array.isArray(el)) {
-        const hit = info.get(el);
-        if (hit) return hit;
-        if (el.key === KEY || el.type === PipPin) out.pinned = true;
-        const sid = el.props?.streamId ?? el.props?.participant?.streamId;
-        if (sid != null) out.streams.add(String(sid));
-    }
-    const children = Array.isArray(el) ? el : el.props?.children;
-    for (const child of Array.isArray(children) ? children.slice(0, 20) : [children]) {
-        const hit = collect(child, depth + 1);
-        hit.streams.forEach(sid => out.streams.add(sid));
-        out.pinned ||= hit.pinned;
-    }
-    if (!Array.isArray(el)) info.set(el, out);
-    return out;
-}
-
-function insert(el: any, sid: string, depth = 0): any {
-    if (!React.isValidElement(el) || depth > 6) return el;
-    const props = el.props as any;
-    const children = props.children;
-    if (Array.isArray(children)) {
-        const buttons = children.filter(c => typeof c?.props?.onPress === "function" && LABEL.test(c.props.accessibilityLabel ?? ""));
-        const style = typeof props.style === "function" ? null : StyleSheet.flatten(props.style);
-        if (buttons.length && (style?.flexDirection === "row" || buttons.length > 1)) {
-            const base = buttons.find(c => /stop watching|focus/i.test(c.props.accessibilityLabel)) ?? buttons[0];
-            if (base.props.children == null) return el;
-            rows++;
-            templateName = (nameOf(base) || "pressable") + " > " + (nameOf(Array.isArray(base.props.children) ? base.props.children[0] : base.props.children) || "icon");
-            const next = React.cloneElement(el as any, undefined, [...children, <PipPin key={KEY} streamId={sid} base={base} />]);
-            info.set(next, { streams: new Set([sid]), pinned: true });
-            return next;
-        }
-    }
-    if (children == null || typeof children === "function") return el;
-    let changed = false;
-    const next = (Array.isArray(children) ? children : [children]).map(child => {
-        if (changed) return child;
-        const out = insert(child, sid, depth + 1);
-        changed ||= out !== child;
-        return out;
-    });
-    if (!changed) return el;
-    const out = React.cloneElement(el as any, undefined, Array.isArray(children) ? next : next[0]);
-    info.set(out, { streams: new Set([sid]), pinned: true });
-    return out;
-}
-
-export function integratePinControls(el: any) {
-    if (!el?.props?.children) return el;
-    const found = collect(el);
-    if (found.pinned || found.streams.size > 1) return el;
-    const sid = [...found.streams][0] ?? streamStack[streamStack.length - 1];
-    if (sid == null) return el;
-    const part = participantForStream(sid);
-    return part && !mineParticipant(part) ? insert(el, sid) : el;
-}
-
-export function scopePinControls(args: any[]) {
-    const [type, props] = args;
-    if (typeof type !== "function" || type.prototype?.isReactComponent || scoped.has(type) || !props) return;
-    if ("isCamera" in props || "videoSpinnerContext" in props || typeof props.onSize === "function") return;
-    const name = type.displayName ?? type.name ?? "";
-    const own = props.streamId ?? props.participant?.streamId;
-    const sid = own != null ? String(own) : /Overlay|Controls|Actions|Buttons/.test(name) ? streamStack[streamStack.length - 1] : undefined;
-    if (sid == null) return;
-    let cache = scopes.get(type);
-    if (!cache) scopes.set(type, cache = new Map());
-    let wrapped = cache.get(sid);
-    if (!wrapped) {
-        wrapped = function (this: any, ...a: any[]) {
-            streamStack.push(sid);
-            try {
-                const out = type.apply(this, a);
-                try {
-                    return integratePinControls(out);
-                } catch (e) {
-                    caught("pip native controls", e);
-                    return out;
-                }
-            } finally {
-                streamStack.pop();
-            }
-        };
-        wrapped.displayName = name;
-        if (type.defaultProps) wrapped.defaultProps = type.defaultProps;
-        scoped.add(wrapped);
-        cache.set(sid, wrapped);
-    }
-    args[0] = wrapped;
-}
-
-export const pinDebug = () => "pin controls: native rows " + rows + ", mounted " + mounted + ", template " + (templateName || "not seen yet") + ", icon " + (pinIconName || "not seen yet");
+export const pinDebug = () => "pin controls: mounted " + mounted + ", native renders " + native + ", template " + (template ? nameOf(template) || "pressable" : "plain fallback") + ", visibility " + (opacity ? "discord animation" : "always available") + ", icon " + (pinIconName || "not seen yet");
