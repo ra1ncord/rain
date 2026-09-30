@@ -5,6 +5,7 @@ import { Image, Pressable, Text } from "react-native";
 
 import { safe } from "../crash";
 import { DEFAULT_ICON_SIZE, useCallLook } from "../look";
+import { ToolbarButton } from "../toolbar";
 import { useDeafenButtonSettings } from "./storage";
 
 const firstAsset = (...names: string[]) => {
@@ -37,7 +38,7 @@ export default function DeafenButton() {
     const d = custom && custom !== DEFAULT_ICON_SIZE ? custom : look.size;
     const color = deafened ? "#f23f43" : look.tint;
 
-    return (
+    const plain = (
         <Pressable
             accessibilityRole="button"
             accessibilityLabel={deafened ? "Undeafen" : "Deafen"}
@@ -55,5 +56,15 @@ export default function DeafenButton() {
                 ? <Image source={icon} style={{ width: d, height: d, tintColor: color }} />
                 : <Text style={{ fontSize: d * 0.9, color }}>{deafened ? "🔇" : "🎧"}</Text>}
         </Pressable>
+    );
+
+    return (
+        <ToolbarButton
+            icon={deafened ? ["HeadphonesSlashIcon", "HeadphonesDenyIcon", "HeadphonesXIcon"] : ["HeadphonesIcon"]}
+            label={deafened ? "Undeafen" : "Deafen"}
+            onPress={onPress}
+            color={deafened ? "#f23f43" : undefined}
+            fallback={plain}
+        />
     );
 }

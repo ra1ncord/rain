@@ -1,16 +1,17 @@
+import { findAssetId } from "@api/assets";
 import { before, instead } from "@api/patcher";
 import { jsxRuntime } from "@api/react/jsx";
 import { React } from "@metro/common";
+import { TableRow } from "@metro/common/components";
 
 import { caught, safe, safeInstead } from "../crash";
+import { iconComponent } from "../toolbar";
 
-const ROWS = /\/VoicePanelVoiceControlsButtons\.tsx$/;
 const TOOLBAR = /\/VoicePanelScreenshareButton\.tsx$/;
 const KEY = "cheeseburger-share";
 
 const unpatches: (() => unknown)[] = [];
 const listeners = new Set<() => void>();
-let rows: any = null;
 let bar: any = null;
 let barPatched = false;
 let lastLook = 0;
@@ -59,20 +60,54 @@ class Guard extends React.Component<{ children?: any; }, { failed: boolean; }> {
     }
 }
 
-function ShareRow(props: any) {
-    const Row = React.useRef(rows?.ScreenshareButton).current;
-    const out = typeof Row === "function" ? Row(props) : null;
-    const ok = out != null;
+const SHARE_LABEL = /share your screen|screen ?shar|stop (?:sharing|streaming)|go live/i;
+const ANCHOR_LABEL = /^(?:show chat|hide chat|activities)$/i;
+const SHARE_ICONS = ["MobilePhoneShareIcon", "ScreenArrowIcon", "ScreenIcon"];
+const DROP = new Set(["onPress", "onLongPress", "label", "subLabel", "icon", "trailing", "arrow", "value", "onValueChange", "accessibilityLabel", "accessibilityHint", "start", "end", "children", "disabled"]);
+
+let share: { label: string; onPress: () => void; } | null = null;
+
+const press = () => {
+    try {
+        share?.onPress();
+    } catch (e) {
+        caught("share press", e);
+    }
+};
+(press as any).__cheeseburgerShare = true;
+
+function shareIcon(icon: any): any {
+    const id = SHARE_ICONS.map(n => findAssetId(n)).find(x => x !== undefined);
+    const comp = SHARE_ICONS.map(iconComponent).find(Boolean);
+    if (icon && typeof icon === "object" && "props" in icon) {
+        if (icon.props?.source != null && id !== undefined) return React.cloneElement(icon, { source: id });
+        if (comp) return React.createElement(comp, icon.props);
+    }
+    if (typeof icon === "function" && comp) return comp;
+    return id !== undefined ? <TableRow.Icon source={id} /> : undefined;
+}
+
+function MenuShare({ base }: { base: any; }) {
+    const [, force] = React.useReducer((n: number) => n + 1, 0);
     React.useEffect(() => {
-        if (!ok) return;
+        listeners.add(force);
         live++;
         changed();
         return () => {
+            listeners.delete(force);
             live = Math.max(0, live - 1);
             changed();
         };
-    }, [ok]);
-    return out;
+    }, []);
+    const props: any = {};
+    for (const k of Object.keys(base.props ?? {})) if (!DROP.has(k)) props[k] = base.props[k];
+    return React.createElement(base.type, {
+        ...props,
+        label: share?.label ?? "Share Your Screen",
+        accessibilityLabel: share?.label ?? "Share Your Screen",
+        icon: shareIcon(base.props?.icon),
+        onPress: press,
+    });
 }
 
 function ToolbarShare({ children }: { children?: any; }) {
@@ -84,65 +119,63 @@ function ToolbarShare({ children }: { children?: any; }) {
     return live > 0 ? null : children ?? null;
 }
 
-function dataProps(props: any) {
-    const out: any = {};
-    for (const k of Object.keys(props ?? {})) {
-        if (k === "children" || typeof props[k] === "function") continue;
-        out[k] = props[k];
-    }
-    return out;
-}
-
 function ensure() {
     const now = Date.now();
-    if ((rows && barPatched) || now - lastLook < 2000) return;
+    if (barPatched || now - lastLook < 2000) return;
     lastLook = now;
-    rows ??= byPath(ROWS) ?? null;
-    if (!barPatched) {
-        bar ??= byPath(TOOLBAR) ?? null;
-        if (bar && typeof bar.default === "function") {
-            try {
-                unpatches.push(instead("default", bar, safeInstead("share toolbar", (args: any[], orig: Function) => {
-                    const out = orig(...args);
-                    return out == null ? out : <ToolbarShare>{out}</ToolbarShare>;
-                })));
-                barPatched = true;
-            } catch (e) {
-                caught("share toolbar", e);
-            }
+    bar ??= byPath(TOOLBAR) ?? null;
+    if (bar && typeof bar.default === "function") {
+        try {
+            unpatches.push(instead("default", bar, safeInstead("share toolbar", (args: any[], orig: Function) => {
+                const out = orig(...args);
+                return out == null ? out : <ToolbarShare>{out}</ToolbarShare>;
+            })));
+            barPatched = true;
+        } catch (e) {
+            caught("share toolbar", e);
         }
     }
 }
 
-function onJsx(args: any[]) {
-    if (!barPatched && typeof args[0] === "function" && args[0].name === "VideoButton") ensure();
-    const props = args[1];
-    const ch = props?.children;
-    if (!rows || !Array.isArray(ch) || ch.length < 2 || ch.length > 40) return;
-    const chat = rows.ChatButton;
-    const acts = rows.ActivitiesButton;
-    if (typeof rows.ScreenshareButton !== "function" || (!chat && !acts)) return;
+function anchorIn(ch: any[]): number {
     let at = -1;
     for (let i = 0; i < ch.length; i++) {
         const c = ch[i];
-        if (!c || typeof c !== "object") continue;
-        if (c.key === KEY) return;
-        if (chat && c.type === chat) {
+        if (!c || typeof c !== "object" || !c.props) continue;
+        if (c.key === KEY) return -2;
+        const label = c.props.label;
+        if (typeof label === "string" && ANCHOR_LABEL.test(label.trim())) {
             at = i;
-            break;
+            if (/chat/i.test(label)) break;
         }
-        if (acts && c.type === acts && at === -1) at = i;
     }
-    if (at === -1) return;
+    return at;
+}
+
+function onJsx(args: any[]) {
+    const type = args[0];
+    if (!barPatched && typeof type === "function" && type.name === "VideoButton") ensure();
+    const props = args[1];
+    if (!props || typeof props !== "object") return;
+    const label = props.accessibilityLabel;
+    if (typeof props.onPress === "function" && !props.onPress.__cheeseburgerShare && typeof label === "string" && SHARE_LABEL.test(label)) {
+        const changedLabel = share?.label !== label;
+        share = { label, onPress: props.onPress };
+        if (changedLabel) changed();
+    }
+    const ch = props.children;
+    if (!share || !Array.isArray(ch) || ch.length < 2 || ch.length > 40) return;
+    const at = anchorIn(ch);
+    if (at < 0) return;
     placed++;
-    const row = <Guard key={KEY}><ShareRow {...dataProps(ch[at].props)} /></Guard>;
+    const row = <Guard key={KEY}><MenuShare base={ch[at]} /></Guard>;
     args[1] = { ...props, children: [...ch.slice(0, at + 1), row, ...ch.slice(at + 1)] };
     return args;
 }
 
 export function shareDebug(): string[] {
     return [
-        `share: menu ${rows ? "found" : "not yet"}, toolbar ${barPatched ? "hooked" : "not yet"}, placed ${placed}, showing ${live}${failures ? `, failed ${failures} (${lastError})` : ""}`,
+        `share: button ${share ? `"${share.label}"` : "not seen yet"}, toolbar ${barPatched ? "hooked" : "not yet"}, placed ${placed}, showing ${live}${failures ? `, failed ${failures} (${lastError})` : ""}`,
     ];
 }
 
@@ -158,7 +191,7 @@ export default {
         for (const u of unpatches.splice(0)) u();
         barPatched = false;
         bar = null;
-        rows = null;
+        share = null;
         live = 0;
         changed();
     },

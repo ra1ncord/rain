@@ -1,11 +1,12 @@
 import { findAssetId } from "@api/assets";
 import { showSheet } from "@api/ui/sheets";
 import { React } from "@metro/common";
-import { Image, Pressable, Text } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 
 import { safe } from "../crash";
 import { DEFAULT_ICON_SIZE, useCallLook } from "../look";
 import { accentColor } from "../style/colors";
+import { ToolbarButton } from "../toolbar";
 import { ArrangeSheet } from "./Arrange";
 import { isSplitActive, onSplitChange, setSplitActive, toggleSplit } from "./layout";
 import { useToolbarRef } from "./probe";
@@ -33,9 +34,8 @@ export function SplitViewButton() {
     const d = custom && custom !== DEFAULT_ICON_SIZE ? custom : look.size;
     const color = active ? accentColor() : look.tint;
 
-    return (
+    const plain = (
         <Pressable
-            ref={ref}
             accessibilityRole="button"
             accessibilityLabel="Split view"
             onPress={press}
@@ -48,5 +48,18 @@ export function SplitViewButton() {
                 ? <Image source={icon} style={{ width: d, height: d, tintColor: color }} />
                 : <Text style={{ color, fontSize: d * 0.8 }}>⇅</Text>}
         </Pressable>
+    );
+
+    return (
+        <View ref={ref} collapsable={false}>
+            <ToolbarButton
+                icon={["GridSquareIcon", "GridVerticalIcon", "LayoutIcon"]}
+                label="Split view"
+                onPress={press}
+                onLongPress={hold}
+                color={active ? accentColor() : undefined}
+                fallback={plain}
+            />
+        </View>
     );
 }

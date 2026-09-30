@@ -4,6 +4,7 @@ import { waitForHydration } from "@api/storage";
 import { React } from "@metro/common";
 
 import { safe } from "../crash";
+import { useToolbar } from "../toolbar";
 import { isFullscreenSplit, isLandscapeAuto, isSplitActive, resumeSplit, startLayoutPatches, stopLayoutPatches } from "./layout";
 import { startPip, stopPip } from "./pip";
 import { TileProbe } from "./probe";
@@ -39,6 +40,7 @@ export default {
         unpatches.push(before("jsxs", jsxRuntime, register));
         unpatches.push(after("jsx", jsxRuntime, addProbe));
         unpatches.push(after("jsxs", jsxRuntime, addProbe));
+        unpatches.push(useToolbar());
         const handoff = g.__cheeseburgerSplit;
         if (handoff) {
             delete g.__cheeseburgerSplit;

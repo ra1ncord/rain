@@ -41,6 +41,8 @@ const BOXES = /^(?:View|RCTView|Pressable\w*|\w*Pressable|AnimatedComponent|Anim
 const FORWARD_REF = Symbol.for("react.forward_ref");
 const MEMO = Symbol.for("react.memo");
 const DEFAULT_LOOKS = ["#00000085|8"];
+const PILLS = /Pill|Button|Background|Surface|Container/;
+const HOME = /^(?:direct messages|messages|home|dms?)\b/i;
 
 const OVERLAY_ICON = /^(?:X|Close|Dismiss|CircleX)(?:Small|Medium|Large)?Icon$|^(?:Maximize|Minimize|Fullscreen|FullScreen|ArrowsExpand|ArrowsCollapse|ArrowsMaximize|ArrowsMinimize|ArrowsOut|ArrowsIn|Expand|Collapse|Enlarge|Shrink|PopOut|Popout)\w*Icon$|^ic_(?:close|x_|clear|fullscreen|full_screen|maximi|minimi|expand|collapse)/i;
 const OVERLAY_LABEL = /^(?:close|dismiss|hide|stop (?:watching|viewing|stream)|leave stream|close stream|full ?screen|enter full ?screen|exit full ?screen|maximi[sz]e|minimi[sz]e|expand|collapse|enlarge|focus|unfocus|pop ?out)\b/i;
@@ -332,7 +334,7 @@ const lookOf = (flat: any) => `${hex(flat.backgroundColor)}|${radiusOf(flat)}`;
 function decide(flat: any, animated: boolean, hinted: boolean): { kind: Kind | null; why: string; learn: boolean; } {
     const c = parseColor(flat.backgroundColor);
     const known = looks.has(lookOf(flat));
-    if ((hinted || known) && (seeThrough(c) || (animated && !accentLike(c)))) return { kind: "overlay", why: known ? "overlay look" : "overlay", learn: hinted && !known };
+    if ((hinted || known) && (seeThrough(c) || (animated && !accentLike(c)))) return { kind: "overlay", why: known ? "overlay look" : "overlay", learn: hinted && !known && seeThrough(c) };
     if (accentLike(c)) return { kind: "solid", why: "solid", learn: false };
     return { kind: null, why: hinted ? "overlay icon on solid bg" : "not accent", learn: false };
 }
@@ -400,7 +402,16 @@ function target(type: any, props: any, hint: Hint): any {
     if (list.length > 4) return null;
     for (let i = 0; i < list.length; i++) {
         const c = list[i];
-        if (!c || typeof c !== "object" || !("props" in c) || !boxType(c.type)) continue;
+        if (!c || typeof c !== "object" || !("props" in c)) continue;
+        if (!boxType(c.type)) {
+            const pill = typeof props.onPress === "function" && composite(c.type) && !skipType(c.type) && PILLS.test(infoOf(c.type).name);
+            if (!pill) continue;
+            const w = wrapType(c.type, 0, { blanket: false, call: null, hint });
+            if (!w) continue;
+            notePressable(type, props, hint, `watching ${infoOf(c.type).name}`);
+            const next = { ...c, type: w };
+            return { ...props, children: Array.isArray(ch) ? list.map((x, j) => (j === i ? next : x)) : next };
+        }
         if (isBevelled(c.props)) return null;
         const f = styleOf(c.props);
         if (!roundBox(f, 72) || !buttonish(f)) continue;
@@ -493,6 +504,7 @@ function onJsx(args: any[]) {
         return;
     }
     if (typeof type === "string") return;
+    if (typeof props.accessibilityLabel === "string" && HOME.test(props.accessibilityLabel)) notePressable(type, props, { overlay: false, label: props.accessibilityLabel, icon: "?" }, "home");
     const ch = props.children;
     let icon = "";
     if (ch != null && typeof ch === "object") {
@@ -663,7 +675,9 @@ export default {
     async start() {
         await waitForHydration(useStyleSettings);
         looks.clear();
-        for (const l of [...DEFAULT_LOOKS, ...(Array.isArray(styleSettings.looks) ? styleSettings.looks : [])]) if (typeof l === "string") looks.add(l);
+        for (const l of [...DEFAULT_LOOKS, ...(Array.isArray(styleSettings.looks) ? styleSettings.looks : [])]) {
+            if (typeof l === "string" && seeThrough(parseColor(l.split("|")[0]))) looks.add(l);
+        }
         const hook = safe("style jsx", onJsx);
         unpatches.push(before("jsx", jsxRuntime, hook));
         unpatches.push(before("jsxs", jsxRuntime, hook));
