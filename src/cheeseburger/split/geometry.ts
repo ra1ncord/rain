@@ -28,11 +28,11 @@ export function splitRects(videos: Video[], voices: string[], area: Area, origin
     if (!videos.length) return out;
     const width = Math.max(1, area.right - area.left);
     const height = Math.max(1, area.bottom - area.top);
-    const gap = Math.min(fullscreen ? 4 : 10, width / (videos.length * 4), height / (videos.length * 4));
+    const gap = Math.min(fullscreen ? 4 : 6, width / (videos.length * 4), height / (videos.length * 4));
     const voice = squareGrid(voices, landscape ? Math.min(80, width * 0.25) : width, landscape ? height : Math.min(96, height * 0.25), gap, landscape ? 72 : 96);
     const videoW = Math.max(1, width - (landscape && voices.length ? voice.width + gap : 0));
     const videoH = Math.max(1, height - (!landscape && voices.length ? voice.height + gap : 0));
-    const aspects = videos.map(v => Number.isFinite(v.aspect) && v.aspect > 0 ? v.aspect : 16 / 9);
+    const aspects = videos.map(() => 16 / 9);
     let rows: number[][] = [];
     let heights: number[] = [];
 
@@ -49,11 +49,7 @@ export function splitRects(videos: Video[], voices: string[], area: Area, origin
         }
         heights = rows.map(() => bestHeight);
     } else {
-        videos.forEach((_, i) => {
-            const last = rows[rows.length - 1];
-            if (aspects[i] < 1 && last && aspects[last[0]] < 1 && last.length < 3) last.push(i);
-            else rows.push([i]);
-        });
+        rows = videos.map((_, i) => [i]);
         heights = rows.map(row => (videoW - gap * (row.length - 1)) / row.reduce((sum, i) => sum + aspects[i], 0));
         const scale = Math.min(1, Math.max(0, videoH - gap * (rows.length - 1)) / heights.reduce((a, b) => a + b, 0));
         heights = heights.map(h => h * scale);

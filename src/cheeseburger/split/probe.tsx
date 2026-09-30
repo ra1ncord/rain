@@ -10,13 +10,13 @@ export const viewportKey = () => {
     return `${Math.round(win.width)}x${Math.round(win.height)}`;
 };
 
-const tileRefs = new Map<object, Set<{ current: any; }>>();
-const probed = new WeakSet<object>();
+const shared: { tileRefs: Map<object, Set<{ current: any; }>>; probed: WeakSet<object>; toolbarRef: { current: any; } | null; toolbarSeen: boolean; } = (globalThis as any).__cheeseburgerProbes ??= {
+    tileRefs: new Map(), probed: new WeakSet(), toolbarRef: null, toolbarSeen: false,
+};
+const { tileRefs, probed } = shared;
 const pending = new WeakMap<object, { at: number; }>();
 const lastMeasured = new WeakMap<object, number>();
 const counts = { requested: 0, accepted: 0, stale: 0, rejected: 0 };
-let toolbarRef: { current: any; } | null = null;
-let toolbarSeen = false;
 let generation = 0;
 
 export const measured: { parent?: Box & { coords: any; sv: object; }; toolbar?: Box; } = {};
@@ -59,11 +59,11 @@ export const hasTileProbe = (coords: object) => !!tileRefs.get(coords)?.size;
 export function useToolbarRef() {
     const ref = React.useRef<any>(null);
     React.useEffect(() => {
-        toolbarRef = ref;
-        toolbarSeen = true;
+        shared.toolbarRef = ref;
+        shared.toolbarSeen = true;
         return () => {
-            if (toolbarRef === ref) {
-                toolbarRef = null;
+            if (shared.toolbarRef === ref) {
+                shared.toolbarRef = null;
                 delete measured.toolbar;
             }
         };
@@ -71,7 +71,7 @@ export function useToolbarRef() {
     return ref;
 }
 
-export const toolbarKnown = () => toolbarSeen;
+export const toolbarKnown = () => shared.toolbarSeen;
 
 function measure(ref: { current: any; }, done: (b: Box) => void) {
     const node = ref.current;
@@ -135,12 +135,12 @@ export function measureAll(read: (sv: any) => any, prefer?: object, aspect?: num
     measureToolbarNow();
 }
 
-export const hasToolbarRef = () => !!toolbarRef?.current;
+export const hasToolbarRef = () => !!shared.toolbarRef?.current;
 
 export function measureToolbarNow() {
-    const ref = toolbarRef;
+    const ref = shared.toolbarRef;
     if (ref?.current) measure(ref, b => {
-        if (toolbarRef === ref) measured.toolbar = b;
+        if (shared.toolbarRef === ref) measured.toolbar = b;
     });
 }
 

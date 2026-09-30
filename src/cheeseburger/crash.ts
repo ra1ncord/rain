@@ -170,9 +170,9 @@ export function caught(where: string, e: unknown) {
 }
 
 export function safe<F extends (...a: any[]) => any>(where: string, fn: F): F {
-    return function (this: any, a?: any, b?: any, c?: any) {
+    return function (this: any, ...args: Parameters<F>) {
         try {
-            return fn.call(this, a, b, c);
+            return fn.apply(this, args);
         } catch (e) {
             caught(where, e);
             return undefined;

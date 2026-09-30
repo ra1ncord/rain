@@ -20,7 +20,7 @@ const g = globalThis as any;
 const addProbe = safe("split probe", (args: any[], ret: any) => {
     const props = args[1];
     if (isPipRender() || !ret || !props?.sharedCoords) return;
-    if (!isTileElement(args) && props.participant == null && props.participantId == null && props.id == null) return;
+    if (!isTileElement(args) && props.participant == null && props.participantId == null && props.id == null && props.userId == null) return;
     return withTileProbe(ret, props.sharedCoords);
 });
 

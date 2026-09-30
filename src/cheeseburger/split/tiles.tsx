@@ -23,11 +23,13 @@ interface Tile {
 interface Rect { x: number; y: number; width: number; height: number; }
 
 interface Aspect { value: number; pending?: number; timer?: ReturnType<typeof setTimeout>; }
+interface CoordsSource { coords: any; seenAt: number; outer?: boolean; }
 
 interface Shared {
     tiles: Map<string, Tile>;
     previews: Map<string, Tile>;
-    coordsById: Map<string, { coords: any; seenAt: number; }>;
+    coordsById: Map<string, CoordsSource>;
+    coordsCandidates?: Map<string, Map<object, CoordsSource>>;
     videoSizes: Map<string, { w: number; h: number; }>;
     aspects: Map<string, Aspect>;
     intended: WeakMap<object, any>;
@@ -56,6 +58,8 @@ const copy = ++shared.copies;
 const mine = () => shared.owner === copy;
 const { tiles, previews, coordsById, videoSizes, aspects, intended, touched } = shared;
 const tileCandidates = shared.tileCandidates ??= new Map<string, Map<object, Tile>>();
+const coordsCandidates = shared.coordsCandidates ??= new Map<string, Map<object, CoordsSource>>();
+for (const [id, source] of coordsById) if (!coordsCandidates.has(id)) coordsCandidates.set(id, new Map([[source.coords, source]]));
 for (const [key, tile] of tiles) if (!tileCandidates.has(key)) tileCandidates.set(key, new Map([[tile.coords, tile]]));
 const coordsIds = new WeakMap<object, string>();
 const targets = new WeakMap<object, Rect>();
@@ -278,23 +282,50 @@ function noteSize(sid: string, size: { w: number; h: number; }) {
     }), SETTLE_MS);
 }
 
-function noteCoords(sv: any) {
-    if (!sv || typeof sv !== "object") return;
-    let id = coordsIds.get(sv);
-    if (!id) {
-        id = String(readCoords(sv)?.id ?? "");
-        coordsIds.set(sv, id);
+function coordsForId(id: string): CoordsSource | undefined {
+    const previous = coordsById.get(id);
+    const candidates = coordsCandidates.get(id);
+    if (!candidates) return previous;
+    for (const [sv, source] of candidates) {
+        if (coordsIds.has(sv) && coordsIds.get(sv) !== id || !hasTileProbe(sv) && Date.now() - source.seenAt > 120_000) candidates.delete(sv);
     }
+    const mounted = [...candidates.values()].filter(source => hasTileProbe(source.coords));
+    const outer = mounted.filter(source => source.outer);
+    const pool = outer.length ? outer : mounted.length ? mounted : [...candidates.values()];
+    const picked = pool.find(source => source.coords === previous?.coords) ?? pool.sort((a, b) => b.seenAt - a.seenAt)[0];
+    if (picked) coordsById.set(id, picked);
+    else coordsById.delete(id);
+    return picked;
+}
+
+function noteCoords(sv: any, props: any) {
+    if (!sv || typeof sv !== "object") return;
+    const participantId = props.participant?.id ?? props.participantId ?? props.id;
+    const outer = !isVideoRenderer(props) && participantId != null;
+    const identity = participantId ?? readCoords(sv)?.id ?? props.userId ?? coordsIds.get(sv);
+    const id = typeof identity === "string" || typeof identity === "number" ? String(identity) : "";
     if (!id) return;
+    coordsIds.set(sv, id);
     const prev = coordsById.get(id);
-    coordsById.set(id, { coords: sv, seenAt: Date.now() });
-    if (active && prev?.coords !== sv && id.startsWith("call:")) scheduleApply();
+    let candidates = coordsCandidates.get(id);
+    if (!candidates) coordsCandidates.set(id, candidates = new Map());
+    candidates.set(sv, { coords: sv, seenAt: Date.now(), outer: outer || candidates.get(sv)?.outer === true });
+    const picked = coordsForId(id);
+    if (active && prev?.coords !== picked?.coords) scheduleApply();
 }
 
 export function registerTile(args: any[]) {
-    const props = args[1];
+    let props = args[1];
     if (!props || typeof props !== "object") return;
-    if (props.sharedCoords) noteCoords(props.sharedCoords);
+    if (active && props.streamId != null && typeof props.isCamera === "boolean") {
+        const mode = props.isCamera ? "cover" : "contain";
+        for (const key of ["resizeMode", "objectFit"]) {
+            if (props[key] !== "cover" && props[key] !== "contain" || props[key] === mode) continue;
+            props = { ...props, [key]: mode };
+        }
+        args[1] = props;
+    }
+    if (props.sharedCoords) noteCoords(props.sharedCoords, props);
 
     if (props.streamId != null && typeof props.onSize === "function" && typeof args[0] !== "string") {
         const orig = props.onSize;
@@ -399,7 +430,7 @@ function callParts(): Part[] | null {
 }
 
 function previewTile(p: Part, used: Set<any>): Tile | undefined {
-    let hit = coordsById.get(p.id);
+    let hit = coordsForId(p.id);
     if (!hit || used.has(hit.coords)) {
         hit = undefined;
         for (const [id, e] of coordsById) {
@@ -460,7 +491,12 @@ function liveTiles(): Tile[] {
         t.firstSeen = firstSeen;
         if (used.has(t.coords)) continue;
         used.add(t.coords);
-        out.push(t);
+        const outer = coordsForId(p.id);
+        if (outer?.outer && outer.coords !== t.coords && hasTileProbe(outer.coords) && !used.has(outer.coords)) {
+            used.delete(t.coords);
+            used.add(outer.coords);
+            out.push({ ...t, coords: outer.coords });
+        } else out.push(t);
     }
     for (const p of waiting) {
         const t = previewTile(p, used);
@@ -472,7 +508,7 @@ function liveTiles(): Tile[] {
     if (!voiceHidden) {
         for (const p of all ?? []) {
             if (p.video || p.kind === "stream") continue;
-            const coords = coordsById.get(p.id)?.coords ?? (p.streamId != null ? tiles.get(`v:${p.streamId}`)?.coords : undefined);
+            const coords = coordsForId(p.id)?.coords ?? (p.streamId != null ? tiles.get(`v:${p.streamId}`)?.coords : undefined);
             if (!coords || used.has(coords)) continue;
             used.add(coords);
             voice.push({ key: `a:${p.id}`, kind: p.kind, coords, seenAt: now, firstSeen: orderOf(p.id, now) });
@@ -485,7 +521,10 @@ function liveTiles(): Tile[] {
         }
     }
     for (const [id, e] of coordsById) {
-        if (now - e.seenAt > 120_000) coordsById.delete(id);
+        if (now - e.seenAt > 120_000 && !hasTileProbe(e.coords)) {
+            coordsById.delete(id);
+            coordsCandidates.delete(id);
+        }
     }
     voice.sort((a, b) => a.firstSeen - b.firstSeen || a.key.localeCompare(b.key));
     return out;
@@ -609,8 +648,9 @@ function updateFrame(win: { width: number; height: number; }) {
             pendingToolbar = null;
         }
     }
-    const top = fullscreen ? (land ? 8 : statusBar() + 6) : statusBar() + (land ? 8 : 40);
-    const bottom = fullscreen ? win.height - (land ? 8 : 56) : shownBottom.get(key) ?? win.height - (land ? 90 : 136);
+    const expanded = fullscreen || !chrome;
+    const top = expanded ? (land ? 8 : statusBar() + 6) : statusBar() + (land ? 8 : 40);
+    const bottom = expanded ? win.height - (land ? 8 : 56) : shownBottom.get(key) ?? win.height - (land ? 90 : 136);
     origin ??= { x: 12, y: statusBar() + (land ? 8 : 40) };
     frame = { origin, parent: origins.has(context) ? "locked tile" : "bootstrap", hidden: !chrome, top, bottom: Math.max(top + 1, Math.min(win.height, bottom)) };
     frameNote = origins.has(context) ? "locked" : pendingOrigin ? "checking origin" : "waiting for tile measurement";
@@ -624,9 +664,10 @@ export function setTilesFullscreen(v: boolean) {
 
 function computeRects(list: Tile[]): Map<string, Rect> {
     const win = Dimensions.get("window");
+    const inset = fullscreen || !chrome ? 0 : 12;
     const area = {
-        left: fullscreen ? 0 : 12,
-        right: win.width - (fullscreen ? 0 : 12),
+        left: inset,
+        right: win.width - inset,
         top: frame?.top ?? statusBar() + 40,
         bottom: frame?.bottom ?? win.height - 136,
     };
@@ -801,6 +842,10 @@ function fromMeasure(shown: boolean) {
 }
 
 function noteChrome() {
+    if (!hasToolbarRef() && toolbarKnown()) {
+        fromMeasure(false);
+        return;
+    }
     const tb = measured.toolbar;
     if (!tb || tb.viewport !== viewportKey() || Date.now() - tb.at > 2000) return;
     fromMeasure(tb.y < Dimensions.get("window").height - 4);
@@ -906,6 +951,7 @@ export function tilesDebug(): string[] {
         `mode: ${fullscreen ? "full screen" : "grid"}, ${frame ? `area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} (${frame.parent}), controls ${frame.hidden ? "hidden" : "shown"}, fit ${Math.round(frame.top)}-${Math.round(frame.bottom)}` : "area not measured"}${frameNote ? ` (${frameNote})` : ""}${measured.toolbar ? `, toolbar y ${Math.round(measured.toolbar.y)}` : ""}`,
         `held: ${held}, moved: ${moved}, guarded: ${guards.size}, touched: ${touched.size}, grid: ${gridW ? `${Math.round(gridW.w)}/${gridW.ww}` : "?"}`,
         probeDebug(),
+        `frames: equal 16:9, outer participants ${list.filter(t => [...coordsById.values()].some(source => source.outer && source.coords === t.coords)).length}, avatar sources ${voice.length}`,
         ...(moves.length ? ["last moves:", ...moves.map(m => `  ${m}`)] : []),
         ...(frameLog.length ? ["area changes:", ...frameLog.map(m => `  ${m}`)] : []),
         `order setting: ${currentOrder().join(" > ")}`,
