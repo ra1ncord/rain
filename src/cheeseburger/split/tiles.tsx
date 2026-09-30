@@ -5,7 +5,7 @@ import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { Dimensions, StatusBar } from "react-native";
 
 import { caught, safe } from "../crash";
-import { measureAll, measured, toolbarKnown } from "./probe";
+import { hasToolbarRef, measureAll, measured, measureToolbarNow, toolbarKnown } from "./probe";
 import { splitViewSettings } from "./storage";
 
 export type TileKind = "stream" | "them" | "me";
@@ -872,6 +872,31 @@ function noteChrome() {
 }
 
 export const chromeShown = () => chrome;
+
+let watchers = 0;
+let watchTimer: ReturnType<typeof setInterval> | null = null;
+
+const checkChrome = safe("split chrome", () => {
+    if (active) return;
+    if (!hasToolbarRef()) {
+        if (toolbarKnown()) setChrome(false);
+        return;
+    }
+    measureToolbarNow();
+    noteChrome();
+});
+
+export function watchChrome(): () => void {
+    watchers++;
+    if (!watchTimer) watchTimer = setInterval(checkChrome, 300);
+    return () => {
+        watchers = Math.max(0, watchers - 1);
+        if (!watchers && watchTimer) {
+            clearInterval(watchTimer);
+            watchTimer = null;
+        }
+    };
+}
 
 export function onChrome(l: () => void) {
     chromeListeners.add(l);

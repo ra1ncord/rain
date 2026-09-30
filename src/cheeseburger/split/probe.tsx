@@ -65,3 +65,11 @@ export function measureAll(read: (sv: any) => any, prefer?: object) {
         measured.toolbar = b;
     });
 }
+
+export const hasToolbarRef = () => !!toolbarRef?.current;
+
+export function measureToolbarNow() {
+    if (toolbarRef?.current) measure(toolbarRef.current, b => {
+        measured.toolbar = b;
+    });
+}

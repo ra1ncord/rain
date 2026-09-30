@@ -7,7 +7,7 @@ import { accentColor, withAlpha } from "../style/colors";
 import { Cut } from "../style/shapes";
 import { mineParticipant, onPinChange, participantForStream, pinnedPip, pinPip } from "./pip";
 import { useSplitViewSettings } from "./storage";
-import { chromeShown, onChrome } from "./tiles";
+import { chromeShown, onChrome, watchChrome } from "./tiles";
 
 const ICONS = ["PictureInPictureIcon", "PipIcon", "ic_pip", "PopoutIcon", "WindowLaunchIcon", "ScreenArrowIcon"];
 const SIZE = 32;
@@ -52,9 +52,11 @@ function Pin({ streamId }: { streamId: any; }) {
     React.useEffect(() => {
         const a = onPinChange(force);
         const b = onChrome(force);
+        const c = watchChrome();
         return () => {
             a();
             b();
+            c();
         };
     }, []);
     if (!on || !chromeShown()) return null;

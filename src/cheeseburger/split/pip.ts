@@ -1,6 +1,7 @@
-import { after, instead } from "@api/patcher";
+import { after, before, instead } from "@api/patcher";
+import { jsxRuntime } from "@api/react/jsx";
 import { findByStoreName } from "@metro";
-import { FluxDispatcher } from "@metro/common";
+import { FluxDispatcher, React } from "@metro/common";
 import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { NativeModules } from "react-native";
 
@@ -51,9 +52,26 @@ function moduleExports(path: string): any {
     }
 }
 
+let aspectFrom = "";
+let discordSid: string | null = null;
+const shapeLog: string[] = [];
+
 function pipAspect(): number | null {
-    const sid = viewSid ?? focused ?? selected;
-    return (sid && streamAspect(sid)) || knownMainAspect();
+    for (const [from, sid] of [["shown", viewSid], ["discord", discordSid], ["focused", focused], ["selected", selected]] as const) {
+        const a = sid ? streamAspect(sid) : null;
+        if (a) {
+            aspectFrom = `${from} ${sid}`;
+            return a;
+        }
+    }
+    const main = knownMainAspect();
+    aspectFrom = main ? "main tile" : "unknown";
+    return main;
+}
+
+function logShape(line: string) {
+    shapeLog.push(`${new Date().toISOString().slice(17, 23)} ${line}`);
+    if (shapeLog.length > 8) shapeLog.shift();
 }
 
 function ratioOf(args: any[]): number | null {
@@ -177,6 +195,7 @@ function patch(tries = 0) {
         }
         try {
             lastSent = `${JSON.stringify(args)} -> ${next !== args ? JSON.stringify(next) : "kept"}`;
+            logShape(`${lastSent} (${aspectFrom})`);
         } catch { }
         return orig(...next);
     })));
@@ -287,6 +306,7 @@ const like = (orig: any, v: any) => (typeof orig === "number" && v != null && Nu
 const swapped = new WeakMap<object, { id: string; out: any; }>();
 
 function pickSelection(ret: any): any {
+    discordSid = ret.selectedParticipantStreamId != null ? String(ret.selectedParticipantStreamId) : null;
     if (!ret.channelId) return ret;
     const cur = allParts().find(p => same(p.streamId, ret.selectedParticipantStreamId));
     const want = chosen(cur?.id ?? null);
@@ -303,6 +323,7 @@ function pickSelection(ret: any): any {
         focusedParticipantType: typeof ret.focusedParticipantType === typeof want.type ? want.type : ret.focusedParticipantType,
     };
     swapped.set(ret, { id: want.id, out });
+    logShape(`view ${discordSid ?? "none"} -> ${want.streamId}${pinned ? " (pinned)" : ""}`);
     return out;
 }
 
@@ -389,9 +410,76 @@ const onRtc = safe("pip rtc", (e: any) => {
     if (!viewRetry && viewPatched.size < VIEW_PATHS.length && /CONNECTED/.test(state)) patchViews(0);
 });
 
+const VIEW_TYPES = ["modules/external_pip/ExternalPipView.android.tsx", "modules/external_pip/ExternalPipViewVideo.android.tsx"];
+const awareOf = new WeakMap<object, any>();
+let viewTypes: any[] = [];
+let lastTypeLook = 0;
+let rerenders = 0;
+let inAware = false;
+
+function viewTypeList(): any[] {
+    const now = Date.now();
+    if (viewTypes.length < VIEW_TYPES.length && now - lastTypeLook > 2000) {
+        lastTypeLook = now;
+        viewTypes = VIEW_TYPES.map(p => moduleExports(p)?.default).filter(Boolean);
+    }
+    return viewTypes;
+}
+
+function rtcStore(): any {
+    try {
+        return findByStoreName("ChannelRTCStore");
+    } catch {
+        return null;
+    }
+}
+
+function aware(T: any): any {
+    let W = awareOf.get(T);
+    if (W) return W;
+    W = function PipAware(props: any) {
+        const [n, force] = React.useReducer((x: number) => x + 1, 0);
+        React.useEffect(() => {
+            const bump = () => {
+                rerenders++;
+                force();
+            };
+            const offPin = onPinChange(bump);
+            const store = rtcStore();
+            try {
+                store?.addChangeListener?.(bump);
+            } catch { }
+            return () => {
+                offPin();
+                try {
+                    store?.removeChangeListener?.(bump);
+                } catch { }
+            };
+        }, []);
+        inAware = true;
+        try {
+            return React.createElement(T, { ...props, cheeseburgerPip: `${pinned ?? ""}:${n}` });
+        } finally {
+            inAware = false;
+        }
+    };
+    awareOf.set(T, W);
+    return W;
+}
+
+const onViewJsx = safe("pip view jsx", (args: any[]) => {
+    const t = args[0];
+    if (inAware || !t || typeof t === "string") return;
+    const list = viewTypeList();
+    if (!list.length || !list.includes(t)) return;
+    args[0] = aware(t);
+    return args;
+});
+
 export function startPip() {
     patch();
     patchViews();
+    unpatches.push(before("jsx", jsxRuntime, onViewJsx), before("jsxs", jsxRuntime, onViewJsx));
     unpatches.push(onAspectChange(() => setTimeout(resend, 0)));
     FluxDispatcher.subscribe("RTC_CONNECTION_STATE", onRtc);
     unpatches.push(() => FluxDispatcher.unsubscribe("RTC_CONNECTION_STATE", onRtc));
@@ -423,6 +511,8 @@ export function pipDebug(): string[] {
         `pip: ${pip ? "hooked" : "not loaded yet"}, stream ${focused ?? selected ?? "main"}, shape ${a ? a.toFixed(3) : "unknown"}${clamped ? `, kept in range ${clamped}x` : ""}`,
         `pip last: ${lastSent || "none yet"}`,
         `pip picks: ${splitViewSettings.smartPip === false ? "off" : `${picks || "none yet"}, skipped you ${skipped}x, ids ${space}`}`,
+        `pip shape from: ${aspectFrom || "not asked yet"}, pip view rerenders ${rerenders}, wrapped ${viewTypes.length}/${VIEW_TYPES.length}`,
+        ...shapeLog.map(l => `  ${l}`),
         `pip view: pinned ${pinned ? "yes" : "no"}, showing ${viewPick ? (isStreamPart({ id: viewPick }) ? "a screen" : viewPick === myId() ? "me" : "a camera") : "discord's pick"}${viewSid ? ` (stream ${viewSid})` : ""}, hooked ${[...viewPatched].map(x => x.split("/").pop()).join(", ") || "not yet"}`,
         ...[...viewShapes].map(([k, v]) => `  ${k} ${v}`),
         ...pipParts(),
