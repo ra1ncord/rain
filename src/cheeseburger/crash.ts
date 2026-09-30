@@ -50,8 +50,8 @@ function shortStack(stack: unknown): string | undefined {
         if (!line) continue;
         const m = line.match(/^(.*?)\s*\((?:address at\s+)?(.*)\)$/);
         const name = (m ? m[1] : line).trim() || "?";
-        const loc = m?.[2].match(/([^/\\]+?):\d+:(\d+)$/);
-        out.push(loc ? `${name}@${loc[1]}:${loc[2]}` : name);
+        const loc = m?.[2].match(/([^/\\]+?):(\d+):(\d+)$/);
+        out.push(loc ? `${name}@${loc[1]}:${loc[2]}:${loc[3]}` : name);
         if (out.length >= 8) break;
     }
     return out.length ? out.join(" < ") : undefined;

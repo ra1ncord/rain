@@ -772,6 +772,7 @@ function applyLayout() {
     const square = (t: Tile) => !t.streamId || Math.abs((aspects.get(t.streamId)?.value ?? 16 / 9) - aspectOf(t)) < 0.1;
     measureAll(readCoords, (list.find(t => t.kind === "stream" && square(t)) ?? list.find(square))?.coords);
     updateFrame(Dimensions.get("window"));
+    noteChrome();
     if (!list.length) {
         if (touched.size) restoreAll();
         return;
@@ -851,8 +852,35 @@ function restoreAll() {
     touched.clear();
 }
 
+let chrome = true;
+const chromeListeners = new Set<() => void>();
+
+function setChrome(v: boolean) {
+    if (chrome === v) return;
+    chrome = v;
+    setTimeout(() => chromeListeners.forEach(l => {
+        try {
+            l();
+        } catch { }
+    }), 0);
+}
+
+function noteChrome() {
+    const tb = measured.toolbar;
+    if (!tb || Date.now() - tb.at > 2000) return;
+    setChrome(tb.y < Dimensions.get("window").height - 4);
+}
+
+export const chromeShown = () => chrome;
+
+export function onChrome(l: () => void) {
+    chromeListeners.add(l);
+    return () => void chromeListeners.delete(l);
+}
+
 export function setTilesActive(v: boolean, handoff = false) {
     active = v;
+    if (!v) setChrome(true);
     if (v) {
         shared.owner = copy;
         burstUntil = Date.now() + 3000;

@@ -6,6 +6,7 @@ interface SplitViewSettings {
     order: string[];
     sized: boolean;
     smartPip: boolean;
+    pipPins: boolean;
 }
 
 export const {
@@ -17,4 +18,5 @@ export const {
     order: ["stream", "them", "me"],
     sized: false,
     smartPip: true,
+    pipPins: true,
 });

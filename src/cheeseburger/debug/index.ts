@@ -7,22 +7,24 @@ import { getCurrentTheme } from "@plugins/_core/painter/themes";
 import { AppState, Dimensions, PixelRatio, Platform, StatusBar } from "react-native";
 
 import { caught, crashDebug, lastCrashAt } from "../crash";
-import { deafenButtonSettings } from "../deafen/storage";
+import { useDeafenButtonSettings } from "../deafen/storage";
 import { lookDebug } from "../look";
 import { rotateDebug } from "../rotate";
 import { shareDebug } from "../share";
-import { shareSettings } from "../share/storage";
+import { useShareSettings } from "../share/storage";
 import { isFullscreenSplit, isSplitActive, layoutDebug } from "../split/layout";
 import { pipDebug } from "../split/pip";
-import { splitViewSettings } from "../split/storage";
-import { cheeseburger } from "../storage";
+import { pinIconName } from "../split/PipPin";
+import { useSplitViewSettings } from "../split/storage";
+import { hasVideo } from "../split/tiles";
+import { useCheeseburger } from "../storage";
 import { styleDebug } from "../style";
 import { accentColor, baseColor } from "../style/colors";
-import { styleSettings } from "../style/storage";
+import { useStyleSettings } from "../style/storage";
 import { toolbarDebug } from "../toolbar";
 import { buildRevision } from "../updates";
 import { volumeDebug } from "../volume";
-import { volumeBoostSettings } from "../volume/storage";
+import { useVolumeBoostSettings } from "../volume/storage";
 import { debugSettings } from "./storage";
 
 const started = Date.now();
@@ -128,7 +130,7 @@ function scrub(text: string, n: Names): string {
         if (!ids.has(id)) ids.set(id, `#${ids.size + 1}`);
         return `‹id${ids.get(id)}›`;
     });
-    out = out.replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, "‹email›");
+    out = out.replace(/[\w.+-]+@[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}\b(?![:\w.])/gi, m => (/\.(?:bundle|js|jsx|tsx?|hbc)$/i.test(m) ? m : "‹email›"));
     out = out.replace(/\b(?:github_pat|ghp|gho|ghu|ghs)_\w+/g, "‹token›");
     return out;
 }
@@ -157,8 +159,9 @@ function call(n: Names): string[] {
     const parts: any[] = store("ChannelRTCStore")?.getParticipants?.(channelId) ?? [];
     const lines = parts.slice(0, 16).map(p => {
         const who = n.people.get(String(p?.user?.id)) ?? "someone";
-        const kind = p?.stream ? "screen" : p?.type ?? "user";
-        const flags = [p?.userVideo || p?.videoStreamId ? "camera" : "", p?.speaking ? "talking" : "", p?.streamId != null ? `stream ${p.streamId}` : ""].filter(Boolean).join(", ");
+        const screen = p?.type === 0 || String(p?.id ?? "").startsWith("call:");
+        const flags = [!screen && hasVideo(p) ? "camera" : "", p?.speaking ? "talking" : "", p?.streamId != null ? `stream ${p.streamId}` : ""].filter(Boolean).join(", ");
+        const kind = screen ? "screen" : "user";
         return `  ${kind} ${who}${flags ? ` (${flags})` : ""}`;
     });
     return [
@@ -169,13 +172,21 @@ function call(n: Names): string[] {
 
 function setup(): string[] {
     const theme: any = getCurrentTheme?.();
+    const state = (h: any) => {
+        try {
+            return h.getState();
+        } catch {
+            return {};
+        }
+    };
+    const volume = state(useVolumeBoostSettings);
     return [
-        `features ${plain(cheeseburger)}`,
-        `split ${plain(splitViewSettings)}`,
-        `deafen ${plain(deafenButtonSettings)}`,
-        `volume ${plain(volumeBoostSettings, ["boosted"])}, boosted ${Object.keys(volumeBoostSettings.boosted ?? {}).length}`,
-        `style ${plain(styleSettings)}`,
-        `share ${plain(shareSettings)}`,
+        `features ${plain(state(useCheeseburger))}`,
+        `split ${plain(state(useSplitViewSettings))}`,
+        `deafen ${plain(state(useDeafenButtonSettings))}`,
+        `volume ${plain(volume, ["boosted"])}, boosted ${Object.keys(volume.boosted ?? {}).length}`,
+        `style ${plain(state(useStyleSettings))}`,
+        `share ${plain(state(useShareSettings))}`,
         `theme ${theme?.id ?? "none"} ${theme?.data?.name ?? ""}, base ${baseColor() ?? "?"}, accent ${accentColor("?")}`,
         `plugins ${[...pluginInstances.keys()].join(", ").slice(0, 500)}`,
     ];
@@ -188,7 +199,7 @@ export function debugReport(): string {
         ["setup", setup],
         ["call", () => call(n)],
         ["crashes", crashDebug],
-        ["split", () => [...layoutDebug(), ...pipDebug()]],
+        ["split", () => [...layoutDebug(), ...pipDebug(), `pin icon: ${pinIconName || "none found"}`]],
         ["style", () => [...styleDebug(), lookDebug(), toolbarDebug()]],
         ["share", shareDebug],
         ["volume", volumeDebug],

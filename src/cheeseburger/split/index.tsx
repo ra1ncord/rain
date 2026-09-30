@@ -7,6 +7,7 @@ import { safe } from "../crash";
 import { useToolbar } from "../toolbar";
 import { isFullscreenSplit, isLandscapeAuto, isSplitActive, resumeSplit, startLayoutPatches, stopLayoutPatches } from "./layout";
 import { startPip, stopPip } from "./pip";
+import { PipPin } from "./PipPin";
 import { TileProbe } from "./probe";
 import { SplitViewButton } from "./SplitView";
 import { useSplitViewSettings } from "./storage";
@@ -18,7 +19,13 @@ const g = globalThis as any;
 
 const addProbe = safe("split probe", (args: any[], ret: any) => {
     if (!ret || !isTileElement(args)) return;
-    return React.createElement(React.Fragment, { key: ret.key ?? undefined }, ret, <TileProbe key="cheeseburger-probe" coords={args[1].sharedCoords} />);
+    return React.createElement(
+        React.Fragment,
+        { key: ret.key ?? undefined },
+        ret,
+        <TileProbe key="cheeseburger-probe" coords={args[1].sharedCoords} />,
+        <PipPin key="cheeseburger-pip" streamId={args[1].streamId} />,
+    );
 });
 
 const register = safe("split tiles", registerTile);

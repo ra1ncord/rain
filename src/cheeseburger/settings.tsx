@@ -141,6 +141,7 @@ export default function Settings() {
                                 onPress={() => showSheet("CheeseburgerArrange", ArrangeSheet)}
                             />
                             <TableSwitchRow label="Smart PiP" subLabel="never shows you, sticks to streams" value={split.smartPip !== false} onValueChange={(v: boolean) => split.updateSettings({ smartPip: v })} />
+                            <TableSwitchRow label="PiP pin buttons" subLabel="tap one on a video to lock the PiP to it" value={split.pipPins !== false} onValueChange={(v: boolean) => split.updateSettings({ pipPins: v })} />
                         </>
                     )}
                     <TableSwitchRow

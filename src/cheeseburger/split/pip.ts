@@ -1,4 +1,4 @@
-import { instead } from "@api/patcher";
+import { after, instead } from "@api/patcher";
 import { findByStoreName } from "@metro";
 import { FluxDispatcher } from "@metro/common";
 import { SelectedChannelStore, UserStore } from "@metro/common/stores";
@@ -9,6 +9,7 @@ import { splitViewSettings } from "./storage";
 import { hasVideo, knownMainAspect, onAspectChange, streamAspect } from "./tiles";
 
 const PIP_PATH = "modules/external_pip/ExternalPip.android.tsx";
+const VIEW_PATHS = ["modules/external_pip/useExternalPipParticipant.android.tsx", "modules/video_calls/native/usePipVideoOrStream.tsx"];
 const MIN_ASPECT = 0.42;
 const MAX_ASPECT = 2.38;
 const g = globalThis as any;
@@ -27,6 +28,13 @@ let picks = "";
 let selected: string | null = null;
 let focused: string | null = null;
 let retry: ReturnType<typeof setTimeout> | null = null;
+let viewRetry: ReturnType<typeof setTimeout> | null = null;
+let pinned: string | null = null;
+let viewPick: string | null = null;
+let viewSid: string | null = null;
+const viewPatched = new Set<string>();
+const viewShapes = new Map<string, string>();
+const pinListeners = new Set<() => void>();
 
 const idOf = (v: any) => (v == null ? null : String(v));
 
@@ -39,7 +47,7 @@ function moduleExports(path: string): any {
 }
 
 function pipAspect(): number | null {
-    const sid = focused ?? selected;
+    const sid = viewSid ?? focused ?? selected;
     return (sid && streamAspect(sid)) || knownMainAspect();
 }
 
@@ -204,6 +212,9 @@ function patch(tries = 0) {
         focused = handoff.focused ?? null;
         lastPick = handoff.lastPick ?? null;
         space = handoff.space ?? "sid";
+        pinned = handoff.pinned ?? null;
+        viewPick = handoff.viewPick ?? null;
+        viewSid = handoff.viewSid ?? null;
         if (handoff.lastArgs) {
             lastArgs = handoff.lastArgs;
             resend();
@@ -211,12 +222,143 @@ function patch(tries = 0) {
     }
 }
 
+const isStreamPart = (p: any) => p?.type === 0 || String(p?.id ?? "").startsWith("call:") || !!p?.stream;
+const isPart = (o: any) => !!o && typeof o === "object" && typeof o.id === "string" && "type" in o && ("user" in o || "streamId" in o);
+
+function myId(): string | null {
+    const id = UserStore?.getCurrentUser?.()?.id;
+    return id == null ? null : String(id);
+}
+
+function isMine(p: any, me = myId()): boolean {
+    const owner = p?.user?.id ?? p?.userId ?? (isStreamPart(p) ? undefined : p?.id);
+    return me != null && owner != null && String(owner) === me;
+}
+
+function allParts(): any[] {
+    const channelId = SelectedChannelStore?.getVoiceChannelId?.();
+    if (!channelId) return [];
+    const parts = findByStoreName("ChannelRTCStore")?.getParticipants?.(channelId);
+    return Array.isArray(parts) ? parts.filter(Boolean) : [];
+}
+
+function chosen(currentId: string | null): any {
+    const all = allParts();
+    if (!all.length) return null;
+    const me = myId();
+    if (pinned) {
+        const p = all.find(x => x.id === pinned && hasVideo(x));
+        if (p) return p;
+    }
+    if (splitViewSettings.smartPip === false) return null;
+    const others = all.filter(x => !isMine(x, me) && hasVideo(x));
+    if (!others.length) return null;
+    const cur = currentId != null ? others.find(x => x.id === currentId) : undefined;
+    const streams = others.filter(isStreamPart);
+    if (streams.length) return streams.find(x => x.id === viewPick) ?? (cur && isStreamPart(cur) ? cur : streams[0]);
+    return cur ?? others.find(x => x.id === viewPick) ?? others[0];
+}
+
+function describe(v: any): string {
+    if (v == null) return String(v);
+    if (typeof v !== "object") return typeof v;
+    if (isPart(v)) return `participant ${isStreamPart(v) ? "screen" : "user"}`;
+    return `{${Object.keys(v).slice(0, 8).map(k => `${k}${isPart(v[k]) ? "=participant" : ""}`).join(",")}}`;
+}
+
+function remember(want: any) {
+    const id = want?.id ?? null;
+    const sid = want?.streamId != null ? String(want.streamId) : null;
+    viewPick = id;
+    if (sid !== viewSid) {
+        viewSid = sid;
+        setTimeout(resend, 0);
+    }
+}
+
+function pickFor(ret: any): any {
+    const curId = isPart(ret) ? ret.id : typeof ret === "string" ? ret : isPart(ret?.participant) ? ret.participant.id : null;
+    const want = chosen(curId);
+    if (!want) return ret;
+    remember(want);
+    if (isPart(ret)) return ret.id === want.id ? ret : want;
+    if (typeof ret === "string" && allParts().some(p => p.id === ret)) return ret === want.id ? ret : want.id;
+    if (isPart(ret?.participant)) return ret.participant.id === want.id ? ret : { ...ret, participant: want };
+    return ret;
+}
+
+function patchViews(tries = 0) {
+    viewRetry = null;
+    for (const path of VIEW_PATHS) {
+        if (viewPatched.has(path)) continue;
+        const exp = moduleExports(path);
+        if (!exp) continue;
+        const name = path.split("/").pop()!.replace(/\..*$/, "");
+        for (const key of Object.keys(exp)) {
+            if (typeof exp[key] !== "function") continue;
+            try {
+                unpatches.push(after(key, exp, safe(`pip view ${name}`, (_args: any[], ret: any) => {
+                    const next = pickFor(ret);
+                    viewShapes.set(`${name}.${key}`, `${describe(ret)}${next !== ret ? " (swapped)" : ""}`);
+                    return next === ret ? undefined : next;
+                })));
+            } catch (e) {
+                caught("pip view patch", e);
+            }
+        }
+        viewPatched.add(path);
+    }
+    if (viewPatched.size < VIEW_PATHS.length && tries < 60) viewRetry = setTimeout(safe("pip view wait", () => patchViews(tries + 1)), 2000);
+}
+
+function refresh() {
+    try {
+        findByStoreName("ChannelRTCStore")?.emitChange?.();
+    } catch { }
+    setTimeout(resend, 0);
+}
+
+export function pinnedPip(): string | null {
+    return pinned;
+}
+
+export function pinPip(id: string | null) {
+    if (pinned === id) return;
+    pinned = id;
+    pinListeners.forEach(l => {
+        try {
+            l();
+        } catch { }
+    });
+    refresh();
+}
+
+export function onPinChange(l: () => void) {
+    pinListeners.add(l);
+    return () => void pinListeners.delete(l);
+}
+
+export function participantForStream(streamId: any): any {
+    if (streamId == null) return null;
+    const sid = String(streamId);
+    return allParts().find(p => p.streamId != null && String(p.streamId) === sid) ?? null;
+}
+
+export const mineParticipant = (p: any) => isMine(p);
+
 const onRtc = safe("pip rtc", (e: any) => {
-    if (!pip && !retry && /CONNECTED/.test(String(e?.state))) patch(0);
+    const state = String(e?.state ?? "");
+    if (/DISCONNECT/.test(state)) {
+        pinPip(null);
+        return;
+    }
+    if (!pip && !retry && /CONNECTED/.test(state)) patch(0);
+    if (!viewRetry && viewPatched.size < VIEW_PATHS.length && /CONNECTED/.test(state)) patchViews(0);
 });
 
 export function startPip() {
     patch();
+    patchViews();
     unpatches.push(onAspectChange(() => setTimeout(resend, 0)));
     FluxDispatcher.subscribe("RTC_CONNECTION_STATE", onRtc);
     unpatches.push(() => FluxDispatcher.unsubscribe("RTC_CONNECTION_STATE", onRtc));
@@ -225,9 +367,12 @@ export function startPip() {
 export function stopPip() {
     if (retry) clearTimeout(retry);
     retry = null;
+    if (viewRetry) clearTimeout(viewRetry);
+    viewRetry = null;
     for (const u of unpatches.splice(0)) u();
+    viewPatched.clear();
     if (g.__cheeseburgerSwapping) {
-        g.__cheeseburgerPip = { lastArgs, selected, focused, lastPick, space };
+        g.__cheeseburgerPip = { lastArgs, selected, focused, lastPick, space, pinned, viewPick, viewSid };
     } else {
         if (lastArgs) lastArgs = inRange(lastArgs);
         resend();
@@ -235,6 +380,8 @@ export function stopPip() {
     pip = null;
     lastArgs = null;
     selected = focused = null;
+    viewSid = viewPick = null;
+    pinned = null;
 }
 
 export function pipDebug(): string[] {
@@ -243,6 +390,8 @@ export function pipDebug(): string[] {
         `pip: ${pip ? "hooked" : "not loaded yet"}, stream ${focused ?? selected ?? "main"}, shape ${a ? a.toFixed(3) : "unknown"}${clamped ? `, kept in range ${clamped}x` : ""}`,
         `pip last: ${lastSent || "none yet"}`,
         `pip picks: ${splitViewSettings.smartPip === false ? "off" : `${picks || "none yet"}, skipped you ${skipped}x, ids ${space}`}`,
+        `pip view: pinned ${pinned ? "yes" : "no"}, showing ${viewPick ? (isStreamPart({ id: viewPick }) ? "a screen" : viewPick === myId() ? "me" : "a camera") : "discord's pick"}${viewSid ? ` (stream ${viewSid})` : ""}, hooked ${[...viewPatched].map(x => x.split("/").pop()).join(", ") || "not yet"}`,
+        ...[...viewShapes].map(([k, v]) => `  ${k} returns ${v}`),
         ...pipParts(),
     ];
 }

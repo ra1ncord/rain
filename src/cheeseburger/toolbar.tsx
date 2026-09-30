@@ -118,13 +118,15 @@ class Guard extends React.Component<{ children?: any; fallback?: any; }, { faile
 
 function Clone({ ov, fallback }: { ov: Override; fallback: any; }) {
     const T = React.useRef(template?.default).current;
-    const ok = React.useRef(typeof T === "function" && !!templateProps && !!firstIcon(ov.icon)).current;
+    const props = React.useRef<any>(templateProps);
+    if (templateProps) props.current = templateProps;
+    const ok = React.useRef(typeof T === "function" && !!props.current && !!firstIcon(ov.icon)).current;
     if (!ok) return fallback;
     const icon = firstIcon(ov.icon);
     overrides.push(ov);
     let out: any;
     try {
-        out = T(templateProps);
+        out = T(props.current);
     } finally {
         overrides.pop();
     }
