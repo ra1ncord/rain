@@ -69,6 +69,7 @@ let moved = 0;
 
 const GRID_GAP = 10;
 const FS_GAP = 4;
+const CAM_MIN_ASPECT = 0.75;
 const SETTLE_MS = 1000;
 const DEFAULT_ORDER: TileKind[] = ["stream", "them", "me"];
 const SNAPS = [16 / 9, 4 / 3, 1, 3 / 4, 9 / 16];
@@ -715,12 +716,20 @@ function computeRects(list: Tile[]): Map<string, Rect> {
         w = Math.min(W, (H - gaps) / inv);
     }
 
-    const heightOf = (r: number[]) => (tall(r[0]) ? p : w / asp[r[0]]);
+    const extra = new Map<number[], number>();
+    if (fullscreen) {
+        const cams = wide.filter(r => r.length === 1 && list[r[0]].kind !== "stream");
+        const slack = H - (rows.reduce((s, r) => s + (tall(r[0]) ? p : w / asp[r[0]]), 0) + gaps);
+        if (cams.length && slack > 1) {
+            for (const r of cams) extra.set(r, Math.max(0, Math.min(slack / cams.length, w / CAM_MIN_ASPECT - w / asp[r[0]])));
+        }
+    }
+    const heightOf = (r: number[]) => (tall(r[0]) ? p : w / asp[r[0]] + (extra.get(r) ?? 0));
     const used = rows.reduce((s, r) => s + heightOf(r), 0) + gaps;
     let y = Math.max(0, (H - used) / 2);
     for (const r of rows) {
         const h = heightOf(r);
-        const widths = r.map(i => h * asp[i]);
+        const widths = extra.get(r) ? [w] : r.map(i => h * asp[i]);
         const rowW = widths.reduce((a, b) => a + b, 0) + GAP * (r.length - 1);
         let x = Math.max(0, (W - rowW) / 2);
         r.forEach((i, j) => {

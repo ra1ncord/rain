@@ -7,11 +7,13 @@ import { Image } from "react-native";
 
 import { caught, safe } from "./crash";
 
-interface Override { icon: string[]; label: string; onPress: () => void; onLongPress?: () => void; color?: string; }
+export interface Override { icon: string[]; label: string; onPress: () => void; onLongPress?: () => void; color?: string; text?: string; asset?: number; }
 
 const TEMPLATE = /\/VoicePanelSoundboardButton\.tsx$/;
 const overrides: Override[] = [];
 const icons = new Map<string, any>();
+const misses = new Map<string, number>();
+const ready = new Set<() => void>();
 let users = 0;
 let unpatches: (() => unknown)[] = [];
 let template: any = null;
@@ -32,6 +34,7 @@ function byPath(re: RegExp): any {
 
 export function iconComponent(name: string): any {
     if (icons.has(name)) return icons.get(name);
+    if (Date.now() - (misses.get(name) ?? 0) < 3000) return null;
     let c: any = null;
     try {
         c = findByProps(name)?.[name] ?? findByName(name) ?? null;
@@ -39,7 +42,8 @@ export function iconComponent(name: string): any {
         c = null;
     }
     if (typeof c !== "function" && !(c && typeof c === "object" && c.$$typeof)) c = null;
-    icons.set(name, c);
+    if (c) icons.set(name, c);
+    else misses.set(name, Date.now());
     return c;
 }
 
@@ -67,8 +71,15 @@ function onJsx(args: any[]) {
         if (typeof props.onPress === "function") {
             next = { ...props, onPress: ov.onPress, onLongPress: ov.onLongPress, accessibilityLabel: ov.label };
         }
+        if (ov.text != null) {
+            if (typeof props.label === "string") next = { ...(next ?? props), label: ov.text };
+            if (typeof props.children === "string") next = { ...(next ?? props), children: ov.text };
+            if (typeof props.accessibilityLabel === "string") next = { ...(next ?? props), accessibilityLabel: ov.label };
+        }
         const name = typeof type === "function" || (type && typeof type === "object") ? type.displayName ?? type.name ?? "" : "";
-        if (/Icon$/.test(name)) {
+        if (ov.asset != null && typeof props.source === "number") {
+            next = { ...(next ?? props), source: ov.asset };
+        } else if (/Icon$/.test(name)) {
             const comp = firstIcon(ov.icon);
             if (comp) {
                 args[0] = comp;
@@ -80,7 +91,11 @@ function onJsx(args: any[]) {
         return next || args[0] !== type ? args : undefined;
     }
     if (typeof type === "function" && type.name === "VideoButton") lookForTemplate();
-    if (template && type === template.default) templateProps = props;
+    if (template && type === template.default) {
+        const first = !templateProps;
+        templateProps = props;
+        if (first) setTimeout(() => ready.forEach(l => l()), 0);
+    }
 }
 
 class Guard extends React.Component<{ children?: any; fallback?: any; }, { failed: boolean; }> {
@@ -116,9 +131,24 @@ function Clone({ ov, fallback }: { ov: Override; fallback: any; }) {
     return icon ? out ?? fallback : fallback;
 }
 
+export function withOverride<T>(ov: Override, fn: () => T): T {
+    overrides.push(ov);
+    try {
+        return fn();
+    } finally {
+        overrides.pop();
+    }
+}
+
 export function ToolbarButton(props: Override & { fallback: any; }) {
     const { fallback, ...ov } = props;
-    return <Guard fallback={fallback}><Clone ov={ov} fallback={fallback} /></Guard>;
+    const [, force] = React.useReducer((n: number) => n + 1, 0);
+    React.useEffect(() => {
+        ready.add(force);
+        return () => void ready.delete(force);
+    }, []);
+    const key = typeof template?.default === "function" && templateProps && firstIcon(ov.icon) ? "clone" : "plain";
+    return <Guard key={key} fallback={fallback}><Clone ov={ov} fallback={fallback} /></Guard>;
 }
 
 export function iconAsset(...names: string[]) {
@@ -148,5 +178,6 @@ export function useToolbar() {
 }
 
 export function toolbarDebug(): string {
-    return `toolbar clones: template ${template ? (templateProps ? "ready" : "found") : "not yet"}, icons ${[...icons.entries()].map(([k, v]) => `${k}${v ? "" : " missing"}`).join(", ") || "none"}, swapped ${swapped}${failures ? `, failed ${failures} (${lastError})` : ""}`;
+    const missing = [...misses.keys()].filter(k => !icons.has(k));
+    return `toolbar clones: template ${template ? (templateProps ? "ready" : "found") : "not yet"}, icons ${[...icons.keys()].join(", ") || "none"}${missing.length ? `, missing ${missing.join(", ")}` : ""}, swapped ${swapped}${failures ? `, failed ${failures} (${lastError})` : ""}`;
 }

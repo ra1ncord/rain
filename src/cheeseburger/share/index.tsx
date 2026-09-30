@@ -1,18 +1,21 @@
 import { findAssetId } from "@api/assets";
-import { before, instead } from "@api/patcher";
+import { after, before, instead } from "@api/patcher";
 import { jsxRuntime } from "@api/react/jsx";
 import { React } from "@metro/common";
 import { TableRow } from "@metro/common/components";
 
 import { caught, safe, safeInstead } from "../crash";
-import { iconComponent } from "../toolbar";
+import { iconComponent, withOverride } from "../toolbar";
 
 const TOOLBAR = /\/VoicePanelScreenshareButton\.tsx$/;
+const ROWS = /\/VoicePanelVoiceControlsButtons\.tsx$/;
 const KEY = "cheeseburger-share";
 
 const unpatches: (() => unknown)[] = [];
 const listeners = new Set<() => void>();
 let bar: any = null;
+let rows: any = null;
+let rowShape = "";
 let barPatched = false;
 let lastLook = 0;
 let live = 0;
@@ -42,7 +45,7 @@ function changed() {
     }, 0);
 }
 
-class Guard extends React.Component<{ children?: any; }, { failed: boolean; }> {
+class Guard extends React.Component<{ children?: any; fallback?: any; }, { failed: boolean; }> {
     state = { failed: false };
 
     static getDerivedStateFromError() {
@@ -56,7 +59,7 @@ class Guard extends React.Component<{ children?: any; }, { failed: boolean; }> {
     }
 
     render() {
-        return this.state.failed ? null : this.props.children;
+        return this.state.failed ? this.props.fallback ?? null : this.props.children;
     }
 }
 
@@ -110,6 +113,50 @@ function MenuShare({ base }: { base: any; }) {
     });
 }
 
+const rowLike = (raw: any) => raw != null && typeof raw === "object" && (typeof raw.props?.label === "string" || /Row/.test(raw.type?.displayName ?? raw.type?.name ?? ""));
+const shapeOf = (raw: any) => (raw == null ? "nothing" : `${raw.type?.displayName ?? raw.type?.name ?? typeof raw.type}${rowLike(raw) ? "" : " (not a row)"}`);
+
+function useShowing(ok: boolean) {
+    React.useEffect(() => {
+        if (!ok) return;
+        live++;
+        changed();
+        return () => {
+            live = Math.max(0, live - 1);
+            changed();
+        };
+    }, [ok]);
+}
+
+function useListen() {
+    const [, force] = React.useReducer((n: number) => n + 1, 0);
+    React.useEffect(() => {
+        listeners.add(force);
+        return () => void listeners.delete(force);
+    }, []);
+}
+
+function MenuClone({ base }: { base: any; }) {
+    useListen();
+    const T = React.useRef(base.type).current;
+    const label = share?.label ?? "Share Your Screen";
+    const asset = SHARE_ICONS.map(n => findAssetId(n)).find(x => x !== undefined);
+    const raw = typeof T === "function" ? withOverride({ icon: SHARE_ICONS, label, onPress: press, text: label, asset }, () => T(base.props)) : null;
+    const out = rowLike(raw) ? raw : null;
+    rowShape = `copy of chat: ${shapeOf(raw)}`;
+    useShowing(out != null);
+    return out;
+}
+
+function MenuNative({ base }: { base: any; }) {
+    const own = React.useRef(rows?.ScreenshareButton).current;
+    const raw = typeof own === "function" ? own(base.props) : null;
+    const ok = rowLike(raw);
+    rowShape = `discord's: ${shapeOf(raw)}`;
+    useShowing(ok);
+    return ok ? raw : <MenuClone base={base} />;
+}
+
 function ToolbarShare({ children }: { children?: any; }) {
     const [, force] = React.useReducer((n: number) => n + 1, 0);
     React.useEffect(() => {
@@ -121,10 +168,11 @@ function ToolbarShare({ children }: { children?: any; }) {
 
 function ensure() {
     const now = Date.now();
-    if (barPatched || now - lastLook < 2000) return;
+    if ((barPatched && rows) || now - lastLook < 2000) return;
     lastLook = now;
+    rows ??= byPath(ROWS) ?? null;
     bar ??= byPath(TOOLBAR) ?? null;
-    if (bar && typeof bar.default === "function") {
+    if (!barPatched && bar && typeof bar.default === "function") {
         try {
             unpatches.push(instead("default", bar, safeInstead("share toolbar", (args: any[], orig: Function) => {
                 const out = orig(...args);
@@ -154,7 +202,7 @@ function anchorIn(ch: any[]): number {
 
 function onJsx(args: any[]) {
     const type = args[0];
-    if (!barPatched && typeof type === "function" && type.name === "VideoButton") ensure();
+    if ((!barPatched || !rows) && typeof type === "function" && (type.name === "VideoButton" || type.name === "ChatButton")) ensure();
     const props = args[1];
     if (!props || typeof props !== "object") return;
     const label = props.accessibilityLabel;
@@ -173,9 +221,20 @@ function onJsx(args: any[]) {
     return args;
 }
 
+function afterJsx(args: any[], ret: any) {
+    if (!ret || !share || !rows?.ChatButton || typeof ret.type !== "function" || ret.type !== rows.ChatButton) return;
+    placed++;
+    return (
+        <React.Fragment key={ret.key ?? undefined}>
+            {ret}
+            <Guard key={KEY} fallback={<Guard><MenuClone base={ret} /></Guard>}><MenuNative base={ret} /></Guard>
+        </React.Fragment>
+    );
+}
+
 export function shareDebug(): string[] {
     return [
-        `share: button ${share ? `"${share.label}"` : "not seen yet"}, toolbar ${barPatched ? "hooked" : "not yet"}, placed ${placed}, showing ${live}${failures ? `, failed ${failures} (${lastError})` : ""}`,
+        `share: menu ${rows ? "found" : "not yet"}${rowShape ? ` (${rowShape})` : ""}, button ${share ? `"${share.label}"` : "not seen yet"}, toolbar ${barPatched ? "hooked" : "not yet"}, placed ${placed}, showing ${live}${failures ? `, failed ${failures} (${lastError})` : ""}`,
     ];
 }
 
@@ -186,12 +245,16 @@ export default {
         const hook = safe("share jsx", onJsx);
         unpatches.push(before("jsx", jsxRuntime, hook));
         unpatches.push(before("jsxs", jsxRuntime, hook));
+        const hookAfter = safe("share jsx after", afterJsx);
+        unpatches.push(after("jsx", jsxRuntime, hookAfter));
+        unpatches.push(after("jsxs", jsxRuntime, hookAfter));
     },
     stop() {
         for (const u of unpatches.splice(0)) u();
         barPatched = false;
         bar = null;
         share = null;
+        rows = null;
         live = 0;
         changed();
     },

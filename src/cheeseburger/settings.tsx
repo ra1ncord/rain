@@ -21,6 +21,7 @@ import { useCheeseburger } from "./storage";
 import { styleDebug } from "./style";
 import { baseColor } from "./style/colors";
 import { useStyleSettings } from "./style/storage";
+import { toolbarDebug } from "./toolbar";
 import { buildRevision, syncNow, updateNow, useSync, useUpdateReady } from "./updates";
 import { volumeDebug } from "./volume";
 import { useVolumeBoostSettings } from "./volume/storage";
@@ -191,7 +192,7 @@ export default function Settings() {
                     {s.split && <TableRow label="Copy split debug" onPress={() => copy(() => [...layoutDebug(), ...pipDebug()])} />}
                     {s.volume && <TableRow label="Copy volume debug" onPress={() => copy(volumeDebug)} />}
                     {s.rotate && <TableRow label="Copy rotate debug" onPress={() => copy(rotateDebug)} />}
-                    {s.style && <TableRow label="Copy style debug" onPress={() => copy(() => [...styleDebug(), lookDebug(), ...shareDebug()])} />}
+                    {s.style && <TableRow label="Copy style debug" onPress={() => copy(() => [...styleDebug(), lookDebug(), toolbarDebug(), ...shareDebug()])} />}
                     {s.volume && <TableSwitchRow label="Volume toasts" value={volume.debugSliders} onValueChange={(v: boolean) => volume.updateSettings({ debugSliders: v })} />}
                     <TableRow label="Build" trailing={<TableRow.TrailingText text={`${buildRevision} · ${live}${hotStatus.error ? " · error" : ""}`} />} onPress={() => copy(() => [`rain ${buildRevision}`, `cheeseburger ${live}`, ...(hotStatus.error ? [hotStatus.error] : [])])} />
                 </TableRowGroup>

@@ -13,8 +13,8 @@ import { styleSettings, useStyleSettings } from "./storage";
 
 export { Notches } from "./shapes";
 
-type Kind = "overlay" | "solid";
-interface Hint { overlay: boolean; label: string; icon: string; }
+type Kind = "overlay" | "solid" | "dim";
+interface Hint { overlay: boolean; red?: boolean; label: string; icon: string; plain?: boolean; }
 interface Ctx { blanket: boolean; call: string | null; hint: Hint | null; }
 
 const unpatches: (() => unknown)[] = [];
@@ -46,6 +46,9 @@ const HOME = /^(?:direct messages|messages|home|dms?)\b/i;
 
 const OVERLAY_ICON = /^(?:X|Close|Dismiss|CircleX)(?:Small|Medium|Large)?Icon$|^(?:Maximize|Minimize|Fullscreen|FullScreen|ArrowsExpand|ArrowsCollapse|ArrowsMaximize|ArrowsMinimize|ArrowsOut|ArrowsIn|Expand|Collapse|Enlarge|Shrink|PopOut|Popout)\w*Icon$|^ic_(?:close|x_|clear|fullscreen|full_screen|maximi|minimi|expand|collapse)/i;
 const OVERLAY_LABEL = /^(?:close|dismiss|hide|stop (?:watching|viewing|stream)|leave stream|close stream|full ?screen|enter full ?screen|exit full ?screen|maximi[sz]e|minimi[sz]e|expand|collapse|enlarge|focus|unfocus|pop ?out)\b/i;
+const RED_LABEL = /^(?:stop (?:watching|viewing|stream)|leave stream|close stream|full ?screen|enter full ?screen|exit full ?screen|maximi[sz]e|focus|unfocus|pop ?out)\b/i;
+const RED_ICON = /^(?:X|Close|CircleX)(?:Small|Medium|Large)?Icon$|^(?:Maximize|Fullscreen|FullScreen|ArrowsExpand|ArrowsMaximize|ArrowsOut|Enlarge|PopOut|Popout)\w*Icon$|^ic_(?:close|x_|fullscreen|full_screen|maximi)/i;
+const PAINT = new Set(["backgroundColor", "borderColor", "color", "tintColor", "shadowColor"]);
 
 let core: Set<any> | null = null;
 const isCore = (t: any) => (core ??= new Set([View, Pressable, Text, Image, ScrollView, TouchableOpacity].filter(Boolean))).has(t);
@@ -302,6 +305,17 @@ function scanChildren(ch: any, level: number, out: Scan) {
     if (level > 0 && p.children != null && typeof p.children !== "function") scanChildren(p.children, level - 1, out);
 }
 
+function pureIcons(ch: any, level: number): boolean {
+    if (ch == null || typeof ch === "boolean") return true;
+    if (Array.isArray(ch)) return ch.every(c => pureIcons(c, level));
+    if (typeof ch !== "object" || !("type" in ch)) return false;
+    if (ch.type === Cut || ch.type === Notches) return true;
+    const info = infoOf(ch.type);
+    if (info.icon || typeof ch.props?.source === "number") return true;
+    const kids = ch.props?.children;
+    return level > 0 && kids != null && typeof kids !== "function" && pureIcons(kids, level - 1);
+}
+
 function iconOnly(children: any, level = 1): Scan {
     const scan: Scan = { found: false, name: "", text: false };
     if (children == null || typeof children === "function") {
@@ -331,12 +345,43 @@ const accentLike = (c: RGBA | null) => !!c && c.a >= 0.85 && Math.max(c.r, c.g, 
 const seeThrough = (c: RGBA | null) => !!c && c.a >= 0.12 && c.a <= 0.92;
 const lookOf = (flat: any) => `${hex(flat.backgroundColor)}|${radiusOf(flat)}`;
 
-function decide(flat: any, animated: boolean, hinted: boolean): { kind: Kind | null; why: string; learn: boolean; } {
+function decide(flat: any, animated: boolean, hint: Hint): { kind: Kind | null; why: string; learn: boolean; } {
     const c = parseColor(flat.backgroundColor);
-    const known = looks.has(lookOf(flat));
-    if ((hinted || known) && (seeThrough(c) || (animated && !accentLike(c)))) return { kind: "overlay", why: known ? "overlay look" : "overlay", learn: hinted && !known && seeThrough(c) };
+    const known = hint.plain !== false && !hint.label && looks.has(lookOf(flat));
+    const dimmed = seeThrough(c) || (animated && !accentLike(c));
+    if ((hint.red || known) && seeThrough(c)) return { kind: "overlay", why: known ? "overlay look" : "overlay", learn: !!hint.red && !known };
+    if (hint.overlay && dimmed) return { kind: "dim", why: "dim", learn: false };
     if (accentLike(c)) return { kind: "solid", why: "solid", learn: false };
-    return { kind: null, why: hinted ? "overlay icon on solid bg" : "not accent", learn: false };
+    return { kind: null, why: hint.overlay ? "overlay icon on solid bg" : "not accent", learn: false };
+}
+
+function stillStyle(style: any): { style: any; moving: string; } {
+    let moving = "";
+    const walk = (s: any): any => {
+        if (!s || moving) return s;
+        if (Array.isArray(s)) return s.map(walk);
+        if (typeof s !== "object") return s;
+        if (s.initial && s.viewDescriptors) {
+            const v = s.initial.value ?? {};
+            const keys = Object.keys(v);
+            const other = keys.filter(k => !PAINT.has(k));
+            if (other.length) {
+                moving = other.join(" ");
+                return s;
+            }
+            const out: any = { ...v };
+            delete out.backgroundColor;
+            return out;
+        }
+        if (s.backgroundColor && typeof s.backgroundColor === "object") {
+            const out = { ...s };
+            delete out.backgroundColor;
+            return out;
+        }
+        return s;
+    };
+    const next = walk(style);
+    return { style: moving ? style : next, moving };
 }
 
 function learn(flat: any) {
@@ -359,7 +404,19 @@ function remember(label: string, icon: string, flat: any, result: string) {
 }
 
 function apply(props: any, flat: any, kind: Kind) {
-    if (animatedBg(props.style) || (num(flat.borderWidth) > 0 && !clear(flat.borderColor))) {
+    const bordered = num(flat.borderWidth) > 0 && !clear(flat.borderColor);
+    if (kind === "overlay" && !bordered && typeof props.style !== "function" && animatedBg(props.style)) {
+        const still = stillStyle(props.style);
+        if (!still.moving) {
+            cut++;
+            return { props: cutProps({ ...props, style: still.style }, flat, kind), how: "red cut" };
+        }
+        const color = baseColor();
+        if (!color) return null;
+        bevelled++;
+        return { props: bevel(props, notchSize(flat), color), how: `notches (moves ${still.moving.slice(0, 30)})` };
+    }
+    if (animatedBg(props.style) || bordered) {
         const color = baseColor();
         if (!color) return null;
         bevelled++;
@@ -380,7 +437,7 @@ function clone(el: any, props: any) {
 const boxType = (t: any) => infoOf(t).box;
 
 function decideAndApply(props: any, flat: any, hint: Hint, where: string) {
-    const d = decide(flat, animatedBg(props.style), hint.overlay);
+    const d = decide(flat, animatedBg(props.style), hint);
     if (!d.kind) {
         remember(hint.label, hint.icon, flat, `${where}${d.why}`);
         return null;
@@ -504,7 +561,7 @@ function onJsx(args: any[]) {
         return;
     }
     if (typeof type === "string") return;
-    if (typeof props.accessibilityLabel === "string" && HOME.test(props.accessibilityLabel)) notePressable(type, props, { overlay: false, label: props.accessibilityLabel, icon: "?" }, "home");
+    if (typeof props.accessibilityLabel === "string" && HOME.test(props.accessibilityLabel)) notePressable(type, props, { overlay: false, red: false, label: props.accessibilityLabel, icon: "?" }, "home");
     const ch = props.children;
     let icon = "";
     if (ch != null && typeof ch === "object") {
@@ -515,7 +572,13 @@ function onJsx(args: any[]) {
     if (!icon && props.icon != null && typeof props.onPress === "function") icon = iconProp(props.icon);
     if (!icon || typeof props.text === "string" || typeof props.title === "string" || typeof props.label === "string" || typeof props.subLabel === "string") return;
     const label = typeof props.accessibilityLabel === "string" ? props.accessibilityLabel : "";
-    const hint: Hint = { overlay: OVERLAY_ICON.test(icon) || OVERLAY_LABEL.test(label), label, icon };
+    const hint: Hint = {
+        overlay: OVERLAY_ICON.test(icon) || OVERLAY_LABEL.test(label),
+        red: RED_ICON.test(icon) || RED_LABEL.test(label),
+        label,
+        icon,
+        plain: ch == null || typeof ch !== "object" || pureIcons(ch, 1),
+    };
     const next = target(type, props, hint);
     if (next) {
         args[1] = next;
@@ -533,7 +596,7 @@ function onJsx(args: any[]) {
     return args;
 }
 
-const ctxKey = (ctx: Ctx) => `${ctx.blanket ? "b" : "t"}|${ctx.call ?? ""}|${ctx.hint?.overlay ? 1 : 0}`;
+const ctxKey = (ctx: Ctx) => `${ctx.blanket ? "b" : "t"}|${ctx.call ?? ""}|${ctx.hint?.overlay ? 1 : 0}${ctx.hint?.red ? 1 : 0}${ctx.hint?.label ? 1 : 0}${ctx.hint?.plain === false ? 0 : 1}`;
 
 function run(label: string, level: number, orig: Function, self: any, args: any[], ctx: Ctx) {
     labels.push(label);
