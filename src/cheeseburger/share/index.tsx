@@ -6,6 +6,7 @@ import { TableRow } from "@metro/common/components";
 
 import { caught, safe, safeInstead } from "../crash";
 import { iconComponent, withOverride } from "../toolbar";
+import { shareSettings, useShareSettings } from "./storage";
 
 const TOOLBAR = /\/VoicePanelScreenshareButton\.tsx$/;
 const ROWS = /\/VoicePanelVoiceControlsButtons\.tsx$/;
@@ -57,6 +58,7 @@ class Guard extends React.Component<{ children?: any; fallback?: any; }, { faile
         failures++;
         lastError = String(e?.message ?? e).slice(0, 120);
         caught("share row", e);
+        if (!this.props.fallback) remember(false);
     }
 
     render() {
@@ -117,11 +119,18 @@ function MenuShare({ base }: { base: any; }) {
 const rowLike = (raw: any) => raw != null && typeof raw === "object" && (typeof raw.props?.label === "string" || /Row/.test(raw.type?.displayName ?? raw.type?.name ?? ""));
 const shapeOf = (raw: any) => (raw == null ? "nothing" : `${raw.type?.displayName ?? raw.type?.name ?? typeof raw.type}${rowLike(raw) ? "" : " (not a row)"}`);
 
+function remember(works: boolean) {
+    try {
+        if (shareSettings.menuWorks !== works) shareSettings.menuWorks = works;
+    } catch { }
+    changed();
+}
+
 function useShowing(ok: boolean) {
     React.useEffect(() => {
         if (!ok) return;
         live++;
-        changed();
+        remember(true);
         return () => {
             live = Math.max(0, live - 1);
             changed();
@@ -167,11 +176,13 @@ function MenuNative({ base }: { base: any; }) {
 
 function ToolbarShare({ children }: { children?: any; }) {
     const [, force] = React.useReducer((n: number) => n + 1, 0);
+    const works = useShareSettings((s: any) => !!s.menuWorks);
     React.useEffect(() => {
         listeners.add(force);
         return () => void listeners.delete(force);
     }, []);
-    return live > 0 ? null : children ?? null;
+    const menu = typeof rows?.ChatButton === "function";
+    return live > 0 || (works && menu) ? null : children ?? null;
 }
 
 function ensure() {
