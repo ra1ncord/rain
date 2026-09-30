@@ -7,7 +7,7 @@ let targets = 0;
 let jsxCalls = 0;
 let elementCalls = 0;
 
-export function watchElementFactories(register: (args: any[]) => any, decorate: (args: any[], ret: any) => any, changed: () => void) {
+export function watchElementFactories(register: (args: any[]) => any, decorate: (args: any[], ret: any) => any, changed: () => void, active: () => boolean) {
     const patches: (() => unknown)[] = [];
     const watched = new WeakMap<object, Set<string>>();
     const scanned = new WeakSet<object>();
@@ -31,6 +31,7 @@ export function watchElementFactories(register: (args: any[]) => any, decorate: 
         }
     };
     const scan = safe("split element factories", () => {
+        if (!starting && !active()) return;
         const previous = targets;
         const modules = (window as any).modules ?? {};
         for (const id of Object.keys(modules)) {

@@ -7,7 +7,7 @@ import { AppState } from "react-native";
 
 type Kind = "crash" | "error" | "caught" | "closed";
 
-interface Entry { at: number; kind: Kind; what: string; stack?: string; n?: number; }
+interface Entry { at: number; kind: Kind; what: string; stack?: string; n?: number; revision?: string; context?: string; }
 interface Session { started: number; beat: number; state: string; call?: boolean; rev: string; ended?: string; }
 interface Saved { log: Entry[]; session?: Session; }
 
@@ -22,6 +22,7 @@ let appSub: { remove(): void; } | null = null;
 let unreload: (() => unknown) | null = null;
 let writeTimer: ReturnType<typeof setTimeout> | null = null;
 let notifyTimer: ReturnType<typeof setTimeout> | null = null;
+let revisionTimer: ReturnType<typeof setTimeout> | null = null;
 let writing: Promise<void> = Promise.resolve();
 let restoring: Promise<void> = Promise.resolve();
 let ready = false;
@@ -80,16 +81,17 @@ function trim() {
     }
 }
 
-function add(kind: Kind, what: string, stack?: string, at = Date.now()) {
-    const i = saved.log.findIndex(x => x.kind === kind && x.what === what);
+function add(kind: Kind, what: string, stack?: string, at = Date.now(), revision = hotStatus.revision, context?: string) {
+    const i = saved.log.findIndex(x => x.kind === kind && x.what === what && x.revision === revision);
     if (i !== -1) {
         const [hit] = saved.log.splice(i, 1);
         hit.n = (hit.n ?? 1) + 1;
         hit.at = Math.max(hit.at, at);
         if (stack) hit.stack = stack;
+        if (context) hit.context = context;
         saved.log.push(hit);
     } else {
-        saved.log.push(stack ? { at, kind, what, stack } : { at, kind, what });
+        saved.log.push({ at, kind, what, revision, ...(stack ? { stack } : {}), ...(context ? { context } : {}) });
     }
     trim();
     notify();
@@ -154,7 +156,7 @@ export function caught(where: string, e: unknown) {
         const now = Date.now();
         const last = recent.get(what);
         if (last !== undefined && now - last < 1000) {
-            const hit = saved.log.find(x => x.kind === "caught" && x.what === what);
+            const hit = saved.log.find(x => x.kind === "caught" && x.what === what && x.revision === hotStatus.revision);
             if (hit) {
                 hit.n = (hit.n ?? 1) + 1;
                 hit.at = now;
@@ -170,9 +172,9 @@ export function caught(where: string, e: unknown) {
 }
 
 export function safe<F extends (...a: any[]) => any>(where: string, fn: F): F {
-    return function (this: any, a?: any, b?: any, c?: any) {
+    return function (this: any, ...args: any[]) {
         try {
-            return fn.call(this, a, b, c);
+            return fn.apply(this, args);
         } catch (e) {
             caught(where, e);
             return undefined;
@@ -251,7 +253,7 @@ function merge(entries: Entry[]) {
     const keys = new Set<string>();
     return entries.filter(e => {
         if (!e || typeof e.at !== "number" || typeof e.what !== "string") return false;
-        const k = `${e.at}|${e.kind}|${e.what}`;
+        const k = `${e.at}|${e.kind}|${e.what}|${e.revision ?? ""}`;
         if (keys.has(k)) return false;
         keys.add(k);
         return true;
@@ -270,7 +272,7 @@ async function restore(checked: boolean) {
         if (!current()) return;
         if (prev.state === "active" || prev.call || android) {
             const where = prev.state === "active" ? "open" : prev.call ? "in a call in the background" : "in the background";
-            add("closed", `closed while ${where}, no error caught${android ? " (Android reported a crash)" : ""}`, undefined, prev.beat);
+            add("closed", `closed while ${where}, no error caught${android ? " (Android reported a crash)" : ""}`, undefined, prev.beat, prev.rev, `previous session ${when(prev.started)}, app ${prev.state}, call ${prev.call ? "yes" : "no"}, Android crash ${android === null ? "unknown" : android ? "yes" : "no"}, heartbeat ${when(prev.beat)}`);
         }
     }
     ready = true;
@@ -289,11 +291,22 @@ function begin(checked: boolean) {
 
 function touch(state?: string) {
     if (!session) return;
+    if (!g.__cheeseburgerSwapping) session.rev = hotStatus.revision;
     if (state) session.state = state;
     session.beat = Date.now();
     session.call = inCall();
     void write();
 }
+
+const recordRevision = safe("crash revision", () => {
+    revisionTimer = null;
+    if (!current() || !session) return;
+    if (g.__cheeseburgerSwapping) {
+        revisionTimer = setTimeout(recordRevision, 100);
+        return;
+    }
+    touch();
+});
 
 export function startCrashLog() {
     gen = (g.__cheeseburgerCrashGen ?? 0) + 1;
@@ -306,6 +319,7 @@ export function startCrashLog() {
         session = handoff.session;
         ready = !!handoff.ready;
         if (!ready) begin(true);
+        revisionTimer = setTimeout(recordRevision, 100);
     } else {
         session = { started: Date.now(), beat: Date.now(), state: AppState.currentState ?? "active", call: inCall(), rev: hotStatus.revision };
         begin(false);
@@ -327,6 +341,8 @@ export function startCrashLog() {
 }
 
 export function stopCrashLog() {
+    if (revisionTimer) clearTimeout(revisionTimer);
+    revisionTimer = null;
     if (beat) clearInterval(beat);
     beat = null;
     appSub?.remove();
@@ -385,7 +401,7 @@ export function crashDebug(): string[] {
     return [
         `crash log, running since ${session ? when(session.started) : "?"}, cheeseburger ${hotStatus.source} ${hotStatus.revision.slice(0, 7)}`,
         ...(saved.log.length
-            ? [...saved.log].reverse().flatMap(e => [`  ${label(e)}`, ...(e.stack ? [`    ${e.stack}`] : [])])
+            ? [...saved.log].reverse().flatMap(e => [`  ${label(e)}`, `    revision ${e.revision ?? "not recorded"}${e.context ? `; ${e.context}` : ""}`, ...(e.stack ? [`    ${e.stack}`] : [])])
             : ["  nothing yet"]),
     ];
 }

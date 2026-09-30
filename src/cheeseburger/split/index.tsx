@@ -1,6 +1,7 @@
 import { deleteJsxCreate, onJsxCreate } from "@api/react/jsx";
 import { waitForHydration } from "@api/storage";
 import { React } from "@metro/common";
+import { SelectedChannelStore } from "@metro/common/stores";
 
 import { safe } from "../crash";
 import { useToolbar } from "../toolbar";
@@ -18,9 +19,11 @@ const unpatches: (() => unknown)[] = [];
 const g = globalThis as any;
 const decorated = new WeakSet<object>();
 let adding = 0;
+const inVoiceCall = () => !!SelectedChannelStore?.getVoiceChannelId?.();
 
 const addProbe = safe("split probe", (args: any[], ret: any) => {
     if (!ret) return;
+    if (!inVoiceCall()) return ret;
     if (adding || typeof ret !== "object" || decorated.has(ret)) return ret;
     if (isInternalPipRender() || isInternalPipElement(args)) return ret;
     decorated.add(ret);
@@ -41,7 +44,7 @@ const addProbe = safe("split probe", (args: any[], ret: any) => {
 });
 
 const register = safe("split tiles", (args: any[]) => {
-    if (adding || isInternalPipRender() || isInternalPipElement(args)) return;
+    if (!inVoiceCall() || adding || isInternalPipRender() || isInternalPipElement(args)) return;
     return registerTile(args) ?? args;
 });
 
@@ -59,7 +62,7 @@ export default {
         startPip();
         startPinControls();
         onJsxCreate(ANCHOR, inject);
-        unpatches.push(watchElementFactories(register, addProbe, refreshSplitLayout));
+        unpatches.push(watchElementFactories(register, addProbe, refreshSplitLayout, inVoiceCall));
         unpatches.push(useToolbar());
         const handoff = g.__cheeseburgerSplit;
         if (handoff) {
