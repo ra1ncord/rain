@@ -42,9 +42,10 @@ function arrange(list: any): any {
     if (video.length >= 2) {
         const meId = UserStore?.getCurrentUser?.()?.id;
         const isMe = (p: any) => (p?.user?.id ?? p?.id) === meId;
-        const streams = video.filter((p: any) => p.stream);
-        const theirCams = video.filter((p: any) => !p.stream && !isMe(p));
-        const myCam = video.filter((p: any) => !p.stream && isMe(p));
+        const stable = (a: any, b: any) => String(a?.streamId ?? a?.id ?? a?.user?.id ?? "").localeCompare(String(b?.streamId ?? b?.id ?? b?.user?.id ?? ""));
+        const streams = video.filter((p: any) => p.stream).sort(stable);
+        const theirCams = video.filter((p: any) => !p.stream && !isMe(p)).sort(stable);
+        const myCam = video.filter((p: any) => !p.stream && isMe(p)).sort(stable);
         out = [...streams, ...theirCams, ...myCam, ...list.filter(p => !video.includes(p))];
     }
     memo.set(list, { key, out });
