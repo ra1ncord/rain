@@ -54,6 +54,25 @@ function nativeControl(el: any): boolean {
     return (el.type === Pressable || /Pressable/.test(nameOf(el.type))) && FOCUS.test(label) && containsPill(props.children);
 }
 
+function focusChild(node: any, depth = 0): any {
+    if (!node || depth > 8) return null;
+    if (Array.isArray(node)) {
+        for (const child of node) {
+            const found = focusChild(child, depth + 1);
+            if (found) return found;
+        }
+        return null;
+    }
+    if (nativeControl(node)) return node;
+    return node.type === React.Fragment ? focusChild(node.props?.children, depth + 1) : null;
+}
+
+function hasOwnPin(node: any, depth = 0): boolean {
+    if (!node || depth > 8) return false;
+    if (Array.isArray(node)) return node.some(child => hasOwnPin(child, depth + 1));
+    return node.key === "cheeseburger-pip" || node.type === React.Fragment && hasOwnPin(node.props?.children, depth + 1);
+}
+
 function partFromProps(props: any): any {
     if (!props || typeof props !== "object") return null;
     if (props.sharedCoords || props.streamId != null || props.participant?.id != null) {
@@ -89,12 +108,6 @@ function animationKeys(style: any): string {
     return [...keys].join("+");
 }
 
-function supportedStyle(style: any, animated: boolean, depth = 0): any {
-    if (animated || !style || depth > 5) return style;
-    if (Array.isArray(style)) return style.map(s => supportedStyle(s, false, depth + 1));
-    return typeof style === "object" && style.viewDescriptors && style.initial ? undefined : style;
-}
-
 export function integratePinControls(el: any, streamId?: any): any {
     if (!React.isValidElement(el)) return el;
     if (streamId == null) {
@@ -113,18 +126,16 @@ export function integratePinControls(el: any, streamId?: any): any {
         if (props.cheeseburgerPin || props.children == null || typeof props.children === "function") return node;
         const children = props.children;
         const list = Array.isArray(children) ? children : [children];
-        if (list.some(c => c?.key === "cheeseburger-pip")) {
+        if (hasOwnPin(children)) {
             added = true;
             return node;
         }
         const animation = [...new Set([...inherited.split("+"), ...animationKeys(props.style).split("+")].filter(Boolean))].join("+");
-        const focus = list.findIndex(nativeControl);
-        if (focus !== -1 && examples.size < 8) examples.add(`${nameOf(node.type) || "node"}: focus parent, native ${animation || "none"}`);
-        const index = !added && (node.type === View || NATIVE_VIEW.test(nameOf(node.type))) ? focus : -1;
-        if (index !== -1) {
+        const template = focusChild(children);
+        if (template && examples.size < 8) examples.add(`${nameOf(node.type) || "node"}: focus parent, native ${animation || "none"}`);
+        if (template && !added && (node.type === View || NATIVE_VIEW.test(nameOf(node.type)))) {
             added = true;
             rows++;
-            const template = list[index];
             const bound = partFromProps(props) ?? partFromProps(template.props);
             if (bound && mineParticipant(bound)) return node;
             const parentName = nameOf(node.type) || "view";
@@ -277,7 +288,7 @@ function Pin(props: PinProps) {
     const color = pinned ? accentColor("#ff0048") : "#ffffff";
     const original = props.template.props.style;
     const style = safe("pip pin style", (state: any) => {
-        const base = supportedStyle(typeof original === "function" ? original(state) : original, /^Animated/.test(nameOf(props.template.type)));
+        const base = typeof original === "function" ? original(state) : original;
         const flat = StyleSheet.flatten(base) ?? {};
         return [base, { position: "absolute", left: undefined, right: (typeof flat.right === "number" ? flat.right : 0) + (typeof flat.width === "number" ? flat.width : 32) + 8, top: typeof flat.top === "number" ? flat.top : 0, bottom: undefined }];
     });

@@ -1,14 +1,14 @@
-import { after, before } from "@api/patcher";
-import { deleteJsxCreate, jsxRuntime, onJsxCreate } from "@api/react/jsx";
+import { deleteJsxCreate, onJsxCreate } from "@api/react/jsx";
 import { waitForHydration } from "@api/storage";
 import { React } from "@metro/common";
 
 import { safe } from "../crash";
 import { useToolbar } from "../toolbar";
+import { watchElementFactories } from "./factories";
 import { isFullscreenSplit, isLandscapeAuto, isSplitActive, refreshSplitLayout, resumeSplit, startLayoutPatches, stopLayoutPatches } from "./layout";
 import { isInternalPipElement, isInternalPipRender, startPip, stopPip } from "./pip";
 import { integratePinControls, markVideoElement, startPinControls, stopPinControls } from "./PipPin";
-import { captureCallGeometry, TileProbe } from "./probe";
+import { captureCallGeometry, captureTileGeometry, markTileElement } from "./probe";
 import { SplitViewButton } from "./SplitView";
 import { useSplitViewSettings } from "./storage";
 import { isTileElement, registerTile } from "./tiles";
@@ -16,24 +16,32 @@ import { isTileElement, registerTile } from "./tiles";
 const ANCHOR = "VideoButton";
 const unpatches: (() => unknown)[] = [];
 const g = globalThis as any;
+const decorated = new WeakSet<object>();
+let adding = 0;
 
 const addProbe = safe("split probe", (args: any[], ret: any) => {
     if (!ret) return;
+    if (adding || typeof ret !== "object" || decorated.has(ret)) return ret;
     if (isInternalPipRender() || isInternalPipElement(args)) return ret;
-    ret = captureCallGeometry(args, ret);
-    if (!isTileElement(args)) return integratePinControls(ret);
-    const out = React.createElement(
-        React.Fragment,
-        { key: ret.key ?? undefined },
-        ret,
-        <TileProbe key="cheeseburger-probe" coords={args[1].sharedCoords} />,
-    );
-    markVideoElement(out, args[1].streamId);
-    return out;
+    decorated.add(ret);
+    adding++;
+    try {
+        if (isTileElement(args)) {
+            markTileElement(ret, args[1].sharedCoords);
+            markVideoElement(ret, args[1].streamId);
+        }
+        ret = captureTileGeometry(ret);
+        ret = captureCallGeometry(args, ret);
+        ret = integratePinControls(ret);
+        if (ret && typeof ret === "object") decorated.add(ret);
+        return ret;
+    } finally {
+        adding--;
+    }
 });
 
 const register = safe("split tiles", (args: any[]) => {
-    if (isInternalPipRender() || isInternalPipElement(args)) return;
+    if (adding || isInternalPipRender() || isInternalPipElement(args)) return;
     return registerTile(args) ?? args;
 });
 
@@ -51,10 +59,7 @@ export default {
         startPip();
         startPinControls();
         onJsxCreate(ANCHOR, inject);
-        unpatches.push(before("jsx", jsxRuntime, register));
-        unpatches.push(before("jsxs", jsxRuntime, register));
-        unpatches.push(after("jsx", jsxRuntime, addProbe));
-        unpatches.push(after("jsxs", jsxRuntime, addProbe));
+        unpatches.push(watchElementFactories(register, addProbe, refreshSplitLayout));
         unpatches.push(useToolbar());
         const handoff = g.__cheeseburgerSplit;
         if (handoff) {

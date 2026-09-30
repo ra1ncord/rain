@@ -10,29 +10,44 @@ export const viewportKey = () => {
     return `${Math.round(win.width)}x${Math.round(win.height)}`;
 };
 
-const tileRefs = new Map<object, Set<{ current: any; }>>();
+interface TileRef { ref: { current: any; }; frame: boolean; }
+const tileRefs = new Map<object, Set<TileRef>>();
 const headerRefs = new Map<string, Set<{ current: any; }>>();
 const pendingMeasures = new WeakMap<object, { started: number; }>();
 const geometryElements = new WeakSet<object>();
+const tileElements = new WeakMap<object, object>();
+const tileContainers = new WeakSet<object>();
+const NATIVE_VIEW = /^(?:View|RCTView|REAWorkaroundView|AnimatedComponent|AnimatedView|AnimatedComponent\(View\)|Animated\(View\))$/;
+const probeCounts = { mounted: 0, added: 0, requested: 0, accepted: 0, contained: 0, missing: 0, stale: 0, rejected: 0 };
+let probeNote = "not measured yet";
 let preferredCoords: object | undefined;
 let toolbarRef: { current: any; } | null = null;
 let toolbarSeen = false;
 
-export const measured: { parent?: Box & { coords: any; sv: object; }; toolbar?: Box; header?: Box & { label: string; }; } = {};
+export const measured: { parent?: Box & { coords: any; sv: object; container?: boolean; }; toolbar?: Box; header?: Box & { label: string; }; } = {};
 
 const FILL = { position: "absolute", left: 0, top: 0, right: 0, bottom: 0, opacity: 0 } as const;
 
-function Probe({ coords }: { coords: any; }) {
+function Probe({ coords, frame = false }: { coords: any; frame?: boolean; }) {
     const ref = React.useRef<any>(null);
     React.useEffect(() => {
-        let refs = tileRefs.get(coords);
-        if (!refs) tileRefs.set(coords, refs = new Set());
-        refs.add(ref);
+        const sources = Array.isArray(coords) ? coords : [coords];
+        const entry = { ref, frame };
+        for (const source of sources) {
+            let refs = tileRefs.get(source);
+            if (!refs) tileRefs.set(source, refs = new Set());
+            refs.add(entry);
+        }
+        probeCounts.mounted++;
         return () => {
-            refs!.delete(ref);
-            if (tileRefs.get(coords) === refs && !refs!.size) tileRefs.delete(coords);
+            probeCounts.mounted = Math.max(0, probeCounts.mounted - 1);
+            for (const source of sources) {
+                const refs = tileRefs.get(source);
+                refs?.delete(entry);
+                if (!refs?.size) tileRefs.delete(source);
+            }
         };
-    }, [coords]);
+    }, [coords, frame]);
     return <View ref={ref} collapsable={false} pointerEvents="none" style={FILL} />;
 }
 
@@ -43,7 +58,36 @@ class Guard extends React.Component<{ children?: any; }, { failed: boolean; }> {
     render() { return this.state.failed ? null : this.props.children; }
 }
 
-export function TileProbe(props: { coords: any; }) { return <Guard><Probe {...props} /></Guard>; }
+export function TileProbe(props: { coords: any; frame?: boolean; }) { return <Guard><Probe {...props} /></Guard>; }
+
+export function markTileElement(element: object, coords: object) { tileElements.set(element, coords); }
+
+function tileSources(node: any, out = new Set<object>(), depth = 0): Set<object> {
+    if (!node || depth > 8 || out.size > 16) return out;
+    if (Array.isArray(node)) {
+        for (const child of node) tileSources(child, out, depth + 1);
+    } else if (typeof node === "object") {
+        const coords = tileElements.get(node);
+        if (coords) out.add(coords);
+        else if (node.type === React.Fragment) tileSources(node.props?.children, out, depth + 1);
+    }
+    return out;
+}
+
+export function captureTileGeometry(ret: any): any {
+    if (!React.isValidElement(ret) || tileContainers.has(ret)) return ret;
+    const name = typeof ret.type === "string" ? ret.type : (ret.type as any)?.displayName ?? (ret.type as any)?.name ?? (ret.type as any)?.render?.displayName ?? (ret.type as any)?.render?.name ?? "";
+    if (ret.type !== View && !NATIVE_VIEW.test(name)) return ret;
+    const children = (ret.props as any).children;
+    const sources = tileSources(children);
+    if (!sources.size) return ret;
+    const coords = sources.size > 1 ? [...sources] : [...sources][0];
+    tileContainers.add(ret);
+    const out = React.cloneElement(ret as any, undefined, ...(Array.isArray(children) ? children : [children]), <TileProbe key="cheeseburger-probe" coords={coords} frame={sources.size > 1} />);
+    tileContainers.add(out);
+    probeCounts.added++;
+    return out;
+}
 
 export function useHeaderRef(label = "change audio output") {
     const ref = React.useRef<any>(null);
@@ -79,7 +123,9 @@ function headerLabels(node: any, found = new Set<string>(), depth = 0): Set<stri
 
 export function captureCallGeometry(args: any[], ret: any): any {
     if (!ret || typeof ret !== "object" || geometryElements.has(ret)) return ret;
-    if (args[0] !== View && args[0] !== "RCTView") return ret;
+    const type = args[0];
+    const name = typeof type === "string" ? type : type?.displayName ?? type?.name ?? type?.render?.displayName ?? type?.render?.name ?? "";
+    if (type !== View && !NATIVE_VIEW.test(name)) return ret;
     if (ret.type !== args[0]) return ret;
     const children = ret.props?.children;
     if (headerLabels(children).size < 2) return ret;
@@ -113,11 +159,12 @@ export const toolbarKnown = () => toolbarSeen;
 
 function measure(ref: { current: any; }, done: (b: Box) => void) {
     const node = ref.current;
-    if (typeof node?.measureInWindow !== "function") return;
+    if (typeof node?.measureInWindow !== "function") { probeCounts.missing++; return; }
     const pending = pendingMeasures.get(ref);
     if (pending && Date.now() - pending.started < 500) return;
     const request = { started: Date.now() };
     pendingMeasures.set(ref, request);
+    probeCounts.requested++;
     const viewport = viewportKey();
     try {
         node.measureInWindow(safe("split measure", (x: number, y: number, width: number, height: number) => {
@@ -142,19 +189,29 @@ function changed(a: Box | undefined, b: Box) {
     return !a || a.viewport !== b.viewport || ["x", "y", "width", "height"].some(k => Math.abs((a as any)[k] - (b as any)[k]) >= 0.5);
 }
 
-export function measureAll(read: (sv: any) => any, prefer?: object, onMeasured?: () => void) {
+export function measureAll(read: (sv: any) => any, prefer?: object, onMeasured?: () => void, aspect?: number) {
     preferredCoords = prefer;
     const refs = prefer ? tileRefs.get(prefer) : undefined;
     if (prefer && refs?.size) {
         const value = read(prefer);
         const coords = value && typeof value === "object" ? { ...value } : null;
-        for (const ref of refs) measure(ref, b => {
-            if (preferredCoords !== prefer || !tileRefs.get(prefer)?.has(ref) || !coords) return;
+        for (const entry of refs) measure(entry.ref, b => {
+            if (preferredCoords !== prefer || !tileRefs.get(prefer)?.has(entry) || !coords) { probeCounts.stale++; return; }
             const current = read(prefer);
-            if (!current || !["x", "y", "width", "height"].every(k => typeof coords[k] === "number" && Math.abs(coords[k] - current[k]) < 0.5)) return;
-            if (Math.abs(b.width - coords.width) > Math.max(4, coords.width * 0.02) || Math.abs(b.height - coords.height) > Math.max(4, coords.height * 0.02)) return;
+            if (!entry.frame && (!current || !["x", "y", "width", "height"].every(k => typeof coords[k] === "number" && Math.abs(coords[k] - current[k]) < 0.5))) { probeCounts.stale++; return; }
+            const matches = (w: number, h: number) => Math.abs(b.width - w) <= Math.max(4, w * 0.02) && Math.abs(b.height - h) <= Math.max(4, h * 0.02);
+            const full = matches(coords.width, coords.height);
+            const containedWidth = aspect && aspect > 0 ? Math.min(coords.width, coords.height * aspect) : 0;
+            const containedHeight = containedWidth && aspect ? containedWidth / aspect : 0;
+            const contained = !full && !!containedWidth && matches(containedWidth, containedHeight);
+            const win = Dimensions.get("window");
+            const frame = entry.frame && b.width >= win.width * 0.4 && b.height >= win.height * 0.3;
+            probeNote = `${Math.round(b.width)}x${Math.round(b.height)} in ${Math.round(coords.width)}x${Math.round(coords.height)} ${frame ? "container" : full ? "full" : contained ? "contained" : "rejected"}`;
+            if (entry.frame ? !frame : !full && !contained) { probeCounts.rejected++; return; }
+            probeCounts.accepted++;
+            if (contained) probeCounts.contained++;
             const previous = measured.parent;
-            measured.parent = { ...b, coords, sv: prefer };
+            measured.parent = { ...b, coords: frame ? { x: 0, y: 0, width: b.width, height: b.height } : coords, sv: prefer, container: frame };
             const o = parentOrigin(measured.parent);
             const before = previous && parentOrigin(previous);
             if (!before || previous!.viewport !== b.viewport || Math.abs(o.x - before.x) >= 0.5 || Math.abs(o.y - before.y) >= 0.5) onMeasured?.();
@@ -166,6 +223,8 @@ export function measureAll(read: (sv: any) => any, prefer?: object, onMeasured?:
 }
 
 export const hasToolbarRef = () => !!toolbarRef?.current;
+
+export const probeDebug = () => [`tile probes: ${probeCounts.mounted} mounted, ${probeCounts.added} added, ${tileRefs.size} sources, ${preferredCoords && tileRefs.get(preferredCoords)?.size || 0} selected; requests ${probeCounts.requested}, accepted ${probeCounts.accepted} (${probeCounts.contained} contained), missing ${probeCounts.missing}, stale ${probeCounts.stale}, rejected ${probeCounts.rejected}; ${probeNote}`];
 
 export function measureToolbarNow(onMeasured?: () => void) {
     const ref = toolbarRef;

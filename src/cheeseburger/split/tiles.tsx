@@ -6,7 +6,7 @@ import { Dimensions, StatusBar } from "react-native";
 
 import { caught, safe } from "../crash";
 import { sourceCoordinates } from "./coordinates";
-import { hasToolbarRef, measureAll, measured, measureToolbarNow, parentOrigin, toolbarKnown, viewportKey } from "./probe";
+import { hasToolbarRef, measureAll, measured, measureToolbarNow, parentOrigin, probeDebug, toolbarKnown, viewportKey } from "./probe";
 import { splitViewSettings } from "./storage";
 
 export type TileKind = "stream" | "them" | "me";
@@ -236,7 +236,7 @@ const isVideoRenderer = (props: any) => "isCamera" in props || "videoSpinnerCont
 export function isTileElement(args: any[]): boolean {
     const props = args[1];
     return !!props && typeof props === "object" && typeof args[0] !== "string" && !!props.sharedCoords
-        && isVideoRenderer(props) && props.streamId != null && typeof props.onSize !== "function";
+        && isVideoRenderer(props) && props.streamId != null;
 }
 
 function kindFromProps(props: any, coords: any): TileKind {
@@ -247,7 +247,8 @@ function kindFromProps(props: any, coords: any): TileKind {
     return "them";
 }
 
-const onSizeWrapped = new WeakMap<Function, Function>();
+const onSizeWrapped = new WeakMap<Function, Map<string, Function>>();
+const ownSizeWrappers = new WeakSet<Function>();
 
 function sizeFromArgs(args: any[]): { w: number; h: number; } | null {
     const [a, b] = args;
@@ -315,11 +316,13 @@ export function registerTile(args: any[]) {
     }
     if (props.sharedCoords) noteCoords(props.sharedCoords);
 
-    if (props.streamId != null && typeof props.onSize === "function" && typeof args[0] !== "string") {
+    if (props.streamId != null && typeof props.onSize === "function" && typeof args[0] !== "string" && !ownSizeWrappers.has(props.onSize)) {
         const orig = props.onSize;
-        let w = onSizeWrapped.get(orig);
+        const sid = String(props.streamId);
+        let wrappers = onSizeWrapped.get(orig);
+        if (!wrappers) onSizeWrapped.set(orig, wrappers = new Map());
+        let w = wrappers.get(sid);
         if (!w) {
-            const sid = String(props.streamId);
             w = (...a: any[]) => {
                 try {
                     const size = sizeFromArgs(a);
@@ -329,10 +332,10 @@ export function registerTile(args: any[]) {
                 }
                 return orig(...a);
             };
-            onSizeWrapped.set(orig, w);
+            wrappers.set(sid, w);
+            ownSizeWrappers.add(w);
         }
-        args[1] = { ...props, onSize: w };
-        return args;
+        args[1] = props = { ...props, onSize: w };
     }
 
     if (props.sharedCoords) kickTiles();
@@ -573,7 +576,7 @@ function updateFrame(win: { width: number; height: number; }) {
     const now = Date.now();
     const previous = frame;
     const p = measured.parent;
-    if (p && p.viewport === viewport && now - p.at < 500 && isCoords(p.coords) && near(readCoords(p.sv) ?? {}, p.coords)) {
+    if (p && p.viewport === viewport && now - p.at < 500 && isCoords(p.coords) && (p.container || near(readCoords(p.sv) ?? {}, p.coords))) {
         const o = parentOrigin(p);
         if (Number.isFinite(o.x) && Number.isFinite(o.y) && Math.abs(o.x) < win.width && Math.abs(o.y) < win.height) {
             if (!origin || Math.abs(origin.x - o.x) >= 0.5 || Math.abs(origin.y - o.y) >= 0.5) {
@@ -803,7 +806,9 @@ function applyLayout() {
     syncViewport();
     const list = orderedTiles();
     const square = (t: Tile) => !t.streamId || Math.abs((aspects.get(t.streamId)?.value ?? 16 / 9) - aspectOf(t)) < 0.1;
-    measureAll(readCoords, (list.find(t => t.kind === "stream" && square(t)) ?? list.find(square))?.coords, geometryReady);
+    const preferred = list.find(t => t.kind === "stream" && square(t)) ?? list.find(square) ?? list[0];
+    const actualAspect = preferred?.streamId ? aspects.get(preferred.streamId)?.value : undefined;
+    measureAll(readCoords, preferred?.coords, geometryReady, actualAspect);
     updateFrame(Dimensions.get("window"));
     noteChrome();
     if (!list.length) {
@@ -1057,6 +1062,7 @@ export function tilesDebug(): string[] {
         `window: ${Math.round(Dimensions.get("window").width)}x${Math.round(Dimensions.get("window").height)}, tiles: ${list.length} (registered ${tiles.size}), call videos: ${(callParts() ?? []).filter(p => p.video).map(p => p.streamId ?? "preview").join(",") || "none"}, camera off: ${voice.length}`,
         `mode: ${fullscreen ? "full screen" : "grid"}, ${frame ? `area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} (${frame.parent}), controls ${frame.hidden ? "hidden" : "shown"}, fit ${Math.round(frame.top)}-${Math.round(frame.bottom)}` : "area not measured"}${frameNote ? ` (${frameNote})` : ""}${measured.toolbar ? `, toolbar y ${Math.round(measured.toolbar.y)}` : ""}`,
         `header: ${measured.header ? `${measured.header.label} ${fmt(measured.header)}` : "not measured"}, bounds: ${areaMeasured ? "measured and fixed" : "bootstrap"}, origin: ${origin ? `${origin.x},${origin.y} live` : "not measured"}`,
+        ...probeDebug(),
         `held: ${held}, moved: ${moved}, guarded: ${guards.size}, touched: ${touched.size}, grid: ${gridW ? `${Math.round(gridW.w)}/${gridW.ww}` : "?"}`,
         "layout coordinates: native tile and video",
         ...(moves.length ? ["last moves:", ...moves.map(m => `  ${m}`)] : []),
