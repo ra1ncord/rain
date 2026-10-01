@@ -43,12 +43,13 @@ let viewSid: string | null = null;
 let running = false;
 let renderContext: PipContext | null = null;
 let candidateContext: PipContext | null = null;
+let renderParticipant: any = null;
 let sourceSwaps = 0;
 let internalRenders = 0;
 const viewPatched = new Set<string>();
 const viewShapes = new Map<string, string>();
 const pinListeners = new Set<() => void>();
-let controller: { channelId: any; showSecondaryPIP: boolean | undefined; mode: any; } | null = null;
+let controller: { channelId: any; showSecondaryPIP: boolean | undefined; mode: any; panel: any; id: any; } | null = null;
 const controllerShapes: string[] = [];
 
 const idOf = (v: any) => (v == null ? null : String(v));
@@ -349,16 +350,18 @@ function drawerState(): any {
 
 function floatingPipAllowed(): boolean {
     const drawer = drawerState();
-    return typeof drawer === "number" && drawer >= 0 && drawer < OPEN_CALL_DRAWER_STATE && controller?.showSecondaryPIP === false
+    const explicit = controller?.mode === "IN_APP" || controller?.panel === "pip";
+    const panel = controller?.mode === "IN_PANEL" || controller?.panel === "panel";
+    return !panel && (explicit || typeof drawer === "number" && drawer >= 0 && drawer < OPEN_CALL_DRAWER_STATE) && controller?.showSecondaryPIP === false
         && sameId(controller.channelId, SelectedChannelStore?.getVoiceChannelId?.());
 }
 
 function observeController(args: any, ret: any) {
     if (!ret || typeof ret !== "object") return;
     const channelId = args?.channelId ?? SelectedChannelStore?.getVoiceChannelId?.();
-    controller = { channelId, showSecondaryPIP: ret.showSecondaryPIP, mode: ret.mode };
+    controller = { channelId, showSecondaryPIP: ret.showSecondaryPIP, mode: ret.mode, panel: args?.mode, id: ret.id ?? ret.participantId ?? args?.id };
     const focused = args?.focusedId != null || args?.focusedParticipantId != null;
-    const line = `controller mode=${String(ret.mode ?? "unknown")} panel=${String(args?.mode ?? "unknown")} secondary=${String(ret.showSecondaryPIP)} focused=${focused} drawer=${String(drawerState())} size=${ret.width ?? "?"}x${ret.height ?? "?"}`;
+    const line = `controller mode=${String(ret.mode ?? "unknown")} panel=${String(args?.mode ?? "unknown")} secondary=${String(ret.showSecondaryPIP)} focused=${focused} drawer=${String(drawerState())} size=${ret.width ?? "?"}x${ret.height ?? "?"} id=${String(controller.id ?? "unknown")} keys=${Object.keys(ret).slice(0, 12).join(",")}`;
     if (!controllerShapes.includes(line)) {
         controllerShapes.push(line);
         if (controllerShapes.length > 6) controllerShapes.shift();
@@ -467,6 +470,15 @@ export function participantForFocus(label: string): any {
 
 export const isPipRender = () => renderContext != null;
 
+export function floatingPinParticipant(props?: any): any {
+    if (!running || renderContext !== "floating" || !floatingPipAllowed()) return null;
+    const current = participantForPin(props) ?? renderParticipant ?? allParts().find(p => sameId(p.id, controller?.id) || sameId(p.streamId, controller?.id));
+    if (!current) return null;
+    const source = chosen(current.id) ?? current;
+    if (participantForPin(props)) renderParticipant = source;
+    return isStreamPart(source) && !isMine(source) && hasVideo(source) ? source : null;
+}
+
 export const mineParticipant = (p: any) => isMine(p);
 
 const onRtc = safe("pip rtc", (e: any) => {
@@ -521,6 +533,7 @@ function sourceProps(props: any): any {
     const want = chosen(current?.id ?? null, parts);
     if (!want) return props;
     const next = replacePipSource(props, want, parts);
+    if (current) renderParticipant = participantForPin(next) ?? current;
     if (next !== props) {
         sourceSwaps++;
         remember(want);
@@ -546,6 +559,8 @@ function pipTree(tree: any, context: PipContext, level = 0): any {
 function renderPip(orig: Function, self: any, args: any[], context: PipContext, root = false): any {
     const previous = renderContext;
     const previousCandidate = candidateContext;
+    const previousParticipant = renderParticipant;
+    if (root) renderParticipant = null;
     candidateContext = context;
     renderContext = context === "android" || floatingPipAllowed() ? context : null;
     try {
@@ -566,6 +581,7 @@ function renderPip(orig: Function, self: any, args: any[], context: PipContext, 
     } finally {
         renderContext = previous;
         candidateContext = previousCandidate;
+        renderParticipant = previousParticipant;
     }
 }
 

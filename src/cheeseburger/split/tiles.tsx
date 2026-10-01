@@ -24,7 +24,7 @@ interface Tile {
 interface Rect { x: number; y: number; width: number; height: number; }
 
 interface Aspect { value: number; pending?: number; timer?: ReturnType<typeof setTimeout>; }
-interface CoordsSource { coords: any; seenAt: number; outer?: boolean; name?: string; keys?: string; onSize?: boolean; streamId?: string; }
+interface CoordsSource { coords: any; seenAt: number; outer?: boolean; name?: string; keys?: string; onSize?: boolean; streamId?: string; layout?: string; }
 
 interface Shared {
     tiles: Map<string, Tile>;
@@ -38,7 +38,6 @@ interface Shared {
     copies: number;
     owner: number;
     origins?: Map<string, { x: number; y: number; }>;
-    shownBottom?: Map<string, number>;
     participantOrder?: Map<string, number>;
     tileCandidates?: Map<string, Map<object, Tile>>;
 }
@@ -78,6 +77,8 @@ let held = 0;
 let fullscreen = false;
 let origin: { x: number; y: number; } | null = null;
 let moved = 0;
+let layoutWrites = 0;
+let targetChanges = 0;
 
 const SETTLE_MS = 1000;
 const DEFAULT_ORDER: TileKind[] = ["stream", "them", "me"];
@@ -101,6 +102,7 @@ function writeCoords(sv: any, next: any) {
 }
 
 function write(sv: any, next: any, r: Rect) {
+    layoutWrites++;
     const list = written.get(sv) ?? [];
     if (!list.some(w => near(w, r))) {
         list.push(r);
@@ -301,6 +303,28 @@ function coordsForId(id: string): CoordsSource | undefined {
     return picked;
 }
 
+function dataShape(value: any, depth: number): string {
+    if (value === null) return "null";
+    const type = typeof value;
+    if (type === "string") return `string:${JSON.stringify(value.slice(0, 64))}`;
+    if (type === "number" || type === "boolean" || type === "bigint") return `${type}:${String(value)}`;
+    if (type !== "object") return type;
+    const kind = Array.isArray(value) ? "array" : "object";
+    if (!depth) return kind;
+    const fields = Object.entries(Object.getOwnPropertyDescriptors(value)).slice(0, 8).map(([key, descriptor]) => {
+        const shape = !Object.prototype.hasOwnProperty.call(descriptor, "value") ? "accessor"
+            : /^(?:code|stack|__closure|__initData)$/.test(key) ? "omitted" : dataShape(descriptor.value, depth - 1);
+        return `${key.slice(0, 48)}:${shape}`;
+    });
+    return `${kind}{${fields.join(",")}}`.slice(0, 640);
+}
+
+function layoutShape(props: any) {
+    const descriptor = Object.getOwnPropertyDescriptor(props, "layout");
+    if (!descriptor) return "absent";
+    return Object.prototype.hasOwnProperty.call(descriptor, "value") ? dataShape(descriptor.value, 2) : "accessor";
+}
+
 function noteCoords(sv: any, props: any, type: any) {
     if (!sv || typeof sv !== "object") return;
     const name = type?.displayName ?? type?.name ?? type?.render?.displayName ?? type?.render?.name ?? (typeof type === "string" ? type : "unnamed");
@@ -321,6 +345,7 @@ function noteCoords(sv: any, props: any, type: any) {
         keys: Object.keys(props).filter(key => !["children", "style"].includes(key)).slice(0, 24).join(","),
         onSize: typeof props.onSize === "function",
         streamId: props.streamId != null ? String(props.streamId) : undefined,
+        layout: layoutShape(props),
     });
     const picked = coordsForId(id);
     if (active && prev?.coords !== picked?.coords) scheduleApply();
@@ -591,10 +616,9 @@ let viewport = "";
 let layoutChannel = "";
 let originContext = "";
 let pendingOrigin: { x: number; y: number; at: number; since: number; samples: number; } | null = null;
-let pendingToolbar: { y: number; since: number; at: number; samples: number; } | null = null;
 const restSince = new WeakMap<object, { r: Rect; since: number; }>();
 const origins = shared.origins ??= new Map<string, { x: number; y: number; }>();
-const shownBottom = shared.shownBottom ??= new Map<string, number>();
+let lastOriginAt = 0;
 const frameLog: string[] = [];
 let frameNote = "";
 
@@ -609,7 +633,8 @@ function syncViewport() {
     frame = null;
     origin = null;
     originContext = "";
-    pendingOrigin = pendingToolbar = null;
+    pendingOrigin = null;
+    lastOriginAt = 0;
     gridW = null;
     resetTileMeasurements();
     for (const sv of touched) targets.delete(sv);
@@ -620,56 +645,44 @@ function updateFrame(win: { width: number; height: number; }) {
     const now = Date.now();
     const land = win.width > win.height;
     const key = `${layoutChannel}|${viewport}`;
-    const context = `${key}|${chrome ? "shown" : "hidden"}`;
+    const context = key;
     if (originContext !== context) {
         originContext = context;
         pendingOrigin = null;
-        origin = origins.get(context) ?? origin;
-        resetTileMeasurements();
+        origin = origins.get(context) ?? origins.get(`${key}|${chrome ? "shown" : "hidden"}`) ?? origin;
+        if (origin) origins.set(context, origin);
     }
     const p = measured.parent;
     const rest = p ? restSince.get(p.sv) : undefined;
-    if (!origins.has(context) && p?.viewport === viewport && now - p.at < 700 && isCoords(p.coords) && near(readCoords(p.sv) ?? {}, p.coords) && (!rest || now - rest.since >= 150)) {
+    if (p?.viewport === viewport && p.at !== lastOriginAt && now - p.at < 700 && isCoords(p.coords) && near(readCoords(p.sv) ?? {}, p.coords) && (!rest || now - rest.since >= 150)) {
+        lastOriginAt = p.at;
         const candidate = {
             x: p.x - p.coords.x - (p.coords.width - p.width) / 2,
             y: p.y - p.coords.y - (p.coords.height - p.height) / 2,
         };
         if (Number.isFinite(candidate.x) && Number.isFinite(candidate.y) && Math.abs(candidate.x) < win.width && Math.abs(candidate.y) < win.height) {
-            if (!pendingOrigin || Math.abs(pendingOrigin.x - candidate.x) > 1.5 || Math.abs(pendingOrigin.y - candidate.y) > 1.5) {
+            const tracking = origins.has(context);
+            if (!tracking && (!pendingOrigin || Math.abs(pendingOrigin.x - candidate.x) > 1.5 || Math.abs(pendingOrigin.y - candidate.y) > 1.5)) {
                 pendingOrigin = { ...candidate, at: p.at, since: now, samples: 1 };
-            } else if (pendingOrigin.at !== p.at) {
+            } else if (!tracking && pendingOrigin && pendingOrigin.at !== p.at) {
                 pendingOrigin.at = p.at;
                 pendingOrigin.samples++;
             }
-            if (pendingOrigin.samples >= 2 && now - pendingOrigin.since >= 200) {
+            if ((tracking || pendingOrigin && pendingOrigin.samples >= 2 && now - pendingOrigin.since >= 200) && (!origin || Math.abs(origin.x - candidate.x) >= 1.5 || Math.abs(origin.y - candidate.y) >= 1.5 || !tracking)) {
                 origin = { x: Math.round(candidate.x * 2) / 2, y: Math.round(candidate.y * 2) / 2 };
                 origins.set(context, origin);
                 if (origins.size > 24) origins.delete(origins.keys().next().value!);
-                frameLog.push(`${new Date(now).toISOString().slice(17, 23)} locked ${viewport} ${origin.x},${origin.y} ${chrome ? "shown" : "hidden"}`);
+                frameLog.push(`${new Date(now).toISOString().slice(17, 23)} parent ${viewport} ${origin.x},${origin.y}`);
                 if (frameLog.length > 6) frameLog.shift();
                 pendingOrigin = null;
             }
         }
     }
-    const tb = measured.toolbar?.viewport === viewport && now - measured.toolbar.at < 1000 ? measured.toolbar : undefined;
-    if (!shownBottom.has(key) && chrome && tb && tb.y > statusBar() + 140 && tb.y < win.height - 4) {
-        if (!pendingToolbar || Math.abs(pendingToolbar.y - tb.y) > 2) pendingToolbar = { y: tb.y, since: now, at: tb.at, samples: 1 };
-        else if (pendingToolbar.at !== tb.at) {
-            pendingToolbar.at = tb.at;
-            pendingToolbar.samples++;
-        }
-        if (pendingToolbar.samples >= 2 && now - pendingToolbar.since >= 200) {
-            shownBottom.set(key, Math.round(tb.y - 24));
-            if (shownBottom.size > 16) shownBottom.delete(shownBottom.keys().next().value!);
-            pendingToolbar = null;
-        }
-    }
-    const expanded = fullscreen || !chrome;
-    const top = expanded ? (land ? 8 : statusBar() + 6) : statusBar() + (land ? 8 : 40);
-    const bottom = expanded ? win.height - (land ? 8 : 56) : shownBottom.get(key) ?? win.height - (land ? 90 : 136);
+    const top = fullscreen ? (land ? 8 : statusBar() + 6) : statusBar() + (land ? 8 : 40);
+    const bottom = fullscreen ? win.height - (land ? 8 : 56) : win.height - (land ? 90 : 136);
     origin ??= { x: 12, y: statusBar() + (land ? 8 : 40) };
-    frame = { origin, parent: origins.has(context) ? "locked tile" : "bootstrap", hidden: !chrome, top, bottom: Math.max(top + 1, Math.min(win.height, bottom)) };
-    frameNote = origins.has(context) ? "locked" : pendingOrigin ? "checking origin" : "waiting for tile measurement";
+    frame = { origin, parent: origins.has(context) ? "tracked tile" : "bootstrap", hidden: !chrome, top, bottom: Math.max(top + 1, Math.min(win.height, bottom)) };
+    frameNote = origins.has(context) ? "fixed bounds" : pendingOrigin ? "checking origin" : "waiting for tile measurement";
 }
 
 export function setTilesFullscreen(v: boolean) {
@@ -680,7 +693,7 @@ export function setTilesFullscreen(v: boolean) {
 
 function computeRects(list: Tile[]): Map<string, Rect> {
     const win = Dimensions.get("window");
-    const inset = fullscreen || !chrome ? 0 : 12;
+    const inset = fullscreen ? 0 : 12;
     const area = {
         left: inset,
         right: win.width - inset,
@@ -692,10 +705,10 @@ function computeRects(list: Tile[]): Map<string, Rect> {
 }
 const fmt = (c: any) => `${Math.round(c?.x)},${Math.round(c?.y)} ${Math.round(c?.width)}x${Math.round(c?.height)}`;
 
-function noteMove(t: Tile, cur: any, now: number) {
+function noteMove(t: Tile, cur: any, now: number, target: Rect) {
     moved++;
     const since = lastWrite.get(t.coords);
-    moves.push(`${new Date(now).toISOString().slice(17, 23)} ${t.kind} to ${fmt(cur)}${since ? ` ${now - since}ms after mine` : ""}`);
+    moves.push(`${new Date(now).toISOString().slice(17, 23)} ${t.kind} native ${fmt(cur)} vs target ${fmt(target)}${since ? ` ${now - since}ms after mine` : ""}`);
     if (moves.length > 8) moves.shift();
 }
 
@@ -733,6 +746,7 @@ function applyLayout() {
         const r = rects.get(t.key);
         if (!r || !t.coords) continue;
         const prev = targets.get(t.coords);
+        if (!prev || !near(prev, r)) targetChanges++;
         targets.set(t.coords, r);
         const rs = restSince.get(t.coords);
         if (!rs || !near(rs.r, r)) restSince.set(t.coords, { r, since: now });
@@ -741,7 +755,7 @@ function applyLayout() {
         const cur = current.get(t.coords);
         if (cur && !near(cur, r)) {
             if (prev && near(prev, r)) {
-                noteMove(t, cur, now);
+                noteMove(t, cur, now, r);
                 if (isCoords(cur) && !(written.get(t.coords) ?? []).some(w => near(cur, w))) intended.set(t.coords, { ...cur });
                 burstUntil = now + 3000;
             }
@@ -966,8 +980,9 @@ export function tilesDebug(): string[] {
         `window: ${Math.round(Dimensions.get("window").width)}x${Math.round(Dimensions.get("window").height)}, tiles: ${list.length} (registered ${tiles.size}), call videos: ${(callParts() ?? []).filter(p => p.video).map(p => p.streamId ?? "preview").join(",") || "none"}, camera off: ${voice.length}`,
         `mode: ${fullscreen ? "full screen" : "grid"}, ${frame ? `area ${Math.round(frame.origin.x)},${Math.round(frame.origin.y)} (${frame.parent}), controls ${frame.hidden ? "hidden" : "shown"}, fit ${Math.round(frame.top)}-${Math.round(frame.bottom)}` : "area not measured"}${frameNote ? ` (${frameNote})` : ""}${measured.toolbar ? `, toolbar y ${Math.round(measured.toolbar.y)}` : ""}`,
         `held: ${held}, moved: ${moved}, guarded: ${guards.size}, touched: ${touched.size}, grid: ${gridW ? `${Math.round(gridW.w)}/${gridW.ww}` : "?"}`,
+        `layout writes: ${layoutWrites}, target changes: ${targetChanges}, native resets: ${moved}`,
         probeDebug(),
-        `coordinate sources: ${[...coordsCandidates.entries()].slice(0, 16).map(([id, candidates]) => `${id}=${[...candidates.values()].slice(0, 4).map(source => `${source.outer ? "frame" : "renderer"}:${source.name ?? "unnamed"}${source.streamId ? ` sid${source.streamId}` : ""}${source.onSize ? " size callback" : ""}${hasTileProbe(source.coords) ? " mounted" : ""} ${fmt(readCoords(source.coords))} [${source.keys ?? ""}]`).join(" | ")}`).join("; ") || "none"}`,
+        `coordinate sources: ${[...coordsCandidates.entries()].slice(0, 16).map(([id, candidates]) => `${id}=${[...candidates.values()].slice(0, 4).map(source => `${source.outer ? "frame" : "renderer"}:${source.name ?? "unnamed"}${source.streamId ? ` sid${source.streamId}` : ""}${source.onSize ? " size callback" : ""}${hasTileProbe(source.coords) ? " mounted" : ""} ${fmt(readCoords(source.coords))} [${source.keys ?? ""}] layout=${source.layout ?? "unknown"}`).join(" | ")}`).join("; ") || "none"}`,
         `frames: equal 16:9, outer participants ${list.filter(t => [...coordsById.values()].some(source => source.outer && source.coords === t.coords)).length}, avatar sources ${voice.length}`,
         ...(moves.length ? ["last moves:", ...moves.map(m => `  ${m}`)] : []),
         ...(frameLog.length ? ["area changes:", ...frameLog.map(m => `  ${m}`)] : []),
