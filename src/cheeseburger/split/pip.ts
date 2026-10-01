@@ -6,7 +6,7 @@ import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { NativeModules } from "react-native";
 
 import { caught, safe, safeInstead } from "../crash";
-import { isParticipant, isStreamParticipant, replacePipSource, sameId } from "./pipSource";
+import { hasPipStreamId, isParticipant, isStreamParticipant, pipValueLike, replacePipSource, sameId } from "./pipSource";
 import { splitViewSettings } from "./storage";
 import { hasVideo, knownMainAspect, onAspectChange, streamAspect } from "./tiles";
 
@@ -148,8 +148,8 @@ function people(): { others: Cand[]; mine: Cand[]; } | null {
     const others: Cand[] = [];
     const mine: Cand[] = [];
     for (const p of parts) {
-        if (!p || p.streamId == null) continue;
-        const c: Cand = { sid: p.streamId, pid: p.id, stream: !!p.stream };
+        if (!p || !hasPipStreamId(p)) continue;
+        const c: Cand = { sid: p.streamId, pid: p.id, stream: isStreamParticipant(p) };
         const owner = p.user?.id ?? p.userId ?? (p.stream ? undefined : p.id);
         if (meId != null && owner != null && String(owner) === String(meId)) mine.push(c);
         else if (hasVideo(p)) others.push(c);
@@ -279,13 +279,13 @@ function chosen(currentId: string | null, all = allParts()): any {
     if (!all.length) return null;
     const me = myId();
     if (pinned) {
-        const p = all.find(x => sameId(x.id, pinned) && hasVideo(x));
+        const p = all.find(x => sameId(x.id, pinned) && hasPipStreamId(x) && hasVideo(x));
         if (p) return p;
     }
     if (splitViewSettings.smartPip === false) return null;
-    const others = all.filter(x => !isMine(x, me) && hasVideo(x));
+    const others = all.filter(x => !isMine(x, me) && hasPipStreamId(x) && hasVideo(x));
     if (!others.length) return null;
-    const cur = currentId != null ? others.find(x => x.id === currentId) : undefined;
+    const cur = currentId != null ? others.find(x => sameId(x.id, currentId)) : undefined;
     const streams = others.filter(isStreamPart);
     if (streams.length) return streams.find(x => x.id === viewPick) ?? (cur && isStreamPart(cur) ? cur : streams[0]);
     return cur ?? others.find(x => x.id === viewPick) ?? others[0];
@@ -309,7 +309,8 @@ function remember(want: any) {
     }
 }
 
-const swapped = new WeakMap<object, { id: string; out: any; }>();
+const swapped = new WeakMap<object, any>();
+const controllerSwapped = new WeakMap<object, any>();
 
 function pickSelection(ret: any): any {
     discordSid = ret.selectedParticipantStreamId != null ? String(ret.selectedParticipantStreamId) : null;
@@ -321,9 +322,9 @@ function pickSelection(ret: any): any {
     remember(want);
     if (cur?.id === want.id) return ret;
     const hit = swapped.get(ret);
-    if (hit && hit.id === want.id) return hit.out;
     const out = replacePipSource(ret, want, parts);
-    swapped.set(ret, { id: want.id, out });
+    if (hit && Object.keys(hit).length === Object.keys(out).length && Object.keys(out).every(key => hit[key] === out[key])) return hit;
+    swapped.set(ret, out);
     logShape(`view ${discordSid ?? "none"} -> ${want.streamId}${pinned ? " (pinned)" : ""}`);
     return out;
 }
@@ -360,13 +361,57 @@ function observeController(args: any, ret: any) {
     if (!ret || typeof ret !== "object") return;
     const channelId = args?.channelId ?? SelectedChannelStore?.getVoiceChannelId?.();
     controller = { channelId, showSecondaryPIP: ret.showSecondaryPIP, mode: ret.mode, panel: args?.mode, id: ret.id ?? ret.participantId ?? args?.id };
+    let next = ret;
+    if (running && floatingPipAllowed() && (controller.mode === "IN_APP" || controller.panel === "pip")) {
+        const parts = allParts(channelId);
+        const current = parts.find(p => sameId(p.id, controller?.id) || sameId(p.streamId, controller?.id));
+        const want = chosen(current?.id ?? null, parts);
+        if (want) {
+            remember(want);
+            const put = (key: string, value: any) => {
+                if (!(key in ret) || next[key] === value) return;
+                if (next === ret) next = { ...ret };
+                next[key] = value;
+            };
+            const putId = (key: string, value: any) => put(key, pipValueLike(ret[key], value));
+            putId("id", want.id);
+            putId("participantId", want.id);
+            putId("type", want.type);
+            put("isCamera", !isStreamPart(want));
+            put("isStream", isStreamPart(want));
+            putId("streamId", want.streamId);
+            const uid = want.user?.id ?? want.userId ?? (isStreamPart(want) ? want.stream?.ownerId : want.id);
+            if (uid != null) putId("userId", uid);
+            putId("selectedParticipantStreamId", want.streamId);
+            putId("selectedParticipantUserId", uid ?? null);
+            putId("focusedParticipantType", want.type);
+            put("selectedParticipantSpeaking", !!(want.speaking ?? want.voiceState?.speaking));
+            for (const key of ["participant", "pipParticipant", "videoParticipant", "selectedParticipant", "focusedParticipant"]) {
+                if (isPart(ret[key])) put(key, want);
+            }
+            const aspect = streamAspect(String(want.streamId));
+            if (aspect && Number.isFinite(aspect) && aspect > 0 && typeof ret.width === "number" && Number.isFinite(ret.width) && ret.width > 0
+                && typeof ret.height === "number" && Number.isFinite(ret.height) && ret.height > 0) {
+                const height = ret.width / Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, aspect));
+                if (Math.abs(ret.height - height) >= 0.5) put("height", height);
+            }
+            controller.id = want.id;
+            renderParticipant = want;
+        }
+    }
+    if (next !== ret) {
+        const cached = controllerSwapped.get(ret);
+        if (cached && Object.keys(cached).length === Object.keys(next).length && Object.keys(next).every(key => cached[key] === next[key])) next = cached;
+        else controllerSwapped.set(ret, next);
+    }
     const focused = args?.focusedId != null || args?.focusedParticipantId != null;
-    const line = `controller mode=${String(ret.mode ?? "unknown")} panel=${String(args?.mode ?? "unknown")} secondary=${String(ret.showSecondaryPIP)} focused=${focused} drawer=${String(drawerState())} size=${ret.width ?? "?"}x${ret.height ?? "?"} id=${String(controller.id ?? "unknown")} keys=${Object.keys(ret).slice(0, 12).join(",")}`;
+    const line = `controller mode=${String(ret.mode ?? "unknown")} panel=${String(args?.mode ?? "unknown")} secondary=${String(ret.showSecondaryPIP)} focused=${focused} drawer=${String(drawerState())} size=${ret.width ?? "?"}x${ret.height ?? "?"}${next.height !== ret.height ? `->${next.width}x${next.height}` : ""} id=${String(ret.id ?? "unknown")}${next.id !== ret.id ? `->${String(next.id)}` : ""} keys=${Object.keys(ret).slice(0, 12).join(",")}`;
     if (!controllerShapes.includes(line)) {
         controllerShapes.push(line);
         if (controllerShapes.length > 6) controllerShapes.shift();
     }
     if (candidateContext === "floating") renderContext = floatingPipAllowed() ? "floating" : null;
+    return next;
 }
 
 function patchViews(tries = 0) {
@@ -382,8 +427,8 @@ function patchViews(tries = 0) {
             try {
                 unpatches.push(after(key, exp, safe(`pip view ${name}`, (args: any[], ret: any) => {
                     if (path === VIEW_PATHS[1]) {
-                        observeController(args?.[0], ret);
-                        return;
+                        const next = observeController(args?.[0], ret);
+                        return next === ret ? undefined : next;
                     }
                     const context = renderContext ?? (path === VIEW_PATHS[0] ? "android" : null);
                     if (!running || !context) return;
@@ -447,7 +492,14 @@ export function participantForPin(props: any): any {
         const found = parts.find(p => sameId(p.id, props?.[key]));
         if (found) return found;
     }
-    return participantForStream(props?.streamId);
+    const byStream = participantForStream(props?.streamId);
+    if (byStream) return byStream;
+    const camera = props?.isCamera === true || props?.type === 2;
+    const stream = !camera && (props?.isCamera === false || props?.type === 0 || String(props?.id ?? "").startsWith("call:")
+        || props != null && typeof props === "object" && ("streamGuildId" in props || "streamKey" in props));
+    if (props?.userId == null || !stream && !camera) return null;
+    const matching = parts.filter(p => isStreamPart(p) === stream && sameId(p.user?.id ?? p.userId ?? p.stream?.ownerId ?? p.id, props.userId));
+    return matching.length === 1 ? matching[0] : null;
 }
 
 export function participantForFocus(label: string): any {
@@ -476,7 +528,7 @@ export function floatingPinParticipant(props?: any): any {
     if (!current) return null;
     const source = chosen(current.id) ?? current;
     if (participantForPin(props)) renderParticipant = source;
-    return isStreamPart(source) && !isMine(source) && hasVideo(source) ? source : null;
+    return isStreamPart(source) && !isMine(source) && hasPipStreamId(source) && hasVideo(source) ? source : null;
 }
 
 export const mineParticipant = (p: any) => isMine(p);
@@ -619,12 +671,14 @@ function aware(T: any, path: string): any {
                 force();
             });
             const offPin = onPinChange(bump);
+            const offAspect = onAspectChange(bump);
             const store = rtcStore();
             try {
                 store?.addChangeListener?.(bump);
             } catch { }
             return () => {
                 offPin();
+                offAspect();
                 try {
                     store?.removeChangeListener?.(bump);
                 } catch { }

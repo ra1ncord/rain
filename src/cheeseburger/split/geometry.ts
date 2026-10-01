@@ -1,6 +1,8 @@
 export interface Rect { x: number; y: number; width: number; height: number; }
 export interface Area { left: number; right: number; top: number; bottom: number; }
-export interface Video { key: string; aspect: number; }
+export interface Video { key: string; aspect: number; footer?: number; }
+
+export const VIDEO_FOOTER = 40;
 
 function squareGrid(keys: string[], width: number, height: number, gap: number, limit: number) {
     const out = new Map<string, Rect>();
@@ -33,29 +35,42 @@ export function splitRects(videos: Video[], voices: string[], area: Area, origin
     const videoW = Math.max(1, width - (landscape && voices.length ? voice.width + gap : 0));
     const videoH = Math.max(1, height - (!landscape && voices.length ? voice.height + gap : 0));
     const aspects = videos.map(() => 16 / 9);
+    const footers = videos.map(v => Number.isFinite(v.footer) ? Math.max(0, v.footer!) : 0);
     let rows: number[][] = [];
     let heights: number[] = [];
+    let rowFooters: number[] = [];
+
+    const packing = (cols: number) => {
+        const candidate = Array.from({ length: Math.ceil(videos.length / cols) }, (_, r) => videos.map((_, i) => i).slice(r * cols, (r + 1) * cols));
+        const rowFooters = candidate.map(row => Math.max(...row.map(i => footers[i])));
+        const h = Math.min((videoH - gap * (candidate.length - 1) - rowFooters.reduce((sum, h) => sum + h, 0)) / candidate.length, ...candidate.map(row => (videoW - gap * (row.length - 1)) / row.reduce((sum, i) => sum + aspects[i], 0)));
+        return { rows: candidate, rowFooters, h };
+    };
 
     if (landscape) {
         let bestHeight = 0;
-        for (let count = 1; count <= videos.length; count++) {
-            const cols = Math.ceil(videos.length / count);
-            const candidate = Array.from({ length: Math.ceil(videos.length / cols) }, (_, r) => videos.map((_, i) => i).slice(r * cols, (r + 1) * cols));
-            const h = Math.min((videoH - gap * (candidate.length - 1)) / candidate.length, ...candidate.map(row => (videoW - gap * (row.length - 1)) / row.reduce((sum, i) => sum + aspects[i], 0)));
-            if (h > bestHeight + 0.5) {
-                bestHeight = h;
-                rows = candidate;
+        for (let cols = videos.length; cols >= 1; cols--) {
+            const candidate = packing(cols);
+            if (candidate.h > 0 && (!rows.length || candidate.h > bestHeight + 0.5)) {
+                bestHeight = candidate.h;
+                rows = candidate.rows;
+                rowFooters = candidate.rowFooters;
             }
         }
         heights = rows.map(() => bestHeight);
     } else {
-        rows = videos.map((_, i) => [i]);
-        heights = rows.map(row => (videoW - gap * (row.length - 1)) / row.reduce((sum, i) => sum + aspects[i], 0));
-        const scale = Math.min(1, Math.max(0, videoH - gap * (rows.length - 1)) / heights.reduce((a, b) => a + b, 0));
-        heights = heights.map(h => h * scale);
+        for (let cols = 1; cols <= videos.length; cols++) {
+            const candidate = packing(cols);
+            if (candidate.h <= 0) continue;
+            rows = candidate.rows;
+            rowFooters = candidate.rowFooters;
+            heights = rows.map(() => candidate.h);
+            break;
+        }
     }
 
-    const usedH = heights.reduce((a, b) => a + b, 0) + gap * (rows.length - 1);
+    if (!rows.length) return out;
+    const usedH = heights.reduce((a, b) => a + b, 0) + rowFooters.reduce((a, b) => a + b, 0) + gap * (rows.length - 1);
     const usedW = Math.max(...rows.map((row, r) => row.reduce((sum, i) => sum + heights[r] * aspects[i], 0) + gap * (row.length - 1)));
     const totalW = usedW + (landscape && voices.length ? gap + voice.width : 0);
     const totalH = usedH + (!landscape && voices.length ? gap + voice.height : 0);
@@ -70,7 +85,7 @@ export function splitRects(videos: Video[], voices: string[], area: Area, origin
             out.set(videos[i].key, { x, y, width: h * aspects[i], height: h });
             x += h * aspects[i] + gap;
         });
-        y += h + gap;
+        y += h + rowFooters[r] + gap;
     });
     for (const [key, r] of voice.rects) out.set(key, { ...r, x: r.x + (landscape ? x0 + usedW + gap : area.left - origin.x + (width - voice.width) / 2), y: r.y + (landscape ? area.top - origin.y + (height - voice.height) / 2 : y0 + usedH + gap) });
     for (const [key, r] of out) out.set(key, { x: Math.round(r.x), y: Math.round(r.y), width: Math.max(1, Math.round(r.width)), height: Math.max(1, Math.round(r.height)) });

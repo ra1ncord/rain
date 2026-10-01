@@ -5,7 +5,7 @@ import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { Dimensions, StatusBar } from "react-native";
 
 import { caught, safe } from "../crash";
-import { splitRects } from "./geometry";
+import { splitRects, VIDEO_FOOTER } from "./geometry";
 import { hasTileProbe, hasToolbarRef, measureAll, measured, measureToolbarNow, probeDebug, resetTileMeasurements, toolbarKnown, viewportKey } from "./probe";
 import { splitViewSettings } from "./storage";
 
@@ -38,6 +38,7 @@ interface Shared {
     copies: number;
     owner: number;
     origins?: Map<string, { x: number; y: number; }>;
+    originPolicy?: "native-latch";
     participantOrder?: Map<string, number>;
     tileCandidates?: Map<string, Map<object, Tile>>;
 }
@@ -614,11 +615,14 @@ interface Frame { origin: { x: number; y: number; }; parent: string; hidden: boo
 let frame: Frame | null = null;
 let viewport = "";
 let layoutChannel = "";
-let originContext = "";
-let pendingOrigin: { x: number; y: number; at: number; since: number; samples: number; } | null = null;
-const restSince = new WeakMap<object, { r: Rect; since: number; }>();
+let pendingOrigin: { x: number; y: number; at: number; since: number; samples: number; coords: Rect; } | null = null;
 const origins = shared.origins ??= new Map<string, { x: number; y: number; }>();
+if (shared.originPolicy !== "native-latch") origins.clear();
+shared.originPolicy = "native-latch";
 let lastOriginAt = 0;
+let calibrating = true;
+let calibrationAt = 0;
+let originFrom = "native";
 const frameLog: string[] = [];
 let frameNote = "";
 
@@ -628,16 +632,19 @@ function syncViewport() {
     const key = viewportKey();
     const channel = String(SelectedChannelStore?.getVoiceChannelId?.() ?? "");
     if (key === viewport && channel === layoutChannel) return;
+    const inherited = !viewport && touched.size ? origins.get(`${channel}|${key}`) : undefined;
+    if (!inherited && touched.size) releaseForCalibration();
     viewport = key;
     layoutChannel = channel;
     frame = null;
-    origin = null;
-    originContext = "";
+    origin = inherited ?? null;
+    calibrating = !inherited;
+    calibrationAt = Date.now();
+    originFrom = inherited ? "handoff" : "native";
     pendingOrigin = null;
     lastOriginAt = 0;
     gridW = null;
     resetTileMeasurements();
-    for (const sv of touched) targets.delete(sv);
     frameNote = "screen changed";
 }
 
@@ -645,46 +652,46 @@ function updateFrame(win: { width: number; height: number; }) {
     const now = Date.now();
     const land = win.width > win.height;
     const key = `${layoutChannel}|${viewport}`;
-    const context = key;
-    if (originContext !== context) {
-        originContext = context;
-        pendingOrigin = null;
-        origin = origins.get(context) ?? origins.get(`${key}|${chrome ? "shown" : "hidden"}`) ?? origin;
-        if (origin) origins.set(context, origin);
-    }
     const p = measured.parent;
-    const rest = p ? restSince.get(p.sv) : undefined;
-    if (p?.viewport === viewport && p.at !== lastOriginAt && now - p.at < 700 && isCoords(p.coords) && near(readCoords(p.sv) ?? {}, p.coords) && (!rest || now - rest.since >= 150)) {
+    if (calibrating && p?.viewport === viewport && p.at >= calibrationAt && p.at !== lastOriginAt && now - p.at < 700 && !targets.has(p.sv) && !touched.has(p.sv) && isCoords(p.coords) && near(readCoords(p.sv) ?? {}, p.coords)) {
         lastOriginAt = p.at;
         const candidate = {
             x: p.x - p.coords.x - (p.coords.width - p.width) / 2,
             y: p.y - p.coords.y - (p.coords.height - p.height) / 2,
         };
         if (Number.isFinite(candidate.x) && Number.isFinite(candidate.y) && Math.abs(candidate.x) < win.width && Math.abs(candidate.y) < win.height) {
-            const tracking = origins.has(context);
-            if (!tracking && (!pendingOrigin || Math.abs(pendingOrigin.x - candidate.x) > 1.5 || Math.abs(pendingOrigin.y - candidate.y) > 1.5)) {
-                pendingOrigin = { ...candidate, at: p.at, since: now, samples: 1 };
-            } else if (!tracking && pendingOrigin && pendingOrigin.at !== p.at) {
+            if (!pendingOrigin || !near(p.coords, pendingOrigin.coords) || Math.abs(pendingOrigin.x - candidate.x) > 1.5 || Math.abs(pendingOrigin.y - candidate.y) > 1.5) {
+                pendingOrigin = { ...candidate, at: p.at, since: now, samples: 1, coords: { x: p.coords.x, y: p.coords.y, width: p.coords.width, height: p.coords.height } };
+            } else if (pendingOrigin.at !== p.at) {
                 pendingOrigin.at = p.at;
                 pendingOrigin.samples++;
             }
-            if ((tracking || pendingOrigin && pendingOrigin.samples >= 2 && now - pendingOrigin.since >= 200) && (!origin || Math.abs(origin.x - candidate.x) >= 1.5 || Math.abs(origin.y - candidate.y) >= 1.5 || !tracking)) {
+            if (pendingOrigin.samples >= 3 && now - pendingOrigin.since >= 400) {
                 origin = { x: Math.round(candidate.x * 2) / 2, y: Math.round(candidate.y * 2) / 2 };
-                origins.set(context, origin);
+                calibrating = false;
+                origins.set(key, origin);
                 if (origins.size > 24) origins.delete(origins.keys().next().value!);
-                frameLog.push(`${new Date(now).toISOString().slice(17, 23)} parent ${viewport} ${origin.x},${origin.y}`);
+                frameLog.push(`${new Date(now).toISOString().slice(17, 23)} native origin latched ${viewport} ${origin.x},${origin.y}`);
                 if (frameLog.length > 6) frameLog.shift();
                 pendingOrigin = null;
             }
         }
     }
+    if (calibrating && now - calibrationAt >= 2000) {
+        origin = { x: 12, y: statusBar() + (land ? 8 : 40) };
+        calibrating = false;
+        originFrom = "fallback";
+        origins.set(key, origin);
+        if (origins.size > 24) origins.delete(origins.keys().next().value!);
+        pendingOrigin = null;
+        frameLog.push(`${new Date(now).toISOString().slice(17, 23)} fixed fallback ${viewport} ${origin.x},${origin.y}`);
+        if (frameLog.length > 6) frameLog.shift();
+    }
     const top = fullscreen ? (land ? 8 : statusBar() + 6) : statusBar() + (land ? 8 : 40);
     const bottom = fullscreen ? win.height - (land ? 8 : 56) : win.height - (land ? 90 : 136);
-    origin ??= { x: 12, y: statusBar() + (land ? 8 : 40) };
-    frame = { origin, parent: origins.has(context) ? "tracked tile" : "bootstrap", hidden: !chrome, top, bottom: Math.max(top + 1, Math.min(win.height, bottom)) };
-    frameNote = origins.has(context) ? "fixed bounds" : pendingOrigin ? "checking origin" : "waiting for tile measurement";
+    frame = { origin: origin ?? { x: 12, y: statusBar() + (land ? 8 : 40) }, parent: calibrating ? "native calibration" : `latched ${originFrom}`, hidden: !chrome, top, bottom: Math.max(top + 1, Math.min(win.height, bottom)) };
+    frameNote = calibrating ? `waiting for native geometry${pendingOrigin ? ` (${pendingOrigin.samples}/3)` : ""}` : "fixed bounds and origin";
 }
-
 export function setTilesFullscreen(v: boolean) {
     if (fullscreen === v) return;
     fullscreen = v;
@@ -701,7 +708,7 @@ function computeRects(list: Tile[]): Map<string, Rect> {
         bottom: frame?.bottom ?? win.height - 136,
     };
     gridW = { ww: win.width, w: area.right - area.left };
-    return splitRects(list.map(t => ({ key: t.key, aspect: aspectOf(t) })), voice.map(t => t.key), area, frame?.origin ?? { x: 12, y: area.top }, win.width > win.height, fullscreen);
+    return splitRects(list.map(t => ({ key: t.key, aspect: aspectOf(t), footer: t.kind === "me" || splitViewSettings.pipPins === false ? 0 : VIDEO_FOOTER })), voice.map(t => t.key), area, frame?.origin ?? { x: 12, y: area.top }, win.width > win.height, fullscreen);
 }
 const fmt = (c: any) => `${Math.round(c?.x)},${Math.round(c?.y)} ${Math.round(c?.width)}x${Math.round(c?.height)}`;
 
@@ -724,6 +731,7 @@ function applyLayout() {
         if (touched.size) restoreAll();
         return;
     }
+    if (calibrating) return;
     const all = [...list, ...voice];
     const current = new Map<any, any>();
     for (const t of all) {
@@ -748,8 +756,6 @@ function applyLayout() {
         const prev = targets.get(t.coords);
         if (!prev || !near(prev, r)) targetChanges++;
         targets.set(t.coords, r);
-        const rs = restSince.get(t.coords);
-        if (!rs || !near(rs.r, r)) restSince.set(t.coords, { r, since: now });
         touched.add(t.coords);
         guard(t.coords);
         const cur = current.get(t.coords);
@@ -798,6 +804,19 @@ function restoreAll() {
         intended.delete(sv);
     }
     touched.clear();
+}
+
+function releaseForCalibration() {
+    for (const sv of touched) {
+        const current = readCoords(sv);
+        const target = targets.get(sv);
+        const native = intended.get(sv);
+        targets.delete(sv);
+        if (native && (!target || near(current ?? {}, target))) writeCoords(sv, { ...current, zIndex: 0, ...native });
+        intended.delete(sv);
+    }
+    touched.clear();
+    unguardAll();
 }
 
 let chrome = true;
@@ -931,9 +950,11 @@ export function onChrome(l: () => void) {
 }
 
 export function setTilesActive(v: boolean, handoff = false) {
+    const wasActive = active;
     active = v;
     if (v) {
         shared.owner = copy;
+        if (!wasActive) viewport = "";
         burstUntil = Date.now() + 3000;
         if (!pollTimer) poll();
     } else {

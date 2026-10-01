@@ -3,7 +3,9 @@ import { React } from "@metro/common";
 import { Image, StyleSheet, View } from "react-native";
 
 import { caught, safe } from "../crash";
-import { floatingPinParticipant, isPipRender, mineParticipant, onPinChange, participantForFocus, participantForPin, pinnedPip, pinPip } from "./pip";
+import { VIDEO_FOOTER } from "./geometry";
+import { isSplitActive, onSplitChange } from "./layout";
+import { floatingPinParticipant, isPipRender, mineParticipant, onPinChange, participantForPin, pinnedPip, pinPip } from "./pip";
 import { useSplitViewSettings } from "./storage";
 
 const ICONS = ["PinIcon", "PictureInPictureIcon", "PipIcon", "ic_pip"];
@@ -13,7 +15,17 @@ const iconWrappers = new WeakMap<object, any>();
 const injected = new WeakSet<object>();
 const wrapped = new WeakSet<object>();
 const wrappers = new Map<string, WeakMap<object, any>>();
-interface PinScope { participant: any; floating: boolean; }
+interface PinScope { participant: any; floating: boolean; row?: boolean; }
+interface NativeTemplate { button: any; animation: any[]; }
+const SourceContext = React.createContext<PinScope | null>(null);
+const provided = new WeakSet<object>();
+const rowHosts = new WeakSet<object>();
+const rowWrappers = new WeakMap<object, any>();
+const sourceTemplates = new Map<string, NativeTemplate>();
+const templateListeners = new Set<() => void>();
+const rowOwners = new Map<string, object>();
+const rowListeners = new Set<() => void>();
+let nativeTemplate: NativeTemplate | null = null;
 const scopes: PinScope[] = [];
 const floatingControls = new Set<string>();
 const floatingOwners = new Map<string, object>();
@@ -26,6 +38,8 @@ let mounted = 0;
 let cloned = 0;
 let noParticipant = 0;
 let noIcon = 0;
+let sourceHosts = 0;
+let contextPins = 0;
 let nativeStyle = "not seen yet";
 let parentStyle = "not seen yet";
 let icon: number | null | undefined;
@@ -33,6 +47,7 @@ let iconRetryAt = 0;
 export let pinIconName = "";
 
 const nameOf = (type: any) => type?.displayName ?? type?.name ?? type?.render?.name ?? "";
+const pipType = (type: any) => /PipAware|VoicePanelPIP|ExternalPip/i.test(nameOf(type));
 
 function placement(style: any): string {
     if (typeof style === "function") return "native callback";
@@ -103,14 +118,14 @@ function iconType(type: any): any {
         const clean = { ...props };
         delete clean[CONFIG];
         const result = original.call(self, clean, ref);
-        return config ? walkButton(result, config) : result;
+        return config ? walkButton(result, config, false) : result;
     };
     let wrapper: any;
     if (typeof type === "function" && type.prototype?.isReactComponent) {
         wrapper = class extends type {
             render() {
                 const result = super.render();
-                return this.props[CONFIG] ? walkButton(result, this.props[CONFIG]) : result;
+                return this.props[CONFIG] ? walkButton(result, this.props[CONFIG], false) : result;
             }
         };
     } else if (typeof type === "function") wrapper = function (this: any, props: any) { return run(type, this, props); };
@@ -124,20 +139,20 @@ function iconType(type: any): any {
     return wrapper;
 }
 
-function walkButton(el: any, config: PinConfig): any {
-    if (Array.isArray(el)) return el.map(child => walkButton(child, config));
+function walkButton(el: any, config: PinConfig, clearRefs = true): any {
+    if (Array.isArray(el)) return el.map(child => walkButton(child, config, clearRefs));
     if (typeof el === "string" && el.trim().length <= 3 && /[^\w\s]/.test(el)) return glyph({ props: {} }, config);
     if (!el || typeof el !== "object" || !("$$typeof" in el)) return el;
     const props = el.props ?? {};
     const name = nameOf(el.type);
     const next: any = { ...props };
     if (typeof props.onPress === "function") {
-        next.ref = null;
+        if (clearRefs) next.ref = null;
         next.onPress = config.onPress;
         next.onLongPress = undefined;
         next.accessibilityLabel = config.label;
         next.accessibilityHint = undefined;
-        next.onLayout = undefined;
+        if (clearRefs) next.onLayout = undefined;
         next[MARK] = true;
     }
     if (el.type === PinGlyph) return el;
@@ -155,11 +170,11 @@ function walkButton(el: any, config: PinConfig): any {
     if (typeof props.renderIcon === "function") next.renderIcon = safe("pip native pin icon", (...args: any[]) => walkButton(props.renderIcon(...args), config));
     if (typeof props.children === "function") {
         const children = props.children;
-        next.children = safe("pip native pin children", (...args: any[]) => walkButton(children(...args), config));
-    } else if (props.children != null) next.children = walkButton(props.children, config);
+        next.children = safe("pip native pin children", (...args: any[]) => walkButton(children(...args), config, false));
+    } else if (props.children != null) next.children = walkButton(props.children, config, clearRefs);
     const type = iconType(el.type);
     if (type !== el.type || iconWrappers.has(type)) next[CONFIG] = config;
-    return { ...el, type, props: next, ...(typeof props.onPress === "function" ? { ref: null } : {}) };
+    return { ...el, type, props: next, ...(clearRefs && typeof props.onPress === "function" ? { ref: null } : {}) };
 }
 
 function cloneButton(template: any, label: string, onPress: () => void): any {
@@ -172,19 +187,26 @@ function cloneButton(template: any, label: string, onPress: () => void): any {
     return walkButton(template, { label, onPress, source });
 }
 
-function Pin({ template, participant, floating }: { template: any; participant: any; floating?: boolean; }) {
+function Pin({ template, participant, floating, footer }: { template: any; participant: any; floating?: boolean; footer?: boolean; }) {
+    const context = React.useContext(SourceContext);
+    if (context && !floating) {
+        participant = context.participant;
+        floating = context.floating;
+    }
     const on = useSplitViewSettings((s: any) => s.pipPins !== false);
     const [, force] = React.useReducer((n: number) => n + 1, 0);
     const owner = React.useRef({}).current;
-    const source = floating && participant?.id != null ? String(participant.id) : null;
+    const source = participant?.id != null ? `${floating ? "floating" : "call"}:${participant.id}` : null;
     React.useEffect(() => {
         mounted++;
         if (floating) floatingMounted++;
         const off = onPinChange(force);
+        const offSplit = onSplitChange(force);
         return () => {
             mounted--;
             if (floating) floatingMounted--;
             off();
+            offSplit();
         };
     }, []);
     React.useEffect(() => {
@@ -205,29 +227,32 @@ function Pin({ template, participant, floating }: { template: any; participant: 
         }
     });
     if (!active || !on || !participant || mineParticipant(participant)) return null;
+    if (!floating && !!footer !== isSplitActive()) return null;
     if (source && floatingOwners.get(source) !== owner) return null;
     const here = pinnedPip() === String(participant.id);
     const label = here ? "Unpin from picture in picture" : "Pin to picture in picture";
     return cloneButton(template, label, safe("pip pin press", () => pinPip(here ? null : String(participant.id))));
 }
 
-export function PipPin(props: { template: any; participant: any; floating?: boolean; }) {
+export function PipPin(props: { template: any; participant: any; floating?: boolean; footer?: boolean; }) {
     return <Guard><Pin {...props} /></Guard>;
 }
 
-function scopedType(type: any, scope: PinScope): any {
-    if (!type || wrapped.has(type)) return type;
+function scopedType(type: any, scope: PinScope, host = false): any {
+    if (!type || wrapped.has(type) || pipType(type)) return type;
     const name = nameOf(type);
-    if (/^(?:RCT|Native|Animated|View$|Pressable|Touchable|Gesture|Text|Image|Icon|Scroll|Svg|Guard|PipPin|PinScope)/i.test(name)) return type;
-    const id = `${scope.floating ? "floating" : "call"}:${scope.participant.id}`;
+    if (/^(?:RCT|Animated|View$|Pressable|Touchable|Gesture|Text|Image|Icon|Scroll|Svg|Guard|PipPin|PinScope|SourceHost|MainPinRow)/i.test(name) || !host && /^Native/i.test(name)) return type;
+    const id = `${scope.floating ? "floating" : "call"}:${scope.participant.id}:${host}`;
     let cache = wrappers.get(id);
     if (!cache) wrappers.set(id, cache = new WeakMap());
     const found = cache.get(type);
     if (found) return found;
     const run = (original: Function, self: any, args: any[]) => {
+        if (!active) return original.apply(self, args);
         scopes.push(scope);
         try {
-            return original.apply(self, args);
+            const tree = bindPinTree(original.apply(self, args), scope);
+            return host && !scope.floating ? withMainRow(tree) : tree;
         } finally {
             scopes.pop();
         }
@@ -239,7 +264,7 @@ function scopedType(type: any, scope: PinScope): any {
         };
     } else if (typeof type === "function") wrapper = function (this: any, ...args: any[]) { return run(type, this, args); };
     else if (type.$$typeof === Symbol.for("react.forward_ref") && typeof type.render === "function") wrapper = React.forwardRef((props: any, ref: any) => run(type.render, undefined, [props, ref]));
-    else if (type.$$typeof === Symbol.for("react.memo") && type.type) wrapper = React.memo(scopedType(type.type, scope), type.compare);
+    else if (type.$$typeof === Symbol.for("react.memo") && type.type) wrapper = React.memo(scopedType(type.type, scope, host), type.compare);
     else return type;
     wrapper.displayName = name;
     if (type.defaultProps) wrapper.defaultProps = type.defaultProps;
@@ -250,17 +275,206 @@ function scopedType(type: any, scope: PinScope): any {
 
 export const scopePinTile = safe("pip pin scope", (args: any[]) => {
     const props = args[1];
-    if (!active || !props || props[MARK] || typeof args[0] === "string") return;
+    if (!active || !props || props[MARK] || typeof args[0] === "string" || !isPipRender() && pipType(args[0])) return;
     const floating = floatingPinParticipant(props);
     const inherited = scopes[scopes.length - 1];
     if (isPipRender() && !floating) return;
+    if (!floating && !inherited && props.sharedCoords == null) return;
     const participant = floating ?? participantForPin(props) ?? inherited?.participant;
     if (!participant) return;
     const scope = { participant, floating: !!floating || !!inherited?.floating };
-    const type = scopedType(args[0], scope);
+    const type = scopedType(args[0], scope, props.sharedCoords != null);
     if (type === args[0]) return;
     args[0] = type;
     return args;
+});
+
+function sourceHost(props: any): boolean {
+    return props?.sharedCoords != null || props?.streamId != null || props?.isCamera !== undefined
+        || props?.participant != null || props?.pipParticipant != null || props?.videoParticipant != null
+        || props?.id != null && (props.type === 0 || props.type === 2 || props.streamKey != null || props.userId != null);
+}
+
+function animationStyles(style: any): any[] {
+    if (Array.isArray(style)) return style.flatMap(animationStyles);
+    const initial = style?.viewDescriptors && style.initial?.value;
+    if (initial && (initial.transform != null || initial.opacity != null)
+        && !Object.keys(initial).some(key => /^(?:width|height|top|left|right|bottom|x|y|position|flex|aspectRatio|margin|padding|min|max)/i.test(key))) return [style];
+    return [];
+}
+
+function captureTemplate(tree: any, scope?: PinScope, animation: any[] = []) {
+    const label = tree.props?.accessibilityLabel;
+    if (typeof label !== "string" || !/^(?:unfocus|focus)\s+/i.test(label) || !iconControl(tree)) return;
+    const first = !nativeTemplate;
+    const previous = scope?.participant?.id != null ? sourceTemplates.get(String(scope.participant.id)) : nativeTemplate;
+    const template = { button: tree, animation: animation.length ? animation : previous?.animation ?? [] };
+    nativeTemplate = template;
+    if (scope?.participant?.id != null && !scope.floating) sourceTemplates.set(String(scope.participant.id), template);
+    if (first) templateListeners.forEach(safe("pip native template", listener => listener()));
+}
+
+function MainPinRow() {
+    const scope = React.useContext(SourceContext);
+    const [, force] = React.useReducer((n: number) => n + 1, 0);
+    const owner = React.useRef({}).current;
+    const source = scope?.row && !scope.floating && !mineParticipant(scope.participant) ? String(scope.participant.id) : null;
+    React.useEffect(() => {
+        templateListeners.add(force);
+        const off = onSplitChange(force);
+        return () => {
+            templateListeners.delete(force);
+            off();
+        };
+    }, []);
+    React.useEffect(() => {
+        if (!source) return;
+        rowListeners.add(force);
+        return () => {
+            rowListeners.delete(force);
+            if (rowOwners.get(source) === owner) {
+                rowOwners.delete(source);
+                rowListeners.forEach(safe("pip row owner", listener => listener()));
+            }
+        };
+    }, [source]);
+    React.useEffect(() => {
+        if (source && !rowOwners.has(source)) {
+            rowOwners.set(source, owner);
+            rowListeners.forEach(safe("pip row owner", listener => listener()));
+        }
+    });
+    if (!active || !scope?.row || scope.floating || mineParticipant(scope.participant)) return null;
+    if (!source || rowOwners.get(source) !== owner) return null;
+    const split = isSplitActive();
+    if (!split && sourceTemplates.has(source)) return null;
+    const template = sourceTemplates.get(String(scope.participant.id)) ?? nativeTemplate;
+    if (!template) return null;
+    const relative = { position: "relative", top: undefined, left: undefined, right: undefined, bottom: undefined, maxHeight: VIDEO_FOOTER, maxWidth: VIDEO_FOOTER };
+    const native = template.button.props.style;
+    const style = typeof native === "function" ? (state: any) => [native(state), relative] : [native, relative];
+    const button = { ...template.button, props: { ...template.button.props, style } };
+    return <View pointerEvents="box-none" style={[{ position: "absolute", ...(split ? { top: "100%" } : { bottom: 0 }), left: 0, right: 0, height: VIDEO_FOOTER, alignItems: "flex-end", justifyContent: "center" }, ...template.animation]}>
+        <PipPin template={button} participant={scope.participant} footer={split} />
+    </View>;
+}
+
+function SourceHost({ scope, children }: { scope: PinScope; children?: any; }) {
+    React.useContext(SourceContext);
+    if (!active) return children;
+    const row = !scope.floating;
+    return <SourceContext.Provider value={{ ...scope, row }}>{children}</SourceContext.Provider>;
+}
+
+function rowType(type: any): any {
+    if (!type || typeof type !== "function" && typeof type !== "object") return type;
+    const found = rowWrappers.get(type);
+    if (found) return found;
+    const name = nameOf(type);
+    if (pipType(type) || /^(?:RCT|View$|Pressable|Touchable|Gesture|Image|Text|Icon|Svg|Guard|PipPin|SourceHost|MainPinRow)/i.test(name)) return type;
+    let wrapper: any;
+    const run = (original: Function, self: any, args: any[]) => {
+        const tree = original.apply(self, args);
+        return active ? withMainRow(tree) : tree;
+    };
+    if (typeof type === "function" && type.prototype?.isReactComponent) wrapper = class extends type { render() { return run(super.render, this, []); } };
+    else if (typeof type === "function") wrapper = function (this: any, ...args: any[]) { return run(type, this, args); };
+    else if (type.$$typeof === Symbol.for("react.forward_ref") && typeof type.render === "function") wrapper = React.forwardRef((props: any, ref: any) => run(type.render, undefined, [props, ref]));
+    else if (type.$$typeof === Symbol.for("react.memo") && type.type) wrapper = React.memo(rowType(type.type), type.compare);
+    else return type;
+    wrapper.displayName = name;
+    if (type.defaultProps) wrapper.defaultProps = type.defaultProps;
+    rowWrappers.set(type, wrapper);
+    rowWrappers.set(wrapper, wrapper);
+    return wrapper;
+}
+
+function withMainRow(tree: any, level = 0): any {
+    if (Array.isArray(tree)) {
+        let done = false;
+        return tree.map(child => {
+            if (done) return child;
+            const next = withMainRow(child, level);
+            done = next !== child;
+            return next;
+        });
+    }
+    if (!tree || typeof tree !== "object" || !("$$typeof" in tree) || level > 5 || rowHosts.has(tree) || provided.has(tree)) return tree;
+    const name = nameOf(tree.type);
+    const props = tree.props ?? {};
+    if (/^(?:RCTView|View|Animated.*View|Pressable|Touchable.*)$/i.test(name) && props.children != null && !iconControl(tree)) {
+        const style = flatControlStyle(props.style);
+        let children = props.children;
+        let nextStyle = props.style;
+        if (style.overflow === "hidden") {
+            const clip: any = { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflow: "hidden" };
+            for (const key of ["borderRadius", "borderTopLeftRadius", "borderTopRightRadius", "borderBottomLeftRadius", "borderBottomRightRadius", "borderCurve"]) if (style[key] !== undefined) clip[key] = style[key];
+            children = React.createElement(View, { key: "cheeseburger-video-clip", pointerEvents: "box-none", style: clip }, children);
+            nextStyle = typeof props.style === "function" ? (state: any) => [props.style(state), { overflow: "visible" }] : [props.style, { overflow: "visible" }];
+        }
+        const out = { ...tree, props: { ...props, style: nextStyle, children: [children,
+            React.createElement(Guard, { key: "cheeseburger-pin-row" }, React.createElement(MainPinRow))] } };
+        rowHosts.add(out);
+        return out;
+    }
+    const type = rowType(tree.type);
+    if (type !== tree.type) return { ...tree, type };
+    if (Array.isArray(props.children)) {
+        let done = false;
+        const children = props.children.map((child: any) => {
+            if (done) return child;
+            const next = withMainRow(child, level + 1);
+            done = next !== child;
+            return next;
+        });
+        return done ? { ...tree, props: { ...props, children } } : tree;
+    }
+    const children = withMainRow(props.children, level + 1);
+    return children === props.children ? tree : { ...tree, props: { ...props, children } };
+}
+
+function bindPinTree(tree: any, scope: PinScope, level = 0, animation: any[] = []): any {
+    if (Array.isArray(tree)) return tree.map(child => bindPinTree(child, scope, level, animation));
+    if (!tree || typeof tree !== "object" || !("$$typeof" in tree) || level > 10 || tree.props?.[MARK] || provided.has(tree) || injected.has(tree)) return tree;
+    const props = tree.props ?? {};
+    const participant = sourceHost(props) ? participantForPin(props) : null;
+    const nested = participant && !scope.floating && participant.id !== scope.participant?.id ? { participant, floating: false } : scope;
+    const ownAnimation = sourceHost(props) ? [] : animationStyles(props.style);
+    const nativeAnimation = sourceHost(props) ? [] : ownAnimation.length ? ownAnimation : animation;
+    if (!nested.floating) captureTemplate(tree, nested, nativeAnimation);
+    const children = props.children;
+    const nextChildren = children != null && typeof children !== "function" ? bindPinTree(children, nested, level + 1, nativeAnimation) : children;
+    const type = scopedType(tree.type, nested, props.sharedCoords != null);
+    const next = nextChildren === children && type === tree.type ? tree : { ...tree, type, props: { ...props, children: nextChildren } };
+    scopes.push(nested);
+    try {
+        const out = addPipPin([tree.type, props], next) ?? next;
+        if (nested === scope) return out;
+        const host = React.createElement(SourceHost, { scope: nested }, out);
+        provided.add(host);
+        sourceHosts++;
+        return host;
+    } finally {
+        scopes.pop();
+    }
+}
+
+export const bindPinScope = safe("pip pin source host", (args: any[], ret: any) => {
+    if (!active || !ret || typeof ret !== "object" || ret.props?.[MARK] || provided.has(ret)) return;
+    const props = args[1];
+    if (!sourceHost(props) || !isPipRender() && pipType(args[0])) return;
+    const floating = floatingPinParticipant(props);
+    if (isPipRender() && !floating) return;
+    if (!floating && props.sharedCoords == null) return;
+    const participant = floating ?? participantForPin(props);
+    if (!participant) return;
+    const scope = { participant, floating: !!floating };
+    let tree = bindPinTree(ret, scope);
+    if (!scope.floating && /^(?:RCTView|View|Animated.*View|Pressable|Touchable.*)$/i.test(nameOf(args[0]))) tree = withMainRow(tree);
+    const out = React.createElement(SourceHost, { scope }, tree);
+    provided.add(out);
+    sourceHosts++;
+    return out;
 });
 
 function flatControlStyle(style: any): any {
@@ -330,16 +544,21 @@ export const addPipPin = safe("pip native pin", (args: any[], ret: any) => {
     if (floating && floatingControls.size < 8) floatingControls.add(`${nameOf(args[0])} label=${String(label ?? "none").slice(0, 50)} keys=${Object.keys(props).slice(0, 10).join(",")} source=screen style=${placement(props.style)}`);
     const focus = typeof label === "string" && /^(?:unfocus|focus)\s+/i.test(label);
     if (!focus && !floating) return;
+    if (!floating) {
+        focusControls++;
+        captureTemplate(ret, inherited);
+        if (isSplitActive()) return;
+    }
     if (floating && !iconControl(ret)) {
         unsafeControls++;
         return;
     }
     focusControls++;
     nativeStyle = placement(props.style);
-    const participant = floating ?? participantForPin(props) ?? inherited?.participant ?? participantForFocus(label);
+    const participant = floating ?? participantForPin(props) ?? inherited?.participant;
     if (!participant) {
         noParticipant++;
-        return;
+        contextPins++;
     }
     if (mineParticipant(participant)) return;
     const out = withNativePin(ret, { participant, floating: !!floating });
@@ -356,8 +575,11 @@ export function stopPins() {
     wrappers.clear();
     scopes.length = 0;
     floatingOwners.clear();
+    rowOwners.clear();
+    sourceTemplates.clear();
+    nativeTemplate = null;
 }
 
 export function pinControlsDebug(): string {
-    return `pin controls: native clones ${cloned}, focus controls ${focusControls}, mounted ${mounted}, floating ${floatingMounted}, unsafe ${unsafeControls}, missing participant ${noParticipant}, missing icon ${noIcon}, icon ${pinIconName || "not seen yet"}; native placement ${nativeStyle}, parent ${parentStyle}; floating controls ${[...floatingControls].join("; ") || "not rendered"}`;
+    return `pin controls: native clones ${cloned}, focus controls ${focusControls}, mounted ${mounted}, floating ${floatingMounted}, hosts ${sourceHosts}, context pins ${contextPins}, unsafe ${unsafeControls}, missing participant ${noParticipant}, missing icon ${noIcon}, icon ${pinIconName || "not seen yet"}; native placement ${nativeStyle}, parent ${parentStyle}; floating controls ${[...floatingControls].join("; ") || "not rendered"}`;
 }

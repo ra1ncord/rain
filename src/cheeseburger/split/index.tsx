@@ -8,7 +8,7 @@ import { safe } from "../crash";
 import { useToolbar } from "../toolbar";
 import { isFullscreenSplit, isLandscapeAuto, isSplitActive, resumeSplit, startLayoutPatches, stopLayoutPatches } from "./layout";
 import { isPipRender, startPip, stopPip } from "./pip";
-import { addPipPin, scopePinTile, startPins, stopPins } from "./PipPin";
+import { addPipPin, bindPinScope, scopePinTile, startPins, stopPins } from "./PipPin";
 import { withTileProbe } from "./probe";
 import { SplitViewButton } from "./SplitView";
 import { useSplitViewSettings } from "./storage";
@@ -68,6 +68,9 @@ export default {
         unpatches.push(after("jsx", jsxRuntime, addPipPin));
         unpatches.push(after("jsxs", jsxRuntime, addPipPin));
         unpatches.push(after("createElement", React, addPipPin));
+        unpatches.push(after("jsx", jsxRuntime, bindPinScope));
+        unpatches.push(after("jsxs", jsxRuntime, bindPinScope));
+        unpatches.push(after("createElement", React, bindPinScope));
         unpatches.push(useToolbar());
         const handoff = g.__cheeseburgerSplit;
         if (handoff) {
