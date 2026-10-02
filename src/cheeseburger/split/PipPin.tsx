@@ -56,6 +56,7 @@ let matchedByBox = 0;
 let inlineMounts = 0;
 let inlineRenders = 0;
 const inlineNotes: string[] = [];
+let lastSeen: string[] = [];
 export let pinIconName = "";
 
 const nameOf = (type: any): string => typeof type === "string" ? type : type?.displayName ?? type?.name ?? type?.render?.displayName ?? type?.render?.name ?? type?.type?.displayName ?? type?.type?.name ?? "";
@@ -217,6 +218,10 @@ function inspect(rec: MarkerRec) {
         rec.template = { type: rec.button.type, props: withoutMarker(rec.button.props) };
     } else rec.template = null;
     const levels = chain.slice(outer + 1, outer + 13).map(f => levelOf(f.elementType ?? f.type, f.memoizedProps));
+    lastSeen = [
+        `maximize button (last seen ${new Date().toISOString().slice(11, 19)}): ${nameOf(rec.template?.type) || "anonymous"} depth ${outer}, keys=${Object.keys(rec.template?.props ?? {}).slice(0, 14).join(",")}`,
+        `maximize parents: ${levels.map((l, i) => `${i}:${l.name}${l.moving ? ` moves ${l.moving}` : ""}${l.handles.length ? ` handles ${l.handles.length}` : ""}${l.motion ? " rn-animated" : ""}${l.entering ? " entering" : ""}${l.exiting ? " exiting" : ""}${l.pointerEvents ? ` pe=${l.pointerEvents}` : ""}`).join(" < ") || "none"}`,
+    ];
     rec.sig = `${outer}:${nameOf(rec.template?.type)}:${levels.map(l => `${l.name}${l.handles.length}${l.motion ? "m" : ""}${l.entering ? "e" : ""}${l.exiting ? "x" : ""}${l.pointerEvents ?? ""}`).join(",")}`;
 }
 
@@ -266,12 +271,12 @@ export const watchControls = safe("pip pin controls", (args: any[], ret: any) =>
     noteButton(`${name} ${placement(props.style)} keys=${Object.keys(props).slice(0, 12).join(",")}${typeof props.children === "function" ? " children=fn" : ""}`);
     const ch = props.children;
     if (!/Pressable|Touchable/i.test(name) && props.icon != null && typeof props.onPress === "function") {
-        return React.createElement(React.Fragment, { key: ret.key ?? undefined }, ret, React.createElement(Guard, { key: "cheeseburger-inline-pin" }, React.createElement(InlinePin, { button: ret })));
+        return React.createElement(React.Fragment, { key: ret.key ?? undefined }, ret, React.createElement(Shell, { key: "cheeseburger-inline-pin", part: "InlinePin", props: { button: ret } }));
     }
     if (!/Pressable|Touchable/i.test(name) || ch == null || typeof ch !== "object") return;
     if (Array.isArray(ch) && ch.some((c: any) => c?.key === MARKER)) return;
     injected++;
-    const marker = React.createElement(Guard, { key: MARKER }, React.createElement(Marker, { button: ret }));
+    const marker = React.createElement(Shell, { key: MARKER, part: "Marker", props: { button: ret } });
     return { ...ret, props: { ...props, children: Array.isArray(ch) ? [...ch, marker] : [ch, marker] } };
 });
 
@@ -286,8 +291,46 @@ function measureNode(node: any, done: (b: Box) => void) {
     }
 }
 
+const G = globalThis as any;
+const shells: Set<() => void> = G.__cheeseburgerPinShells ??= new Set();
+
+class Shell extends React.Component<{ part: string; props: any; }, { failed: boolean; n: number; }> {
+    state = { failed: false, n: 0 };
+
+    bump = () => this.setState(s => ({ failed: false, n: s.n + 1 }));
+
+    static getDerivedStateFromError() {
+        return { failed: true };
+    }
+
+    componentDidMount() {
+        shells.add(this.bump);
+    }
+
+    componentWillUnmount() {
+        shells.delete(this.bump);
+    }
+
+    componentDidCatch(e: any) {
+        cloneErrors++;
+        caught("pip pin shell", e);
+    }
+
+    render() {
+        if (this.state.failed) return null;
+        const Impl = G.__cheeseburgerPinImpl?.[this.props.part];
+        return Impl ? React.createElement(Impl, this.props.props) : null;
+    }
+}
+
 export function startPins() {
     active = true;
+    G.__cheeseburgerPinImpl = { TilePin: Pin, InlinePin, Marker };
+    for (const bump of [...shells]) {
+        try {
+            bump();
+        } catch { }
+    }
 }
 
 export function stopPins() {
@@ -778,29 +821,25 @@ function InlinePin({ button }: { button: any; }) {
     </View>;
 }
 
-export function TilePin(props: { coords: any; pid: string; stream: boolean; }) {
-    return <Guard><Pin {...props} /></Guard>;
-}
 
 export function tilePinFor(props: any): any {
     if (!active || !props?.sharedCoords || isPipRender()) return null;
     const participant = participantForPin(props);
     if (!participant || participant.id == null || mineParticipant(participant)) return null;
     const stream = participant.type === 0 || String(participant.id).startsWith("call:");
-    return <TilePin key={`cheeseburger-pin-${participant.id}`} coords={props.sharedCoords} pid={String(participant.id)} stream={stream} />;
+    return React.createElement(Shell, { key: `cheeseburger-pin-${participant.id}`, part: "TilePin", props: { coords: props.sharedCoords, pid: String(participant.id), stream } });
 }
 
 export function pinControlsDebug(): string[] {
     const A = animatedView();
     const rec = latest ?? [...markers][0] ?? null;
-    const levels = rec ? rec.chain.slice(rec.outer + 1, rec.outer + 13).map(f => levelOf(f.elementType ?? f.type, f.memoizedProps)) : [];
     return [
         `pins: hosts ${hosts}, owners ${owners.size}, markers ${markers.size} (ever ${markersEver}, injected ${injected}), fibers ${fibersFound} found ${fibersMissing} missing, matched tree ${matchedByTree} box ${matchedByBox}, clone renders ${cloneRenders}, plain renders ${fallbackRenders}, clone errors ${cloneErrors}, reanimated ${A ? "found" : "missing"}, safe area ${safeAreaNote()}`,
         `inline pins: mounts ${inlineMounts}, renders ${inlineRenders}, ${[...inlines.values()].map(r => `${r.pid ? "tile" : "?"} ${r.why}`).join(", ") || "none live"}`,
         ...inlineNotes.map(n => `  inline ${n}`),
         `pin spots: ${[...insets.entries()].map(([k, v]) => `${k} right ${v.right} bottom ${v.bottom} (${v.from})`).join(", ") || "default 8,8"}`,
-        `maximize button: ${rec?.template ? `${nameOf(rec.template.type) || "anonymous"} ${placement(rec.template.props?.style)} keys=${Object.keys(rec.template.props ?? {}).slice(0, 12).join(",")}, depth ${rec.outer}` : "not seen"}${rec?.rect ? `, at ${Math.round(rec.rect.x)},${Math.round(rec.rect.y)} ${Math.round(rec.rect.width)}x${Math.round(rec.rect.height)}` : ""}`,
-        `maximize parents: ${levels.length ? levels.map((l, i) => `${i}:${l.name}${l.moving ? ` moves ${l.moving}` : ""}${l.handles.length ? ` handles ${l.handles.length}` : ""}${l.motion ? " rn-animated" : ""}${l.entering ? " entering" : ""}${l.exiting ? " exiting" : ""}${l.pointerEvents ? ` pe=${l.pointerEvents}` : ""}${animatedLevel(l) ? "" : ""}`).join(" < ") : "none"}`,
+        ...(rec ? [`maximize button now: ${nameOf(rec.template?.type) || "anonymous"}${rec.rect ? ` at ${Math.round(rec.rect.x)},${Math.round(rec.rect.y)} ${Math.round(rec.rect.width)}x${Math.round(rec.rect.height)}` : ""}`] : []),
+        ...lastSeen,
         ...seenButtons.map(p => `  labelled ${p}`),
         ...seenSizes.map(s => `  skipped ${s}`),
     ];
