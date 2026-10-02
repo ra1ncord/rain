@@ -1,4 +1,4 @@
-export interface Rect { x: number; y: number; width: number; height: number; }
+export interface Rect { x: number; y: number; width: number; height: number; z?: number; }
 export interface Area { left: number; right: number; top: number; bottom: number; }
 export interface Video { key: string; aspect: number; footer?: number; }
 
@@ -89,5 +89,65 @@ export function splitRects(videos: Video[], voices: string[], area: Area, origin
     });
     for (const [key, r] of voice.rects) out.set(key, { ...r, x: r.x + (landscape ? x0 + usedW + gap : area.left - origin.x + (width - voice.width) / 2), y: r.y + (landscape ? area.top - origin.y + (height - voice.height) / 2 : y0 + usedH + gap) });
     for (const [key, r] of out) out.set(key, { x: Math.round(r.x), y: Math.round(r.y), width: Math.max(1, Math.round(r.width)), height: Math.max(1, Math.round(r.height)) });
+    return out;
+}
+
+const clampAspect = (a: number) => (Number.isFinite(a) && a > 0 ? Math.min(2.4, Math.max(0.45, a)) : 16 / 9);
+
+export function stageRects(videos: Video[], voices: string[], mainKey: string, area: Area, origin: { x: number; y: number; }, fullscreen: boolean) {
+    const out = new Map<string, Rect>();
+    if (!videos.length) return out;
+    const width = Math.max(1, area.right - area.left);
+    const height = Math.max(1, area.bottom - area.top);
+    const gap = fullscreen ? 6 : 8;
+    const main = videos.find(v => v.key === mainKey) ?? videos[0];
+    const mainAspect = clampAspect(main.aspect);
+    const floaters = [
+        ...videos.filter(v => v !== main).map(v => ({ key: v.key, aspect: clampAspect(v.aspect) })),
+        ...voices.map(key => ({ key, aspect: 1 })),
+    ];
+    const mw = Math.min(width, height * mainAspect);
+    const mh = mw / mainAspect;
+    const put = (key: string, x: number, y: number, w: number, h: number, z: number) => out.set(key, {
+        x: Math.round(x - origin.x), y: Math.round(y - origin.y), width: Math.max(1, Math.round(w)), height: Math.max(1, Math.round(h)), z,
+    });
+
+    if (!floaters.length) {
+        put(main.key, area.left + (width - mw) / 2, area.top + (height - mh) / 2, mw, mh, 1);
+        return out;
+    }
+
+    const column = width - mw - gap;
+    const gaps = gap * (floaters.length - 1);
+    let sizes = floaters.map(f => (column > 0 ? Math.min(height * 0.3, column / f.aspect) : 0));
+    const stacked = sizes.reduce((a, b) => a + b, 0);
+    if (stacked + gaps > height && stacked > 0) sizes = sizes.map(h => h * Math.max(0, height - gaps) / stacked);
+
+    if (column > 0 && Math.min(...sizes) >= height * 0.16) {
+        const colW = Math.max(...floaters.map((f, i) => sizes[i] * f.aspect));
+        const x0 = area.left + (width - (mw + gap + colW)) / 2;
+        put(main.key, x0, area.top + (height - mh) / 2, mw, mh, 1);
+        const used = sizes.reduce((a, b) => a + b, 0) + gaps;
+        let y = area.top + (height - used) / 2;
+        floaters.forEach((f, i) => {
+            const w = sizes[i] * f.aspect;
+            put(f.key, x0 + mw + gap + (colW - w) / 2, y, w, sizes[i], 2);
+            y += sizes[i] + gap;
+        });
+        return out;
+    }
+
+    const mx = area.left + (width - mw) / 2;
+    const my = area.top + (height - mh) / 2;
+    put(main.key, mx, my, mw, mh, 1);
+    const fh = Math.max(1, Math.min(height * 0.26, (height - gap * (floaters.length + 1)) / floaters.length));
+    const right = Math.min(area.right, mx + mw) - gap;
+    let bottom = Math.min(area.bottom, my + mh) - gap;
+    floaters.forEach(f => {
+        const w = Math.min(fh * f.aspect, width * 0.4);
+        const h = w / f.aspect;
+        put(f.key, right - w, bottom - h, w, h, 2);
+        bottom -= h + gap;
+    });
     return out;
 }

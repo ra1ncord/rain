@@ -5,7 +5,7 @@ import { SelectedChannelStore, UserStore } from "@metro/common/stores";
 import { Dimensions, StatusBar } from "react-native";
 
 import { caught, safe } from "../crash";
-import { splitRects } from "./geometry";
+import { splitRects, stageRects } from "./geometry";
 import { hasTileProbe, hasToolbarRef, measureAll, measured, probeDebug, resetTileMeasurements, toolbarKnown, viewportKey } from "./probe";
 import { splitViewSettings } from "./storage";
 
@@ -21,7 +21,7 @@ interface Tile {
     onSize?: boolean;
 }
 
-interface Rect { x: number; y: number; width: number; height: number; }
+interface Rect { x: number; y: number; width: number; height: number; z?: number; }
 interface NativeOrigin { x: number; y: number; left?: number; right?: number; }
 
 interface Aspect { value: number; pending?: number; timer?: ReturnType<typeof setTimeout>; }
@@ -120,6 +120,8 @@ const near = (a: any, r: Rect) => Math.abs((a.x ?? 0) - r.x) < 0.5 && Math.abs((
 
 const isCoords = (v: any) => !!v && typeof v === "object" && typeof v.x === "number" && typeof v.width === "number";
 
+const placed = (v: any, r: Rect) => ({ ...v, x: r.x, y: r.y, width: r.width, height: r.height, zIndex: r.z ?? 1 });
+
 function steer(sv: any, v: any) {
     try {
         return steerTo(sv, v);
@@ -137,11 +139,11 @@ function steerTo(sv: any, v: any) {
         if (near(v, r)) return v;
         intended.set(sv, { ...v });
         held++;
-        return { ...v, ...r, zIndex: 1 };
+        return placed(v, r);
     }
     if ((typeof v === "function" && v.__isAnimationDefinition || v && typeof v === "object" && (typeof v.onFrame === "function" || typeof v.onStart === "function")) && intended.has(sv)) {
         held++;
-        return { ...intended.get(sv), ...r, zIndex: 1 };
+        return placed(intended.get(sv), r);
     }
     return v;
 }
@@ -197,7 +199,7 @@ function guardModify(sv: any) {
                             if (isCoords(want)) intended.set(sv, { ...want });
                         } catch { }
                     }
-                    if (cur && !near(cur, r)) write(sv, { ...cur, ...r, zIndex: 1 }, r);
+                    if (cur && !near(cur, r)) write(sv, placed(cur, r), r);
                 } catch (e) {
                     caught("split modify", e);
                 }
@@ -645,50 +647,105 @@ function syncViewport() {
     frameNote = "screen changed";
 }
 
-function cacheNativeOrigin(win: { width: number; height: number; }, list: Tile[]) {
+interface Pending { x: number; y: number; since: number; samples: number; }
+let pendingOrigin: Pending | null = null;
+const originMoves: number[] = [];
+let holdUntil = 0;
+let holds = 0;
+let follows = 0;
+let lastCandidate: { x: number; y: number; at: number; } | null = null;
+let lastBox: { x: number; y: number; width: number; height: number; wantX: number; wantY: number; } | null = null;
+
+function logFrame(line: string) {
+    frameLog.push(`${new Date().toISOString().slice(17, 23)} ${line}`);
+    if (frameLog.length > 8) frameLog.shift();
+}
+
+function trackOrigin(win: { width: number; height: number; }, list: Tile[]) {
     const now = Date.now();
     const p = measured.parent;
-    if ((!active || !origin) && p?.viewport === viewport && p.at !== lastOriginAt && now - p.at < 700 && !targets.has(p.sv) && !touched.has(p.sv) && isCoords(p.coords) && near(readCoords(p.sv) ?? {}, p.coords)) {
-        lastOriginAt = p.at;
-        const candidate = {
-            x: p.x - p.coords.x - (p.coords.width - p.width) / 2,
-            y: p.y - p.coords.y - (p.coords.height - p.height) / 2,
-        };
-        if (Number.isFinite(candidate.x) && Number.isFinite(candidate.y) && candidate.x >= 0 && candidate.y >= 0 && candidate.x < win.width / 3 && candidate.y < win.height / 3) {
-            origin = { x: Math.round(candidate.x * 2) / 2, y: Math.round(candidate.y * 2) / 2 };
-            if (win.width > win.height && nativeAllocation?.viewport === p.viewport && nativeAllocation.at === p.at && nativeAllocation.coords.size === list.length && list.length === (callParts() ?? []).filter(p => p.video).length && list.length > 0 && list.every(t => hasTileProbe(t.coords) && !targets.has(t.coords) && !touched.has(t.coords) && near(readCoords(t.coords) ?? {}, nativeAllocation!.coords.get(t.coords) ?? { x: NaN, y: NaN, width: NaN, height: NaN }))) {
-                const native = list.map(t => readCoords(t.coords));
-                if (native.every(c => c && [c.x, c.y, c.width, c.height].every(Number.isFinite) && c.x >= 0 && c.width > 0 && c.height > 0)) {
-                    const left = Math.min(...native.map(c => c.x));
-                    const right = Math.max(...native.map(c => c.x + c.width));
-                    if (right - left > win.width / 2 && origin.x + right <= win.width + 0.5) {
-                        origin.left = origin.x + left;
-                        origin.right = origin.x + right;
-                    }
+    if (!p || p.viewport !== viewport || p.at === lastOriginAt || now - p.at > 700 || !isCoords(p.coords) || !near(readCoords(p.sv) ?? {}, p.coords)) return;
+    lastOriginAt = p.at;
+    const owned = active && touched.has(p.sv);
+    const target = targets.get(p.sv);
+    if (owned) {
+        if (!target || !near(p.coords, target) || now - (lastWrite.get(p.sv) ?? 0) < 300) return;
+    } else if (active && origin) return;
+    const candidate = {
+        x: p.x - p.coords.x - (p.coords.width - p.width) / 2,
+        y: p.y - p.coords.y - (p.coords.height - p.height) / 2,
+    };
+    if (!Number.isFinite(candidate.x) || !Number.isFinite(candidate.y) || candidate.x < -win.width / 4 || candidate.y < -win.height / 4 || candidate.x > win.width / 2 || candidate.y > win.height / 2) return;
+    lastCandidate = { ...candidate, at: now };
+    if (origin) lastBox = { x: p.x, y: p.y, width: p.width, height: p.height, wantX: origin.x + p.coords.x + (p.coords.width - p.width) / 2, wantY: origin.y + p.coords.y + (p.coords.height - p.height) / 2 };
+    const next = { x: Math.round(candidate.x * 2) / 2, y: Math.round(candidate.y * 2) / 2 };
+
+    if (!owned) {
+        const prev = origin;
+        origin = { ...next, left: prev?.left, right: prev?.right };
+        if (win.width > win.height && nativeAllocation?.viewport === p.viewport && nativeAllocation.at === p.at && nativeAllocation.coords.size === list.length && list.length === (callParts() ?? []).filter(p => p.video).length && list.length > 0 && list.every(t => hasTileProbe(t.coords) && !targets.has(t.coords) && !touched.has(t.coords) && near(readCoords(t.coords) ?? {}, nativeAllocation!.coords.get(t.coords) ?? { x: NaN, y: NaN, width: NaN, height: NaN }))) {
+            const native = list.map(t => readCoords(t.coords));
+            if (native.every(c => c && [c.x, c.y, c.width, c.height].every(Number.isFinite) && c.x >= 0 && c.width > 0 && c.height > 0)) {
+                const left = Math.min(...native.map(c => c.x));
+                const right = Math.max(...native.map(c => c.x + c.width));
+                if (right - left > win.width / 2 && origin.x + right <= win.width + 0.5) {
+                    origin.left = origin.x + left;
+                    origin.right = origin.x + right;
                 }
             }
-            originFrom = "native";
-            origins.set(`${layoutChannel}|${viewport}`, origin);
-            if (origins.size > 24) origins.delete(origins.keys().next().value!);
-            frameLog.push(`${new Date(now).toISOString().slice(17, 23)} native origin ${viewport} ${origin.x},${origin.y}`);
-            if (frameLog.length > 6) frameLog.shift();
         }
+        originFrom = "discord";
+        origins.set(`${layoutChannel}|${viewport}`, origin);
+        if (origins.size > 24) origins.delete(origins.keys().next().value!);
+        if (!prev || Math.abs(prev.x - origin.x) >= 2 || Math.abs(prev.y - origin.y) >= 2) logFrame(`discord origin ${viewport} ${origin.x},${origin.y}`);
+        return;
     }
+
+    if (!origin || Math.abs(origin.x - next.x) < 2 && Math.abs(origin.y - next.y) < 2) {
+        pendingOrigin = null;
+        return;
+    }
+    if (!pendingOrigin || Math.abs(pendingOrigin.x - next.x) > 1.5 || Math.abs(pendingOrigin.y - next.y) > 1.5) {
+        pendingOrigin = { ...next, since: now, samples: 1 };
+        return;
+    }
+    pendingOrigin.samples++;
+    if (pendingOrigin.samples < 2 || now - pendingOrigin.since < 250 || now < holdUntil) return;
+    while (originMoves.length && now - originMoves[0] > 6000) originMoves.shift();
+    if (originMoves.length >= 4) {
+        holdUntil = now + 6000;
+        holds++;
+        originMoves.length = 0;
+        pendingOrigin = null;
+        logFrame(`origin keeps moving, holding ${origin.x},${origin.y}`);
+        return;
+    }
+    originMoves.push(now);
+    follows++;
+    logFrame(`followed ${origin.x},${origin.y} -> ${next.x},${next.y}`);
+    origin = { ...next, left: origin.left, right: origin.right };
+    originFrom = "followed";
+    origins.set(`${layoutChannel}|${viewport}`, origin);
+    pendingOrigin = null;
+    scheduleApply();
 }
 
 function updateFrame(win: { width: number; height: number; }, list: Tile[]) {
-    cacheNativeOrigin(win, list);
+    trackOrigin(win, list);
     const land = win.width > win.height;
-    const top = fullscreen ? (land ? 8 : statusBar() + 6) : Math.max(statusBar() + (land ? 8 : 40), origin?.y ?? 0);
+    const top = fullscreen ? (land ? 8 : statusBar() + 6) : statusBar() + (land ? 8 : 40);
     const bottom = fullscreen ? win.height - (land ? 8 : 56) : win.height - (land ? 90 : 136);
     frame = origin ? { origin, parent: originFrom, hidden: !chrome, top, bottom: Math.max(top + 1, Math.min(win.height, bottom)) } : null;
-    frameNote = origin ? "fixed bounds and origin" : "waiting for native geometry";
+    frameNote = origin ? (Date.now() < holdUntil ? "holding" : "tracking") : "waiting for discord's layout";
 }
+
 export function setTilesFullscreen(v: boolean) {
     if (fullscreen === v) return;
     fullscreen = v;
     if (active) scheduleApply();
 }
+
+let stageMain = "";
 
 function computeRects(list: Tile[]): Map<string, Rect> {
     const win = Dimensions.get("window");
@@ -701,7 +758,12 @@ function computeRects(list: Tile[]): Map<string, Rect> {
         bottom: frame?.bottom ?? win.height - 136,
     };
     gridW = { ww: win.width, w: area.right - area.left };
-    return splitRects(list.map(t => ({ key: t.key, aspect: aspectOf(t) })), voice.map(t => t.key), area, frame?.origin ?? { x: 12, y: area.top }, landscape, fullscreen);
+    const videos = list.map(t => ({ key: t.key, aspect: aspectOf(t) }));
+    const at = frame?.origin ?? { x: 12, y: area.top };
+    if (!landscape) return splitRects(videos, voice.map(t => t.key), area, at, false, fullscreen);
+    const main = list.find(t => t.kind === "stream") ?? list.find(t => t.kind === "them") ?? list[0];
+    stageMain = main?.key ?? "";
+    return stageRects(videos, voice.map(t => t.key), stageMain, area, at, fullscreen);
 }
 const fmt = (c: any) => `${Math.round(c?.x)},${Math.round(c?.y)} ${Math.round(c?.width)}x${Math.round(c?.height)}`;
 
@@ -765,13 +827,13 @@ function applyLayout() {
         touched.add(t.coords);
         guard(t.coords);
         const cur = current.get(t.coords);
-        if (cur && !near(cur, r)) {
+        if (cur && (!near(cur, r) || (cur.zIndex ?? 1) !== (r.z ?? 1))) {
             if (prev && near(prev, r)) {
                 noteMove(t, cur, now, r);
                 if (isCoords(cur) && !(written.get(t.coords) ?? []).some(w => near(cur, w))) intended.set(t.coords, { ...cur });
                 burstUntil = now + 3000;
             }
-            write(t.coords, { ...cur, ...r, zIndex: 1 }, r);
+            write(t.coords, placed(cur, r), r);
         }
     }
 }
@@ -782,7 +844,7 @@ function poll() {
     pollTimer = null;
     if (!active || !mine()) return;
     safeApply();
-    pollTimer = setTimeout(safe("split poll", poll), 150);
+    pollTimer = setTimeout(safe("split poll", poll), 100);
 }
 
 export function kickTiles() {
@@ -1014,6 +1076,8 @@ export function tilesDebug(): string[] {
         `coordinate sources: ${[...coordsCandidates.entries()].slice(0, 16).map(([id, candidates]) => `${id}=${[...candidates.values()].slice(0, 4).map(source => `${source.outer ? "frame" : "renderer"}:${source.name ?? "unnamed"}${source.streamId ? ` sid${source.streamId}` : ""}${source.onSize ? " size callback" : ""}${hasTileProbe(source.coords) ? " mounted" : ""} ${fmt(readCoords(source.coords))} [${source.keys ?? ""}] layout=${source.layout ?? "unknown"}`).join(" | ")}`).join("; ") || "none"}`,
         `frames: equal 16:9, outer participants ${list.filter(t => [...coordsById.values()].some(source => source.outer && source.coords === t.coords)).length}, avatar sources ${voice.length}`,
         `native packing: ${origin?.left != null && origin.right != null ? `${Math.round(origin.left)}-${Math.round(origin.right)}` : "not established"}`,
+        `origin: ${origin ? `${origin.x},${origin.y} from ${originFrom}` : "none"}, followed ${follows}, holds ${holds}${Date.now() < holdUntil ? " (holding now)" : ""}${pendingOrigin ? `, checking ${pendingOrigin.x},${pendingOrigin.y} (${pendingOrigin.samples})` : ""}${lastCandidate ? `, last seen ${Math.round(lastCandidate.x)},${Math.round(lastCandidate.y)} ${Math.round((Date.now() - lastCandidate.at) / 1000)}s ago` : ""}`,
+        `measured tile: ${lastBox ? `at ${Math.round(lastBox.x)},${Math.round(lastBox.y)} ${Math.round(lastBox.width)}x${Math.round(lastBox.height)}, wanted ${Math.round(lastBox.wantX)},${Math.round(lastBox.wantY)}` : "not yet"}${Dimensions.get("window").width > Dimensions.get("window").height ? `, landscape main ${list.find(t => t.key === stageMain)?.kind ?? "none"}` : ""}`,
         ...(moves.length ? ["last moves:", ...moves.map(m => `  ${m}`)] : []),
         ...(frameLog.length ? ["area changes:", ...frameLog.map(m => `  ${m}`)] : []),
         `order setting: ${currentOrder().join(" > ")}`,

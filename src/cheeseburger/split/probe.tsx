@@ -51,16 +51,17 @@ class Guard extends React.Component<{ children?: any; }, { failed: boolean; }> {
 
 export function TileProbe(props: { coords: any; native?: boolean; }) { return <Guard><Probe {...props} /></Guard>; }
 
-export function withTileProbe(ret: any, coords: any): any {
+export function withTileProbe(ret: any, coords: any, extra?: any): any {
     if (probed.has(ret)) return ret;
     if (ret.props?.isPip === true || ret.props?.inPip === true || ret.props?.isPictureInPicture === true) return ret;
     const name = typeof ret.type === "string" ? ret.type : ret.type?.displayName ?? ret.type?.name ?? "";
     const native = ret.type === View || /^(?:RCTView|View|REAWorkaroundView|AnimatedView|AnimatedComponent\(View\)|Animated\(View\))$/.test(name);
     const probe = <TileProbe key="cheeseburger-probe" coords={coords} native={native} />;
+    const added = extra ? [probe, extra] : [probe];
     const children = ret.props?.children;
     const out = native
-        ? React.cloneElement(ret, undefined, ...(Array.isArray(children) ? children : children == null ? [] : [children]), probe)
-        : React.createElement(React.Fragment, { key: ret.key ?? undefined }, ret, probe);
+        ? React.cloneElement(ret, undefined, ...(Array.isArray(children) ? children : children == null ? [] : [children]), ...added)
+        : React.createElement(React.Fragment, { key: ret.key ?? undefined }, ret, ...added);
     if (native) counts.inside++;
     else counts.sibling++;
     probed.add(out);

@@ -200,7 +200,7 @@ export function debugReport(): string {
         ["setup", setup],
         ["call", () => call(n)],
         ["crashes", crashDebug],
-        ["split", () => [...layoutDebug(), ...factoryDebug(), ...pipDebug(), pinControlsDebug(), `pin icon: ${pinIconName || "none found"}`]],
+        ["split", () => [...layoutDebug(), ...factoryDebug(), ...pipDebug(), ...pinControlsDebug(), `pin icon: ${pinIconName || "none found"}`]],
         ["style", () => [...styleDebug(), lookDebug(), toolbarDebug()]],
         ["share", shareDebug],
         ["volume", volumeDebug],
