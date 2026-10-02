@@ -252,7 +252,7 @@ function Marker({ button }: { button: any; }) {
             const before = rec.sig;
             inspect(rec);
             latest = rec;
-            if (!fcType) patchControls(rec.chain);
+            patchControls(rec.chain);
             if (fresh || before !== rec.sig) notifyNow();
         } catch (e) {
             caught("pip pin marker", e);
@@ -347,6 +347,7 @@ export function stopPins() {
     }
     fcType = null;
     fcTypes.clear();
+    hookCount = 0;
     owners.clear();
     markers.clear();
     latest = null;
@@ -868,27 +869,70 @@ const addInline = safe("pip pin controls host", (args: any[], ret: any) => {
 const CONTROLS_PATH = /VoicePanelCardFloatingControls\.tsx$/;
 let controlsTimer: ReturnType<typeof setTimeout> | null = null;
 
-function hookExport(exp: any, key: string, where: string): boolean {
-    const v = exp?.[key];
-    if (!v) return false;
-    if (typeof v === "function") {
-        fcTypes.add(v);
-        fcUnpatches.push(after(key, exp, addInline));
-        fcTypes.add(exp[key]);
-    } else if (typeof v.type === "function") {
-        fcTypes.add(v);
-        fcTypes.add(v.type);
-        fcUnpatches.push(after("type", v, addInline));
-        fcTypes.add(v.type);
-    } else if (typeof v.render === "function") {
-        fcTypes.add(v);
-        fcTypes.add(v.render);
-        fcUnpatches.push(after("render", v, addInline));
-        fcTypes.add(v.render);
-    } else return false;
-    fcType = v;
-    fcNote = `hooked ${where}#${key}`;
-    return true;
+const hookedObjects = new WeakSet<object>();
+let hookCount = 0;
+const triedTypes = new WeakSet<object>();
+
+function hookAllWith(type: any, where: string): number {
+    if (!type || typeof type !== "function" && typeof type !== "object") return 0;
+    let added = 0;
+    fcTypes.add(type);
+    if (typeof type === "object") {
+        const inner = type.type ?? type.render;
+        if (typeof inner === "function") fcTypes.add(inner);
+        if (!hookedObjects.has(type)) {
+            hookedObjects.add(type);
+            try {
+                if (typeof type.type === "function") {
+                    fcUnpatches.push(after("type", type, addInline));
+                    fcTypes.add(type.type);
+                    added++;
+                } else if (typeof type.render === "function") {
+                    fcUnpatches.push(after("render", type, addInline));
+                    fcTypes.add(type.render);
+                    added++;
+                }
+            } catch (e) {
+                caught("pip pin controls patch", e);
+            }
+        }
+    } else {
+        const mods: any = (window as any).modules ?? {};
+        for (const id of Object.keys(mods)) {
+            const m = mods[id];
+            if (!m?.isInitialized) continue;
+            const exp = m.publicModule?.exports;
+            if (!exp || typeof exp !== "object" && typeof exp !== "function" || hookedObjects.has(exp)) continue;
+            let keys: string[];
+            try {
+                keys = Object.keys(exp);
+            } catch {
+                continue;
+            }
+            for (const key of keys) {
+                let d: PropertyDescriptor | undefined;
+                try {
+                    d = Object.getOwnPropertyDescriptor(exp, key);
+                } catch {
+                    continue;
+                }
+                if (!d || !("value" in d) || d.value !== type || !d.writable && !d.configurable) continue;
+                try {
+                    fcUnpatches.push(after(key, exp, addInline));
+                    fcTypes.add(exp[key]);
+                    added++;
+                } catch (e) {
+                    caught("pip pin controls patch", e);
+                }
+            }
+        }
+    }
+    if (added) {
+        fcType = type;
+        hookCount += added;
+        fcNote = `hooked ${where} in ${hookCount} place${hookCount === 1 ? "" : "s"}`;
+    }
+    return added;
 }
 
 const hookControlsEarly = safe("pip pin controls early", (tries = 0) => {
@@ -898,69 +942,23 @@ const hookControlsEarly = safe("pip pin controls early", (tries = 0) => {
     for (const id of Object.keys(mods)) {
         const m = mods[id];
         const path = String(m?.__filePath ?? "");
-        if (!CONTROLS_PATH.test(path)) continue;
-        if (!m.isInitialized) break;
-        try {
-            if (hookExport(m.publicModule?.exports, "default", path.split("/").pop()!)) return;
-        } catch (e) {
-            caught("pip pin controls patch", e);
-            return;
-        }
+        if (!CONTROLS_PATH.test(path) || !m.isInitialized) continue;
+        const v = m.publicModule?.exports?.default;
+        if (v && hookAllWith(v, path.split("/").pop()!)) return;
     }
     if (tries < 90) controlsTimer = setTimeout(() => hookControlsEarly(tries + 1), 2000);
 });
 
 function patchControls(chain: any[]) {
-    if (fcType) return;
     const f = chain.find(x => /FloatingControls/.test(nameOf(x.elementType ?? x.type)));
     if (!f) {
-        fcNote = `no controls component in ${chain.slice(0, 4).map(x => nameOf(x.elementType ?? x.type) || "anonymous").join(" < ")}`;
+        if (!fcType) fcNote = `no controls component in ${chain.slice(0, 4).map(x => nameOf(x.elementType ?? x.type) || "anonymous").join(" < ")}`;
         return;
     }
     const type = f.elementType ?? f.type;
-    const mods: any = (window as any).modules ?? {};
-    for (const id of Object.keys(mods)) {
-        const m = mods[id];
-        if (!m?.isInitialized) continue;
-        const exp = m.publicModule?.exports;
-        if (!exp || typeof exp !== "object" && typeof exp !== "function") continue;
-        let keys: string[];
-        try {
-            keys = Object.keys(exp);
-        } catch {
-            continue;
-        }
-        for (const key of keys) {
-            let v: any;
-            try {
-                v = exp[key];
-            } catch {
-                continue;
-            }
-            if (v !== type) continue;
-            try {
-                fcTypes.add(type);
-                if (typeof v === "function") {
-                    fcUnpatches.push(after(key, exp, addInline));
-                    fcTypes.add(exp[key]);
-                } else if (typeof v?.type === "function") {
-                    fcTypes.add(v.type);
-                    fcUnpatches.push(after("type", v, addInline));
-                    fcTypes.add(v.type);
-                } else if (typeof v?.render === "function") {
-                    fcTypes.add(v.render);
-                    fcUnpatches.push(after("render", v, addInline));
-                    fcTypes.add(v.render);
-                } else continue;
-                fcType = type;
-                fcNote = `hooked ${String(m.__filePath ?? id).split("/").pop()}#${key}`;
-                return;
-            } catch (e) {
-                caught("pip pin controls patch", e);
-            }
-        }
-    }
-    fcNote = `controls component not exported (${nameOf(type)})`;
+    if (fcTypes.has(type) || triedTypes.has(type)) return;
+    triedTypes.add(type);
+    if (!hookAllWith(type, nameOf(type) || "controls")) fcNote = `controls rendered by an unhooked copy (${nameOf(type)})`;
 }
 
 
