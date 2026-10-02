@@ -119,7 +119,7 @@ export function stageRects(videos: Video[], voices: string[], mainKey: string, a
 
     const column = width - mw - gap;
     const gaps = gap * (floaters.length - 1);
-    let sizes = floaters.map(f => (column > 0 ? Math.min(height * 0.3, column / f.aspect) : 0));
+    let sizes = floaters.map(f => (column > 0 ? Math.min(height * (f.aspect < 1 ? 0.45 : 0.3), column / f.aspect) : 0));
     const stacked = sizes.reduce((a, b) => a + b, 0);
     if (stacked + gaps > height && stacked > 0) sizes = sizes.map(h => h * Math.max(0, height - gaps) / stacked);
 

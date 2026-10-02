@@ -7,69 +7,61 @@ import { caught, safe } from "../crash";
 import { accentColor } from "../style/colors";
 import { isPipRender, mineParticipant, onPinChange, participantForPin, pinnedPip, pinPip } from "./pip";
 import { useSplitViewSettings } from "./storage";
-import { chromeShown, onChrome } from "./tiles";
+import { chromeShown, noteControls, noteSafeArea, onChrome, safeAreaNote } from "./tiles";
 
 const ICONS = ["PinIcon", "PictureInPictureIcon", "PipIcon", "ic_pip"];
 const MARK = "__cheeseburgerNativePin";
 const CONFIG = "__cheeseburgerPinConfig";
+const MARKER = "cheeseburger-pin-marker";
 const FOCUS = /^(?:un)?focus\s/i;
-const STOP = /^stop watching$/i;
 const MOTION = /^(?:opacity|transform)$/;
 const LAYOUTISH = /^(?:width|height|top|left|right|bottom|x|y|position|flex|aspectRatio|margin|padding|min|max)/i;
 const FILL = { position: "absolute", left: 0, top: 0, right: 0, bottom: 0 } as const;
 const HIDDEN = { ...FILL, opacity: 0 } as const;
 const RELATIVE = { position: "relative", top: undefined, left: undefined, right: undefined, bottom: undefined, margin: 0, marginTop: 0, marginLeft: 0, marginRight: 0, marginBottom: 0, marginHorizontal: 0, marginVertical: 0 } as const;
 
-interface Level { name: string; handles: any[]; motion: any; entering?: any; exiting?: any; pointerEvents?: string; place: string; moving: string; }
-interface Controls { button: any; levels: Level[]; abs: any; pad: { top: number; right: number; bottom: number; }; stop: string; at: number; }
+interface Level { name: string; handles: any[]; motion: any; entering?: any; exiting?: any; pointerEvents?: string; moving: string; }
 interface Box { x: number; y: number; width: number; height: number; }
-interface MarkerRec { controls: Controls; node: any; rect?: Box & { at: number; }; sig?: string; }
+interface Template { type: any; props: any; }
+interface MarkerRec { button: any; node: any; fiber: any; chain: any[]; outer: number; template: Template | null; rect?: Box & { at: number; }; sig: string; }
 interface Inset { right: number; bottom: number; from: string; }
 interface PinConfig { label: string; onPress: () => void; source: number; tint?: string; }
 
 const iconWrappers = new WeakMap<object, any>();
-const byButton = new WeakMap<object, Controls>();
 const markers = new Set<MarkerRec>();
 const listeners = new Set<() => void>();
 const owners = new Map<string, object>();
 const insets = new Map<string, Inset>();
-const seenParents: string[] = [];
+const seenButtons: string[] = [];
 const seenSizes: string[] = [];
-let latest: Controls | null = null;
+let latest: MarkerRec | null = null;
 let active = false;
 let icon: number | null | undefined;
 let iconRetryAt = 0;
 let reanimated: any;
-let composite = 0;
-let controlsSeen = 0;
+let injected = 0;
+let markersEver = 0;
+let fibersFound = 0;
+let fibersMissing = 0;
 let hosts = 0;
-let shown = 0;
-let fallbacks = 0;
+let cloneRenders = 0;
+let fallbackRenders = 0;
 let cloneErrors = 0;
-let notifyQueued = false;
+let matchedByTree = 0;
+let matchedByBox = 0;
 export let pinIconName = "";
 
 const nameOf = (type: any): string => typeof type === "string" ? type : type?.displayName ?? type?.name ?? type?.render?.displayName ?? type?.render?.name ?? type?.type?.displayName ?? type?.type?.name ?? "";
 
-function nativeHost(type: any): boolean {
-    if (type === View) return true;
-    if (/^(?:RCTView|View|Animated.*View|AnimatedComponent\(View\)|Animated\(View\))$/i.test(nameOf(type))) return true;
-    return type?.$$typeof === Symbol.for("react.memo") && nativeHost(type.type);
-}
-
-function notify() {
-    if (notifyQueued) return;
-    notifyQueued = true;
-    setTimeout(safe("pip pin notify", () => {
-        notifyQueued = false;
-        listeners.forEach(l => {
-            try {
-                l();
-            } catch (e) {
-                caught("pip pin listener", e);
-            }
-        });
-    }), 0);
+function notifyNow() {
+    listeners.forEach(l => {
+        try {
+            l();
+        } catch (e) {
+            caught("pip pin listener", e);
+        }
+    });
+    noteControls(markers.size > 0);
 }
 
 function animatedView(): any {
@@ -130,15 +122,13 @@ function flat(style: any): any {
     return out;
 }
 
-const num = (v: any) => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
-
 function placement(style: any): string {
     const f = flat(style);
     const out: any = {};
-    for (const key of ["position", "top", "right", "bottom", "left", "width", "height", "padding", "paddingHorizontal", "paddingVertical", "flexDirection", "justifyContent", "alignItems", "gap"]) {
+    for (const key of ["position", "top", "right", "bottom", "left", "width", "height", "padding", "flexDirection", "justifyContent", "alignItems"]) {
         if (f[key] !== undefined && typeof f[key] !== "object") out[key] = f[key];
     }
-    return JSON.stringify(out).slice(0, 200);
+    return JSON.stringify(out).slice(0, 160);
 }
 
 const isNode = (v: any) => !!v && typeof v === "object" && typeof v.__getValue === "function";
@@ -167,87 +157,113 @@ function levelOf(type: any, props: any): Level {
         entering: props?.entering,
         exiting: props?.exiting,
         pointerEvents: typeof props?.pointerEvents === "string" ? props.pointerEvents : undefined,
-        place: placement(props?.style),
-        moving: [...new Set(moving.filter(k => !LAYOUTISH.test(k) || MOTION.test(k)))].join(" "),
+        moving: [...new Set(moving.filter(k => !LAYOUTISH.test(k) || MOTION.test(k)))].join(" ") + (moving.some(k => LAYOUTISH.test(k)) ? " +layout" : ""),
     };
 }
 
 const animatedLevel = (l: Level) => l.handles.length > 0 || !!l.motion || l.entering != null || l.exiting != null;
 
-function flatList(value: any, out: any[] = []): any[] {
-    if (Array.isArray(value)) value.forEach(v => flatList(v, out));
-    else if (value != null) out.push(value);
-    return out;
-}
+const isFiber = (f: any) => !!f && typeof f === "object" && "return" in f && "memoizedProps" in f && "tag" in f;
 
-function findFocus(children: any): { el: any; depth: number; } | null {
-    let level = flatList(children);
-    let visits = 0;
-    for (let depth = 1; depth <= 4 && level.length; depth++) {
-        const next: any[] = [];
-        for (const el of level) {
-            if (++visits > 48) return null;
-            if (!el || typeof el !== "object" || !("$$typeof" in el)) continue;
-            const props = el.props;
-            if (!props || props[MARK]) continue;
-            if (typeof props.accessibilityLabel === "string" && FOCUS.test(props.accessibilityLabel)) return { el, depth };
-            if (props.children != null && typeof props.children === "object") flatList(props.children, next);
-        }
-        level = next;
-    }
+function fiberOf(inst: any): any {
+    if (!inst || typeof inst !== "object") return null;
+    try {
+        for (const key of ["__internalInstanceHandle", "_internalInstanceHandle", "_internalFiberInstanceHandleDEV"]) if (isFiber(inst[key])) return inst[key];
+        for (const sym of Object.getOwnPropertySymbols(inst)) if (isFiber(inst[sym])) return inst[sym];
+        for (const key of Object.keys(inst)) if (/internal|fiber|handle/i.test(key) && isFiber(inst[key])) return inst[key];
+        if (isFiber(inst.canonical?.internalInstanceHandle)) return inst.canonical.internalInstanceHandle;
+    } catch { }
     return null;
 }
 
-function noteParent(line: string) {
-    if (seenParents.includes(line)) return;
-    seenParents.push(line);
-    if (seenParents.length > 6) seenParents.shift();
+const same = (a: any, b: any) => a === b || !!a && !!b && a.alternate === b;
+const focusLabel = (props: any) => typeof props?.accessibilityLabel === "string" && FOCUS.test(props.accessibilityLabel);
+
+function withoutMarker(props: any): any {
+    const ch = props?.children;
+    if (!Array.isArray(ch) || !ch.some((c: any) => c?.key === MARKER)) return props;
+    const rest = ch.filter((c: any) => c?.key !== MARKER);
+    return { ...props, children: rest.length === 1 ? rest[0] : rest };
 }
 
-function attach(type: any, ret: any, button: any): any {
-    const props = ret.props ?? {};
-    const list = flatList(props.children);
-    const pf = flat(props.style);
-    const pad = (side: "Top" | "Right" | "Bottom", axis: "Vertical" | "Horizontal") => num(pf[`padding${side}`]) ?? num(pf[`padding${axis}`]) ?? num(pf.padding) ?? 0;
-    const stopEl = list.find(c => typeof c?.props?.accessibilityLabel === "string" && STOP.test(c.props.accessibilityLabel));
-    const controls: Controls = {
-        button,
-        levels: [levelOf(type, props)],
-        abs: flat(button.props?.style),
-        pad: { top: pad("Top", "Vertical"), right: pad("Right", "Horizontal"), bottom: pad("Bottom", "Vertical") },
-        stop: stopEl ? placement(stopEl.props.style) : "",
-        at: Date.now(),
-    };
-    byButton.set(button, controls);
-    latest = controls;
-    controlsSeen++;
-    noteParent(`${controls.levels[0].name} ${controls.levels[0].place}${controls.levels[0].moving ? ` moves ${controls.levels[0].moving}` : ""}${controls.levels[0].pointerEvents ? ` pe=${controls.levels[0].pointerEvents}` : ""} > ${nameOf(button.type) || "anonymous"} ${placement(button.props?.style)}${stopEl ? ` + stop ${controls.stop}` : ""}`);
-    if (!nativeHost(type)) {
-        composite++;
-        return;
+function noteButton(line: string) {
+    if (seenButtons.includes(line)) return;
+    seenButtons.push(line);
+    if (seenButtons.length > 6) seenButtons.shift();
+}
+
+function inspect(rec: MarkerRec) {
+    const chain: any[] = [];
+    let outer = -1;
+    for (let f = rec.fiber?.return, i = 0; f && i < 80; f = f.return, i++) {
+        const props = f.memoizedProps;
+        if (props && typeof props === "object" && props.sharedCoords != null) break;
+        chain.push(f);
+        if (focusLabel(props)) outer = chain.length - 1;
     }
-    if (list.some(c => c?.key === "cheeseburger-controls")) return;
-    return { ...ret, props: { ...props, children: [...list, React.createElement(Marker, { key: "cheeseburger-controls", controls })] } };
+    rec.chain = chain;
+    rec.outer = outer;
+    if (outer >= 0) {
+        const f = chain[outer];
+        rec.template = { type: f.elementType ?? f.type, props: withoutMarker(f.memoizedProps) };
+    } else if (rec.button) {
+        rec.template = { type: rec.button.type, props: withoutMarker(rec.button.props) };
+    } else rec.template = null;
+    const levels = chain.slice(outer + 1, outer + 13).map(f => levelOf(f.elementType ?? f.type, f.memoizedProps));
+    rec.sig = `${outer}:${nameOf(rec.template?.type)}:${levels.map(l => `${l.name}${l.handles.length}${l.motion ? "m" : ""}${l.entering ? "e" : ""}${l.exiting ? "x" : ""}${l.pointerEvents ?? ""}`).join(",")}`;
 }
 
-function climb(type: any, props: any, button: any, depth: number) {
-    const controls = byButton.get(button);
-    if (!controls || controls.levels.length !== depth - 1 || depth > 4) return;
-    controls.levels.push(levelOf(type, props));
+function Marker({ button }: { button: any; }) {
+    const ref = React.useRef<any>(null);
+    const rec = React.useRef<MarkerRec>({ button, node: null, fiber: null, chain: [], outer: -1, template: null, sig: "" }).current;
+    rec.button = button;
+    React.useLayoutEffect(() => {
+        markers.add(rec);
+        markersEver++;
+        return () => {
+            markers.delete(rec);
+            if (latest === rec) latest = null;
+            notifyNow();
+        };
+    }, []);
+    React.useLayoutEffect(() => {
+        try {
+            const node = ref.current;
+            const fresh = rec.node !== node;
+            rec.node = node;
+            const fiber = fiberOf(node);
+            if (fresh) {
+                if (fiber) fibersFound++;
+                else fibersMissing++;
+            }
+            rec.fiber = fiber;
+            const before = rec.sig;
+            inspect(rec);
+            latest = rec;
+            if (fresh || before !== rec.sig) notifyNow();
+        } catch (e) {
+            caught("pip pin marker", e);
+        }
+    });
+    const onLayout = safe("pip pin marker layout", () => measureNode(ref.current, b => {
+        rec.rect = { ...b, at: Date.now() };
+    }));
+    return <View ref={ref} collapsable={false} pointerEvents="none" style={HIDDEN} onLayout={onLayout} />;
 }
 
 export const watchControls = safe("pip pin controls", (args: any[], ret: any) => {
     if (!active || !ret || typeof ret !== "object" || isPipRender()) return;
     const props = ret.props;
-    const children = props?.children;
-    if (children == null || typeof children !== "object" || props[MARK]) return;
-    const hit = findFocus(children);
-    if (!hit) return;
-    if (hit.depth === 1) return attach(args[0], ret, hit.el);
-    climb(args[0], props, hit.el, hit.depth);
+    if (!props || props[MARK] || !focusLabel(props)) return;
+    const name = nameOf(args[0]) || "anonymous";
+    noteButton(`${name} ${placement(props.style)} keys=${Object.keys(props).slice(0, 12).join(",")}${typeof props.children === "function" ? " children=fn" : ""}`);
+    const ch = props.children;
+    if (!/Pressable|Touchable/i.test(name) || ch == null || typeof ch !== "object") return;
+    if (Array.isArray(ch) && ch.some((c: any) => c?.key === MARKER)) return;
+    injected++;
+    const marker = React.createElement(Guard, { key: MARKER }, React.createElement(Marker, { button: ret }));
+    return { ...ret, props: { ...props, children: Array.isArray(ch) ? [...ch, marker] : [ch, marker] } };
 });
-
-const signature = (c: Controls) => c.levels.map(l => `${l.name}:${l.handles.length}:${l.motion ? 1 : 0}:${l.entering ? 1 : 0}:${l.exiting ? 1 : 0}:${l.pointerEvents ?? ""}`).join("|");
 
 function measureNode(node: any, done: (b: Box) => void) {
     if (typeof node?.measureInWindow !== "function") return;
@@ -260,32 +276,6 @@ function measureNode(node: any, done: (b: Box) => void) {
     }
 }
 
-function Marker({ controls }: { controls: Controls; }) {
-    const ref = React.useRef<any>(null);
-    const rec = React.useRef<MarkerRec>({ controls, node: null }).current;
-    rec.controls = controls;
-    React.useEffect(() => {
-        markers.add(rec);
-        notify();
-        return () => {
-            markers.delete(rec);
-            notify();
-        };
-    }, []);
-    React.useEffect(() => {
-        rec.node = ref.current;
-        const sig = signature(controls);
-        if (sig !== rec.sig) {
-            rec.sig = sig;
-            notify();
-        }
-    });
-    const onLayout = safe("pip pin marker layout", () => measureNode(ref.current, b => {
-        rec.rect = { ...b, at: Date.now() };
-    }));
-    return <View ref={ref} collapsable={false} pointerEvents="none" style={HIDDEN} onLayout={onLayout} />;
-}
-
 export function startPins() {
     active = true;
 }
@@ -295,7 +285,7 @@ export function stopPins() {
     owners.clear();
     markers.clear();
     latest = null;
-    notify();
+    notifyNow();
 }
 
 function glyph(el: any, config: PinConfig): any {
@@ -433,26 +423,17 @@ function contains(outer: Box, inner: Box) {
 
 const clampInset = (v: number) => Math.min(48, Math.max(0, Math.round(v)));
 
-function insetFrom(tile: Box, parent: Box, c: Controls, pin: { width: number; height: number; } | null): Inset {
-    const relRight = tile.x + tile.width - (parent.x + parent.width);
-    const relTop = parent.y - tile.y;
-    const relBottom = tile.y + tile.height - (parent.y + parent.height);
-    const abs = c.abs ?? {};
-    const absolute = abs.position === "absolute";
-    const right = clampInset(relRight + (absolute ? num(abs.right) ?? 0 : c.pad.right + (num(abs.marginRight) ?? 0)));
-    const topEdge = absolute ? num(abs.top) : c.pad.top + (num(abs.marginTop) ?? 0);
-    const bottomEdge = absolute ? num(abs.bottom) : undefined;
-    const atBottom = absolute ? bottomEdge != null && topEdge == null : parent.y + parent.height / 2 > tile.y + tile.height / 2;
-    if (atBottom) {
-        const bottom = clampInset(relBottom + (bottomEdge ?? c.pad.bottom));
-        return { right: right + Math.round(pin?.width ?? 32) + Math.max(6, right), bottom, from: "left of maximize" };
-    }
-    return { right, bottom: clampInset(relTop + (topEdge ?? 0)), from: "mirrors maximize" };
+function insetFrom(tile: Box, button: Box): Inset {
+    const right = clampInset(tile.x + tile.width - (button.x + button.width));
+    const top = clampInset(button.y - tile.y);
+    const bottom = clampInset(tile.y + tile.height - (button.y + button.height));
+    if (button.y + button.height / 2 > tile.y + tile.height / 2) return { right: right + Math.round(button.width) + Math.max(6, right), bottom, from: "left of maximize" };
+    return { right, bottom: top, from: "mirrors maximize" };
 }
 
 function sizeOk(layout: { width: number; height: number; }, coords: any) {
-    const w = num(coords?.width);
-    const h = num(coords?.height);
+    const w = typeof coords?.width === "number" ? coords.width : 0;
+    const h = typeof coords?.height === "number" ? coords.height : 0;
     if (!w || !h) return false;
     const tol = (v: number) => Math.max(4, v * 0.03);
     const wOk = Math.abs(layout.width - w) <= tol(w);
@@ -474,18 +455,66 @@ function noteSize(line: string) {
     if (seenSizes.length > 4) seenSizes.shift();
 }
 
+interface Match { rec: MarkerRec; levels: Level[]; by: string; }
+
+function matchFor(pinFiber: any, tile: Box | null): Match | null {
+    const mine: any[] = [];
+    for (let f = pinFiber, i = 0; f && i < 16; f = f.return, i++) mine.push(f);
+    let best: { rec: MarkerRec; j: number; k: number; } | null = null;
+    if (mine.length) {
+        for (const rec of markers) {
+            if (!rec.chain.length) continue;
+            for (let j = rec.outer + 1; j < rec.chain.length; j++) {
+                const k = mine.findIndex(f => same(f, rec.chain[j]));
+                if (k < 0) continue;
+                if (!best || k < best.k) best = { rec, j, k };
+                break;
+            }
+        }
+    }
+    if (best) {
+        const levels = best.rec.chain.slice(best.rec.outer + 1, best.j).map(f => levelOf(f.elementType ?? f.type, f.memoizedProps));
+        return { rec: best.rec, levels, by: "tree" };
+    }
+    if (!tile) return null;
+    const hit = [...markers].filter(m => m.rect && Date.now() - m.rect.at < 3000 && contains(tile, m.rect)).sort((a, b) => b.rect!.at - a.rect!.at)[0];
+    return hit ? { rec: hit, levels: [], by: "box" } : null;
+}
+
+let insetsSource: { context: any; hook: any; } | null | undefined;
+function useInsets(): any {
+    if (insetsSource === undefined) {
+        insetsSource = null;
+        try {
+            const m = findByProps("SafeAreaInsetsContext") ?? findByProps("useSafeAreaInsets");
+            if (m?.SafeAreaInsetsContext) insetsSource = { context: m.SafeAreaInsetsContext, hook: null };
+            else if (typeof m?.useSafeAreaInsets === "function") insetsSource = { context: null, hook: m.useSafeAreaInsets };
+        } catch { }
+    }
+    if (!insetsSource) return null;
+    if (insetsSource.context) return React.useContext(insetsSource.context);
+    try {
+        return insetsSource.hook();
+    } catch {
+        return null;
+    }
+}
+
 function Pin({ coords, pid, stream }: { coords: any; pid: string; stream: boolean; }) {
+    const safeArea = useInsets();
     const on = useSplitViewSettings((s: any) => s.pipPins !== false);
     const [, force] = React.useReducer((n: number) => n + 1, 0);
     const owner = React.useRef({}).current;
     const host = React.useRef<any>(null);
+    const pinFiber = React.useRef<any>(null);
+    const tileBox = React.useRef<Box | null>(null);
     const misses = React.useRef(0);
     const [valid, setValid] = React.useState(false);
-    const [pinSize, setPinSize] = React.useState<{ width: number; height: number; } | null>(null);
-    const [mark, setMark] = React.useState<MarkerRec | null>(null);
     const kind = stream ? "stream" : "camera";
 
-    React.useEffect(() => {
+    if (safeArea) noteSafeArea(safeArea);
+
+    React.useLayoutEffect(() => {
         hosts++;
         listeners.add(force);
         const offPin = onPinChange(force);
@@ -497,18 +526,19 @@ function Pin({ coords, pid, stream }: { coords: any; pid: string; stream: boolea
             offChrome();
             if (owners.get(pid) === owner) {
                 owners.delete(pid);
-                notify();
+                notifyNow();
             }
         };
     }, []);
 
-    React.useEffect(() => {
+    React.useLayoutEffect(() => {
+        if (!pinFiber.current && host.current) pinFiber.current = fiberOf(host.current);
         if (valid && !owners.has(pid)) {
             owners.set(pid, owner);
-            notify();
+            force();
         } else if (!valid && owners.get(pid) === owner) {
             owners.delete(pid);
-            notify();
+            notifyNow();
         }
     });
 
@@ -533,6 +563,11 @@ function Pin({ coords, pid, stream }: { coords: any; pid: string; stream: boolea
     });
 
     const visible = active && on && valid && owners.get(pid) === owner;
+    const match = visible ? matchFor(pinFiber.current, tileBox.current) : null;
+    if (match) {
+        if (match.by === "tree") matchedByTree++;
+        else matchedByBox++;
+    }
 
     React.useEffect(() => {
         if (!visible) return;
@@ -541,67 +576,57 @@ function Pin({ coords, pid, stream }: { coords: any; pid: string; stream: boolea
                 m.rect = { ...b, at: Date.now() };
             });
             setTimeout(safe("pip pin match", () => measureNode(host.current, tile => {
-                const hit = [...markers].filter(m => m.rect && Date.now() - m.rect.at < 1500 && contains(tile, m.rect)).sort((a, b) => b.rect!.at - a.rect!.at)[0] ?? null;
-                if (hit !== mark) setMark(hit);
-                if (hit?.rect) {
-                    const next = insetFrom(tile, hit.rect, hit.controls, pinSize);
-                    const prev = insets.get(kind);
-                    if (!prev || prev.right !== next.right || prev.bottom !== next.bottom || prev.from !== next.from) {
-                        insets.set(kind, next);
-                        notify();
-                    }
+                tileBox.current = tile;
+                const m = matchFor(pinFiber.current, tile);
+                if (!m?.rec.rect || !contains(tile, m.rec.rect)) return;
+                const next = insetFrom(tile, m.rec.rect);
+                const prev = insets.get(kind);
+                if (!prev || prev.right !== next.right || prev.bottom !== next.bottom || prev.from !== next.from) {
+                    insets.set(kind, next);
+                    notifyNow();
                 }
             })), 120);
         });
         locate();
-        const timer = setInterval(locate, 1500);
+        const timer = setInterval(locate, 2000);
         return () => clearInterval(timer);
-    }, [visible, mark, pinSize?.width]);
+    }, [visible, match?.rec]);
 
     let content: any = null;
-    if (visible) {
-        const source = pinIcon();
-        const own = mark && markers.has(mark) ? mark : null;
-        const controls = own?.controls ?? [...markers].sort((a, b) => b.controls.at - a.controls.at)[0]?.controls ?? (composite ? latest : null);
-        const present = own ? true : markers.size > 0 || !!(composite && latest);
-        if (source != null) {
-            const here = pinnedPip() === pid;
-            const config: PinConfig = {
-                label: here ? "unpin pip" : "pin to pip",
-                onPress: safe("pip pin press", () => pinPip(here ? null : pid)),
-                source,
-                tint: here ? accentColor("#ff0048") : undefined,
-            };
-            const inset = insets.get(kind) ?? insets.get(stream ? "camera" : "stream") ?? { right: 8, bottom: 8, from: "default" };
-            const blocked = controls?.levels.some(l => l.pointerEvents === "none" || l.pointerEvents === "box-only");
-            const fallback = <Fallback config={config} />;
-            let inner: any = null;
-            if (controls && present) {
-                shown++;
-                let clone: any = null;
-                try {
-                    clone = walkButton(controls.button, config);
-                } catch (e) {
-                    cloneErrors++;
-                    caught("pip pin clone", e);
-                }
-                inner = clone ? <Levels levels={controls.levels}><Guard fallback={fallback}>{clone}</Guard></Levels> : fallback;
-            } else if (!controls) {
-                fallbacks++;
-                inner = fallback;
+    const source = visible ? pinIcon() : null;
+    if (visible && source != null) {
+        const here = pinnedPip() === pid;
+        const config: PinConfig = {
+            label: here ? "unpin pip" : "pin to pip",
+            onPress: safe("pip pin press", () => pinPip(here ? null : pid)),
+            source,
+            tint: here ? accentColor("#ff0048") : undefined,
+        };
+        const inset = insets.get(kind) ?? insets.get(stream ? "camera" : "stream") ?? { right: 8, bottom: 8, from: "default" };
+        const fallback = <Fallback config={config} />;
+        const rec = match?.rec ?? (markers.size ? null : undefined);
+        let inner: any = null;
+        if (rec?.template) {
+            const blocked = match!.levels.some(l => l.pointerEvents === "none" || l.pointerEvents === "box-only");
+            let clone: any = null;
+            try {
+                const el = React.createElement(rec.template.type, { ...rec.template.props, accessibilityLabel: config.label, [MARK]: true });
+                clone = walkButton(el, config);
+            } catch (e) {
+                cloneErrors++;
+                caught("pip pin clone", e);
             }
-            content = <View
-                key="cheeseburger-pin-spot"
-                pointerEvents={blocked ? "none" : "box-none"}
-                style={{ position: "absolute", right: inset.right, bottom: inset.bottom }}
-                onLayout={safe("pip pin size", (e: any) => {
-                    const l = e?.nativeEvent?.layout;
-                    if (l && (!pinSize || Math.abs(pinSize.width - l.width) > 1)) setPinSize({ width: l.width, height: l.height });
-                })}
-            >
-                {inner}
-            </View>;
+            if (clone) {
+                cloneRenders++;
+                inner = <View pointerEvents={blocked ? "none" : "box-none"}><Levels levels={match!.levels}><Guard fallback={fallback}>{clone}</Guard></Levels></View>;
+            } else inner = fallback;
+        } else if (rec === undefined && !markersEver) {
+            fallbackRenders++;
+            inner = fallback;
         }
+        content = <View key="cheeseburger-pin-spot" pointerEvents="box-none" style={{ position: "absolute", right: inset.right, bottom: inset.bottom }}>
+            {inner}
+        </View>;
     }
 
     return <View ref={host} collapsable={false} pointerEvents="box-none" style={[FILL, { zIndex: 50 }]} onLayout={onLayout}>
@@ -623,13 +648,14 @@ export function tilePinFor(props: any): any {
 
 export function pinControlsDebug(): string[] {
     const A = animatedView();
-    const c = latest;
+    const rec = latest ?? [...markers][0] ?? null;
+    const levels = rec ? rec.chain.slice(rec.outer + 1, rec.outer + 13).map(f => levelOf(f.elementType ?? f.type, f.memoizedProps)) : [];
     return [
-        `pins: hosts ${hosts}, owners ${owners.size}, discord controls seen ${controlsSeen}, markers ${markers.size}, composite parents ${composite}, renders with discord's button ${shown}, plain fallback ${fallbacks}, clone errors ${cloneErrors}, reanimated ${A ? "found" : "missing"}`,
+        `pins: hosts ${hosts}, owners ${owners.size}, markers ${markers.size} (ever ${markersEver}, injected ${injected}), fibers ${fibersFound} found ${fibersMissing} missing, matched tree ${matchedByTree} box ${matchedByBox}, clone renders ${cloneRenders}, plain renders ${fallbackRenders}, clone errors ${cloneErrors}, reanimated ${A ? "found" : "missing"}, safe area ${safeAreaNote()}`,
         `pin spots: ${[...insets.entries()].map(([k, v]) => `${k} right ${v.right} bottom ${v.bottom} (${v.from})`).join(", ") || "default 8,8"}`,
-        `maximize chain: ${c ? c.levels.map((l, i) => `${i}:${l.name}${l.moving ? ` moves ${l.moving}` : ""}${l.handles.length ? ` handles ${l.handles.length}` : ""}${l.motion ? " rn-animated" : ""}${l.entering ? " entering" : ""}${l.exiting ? " exiting" : ""}${l.pointerEvents ? ` pe=${l.pointerEvents}` : ""}${animatedLevel(l) ? "" : " still"}`).join(" < ") : "not seen"}`,
-        `maximize button: ${c ? `${nameOf(c.button.type) || "anonymous"} ${placement(c.button.props?.style)} keys=${Object.keys(c.button.props ?? {}).slice(0, 12).join(",")}` : "not seen"}`,
-        ...seenParents.map(p => `  parent ${p}`),
+        `maximize button: ${rec?.template ? `${nameOf(rec.template.type) || "anonymous"} ${placement(rec.template.props?.style)} keys=${Object.keys(rec.template.props ?? {}).slice(0, 12).join(",")}, depth ${rec.outer}` : "not seen"}${rec?.rect ? `, at ${Math.round(rec.rect.x)},${Math.round(rec.rect.y)} ${Math.round(rec.rect.width)}x${Math.round(rec.rect.height)}` : ""}`,
+        `maximize parents: ${levels.length ? levels.map((l, i) => `${i}:${l.name}${l.moving ? ` moves ${l.moving}` : ""}${l.handles.length ? ` handles ${l.handles.length}` : ""}${l.motion ? " rn-animated" : ""}${l.entering ? " entering" : ""}${l.exiting ? " exiting" : ""}${l.pointerEvents ? ` pe=${l.pointerEvents}` : ""}${animatedLevel(l) ? "" : ""}`).join(" < ") : "none"}`,
+        ...seenButtons.map(p => `  labelled ${p}`),
         ...seenSizes.map(s => `  skipped ${s}`),
     ];
 }
