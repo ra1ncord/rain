@@ -10,7 +10,9 @@ export const viewportKey = () => {
     return `${Math.round(win.width)}x${Math.round(win.height)}`;
 };
 
-const shared: { tileRefs: Map<object, Set<{ current: any; }>>; probed: WeakSet<object>; toolbarRef: { current: any; } | null; toolbarSeen: boolean; } = (globalThis as any).__cheeseburgerProbes ??= {
+interface TileRef { current: any; native?: boolean; }
+
+const shared: { tileRefs: Map<object, Set<TileRef>>; probed: WeakSet<object>; toolbarRef: { current: any; } | null; toolbarSeen: boolean; } = (globalThis as any).__cheeseburgerProbes ??= {
     tileRefs: new Map(), probed: new WeakSet(), toolbarRef: null, toolbarSeen: false,
 };
 const { tileRefs, probed } = shared;
@@ -20,12 +22,13 @@ const counts = { requested: 0, accepted: 0, stale: 0, rejected: 0, inside: 0, si
 const lastBoxes = new Map<object, { width: number; height: number; expectedWidth: number; expectedHeight: number; accepted: boolean; }>();
 let generation = 0;
 
-export const measured: { parent?: Box & { coords: any; sv: object; }; toolbar?: Box; } = {};
+export const measured: { parent?: Box & { coords: any; sv: object; source: "native" | "sibling"; }; toolbar?: Box; } = {};
 
 const FILL = { position: "absolute", left: 0, top: 0, right: 0, bottom: 0, opacity: 0 } as const;
 
-function Probe({ coords }: { coords: any; }) {
-    const ref = React.useRef<any>(null);
+function Probe({ coords, native }: { coords: any; native?: boolean; }) {
+    const ref: TileRef = React.useRef<any>(null);
+    ref.native = !!native;
     React.useEffect(() => {
         let refs = tileRefs.get(coords);
         if (!refs) tileRefs.set(coords, refs = new Set());
@@ -46,13 +49,14 @@ class Guard extends React.Component<{ children?: any; }, { failed: boolean; }> {
     render() { return this.state.failed ? null : this.props.children; }
 }
 
-export function TileProbe(props: { coords: any; }) { return <Guard><Probe {...props} /></Guard>; }
+export function TileProbe(props: { coords: any; native?: boolean; }) { return <Guard><Probe {...props} /></Guard>; }
 
 export function withTileProbe(ret: any, coords: any): any {
     if (probed.has(ret)) return ret;
+    if (ret.props?.isPip === true || ret.props?.inPip === true || ret.props?.isPictureInPicture === true) return ret;
     const name = typeof ret.type === "string" ? ret.type : ret.type?.displayName ?? ret.type?.name ?? "";
     const native = ret.type === View || /^(?:RCTView|View|REAWorkaroundView|AnimatedView|AnimatedComponent\(View\)|Animated\(View\))$/.test(name);
-    const probe = <TileProbe key="cheeseburger-probe" coords={coords} />;
+    const probe = <TileProbe key="cheeseburger-probe" coords={coords} native={native} />;
     const children = ret.props?.children;
     const out = native
         ? React.cloneElement(ret, undefined, ...(Array.isArray(children) ? children : children == null ? [] : [children]), probe)
@@ -118,12 +122,12 @@ export function resetTileMeasurements() {
     delete measured.parent;
 }
 
-export function measureAll(read: (sv: any) => any, prefer?: object, aspect?: number) {
+export function measureAll(read: (sv: any) => any, prefer?: object, aspect?: number, onMeasured?: () => void) {
     const refs = prefer ? tileRefs.get(prefer) : undefined;
     if (prefer && refs?.size) {
         const value = read(prefer);
         const coords = value && typeof value === "object" ? { ...value } : null;
-        for (const ref of refs) measure(ref, b => {
+        for (const ref of [...refs].sort((a, b) => Number(!!b.native) - Number(!!a.native))) measure(ref, b => {
             const current = read(prefer);
             if (!coords || !tileRefs.get(prefer)?.has(ref) || !current || !["x", "y", "width", "height"].every(k => typeof coords[k] === "number" && Math.abs(coords[k] - current[k]) < 0.5)) {
                 counts.stale++;
@@ -139,7 +143,9 @@ export function measureAll(read: (sv: any) => any, prefer?: object, aspect?: num
                 return;
             }
             counts.accepted++;
-            measured.parent = { ...b, coords, sv: prefer };
+            if (!ref.native && measured.parent?.sv === prefer && measured.parent.source === "native" && b.at - measured.parent.at < 700) return;
+            measured.parent = { ...b, coords, sv: prefer, source: ref.native ? "native" : "sibling" };
+            onMeasured?.();
         });
     } else {
         delete measured.parent;

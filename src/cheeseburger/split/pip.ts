@@ -23,6 +23,11 @@ const g = globalThis as any;
 
 interface Cand { sid: any; pid: any; stream: boolean; }
 type PipContext = "android" | "floating";
+interface PipController { channelId: any; showSecondaryPIP: boolean | undefined; mode: any; panel: any; id: any; }
+interface PipGate { revision: number; }
+interface PipBinding { controller: PipController | null; revision: number; }
+interface PipFrame { binding: PipBinding; controllerHook: boolean; }
+const PIP_BINDING = "__cheeseburgerPipBranch";
 
 const unpatches: (() => unknown)[] = [];
 let pip: any = null;
@@ -44,12 +49,13 @@ let running = false;
 let renderContext: PipContext | null = null;
 let candidateContext: PipContext | null = null;
 let renderParticipant: any = null;
+let renderFrame: PipFrame | null = null;
 let sourceSwaps = 0;
 let internalRenders = 0;
 const viewPatched = new Set<string>();
 const viewShapes = new Map<string, string>();
 const pinListeners = new Set<() => void>();
-let controller: { channelId: any; showSecondaryPIP: boolean | undefined; mode: any; panel: any; id: any; } | null = null;
+let controller: PipController | null = null;
 const controllerShapes: string[] = [];
 
 const idOf = (v: any) => (v == null ? null : String(v));
@@ -349,18 +355,22 @@ function drawerState(): any {
     }
 }
 
-function floatingPipAllowed(): boolean {
+function floatingPipAllowed(state = renderFrame ? renderFrame.binding.controller : controller): boolean {
     const drawer = drawerState();
-    const explicit = controller?.mode === "IN_APP" || controller?.panel === "pip";
-    const panel = controller?.mode === "IN_PANEL" || controller?.panel === "panel";
-    return !panel && (explicit || typeof drawer === "number" && drawer >= 0 && drawer < OPEN_CALL_DRAWER_STATE) && controller?.showSecondaryPIP === false
-        && sameId(controller.channelId, SelectedChannelStore?.getVoiceChannelId?.());
+    const explicit = state?.mode === "IN_APP" || state?.panel === "pip";
+    const panel = state?.mode === "IN_PANEL" || state?.panel === "panel";
+    return !panel && (explicit || typeof drawer === "number" && drawer >= 0 && drawer < OPEN_CALL_DRAWER_STATE) && state?.showSecondaryPIP === false
+        && sameId(state.channelId, SelectedChannelStore?.getVoiceChannelId?.());
 }
 
 function observeController(args: any, ret: any) {
     if (!ret || typeof ret !== "object") return;
     const channelId = args?.channelId ?? SelectedChannelStore?.getVoiceChannelId?.();
     controller = { channelId, showSecondaryPIP: ret.showSecondaryPIP, mode: ret.mode, panel: args?.mode, id: ret.id ?? ret.participantId ?? args?.id };
+    if (renderFrame && candidateContext === "floating") {
+        renderFrame.controllerHook = true;
+        renderFrame.binding = { ...renderFrame.binding, controller };
+    }
     let next = ret;
     if (running && floatingPipAllowed() && (controller.mode === "IN_APP" || controller.panel === "pip")) {
         const parts = allParts(channelId);
@@ -524,7 +534,8 @@ export const isPipRender = () => renderContext != null;
 
 export function floatingPinParticipant(props?: any): any {
     if (!running || renderContext !== "floating" || !floatingPipAllowed()) return null;
-    const current = participantForPin(props) ?? renderParticipant ?? allParts().find(p => sameId(p.id, controller?.id) || sameId(p.streamId, controller?.id));
+    const branch = renderFrame ? renderFrame.binding.controller : controller;
+    const current = participantForPin(props) ?? renderParticipant ?? allParts().find(p => sameId(p.id, branch?.id) || sameId(p.streamId, branch?.id));
     if (!current) return null;
     const source = chosen(current.id) ?? current;
     if (participantForPin(props)) renderParticipant = source;
@@ -548,8 +559,10 @@ const VIEW_TYPES = [
     "modules/voice_panel/native/pip/VoicePanelPIP.tsx",
 ];
 const awareOf = new WeakMap<object, any>();
-const renderedOf = new WeakMap<object, Map<string, any>>();
-const renderedTypes = new WeakSet<object>();
+const renderedOf = new WeakMap<PipGate, WeakMap<object, Map<string, any>>>();
+const renderedOriginals = new WeakMap<object, any>();
+const sourceTypes = new WeakSet<object>();
+const controllerTypes = new WeakSet<object>();
 const viewTypes = new Map<any, string>();
 let lastTypeLook = 0;
 let rerenders = 0;
@@ -593,39 +606,67 @@ function sourceProps(props: any): any {
     return next;
 }
 
-function pipTree(tree: any, context: PipContext, level = 0): any {
-    if (Array.isArray(tree)) return tree.map(el => pipTree(el, context, level));
-    if (!tree || typeof tree !== "object" || !("$$typeof" in tree) || level > 6) return tree;
-    const props = sourceProps(tree.props);
-    const children = props?.children;
-    const nextChildren = children != null && typeof children !== "function" ? pipTree(children, context, level + 1) : children;
+function cleanBinding(props: any): any {
+    if (!props || !(PIP_BINDING in props)) return props;
+    const next = { ...props };
+    delete next[PIP_BINDING];
+    return next;
+}
+
+function sourceType(type: any): boolean {
+    const original = renderedOriginals.get(type) ?? type;
+    if (original?.$$typeof === Symbol.for("react.memo")) return sourceType(original.type);
+    const render = original?.render ?? original?.prototype?.render ?? original;
+    return render && sourceTypes.has(render) && !controllerTypes.has(render);
+}
+
+function pipTree(tree: any, context: PipContext, gate: PipGate, binding: PipBinding, level = 0): any {
+    if (Array.isArray(tree)) return tree.map(el => pipTree(el, context, gate, binding, level));
+    if (!tree || typeof tree !== "object" || !("$$typeof" in tree) || level > 16) return tree;
     const type = tree.type;
     const name = type?.displayName ?? type?.name ?? type?.render?.name ?? "";
     const wrap = type && typeof type !== "string" && typeof type !== "symbol"
         && !/^(?:RCT|Native|Animated|View$|Pressable|Touchable|Gesture|Text|Image|Icon|Button|Scroll|Svg|Guard|PipAware)/i.test(name);
-    const nextType = wrap ? rendered(type, context) : type;
+    let props = cleanBinding(tree.props);
+    if (!wrap || context === "android" || sourceType(type)) props = sourceProps(props);
+    const children = props?.children;
+    const nextChildren = children != null && typeof children !== "function" ? pipTree(children, context, gate, binding, level + 1) : children;
+    const nextType = wrap ? rendered(type, context, gate) : type;
+    if (wrap) props = { ...props, [PIP_BINDING]: binding };
     return nextType === type && props === tree.props && nextChildren === children ? tree
         : { ...tree, type: nextType, props: nextChildren === children ? props : { ...props, children: nextChildren } };
 }
 
-function renderPip(orig: Function, self: any, args: any[], context: PipContext, root = false): any {
+function renderPip(orig: Function, self: any, args: any[], context: PipContext, gate: PipGate, root = false): any {
+    const inherited = args[0]?.[PIP_BINDING] as PipBinding | undefined;
+    const clean = cleanBinding(args[0]);
+    if (!running) return orig.apply(self, [clean, ...args.slice(1)]);
     const previous = renderContext;
     const previousCandidate = candidateContext;
     const previousParticipant = renderParticipant;
+    const previousFrame = renderFrame;
     if (root) renderParticipant = null;
+    renderFrame = { binding: root ? { controller: null, revision: ++gate.revision } : inherited ?? { controller: null, revision: gate.revision }, controllerHook: false };
     candidateContext = context;
     renderContext = context === "android" || floatingPipAllowed() ? context : null;
     try {
-        let props = args[0];
+        if (root && context === "android" && running && !viewRetry && !viewPatched.has(VIEW_PATHS[0])) {
+            safe("pip late android hook", () => patchViews(60))();
+        }
+        let props = clean;
         try {
-            if (!root || context === "android") props = sourceProps(props);
+            if (context === "android" || !root && sourceTypes.has(orig) && !controllerTypes.has(orig)) props = sourceProps(props);
         } catch (e) {
             caught("pip source props", e);
         }
         const nextArgs = [props, ...args.slice(1)];
         const ret = orig.apply(self, nextArgs);
+        if (renderFrame.controllerHook) {
+            controllerTypes.add(orig);
+            sourceTypes.delete(orig);
+        } else if (!controllerTypes.has(orig)) sourceTypes.add(orig);
         try {
-            return renderContext ? pipTree(ret, renderContext) : ret;
+            return pipTree(ret, context, gate, renderFrame.binding);
         } catch (e) {
             caught("pip source tree", e);
             return ret;
@@ -634,29 +675,46 @@ function renderPip(orig: Function, self: any, args: any[], context: PipContext, 
         renderContext = previous;
         candidateContext = previousCandidate;
         renderParticipant = previousParticipant;
+        renderFrame = previousFrame;
     }
 }
 
-function rendered(T: any, context: PipContext, root = false): any {
-    if (!T || renderedTypes.has(T)) return T;
-    let byContext = renderedOf.get(T);
+function rendered(T: any, context: PipContext, gate: PipGate, root = false): any {
+    if (!T) return T;
+    T = renderedOriginals.get(T) ?? T;
+    let types = renderedOf.get(gate);
+    if (!types) renderedOf.set(gate, types = new WeakMap());
+    let byContext = types.get(T);
     const key = `${context}:${root}`;
     const found = byContext?.get(key);
     if (found) return found;
     let W: any;
     if (typeof T === "function" && !T.prototype?.isReactComponent) {
-        W = function (this: any, ...args: any[]) { return renderPip(T, this, args, context, root); };
+        W = function (this: any, ...args: any[]) { return renderPip(T, this, args, context, gate, root); };
+    } else if (typeof T === "function" && typeof T.prototype?.render === "function") {
+        W = class extends T {
+            render() {
+                const props = this.props;
+                this.props = cleanBinding(props);
+                try {
+                    return renderPip(T.prototype.render, this, [props], context, gate, root);
+                } finally {
+                    this.props = props;
+                }
+            }
+        };
     } else if (T?.$$typeof === Symbol.for("react.forward_ref") && typeof T.render === "function") {
-        W = React.forwardRef((props: any, ref: any) => renderPip(T.render, undefined, [props, ref], context, root));
+        W = React.forwardRef((props: any, ref: any) => renderPip(T.render, undefined, [props, ref], context, gate, root));
     } else if (T?.$$typeof === Symbol.for("react.memo") && T.type) {
-        W = React.memo(rendered(T.type, context, root), typeof T.compare === "function"
-            ? (a: any, b: any) => a.cheeseburgerPip === b.cheeseburgerPip && T.compare(a, b) : undefined);
+        W = React.memo(rendered(T.type, context, gate, root), typeof T.compare === "function"
+            ? (a: any, b: any) => a.cheeseburgerPip === b.cheeseburgerPip && a[PIP_BINDING]?.revision === b[PIP_BINDING]?.revision
+                && a[PIP_BINDING]?.controller === b[PIP_BINDING]?.controller && T.compare(cleanBinding(a), cleanBinding(b)) : undefined);
     } else return T;
     W.displayName = T.displayName ?? T.name ?? "PipSource";
     if (T.defaultProps) W.defaultProps = T.defaultProps;
-    if (!byContext) renderedOf.set(T, byContext = new Map());
+    if (!byContext) types.set(T, byContext = new Map());
     byContext.set(key, W);
-    renderedTypes.add(W);
+    renderedOriginals.set(W, T);
     return W;
 }
 
@@ -665,6 +723,7 @@ function aware(T: any, path: string): any {
     if (W) return W;
     W = function PipAware(props: any) {
         const [n, force] = React.useReducer((x: number) => x + 1, 0);
+        const gate = React.useRef<PipGate>({ revision: 0 }).current;
         React.useEffect(() => {
             const bump = safe("pip view change", () => {
                 rerenders++;
@@ -688,7 +747,7 @@ function aware(T: any, path: string): any {
         if (/voice_panel/.test(path)) internalRenders++;
         viewShapes.set(path.split("/").pop()!, `takes ${describe(props)}`);
         const context = /external_pip/.test(path) ? "android" : "floating";
-        return React.createElement(rendered(T, context, true), { ...props, cheeseburgerPip: `${pinned ?? ""}:${n}` });
+        return React.createElement(rendered(T, context, gate, true), { ...props, cheeseburgerPip: `${pinned ?? ""}:${n}` });
     };
     awareOf.set(T, W);
     return W;
@@ -696,7 +755,7 @@ function aware(T: any, path: string): any {
 
 const onViewJsx = safe("pip view jsx", (args: any[]) => {
     const t = args[0];
-    if (!running || !t || typeof t === "string" || renderedTypes.has(t)) return;
+    if (!running || !t || typeof t === "string" || renderedOriginals.has(t)) return;
     viewTypeList();
     const path = viewTypes.get(t);
     if (!path) return;
