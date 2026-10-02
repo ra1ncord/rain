@@ -327,6 +327,7 @@ class Shell extends React.Component<{ part: string; props: any; }, { failed: boo
 
 export function startPins() {
     active = true;
+    hookControlsEarly(0);
     G.__cheeseburgerPinImpl = { TilePin: Pin, InlinePin, Marker };
     for (const bump of [...shells]) {
         try {
@@ -337,6 +338,8 @@ export function startPins() {
 
 export function stopPins() {
     active = false;
+    if (controlsTimer) clearTimeout(controlsTimer);
+    controlsTimer = null;
     for (const u of fcUnpatches.splice(0)) {
         try {
             u();
@@ -860,6 +863,51 @@ const addInline = safe("pip pin controls host", (args: any[], ret: any) => {
     const list = ch == null ? [] : Array.isArray(ch) ? ch : [ch];
     if (list.some((c: any) => c?.key === INLINE)) return;
     return { ...ret, props: { ...props, children: [...list, React.createElement(Shell, { key: INLINE, part: "InlinePin", props: { owner: args?.[0] } })] } };
+});
+
+const CONTROLS_PATH = /VoicePanelCardFloatingControls\.tsx$/;
+let controlsTimer: ReturnType<typeof setTimeout> | null = null;
+
+function hookExport(exp: any, key: string, where: string): boolean {
+    const v = exp?.[key];
+    if (!v) return false;
+    if (typeof v === "function") {
+        fcTypes.add(v);
+        fcUnpatches.push(after(key, exp, addInline));
+        fcTypes.add(exp[key]);
+    } else if (typeof v.type === "function") {
+        fcTypes.add(v);
+        fcTypes.add(v.type);
+        fcUnpatches.push(after("type", v, addInline));
+        fcTypes.add(v.type);
+    } else if (typeof v.render === "function") {
+        fcTypes.add(v);
+        fcTypes.add(v.render);
+        fcUnpatches.push(after("render", v, addInline));
+        fcTypes.add(v.render);
+    } else return false;
+    fcType = v;
+    fcNote = `hooked ${where}#${key}`;
+    return true;
+}
+
+const hookControlsEarly = safe("pip pin controls early", (tries = 0) => {
+    controlsTimer = null;
+    if (!active || fcType) return;
+    const mods: any = (window as any).modules ?? {};
+    for (const id of Object.keys(mods)) {
+        const m = mods[id];
+        const path = String(m?.__filePath ?? "");
+        if (!CONTROLS_PATH.test(path)) continue;
+        if (!m.isInitialized) break;
+        try {
+            if (hookExport(m.publicModule?.exports, "default", path.split("/").pop()!)) return;
+        } catch (e) {
+            caught("pip pin controls patch", e);
+            return;
+        }
+    }
+    if (tries < 90) controlsTimer = setTimeout(() => hookControlsEarly(tries + 1), 2000);
 });
 
 function patchControls(chain: any[]) {
