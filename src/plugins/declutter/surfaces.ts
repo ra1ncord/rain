@@ -217,7 +217,7 @@ export function installProfileAndPaymentSurfaces(
             const result = original(...args);
             if (!result) return result;
             const state = settings();
-            const changes: Record<string, null> = {};
+            const changes: Record<string, unknown> = {};
             const fields = [
                 ...(state.hideAvatarDecorations ? ["avatarDecorationURL", "avatarDecorationUrl", "guildMemberAvatarDecoration"] : []),
                 ...(state.hideDisplayNameStyles ? ["displayNameStyles"] : []),
@@ -226,6 +226,14 @@ export function installProfileAndPaymentSurfaces(
             for (const key of fields) {
                 if (result[key] != null) changes[key] = null;
             }
+            const reply = result.referencedMessage?.message;
+            if (state.hideGuildTags && reply && [reply.clanTagGuildId, reply.clanTag, reply.clanBadgeUrl].some(value => value != null)) {
+                changes.referencedMessage = {
+                    ...result.referencedMessage,
+                    message: { ...reply, clanTagGuildId: null, clanTag: null, clanBadgeUrl: null },
+                };
+            }
+
             return Object.keys(changes).length ? { ...result, ...changes } : result;
         }));
         for (const key of ["toSettingListItems", "getScoredSettingListSearchResultItems"]) {
