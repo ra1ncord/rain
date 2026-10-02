@@ -343,6 +343,7 @@ export function stopPins() {
         } catch { }
     }
     fcType = null;
+    fcTypes.clear();
     owners.clear();
     markers.clear();
     latest = null;
@@ -742,7 +743,7 @@ function participantNear(fiber: any): any {
     return null;
 }
 
-const isControls = (f: any) => !!fcType && (f?.elementType === fcType || f?.type === fcType || f?.elementType?.type === fcType || f?.type?.type === fcType);
+const isControls = (f: any) => !!f && (fcTypes.has(f.elementType) || fcTypes.has(f.type) || fcTypes.has(f.elementType?.type) || fcTypes.has(f.type?.type) || fcTypes.size > 0 && /FloatingControls/.test(nameOf(f.elementType ?? f.type)));
 
 function InlinePin({ owner }: { owner: any; }) {
     const on = useSplitViewSettings((s: any) => s.pipPins !== false);
@@ -828,7 +829,8 @@ function InlinePin({ owner }: { owner: any; }) {
                 <Guard>{clone}</Guard>
             </View>;
         }
-    } else if (me.pid && !rec) me.why = "maximize not matched";
+    } else if (me.pid && !rec) me.why = fc.current ? "maximize not matched" : "controls not found above";
+    if (!content && me.why !== "starting") noteInline(`not shown: ${me.why}${me.pid ? "" : " (no tile)"}${rec ? "" : `, markers ${markers.size}`}`);
     return <View
         ref={ref}
         collapsable={false}
@@ -846,6 +848,7 @@ function InlinePin({ owner }: { owner: any; }) {
 }
 
 let fcType: any = null;
+const fcTypes = new Set<any>();
 let fcNote = "waiting for discord's controls";
 const fcUnpatches: (() => unknown)[] = [];
 
@@ -888,10 +891,19 @@ function patchControls(chain: any[]) {
             }
             if (v !== type) continue;
             try {
-                if (typeof v === "function") fcUnpatches.push(after(key, exp, addInline));
-                else if (typeof v?.type === "function") fcUnpatches.push(after("type", v, addInline));
-                else if (typeof v?.render === "function") fcUnpatches.push(after("render", v, addInline));
-                else continue;
+                fcTypes.add(type);
+                if (typeof v === "function") {
+                    fcUnpatches.push(after(key, exp, addInline));
+                    fcTypes.add(exp[key]);
+                } else if (typeof v?.type === "function") {
+                    fcTypes.add(v.type);
+                    fcUnpatches.push(after("type", v, addInline));
+                    fcTypes.add(v.type);
+                } else if (typeof v?.render === "function") {
+                    fcTypes.add(v.render);
+                    fcUnpatches.push(after("render", v, addInline));
+                    fcTypes.add(v.render);
+                } else continue;
                 fcType = type;
                 fcNote = `hooked ${String(m.__filePath ?? id).split("/").pop()}#${key}`;
                 return;
