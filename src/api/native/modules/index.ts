@@ -9,7 +9,7 @@ export function getNativeModule<T = any>(...names: string[]): T | undefined {
             if (module) return module as T;
         }
 
-        if (nmp[name]) return nmp[name] as T;
+        if (nmp?.[name]) return nmp[name] as T;
     }
 
     return undefined;

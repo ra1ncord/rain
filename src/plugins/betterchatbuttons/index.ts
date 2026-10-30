@@ -1,4 +1,5 @@
 import { after, before } from "@api/patcher";
+import { componentTarget } from "@api/react/componentTarget";
 import { logger } from "@lib/utils/logger";
 import { findByTypeDisplayName } from "@metro";
 import { definePlugin } from "@plugins";
@@ -8,9 +9,9 @@ import React from "react";
 import BetterChatButtonsSettings from "./settings";
 import { useBetterChatButtonsSettings } from "./storage";
 
-const ChatInputActions = findByTypeDisplayName("ChatInputActions");
-const ChatInputSendButton = findByTypeDisplayName("ChatInputSendButton");
-const ChatInputRightActions = findByTypeDisplayName("ChatInputRightActions");
+const ChatInputActions = findByTypeDisplayName("ChatInputActions", false);
+const ChatInputSendButton = findByTypeDisplayName("ChatInputSendButton", false);
+const ChatInputRightActions = findByTypeDisplayName("ChatInputRightActions", false);
 
 let actionsRef: React.RefObject<{ onShowActions(): void; onDismissActions(): void }>;
 
@@ -27,9 +28,13 @@ export default definePlugin({
     async start() {
         const state = useBetterChatButtonsSettings.getState();
 
-        if (ChatInputSendButton?.type) {
+        const sendButton = componentTarget(ChatInputSendButton);
+        const rightActions = componentTarget(ChatInputRightActions);
+        const actions = componentTarget(ChatInputActions);
+
+        if (sendButton) {
             unpatches.push(
-                after("render", ChatInputSendButton.type, (args, tree) => {
+                after(sendButton.key, sendButton.parent, (args, tree) => {
                     const item = tree?.props?.children?.props?.items?.[0];
                     if (item && state.hide?.voice) {
                         item.sendVoiceMessageEnabled = false;
@@ -39,17 +44,17 @@ export default definePlugin({
             );
         }
 
-        if (ChatInputRightActions?.type) {
+        if (rightActions) {
             unpatches.push(
-                before("render", ChatInputRightActions.type, ([props]) => {
+                before(rightActions.key, rightActions.parent, ([props]) => {
                     if (props) props.shouldShowGiftButton = !state.hide?.gift;
                 })
             );
         }
 
-        if (ChatInputActions?.type) {
+        if (actions) {
             unpatches.push(
-                before("render", ChatInputActions.type, ([props, ref]) => {
+                before(actions.key, actions.parent, ([props, ref]) => {
                     if (props.isAppLauncherEnabled) props.isAppLauncherEnabled = !state.hide.app;
                     props.canStartThreads = state.show?.thread || !state.hide.thread;
                     props.shouldShowGiftButton = !state.hide.gift;
@@ -58,7 +63,7 @@ export default definePlugin({
             );
 
             unpatches.push(
-                after("render", ChatInputActions.type, () => {
+                after(actions.key, actions.parent, () => {
                     setImmediate(() =>
                         setImmediate(() => {
                             if (actionsRef?.current) {

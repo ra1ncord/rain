@@ -8,7 +8,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "serve": "node scripts/serve.mjs",
-    "lint": "eslint ./src --fix"
+    "lint": "eslint ./src --fix",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs"
   },
   "license": "BSD-3-Clause",
   "devDependencies": {

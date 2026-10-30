@@ -81,7 +81,7 @@ const config = {
                                         "rain-build-info": {
                                             version: `"v0.10.0"`,
                                             supportedVersionsAndroid: '344013',
-                                            supportedVersionsIOS: '110861'
+                                            supportedVersionsIOS: '115636'
                                         }
                                     }
                                 },

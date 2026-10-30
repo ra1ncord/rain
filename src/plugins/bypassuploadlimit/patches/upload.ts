@@ -2,7 +2,7 @@ import { findAssetId } from "@api/assets";
 import { instead } from "@api/patcher";
 import { showToast } from "@api/ui/toasts";
 import { logger } from "@lib/utils/logger";
-import { findByProps, findByPropsLazy } from "@metro";
+import { findByProps } from "@metro";
 import { clipboard } from "@metro/common";
 import { findByProps as findByPropsWrappers } from "@metro/wrappers";
 
@@ -14,11 +14,11 @@ import { uploadToUguu } from "../api/uguu";
 import { uploadToZipline } from "../api/zipline";
 import { formatBytes } from "../lib/utils";
 import { uploaderSettings } from "../storage";
+import { installHooks, resolveFileUtils } from "./capabilities";
 
 const CloudUpload = findByProps("CloudUpload")?.CloudUpload;
 const MessageSender = findByProps("sendMessage");
 const PendingMessages = findByProps("getPendingMessages", "deletePendingMessage");
-const FileUtils = findByPropsLazy("maxFileSize", "anyFileTooLarge");
 
 /** Cleans up any failed pending messages in the channel after an upload. */
 function cleanupPendingMessages(channelId: string) {
@@ -47,9 +47,11 @@ export default function getUploaderPatch(): (() => boolean)[] {
         return [];
     }
 
+    const FileUtils = resolveFileUtils(findByProps);
     const original = CloudUpload.prototype.reactNativeCompressAndExtractData;
+    if (typeof original !== "function") throw new Error("Discord upload preparation API is unavailable");
 
-    CloudUpload.prototype.reactNativeCompressAndExtractData = async function (...args: any[]) {
+    const replacement = async function (...args: any[]) {
         const file = this;
         const size: number = file?.preCompressionSize ?? 0;
         const readableSize = formatBytes(size);
@@ -194,13 +196,20 @@ export default function getUploaderPatch(): (() => boolean)[] {
         return true;
     };
 
-    // Patch sendMessage to support the "insert link" mode
-    const sendMessagePatch = patchSendMessage();
-
-    // Discord cancels oversized uploads before they ever reach the patch above
-    const limitPatch = instead("maxFileSize", FileUtils, () => Number.MAX_SAFE_INTEGER);
-
-    return [unpatch, sendMessagePatch, limitPatch];
+    return installHooks([
+        () => { CloudUpload.prototype.reactNativeCompressAndExtractData = replacement; return unpatch; },
+        patchSendMessage,
+        // Discord rejects oversized files before preparing the upload.
+        () => {
+            const previous = FileUtils.maxFileSize;
+            const restore = instead("maxFileSize", FileUtils, () => Number.MAX_SAFE_INTEGER);
+            if (FileUtils.maxFileSize === previous) {
+                restore();
+                throw new Error("Discord upload size API cannot be patched");
+            }
+            return restore;
+        }
+    ]);
 }
 
 // Module-level variable to hold a pending link for the "insert" mode

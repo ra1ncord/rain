@@ -1,4 +1,5 @@
 import { after } from "@api/patcher";
+import { componentTarget } from "@api/react/componentTarget";
 import { findByNameLazy, findByProps, findByPropsLazy, findByStoreName, findByTypeDisplayName } from "@metro";
 import { ReactNative } from "@metro/common";
 import { ChannelStore, SelectedChannelStore, UserStore } from "@metro/common/stores";
@@ -10,8 +11,8 @@ import ChatboxAvatarSettings from "./settings";
 import { useChatboxAvatarSettings } from "./storage";
 
 const Flux = findByProps("useStateFromStores");
-const ChatInputActions = findByTypeDisplayName("ChatInputActions");
-const ChatInputSendButton = findByTypeDisplayName("ChatInputSendButton");
+const ChatInputActions = findByTypeDisplayName("ChatInputActions", false);
+const ChatInputSendButton = findByTypeDisplayName("ChatInputSendButton", false);
 let hasText = false;
 let sendBtnRef: { setHasText?: (hasText: boolean) => void } | undefined;
 const { Pressable, View, Animated } = ReactNative;
@@ -135,9 +136,10 @@ export default definePlugin({
     requiresRestart: true,
     settings: ChatboxAvatarSettings,
     async start() {
-        if (!ChatInputActions?.type || !ChatInputSendButton?.type) return;
+        const target = componentTarget(ChatInputSendButton);
+        if (!target) return;
         unpatches.push(
-            after("render", ChatInputSendButton.type, (args, ret) => {
+            after(target.key, target.parent, (args, ret) => {
                 setImmediate(() => {
                     setImmediate(() => {
                         if (args?.[1]?.current) {
@@ -158,9 +160,10 @@ export default definePlugin({
 
     },
     async eagerStart() {
-        if (!ChatInputActions?.type || !ChatInputSendButton?.type) return;
+        const target = componentTarget(ChatInputActions);
+        if (!target) return;
         unpatches.push(
-            after("render", ChatInputActions.type, (args, ret) => {
+            after(target.key, target.parent, (args, ret) => {
                 return React.createElement(
                     View,
                     { style: { flexDirection: "row", alignItems: "center" } },
